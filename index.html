@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>幼幼班計算機</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 2;
+        }
+        .row {
+            margin: 5px 0;
+        }
+        .label {
+            display: inline-block;
+            width: 120px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        input {
+            width: 70px;
+            margin-right: 5px;
+        }
+        button {
+            margin: 0 2px;
+        }
+        .commission-buttons {
+            margin: 5px 0;
+            margin-left: 130px;
+        }
+    </style>
+</head>
+<body>
+    <div class="row">
+        <span class="label">期數</span>
+        <input type="text" id="field1">
+        <button onclick="calculateField1()">算</button>
+        <button onclick="clearField('field1')">清</button>
+    </div>
+    <div class="row">
+        <span class="label">稅前利率</span>
+        <input type="text" id="field2">
+        <button onclick="calculateField2()">算</button>
+        <button onclick="clearField('field2')">清</button>
+    </div>
+    <div class="row">
+        <span class="label">本金</span>
+        <input type="text" id="field3">
+        <button onclick="calculateField3()">算</button>
+        <button onclick="clearField('field3')">清</button>
+    </div>
+    <div class="row">
+        <span class="label">月繳</span>
+        <input type="text" id="field4">
+        <button onclick="calculateField4()">算</button>
+        <button onclick="clearField('field4')">清</button>
+    </div>
+    <div class="row">
+        <span class="label">總利息</span>
+        <input type="text" id="field5" readonly>
+    </div>
+    <div class="row">
+        <span class="label">稅金</span>
+        <input type="text" id="field6" readonly>
+    </div>
+    <div class="row">
+        <span class="label">稅後利率</span>
+        <input type="text" id="field7" readonly>
+    </div>
+    <div class="row">
+        <span class="label">佣金</span>
+        <input type="text" id="field8">
+    </div>
+    <div class="commission-buttons">
+        <button onclick="setCommission(0.01)">1</button>
+        <button onclick="setCommission(0.02)">2</button>
+        <button onclick="setCommission(0.03)">3</button>
+        <button onclick="setCommission(0.04)">4</button>
+        <button onclick="setCommission(0.05)">5</button>
+        <button onclick="calculateField9()">算</button>
+        <button onclick="clearField('field8')">清</button>
+    </div>
+    <div class="row">
+        <span class="label">稅佣後</span>
+        <input type="text" id="field9" readonly>
+    </div>
+    <div class="row">
+        <span class="label">每年百萬利息</span>
+        <input type="text" id="field10" readonly>
+    </div>
+    <div class="row">
+        <span class="label">每月百萬利息</span>
+        <input type="text" id="field11" readonly>
+    </div>
+    <div class="row">
+        <span class="label">每年一萬利息</span>
+        <input type="text" id="field12" readonly>
+    </div>
+    <div class="row">
+        <span class="label">每月一萬利息</span>
+        <input type="text" id="field13" readonly>
+    </div>
+
+    <script>
+        function PMT(rate, periods, present) {
+            if (rate === 0) return present / periods;
+            const r = rate / 1200;
+            return present * r * Math.pow(1 + r, periods) / (Math.pow(1 + r, periods) - 1);
+        }
+
+        function NPER(rate, payment, present) {
+            const r = rate / 1200;
+            if (r === 0) return -present / payment;
+            return Math.log(payment / r / (payment / r + present)) / Math.log(1 + r);
+        }
+
+        function RATE(periods, payment, present) {
+            let low = 0;
+            let high = 100;
+            let mid, guess;
+            
+            for (let i = 0; i < 50; i++) {
+                mid = (low + high) / 2;
+                guess = PMT(mid, periods, present);
+                
+                if (Math.abs(guess - payment) < 0.000001) {
+                    return mid;
+                }
+                
+                if (guess > payment) {
+                    high = mid;
+                } else {
+                    low = mid;
+                }
+            }
+            return mid;
+        }
+
+        function calculateAllFields() {
+            const periods = parseFloat(document.getElementById('field1').value);
+            const rate = parseFloat(document.getElementById('field2').value);
+            const principal = parseFloat(document.getElementById('field3').value);
+            const payment = parseFloat(document.getElementById('field4').value);
+
+            // Field 5 - Total Interest
+            const totalPayment = payment * periods;
+            const totalInterest = totalPayment - principal;
+            document.getElementById('field5').value = totalInterest.toFixed(1);
+
+            // Field 6 - Tax
+            const tax = totalInterest / 21;
+            document.getElementById('field6').value = tax.toFixed(1);
+
+            // Field 7 - After-tax Rate
+            const afterTaxRate = RATE(periods, payment, principal + tax);
+            document.getElementById('field7').value = afterTaxRate.toFixed(3);
+
+            // Field 9 - After-tax-and-commission Rate
+            const commission = parseFloat(document.getElementById('field8').value) || 0;
+            const afterTaxCommRate = RATE(periods, payment, principal + tax + commission);
+            document.getElementById('field9').value = afterTaxCommRate.toFixed(3);
+
+            // Field 10 - Annual Interest per Million
+            const millionPayment = PMT(rate, 12, 1000000);
+            const millionTotalInterest = (millionPayment * 12) - 1000000;
+            document.getElementById('field10').value = millionTotalInterest.toFixed(1);
+
+            // Field 11 - Monthly Interest per Million
+            document.getElementById('field11').value = (millionTotalInterest / 12).toFixed(1);
+
+            // Field 12 - Annual Interest per 10k
+            const tenKPayment = PMT(rate, 12, 10000);
+            const tenKTotalInterest = (tenKPayment * 12) - 10000;
+            document.getElementById('field12').value = tenKTotalInterest.toFixed(1);
+
+            // Field 13 - Monthly Interest per 10k
+            document.getElementById('field13').value = (tenKTotalInterest / 12).toFixed(1);
+        }
+
+        function calculateField1() {
+            const rate = parseFloat(document.getElementById('field2').value);
+            const principal = parseFloat(document.getElementById('field3').value);
+            const payment = parseFloat(document.getElementById('field4').value);
+            
+            const periods = NPER(rate, payment, -principal);
+            document.getElementById('field1').value = periods.toFixed(1);
+            
+            calculateAllFields();
+        }
+
+        function calculateField2() {
+            const periods = parseFloat(document.getElementById('field1').value);
+            const principal = parseFloat(document.getElementById('field3').value);
+            const payment = parseFloat(document.getElementById('field4').value);
+            
+            const rate = RATE(periods, payment, principal);
+            document.getElementById('field2').value = rate.toFixed(2);
+            
+            calculateAllFields();
+        }
+
+        function calculateField3() {
+            const periods = parseFloat(document.getElementById('field1').value);
+            const rate = parseFloat(document.getElementById('field2').value);
+            const payment = parseFloat(document.getElementById('field4').value);
+            
+            const r = rate / 1200;
+            const principal = payment * (1 - Math.pow(1 + r, -periods)) / r;
+            document.getElementById('field3').value = principal.toFixed(1);
+            
+            calculateAllFields();
+        }
+
+        function calculateField4() {
+            const periods = parseFloat(document.getElementById('field1').value);
+            const rate = parseFloat(document.getElementById('field2').value);
+            const principal = parseFloat(document.getElementById('field3').value);
+            
+            const payment = PMT(rate, periods, principal);
+            document.getElementById('field4').value = payment.toFixed(2);
+            
+            calculateAllFields();
+        }
+
+        function setCommission(rate) {
+            const principal = parseFloat(document.getElementById('field3').value);
+            document.getElementById('field8').value = (principal * rate).toFixed(1);
+            calculateField9();
+        }
+
+        function calculateField9() {
+            calculateAllFields();
+        }
+
+        function clearField(fieldId) {
+            document.getElementById(fieldId).value = '';
+        }
+    </script>
+</body>
+</html>
