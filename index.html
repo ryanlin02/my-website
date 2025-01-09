@@ -2,40 +2,128 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雞肉飯計算機</title>
+    <title>雞肉飯要每天吃</title>
     <style>
+		:root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+            --hover-color: #357abd;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
         body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            padding: 5px;
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+		h1 {
+            color: var(--primary-color);
+            font-size: 22px;
+            margin-bottom: 0px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
         }
         .row {
-            margin: 10px 0;
+            margin: 5px 0;
             display: flex;
             align-items: center;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
         .label {
             width: 120px;
-            margin-right: 10px;
-            text-align: right;  /* 添加靠右對齊 */
+            margin-right: 15px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--text-color);
         }
         input {
-            width: 70px;
-            padding: 5px;
-            margin-right: 10px;
+            width: 100px;
+            padding: 8px 12px;
+            margin-right: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
         }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
         button {
-            margin: 0 5px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
             padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 14px;
         }
+
+        button:hover {
+            background-color: var(--hover-color);
+        }
+
         .readonly {
-            background-color: #f0f0f0;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        #timeDisplay {
+            margin: 20px 0;
+            font-size: 16px;
+            color: var(--text-color);
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .time-label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        #periodButtons, #rateButtons, #principalButtons, #commissionButtons,#Paymentduring {
+            margin: 10px 0 20px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        #periodButtons button, #rateButtons button, 
+        #principalButtons button, #commissionButtons button,#Paymentduring {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        #periodButtons button:hover, #rateButtons button:hover,
+        #principalButtons button:hover, #commissionButtons button:hover,#Paymentduring:hover {
+            background-color: var(--primary-color);
+            color: white;
         }
     </style>
 </head>
 <body>
-    <h1 style="text-align: left;">雞肉飯計算機</h1>
+     <h1>小朋友專用計算機</h1>
+    <div id="timeDisplay">
+        <span class="time-label">報價時間：</span><span id="currentTime"></span>
+    </div>
     
-    <div class="row">
+<div class="row">
         <span class="label">期數</span>
         <input type="number" id="period" step="0.1">
         <button onclick="calculatePeriod()">算</button>
@@ -43,14 +131,14 @@
     </div>
 
     <div id="periodButtons">
-<button onclick="adjustPeriod(-1)">-1</button>
-<button onclick="setPeriod(12)">1</button>
+		<button onclick="adjustPeriod(-1)">-1</button>
+		<button onclick="setPeriod(12)">1</button>
         <button onclick="setPeriod(24)">2</button>
         <button onclick="setPeriod(36)">3</button>
         <button onclick="setPeriod(48)">4</button>
         <button onclick="setPeriod(60)">5</button>
       <button onclick="adjustPeriod(1)">+1</button>
-</div>
+	</div>
     <div class="row">
         <span class="label">稅前利率</span>
         <input type="number" id="rate" step="0.01">
@@ -59,12 +147,12 @@
     </div>
 
     <div id="rateButtons">
-        <button onclick="adjustRate(-0.25)">-0.25</button>
+        <button onclick="adjustRate(-0.2)">-0.2</button>
         <button onclick="setRate(4)">4</button>
         <button onclick="setRate(7)">7</button>
         <button onclick="setRate(10)">10</button>
         <button onclick="setRate(13)">13</button>
-        <button onclick="adjustRate(0.25)">+0.25</button>
+        <button onclick="adjustRate(0.2)">+0.2</button>
     </div>
     <div class="row">
         <span class="label">本金</span>
@@ -73,12 +161,12 @@
         <button onclick="clearField('principal')">清</button>
     </div>
     <div id="principalButtons">
-<button onclick="adjustPrincipal(-1000000)">-100</button>
-<button onclick="adjustPrincipal(-100000)">-10</button>
-<button onclick="adjustPrincipal(-10000)">-1</button>
+		<button onclick="adjustPrincipal(-1000000)">-100</button>
+		<button onclick="adjustPrincipal(-100000)">-10</button>
+		<button onclick="adjustPrincipal(-10000)">-1</button>
         <button onclick="adjustPrincipal(10000)">+1</button>
-<button onclick="adjustPrincipal(100000)">+10</button>
-<button onclick="adjustPrincipal(1000000)">+100</button>
+		<button onclick="adjustPrincipal(100000)">+10</button>
+		<button onclick="adjustPrincipal(1000000)">+100</button>
     </div>
     <div class="row">
         <span class="label">期繳</span>
@@ -86,8 +174,13 @@
         <button onclick="calculatePayment()">算</button>
         <button onclick="clearField('payment')">清</button>
     </div>
-
-    <div class="row">
+	<div id="Paymentduring">
+		<button onclick="roundPayment('down', 1000)">減千</button>
+		<button onclick="roundPayment('down', 100)">減百</button>
+		<button onclick="roundPayment('up', 100)">加百</button>
+		<button onclick="roundPayment('up', 1000)">加千</button>
+	</div>
+	<div class="row">
         <span class="label">總利息</span>
         <input type="number" id="totalInterest" class="readonly" readonly>
     </div>
@@ -109,6 +202,8 @@
     <div class="row">
         <span class="label">佣金</span>
         <input type="number" id="commission">
+		<button onclick="calculateAfterCommissionRate()">算</button>
+        <button onclick="clearField('commission')">清</button>
     </div>
 
     <div id="commissionButtons">
@@ -117,8 +212,6 @@
         <button onclick="setCommissionPercentage(3)">3</button>
         <button onclick="setCommissionPercentage(4)">4</button>
         <button onclick="setCommissionPercentage(5)">5</button>
-        <button onclick="calculateAfterCommissionRate()">算</button>
-        <button onclick="clearField('commission')">清</button>
     </div>
     <div class="row">
         <span class="label">稅佣後利率</span>
@@ -155,6 +248,35 @@
         <input type="number" id="spread" class="readonly" readonly>
     </div>
 <script>
+	     // 添加更新時間的函數
+        function updateTime() {
+            const now = new Date();
+            const days = ['日', '一', '二', '三', '四', '五', '六'];
+            
+            // 調整為台北時間 (GMT+8)
+            const taipeiTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+            
+            const year = taipeiTime.getUTCFullYear();
+            const month = String(taipeiTime.getUTCMonth() + 1).padStart(2, '0');
+            const date = String(taipeiTime.getUTCDate()).padStart(2, '0');
+            const day = days[taipeiTime.getUTCDay()];
+            const hours = String(taipeiTime.getUTCHours()).padStart(2, '0');
+            const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
+            
+            const timeString = `${year}年${month}月${date}日，星期${day}，${hours}:${minutes}:${seconds}`;
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // 每秒更新一次時間
+        setInterval(updateTime, 1000);
+        updateTime(); // 初始化顯示
+
+        // 原始的JavaScript函數保持不變
+        function PMT(rate, nper, pv) {
+            rate = rate / 100 / 12;
+            return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+        }
         function PMT(rate, nper, pv) {
             rate = rate / 100 / 12;
             return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
@@ -325,6 +447,19 @@
             // Update spread
             const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
             document.getElementById('spread').value = (afterCommissionRate - monthlyCost).toFixed(3);
+        }
+	 function roundPayment(direction, base) {
+            const paymentField = document.getElementById('payment');
+            let value = parseFloat(paymentField.value) || 0;
+            
+            if (direction === 'down') {
+                value = Math.floor(value / base) * base;
+            } else {
+                value = Math.ceil(value / base) * base;
+            }
+            
+            paymentField.value = value.toFixed(2);
+            calculateRate(); // Recalculate the rate
         }
     </script>
 </body>
