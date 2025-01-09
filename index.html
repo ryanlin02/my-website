@@ -63,7 +63,7 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 5px 12px;
             margin: 0 5px;
             border-radius: 4px;
             cursor: pointer;
@@ -96,25 +96,13 @@
             color: var(--primary-color);
         }
 
-        #periodButtons, #rateButtons, #principalButtons, #commissionButtons,#Paymentduring {
+        #periodButtons, #rateButtons, #principalButtons, #commissionButtons,#PaymentduringButtons {
             margin: 10px 0 20px 15px;
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
 
-        #periodButtons button, #rateButtons button, 
-        #principalButtons button, #commissionButtons button,#Paymentduring {
-            background-color: white;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-        }
-
-        #periodButtons button:hover, #rateButtons button:hover,
-        #principalButtons button:hover, #commissionButtons button:hover,#Paymentduring:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
     </style>
 </head>
 <body>
@@ -174,11 +162,11 @@
         <button onclick="calculatePayment()">算</button>
         <button onclick="clearField('payment')">清</button>
     </div>
-	<div id="Paymentduring">
-		<button onclick="roundPayment('down', 1000)">減千</button>
-		<button onclick="roundPayment('down', 100)">減百</button>
-		<button onclick="roundPayment('up', 100)">加百</button>
-		<button onclick="roundPayment('up', 1000)">加千</button>
+	<div id="PaymentduringButtons">
+		<button onclick="roundPayment('down', 1000)">捨千</button>
+		<button onclick="roundPayment('down', 100)">捨百</button>
+		<button onclick="roundPayment('up', 100)">進百</button>
+		<button onclick="roundPayment('up', 1000)">進千</button>
 	</div>
 	<div class="row">
         <span class="label">總利息</span>
