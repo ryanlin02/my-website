@@ -16,6 +16,7 @@
         .label {
             width: 120px;
             margin-right: 10px;
+            text-align: right;  /* 添加靠右對齊 */
         }
         input {
             width: 70px;
@@ -32,56 +33,56 @@
     </style>
 </head>
 <body>
-    <h1>雞肉飯計算機</h1>
+    <h1 style="text-align: left;">雞肉飯計算機</h1>
     
     <div class="row">
         <span class="label">期數</span>
         <input type="number" id="period" step="0.1">
         <button onclick="calculatePeriod()">算</button>
-      <button onclick="clearField('period')">清</button>
-</div>
+        <button onclick="clearField('period')">清</button>
+    </div>
 
     <div id="periodButtons">
-      <button onclick="adjustPeriod(1)">+1</button>
-      <button onclick="setPeriod(12)">1</button>
-      <button onclick="setPeriod(24)">2</button>
-      <button onclick="setPeriod(36)">3</button>
-      <button onclick="setPeriod(48)">4</button>
-      <button onclick="setPeriod(60)">5</button>
-      <button onclick="adjustPeriod(-1)">-1</button>
+        <button onclick="adjustPeriod(1)">+1</button>
+        <button onclick="setPeriod(12)">1</button>
+        <button onclick="setPeriod(24)">2</button>
+        <button onclick="setPeriod(36)">3</button>
+        <button onclick="setPeriod(48)">4</button>
+        <button onclick="setPeriod(60)">5</button>
+        <button onclick="adjustPeriod(-1)">-1</button>
     </div>
     <div class="row">
         <span class="label">稅前利率</span>
         <input type="number" id="rate" step="0.01">
         <button onclick="calculateRate()">算</button>
-      <button onclick="clearField('rate')">清</button>
-</div>
+        <button onclick="clearField('rate')">清</button>
+    </div>
 
     <div id="rateButtons">
-      <button onclick="adjustRate(-0.25)">-0.25</button>
-      <button onclick="setRate(4)">4</button>
-      <button onclick="setRate(7)">7</button>
-      <button onclick="setRate(10)">10</button>
-      <button onclick="setRate(13)">13</button>
-      <button onclick="adjustRate(0.25)">+0.25</button>
+        <button onclick="adjustRate(-0.25)">-0.25</button>
+        <button onclick="setRate(4)">4</button>
+        <button onclick="setRate(7)">7</button>
+        <button onclick="setRate(10)">10</button>
+        <button onclick="setRate(13)">13</button>
+        <button onclick="adjustRate(0.25)">+0.25</button>
     </div>
     <div class="row">
         <span class="label">本金</span>
         <input type="number" id="principal">
         <button onclick="calculatePrincipal()">算</button>
         <button onclick="clearField('principal')">清</button>
-</div>
-<div id="principalButtons">
-      <button onclick="adjustPrincipal(1000000)">+100</button>
-      <button onclick="adjustPrincipal(-1000000)">-100</button>
-      <button onclick="adjustPrincipal(100000)">+10</button>
-      <button onclick="adjustPrincipal(-100000)">-10</button>
-      <button onclick="adjustPrincipal(10000)">+1</button>
-<button onclick="adjustPrincipal(-10000)">-1</button>
-</div>
-<div class="row">
-    <span class="label">期繳</span>
-    <input type="number" id="payment" step="0.01">
+    </div>
+    <div id="principalButtons">
+        <button onclick="adjustPrincipal(1000000)">+100</button>
+        <button onclick="adjustPrincipal(-1000000)">-100</button>
+        <button onclick="adjustPrincipal(100000)">+10</button>
+        <button onclick="adjustPrincipal(-100000)">-10</button>
+        <button onclick="adjustPrincipal(10000)">+1</button>
+        <button onclick="adjustPrincipal(-10000)">-1</button>
+    </div>
+    <div class="row">
+        <span class="label">期繳</span>
+        <input type="number" id="payment" step="0.01">
         <button onclick="calculatePayment()">算</button>
         <button onclick="clearField('payment')">清</button>
     </div>
@@ -90,14 +91,15 @@
         <span class="label">總利息</span>
         <input type="number" id="totalInterest" class="readonly" readonly>
     </div>
-<div class="row"> <span class="label">等於幾碗雞肉飯</span>
-      <input type="number" id="chickenRice" class="readonly" readonly>
+    <div class="row">
+        <span class="label">等於幾碗雞肉飯</span>
+        <input type="number" id="chickenRice" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">稅金</span>
         <input type="number" id="tax" class="readonly" readonly>
-</div>
+    </div>
 
     <div class="row">
         <span class="label">稅後利率</span>
@@ -106,22 +108,22 @@
 
     <div class="row">
         <span class="label">佣金</span>
-      <input type="number" id="commission">
-</div>
+        <input type="number" id="commission">
+    </div>
 
     <div id="commissionButtons">
-      <button onclick="setCommissionPercentage(1)">1</button>
-      <button onclick="setCommissionPercentage(2)">2</button>
-      <button onclick="setCommissionPercentage(3)">3</button>
-      <button onclick="setCommissionPercentage(4)">4</button>
-      <button onclick="setCommissionPercentage(5)">5</button>
-      <button onclick="calculateAfterCommissionRate()">算</button>
-<button onclick="clearField('commission')">清</button>
+        <button onclick="setCommissionPercentage(1)">1</button>
+        <button onclick="setCommissionPercentage(2)">2</button>
+        <button onclick="setCommissionPercentage(3)">3</button>
+        <button onclick="setCommissionPercentage(4)">4</button>
+        <button onclick="setCommissionPercentage(5)">5</button>
+        <button onclick="calculateAfterCommissionRate()">算</button>
+        <button onclick="clearField('commission')">清</button>
     </div>
     <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
-</div>
+    </div>
 
     <div class="row">
         <span class="label">百萬每年利息</span>
