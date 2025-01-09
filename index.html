@@ -43,14 +43,14 @@
     </div>
 
     <div id="periodButtons">
-        <button onclick="adjustPeriod(1)">+1</button>
-        <button onclick="setPeriod(12)">1</button>
+<button onclick="adjustPeriod(-1)">-1</button>
+<button onclick="setPeriod(12)">1</button>
         <button onclick="setPeriod(24)">2</button>
         <button onclick="setPeriod(36)">3</button>
         <button onclick="setPeriod(48)">4</button>
         <button onclick="setPeriod(60)">5</button>
-        <button onclick="adjustPeriod(-1)">-1</button>
-    </div>
+      <button onclick="adjustPeriod(1)">+1</button>
+</div>
     <div class="row">
         <span class="label">稅前利率</span>
         <input type="number" id="rate" step="0.01">
@@ -73,12 +73,12 @@
         <button onclick="clearField('principal')">清</button>
     </div>
     <div id="principalButtons">
-        <button onclick="adjustPrincipal(1000000)">+100</button>
-        <button onclick="adjustPrincipal(-1000000)">-100</button>
-        <button onclick="adjustPrincipal(100000)">+10</button>
-        <button onclick="adjustPrincipal(-100000)">-10</button>
+<button onclick="adjustPrincipal(-1000000)">-100</button>
+<button onclick="adjustPrincipal(-100000)">-10</button>
+<button onclick="adjustPrincipal(-10000)">-1</button>
         <button onclick="adjustPrincipal(10000)">+1</button>
-        <button onclick="adjustPrincipal(-10000)">-1</button>
+<button onclick="adjustPrincipal(100000)">+10</button>
+<button onclick="adjustPrincipal(1000000)">+100</button>
     </div>
     <div class="row">
         <span class="label">期繳</span>
