@@ -73,7 +73,7 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 3px 10px;
+            padding: 3px 8px;
             margin: 0 5px;
             border-radius: 5px;
             cursor: pointer;
@@ -133,6 +133,40 @@
         button {
             flex-shrink: 0;
         }
+		/* 在 style 標籤內的最後添加 */
+		.divider {
+			border-top: 2px solid var(--border-color);
+			margin: 10px 0;
+		}
+
+		.function-buttons {
+			display: flex;
+			justify-content: space-around;
+			margin: 10px 0;
+		}
+
+		.quote-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 20px 0;
+			background: white;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+
+		.quote-table th, .quote-table td {
+			padding: 12px;
+			text-align: left;
+			border-bottom: 1px solid var(--border-color);
+		}
+
+		.quote-table th {
+			background-color: var(--primary-color);
+			color: white;
+		}
+
+		.quote-table tr:nth-child(even) {
+			background-color: var(--secondary-color);
+		}
 
     </style>
 </head>
@@ -272,6 +306,13 @@
         <span class="label">Spread</span>
         <input type="number" id="spread" class="readonly" readonly>
     </div>
+	<!-- 在最後一個 .row div 後面添加 -->
+	<div class="divider"></div>
+	<div class="function-buttons">
+    	<button onclick="location.reload()">全清</button>
+    	<button onclick="saveData()">暫存</button>
+    	<button onclick="generateQuote()">報價截圖</button>
+	</div>
 <script>
 	     // 添加更新時間的函數
         function updateTime() {
@@ -492,11 +533,66 @@
             calculateRate(); // Recalculate the rate
         }
 	function adjustPayment(delta) {
-    const paymentField = document.getElementById('payment');
-    const currentValue = parseFloat(paymentField.value) || 0;
-    paymentField.value = (currentValue + delta).toFixed(2);
-    calculateRate(); // 重新計算利率
+    	const paymentField = document.getElementById('payment');
+    	const currentValue = parseFloat(paymentField.value) || 0;
+    	paymentField.value = (currentValue + delta).toFixed(2);
+    	calculateRate(); // 重新計算利率
+		}
+	function saveData() {
+    const dataToSave = {
+        period: document.getElementById('period').value,
+        rate: document.getElementById('rate').value,
+        principal: document.getElementById('principal').value,
+        payment: document.getElementById('payment').value,
+        commission: document.getElementById('commission').value
+    };
+    localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
+    alert('資料已暫存！');
+}
+
+function generateQuote() {
+    // 創建報價表格
+    const table = document.createElement('table');
+    table.className = 'quote-table';
+    
+    // 添加表格內容
+    const rows = [
+        ['報價時間', document.getElementById('currentTime').textContent],
+        ['稅前利率', document.getElementById('rate').value + '%'],
+        ['本金', document.getElementById('principal').value],
+        ['期繳', document.getElementById('payment').value],
+        ['稅後利率', document.getElementById('afterTaxRate').value + '%'],
+        ['佣金', document.getElementById('commission').value],
+        ['稅佣後利率', document.getElementById('afterCommissionRate').value + '%']
+    ];
+
+    rows.forEach(([label, value]) => {
+        const tr = table.insertRow();
+        tr.insertCell().textContent = label;
+        tr.insertCell().textContent = value;
+    });
+
+    // 創建臨時容器
+    const container = document.createElement('div');
+    container.style.padding = '20px';
+    container.style.background = 'white';
+    container.appendChild(table);
+    document.body.appendChild(container);
+
+    // 使用 html2canvas 轉換為圖片
+    html2canvas(container).then(canvas => {
+        // 移除臨時容器
+        document.body.removeChild(container);
+
+        // 下載圖片
+        const link = document.createElement('a');
+        link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
 }
     </script>
+	<!-- 在 </body> 標籤前添加 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
