@@ -2,9 +2,10 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+	 <meta name="viewport" content="width=430, user-scalable=no">
     <title>雞肉飯要每天吃</title>
     <style>
-		:root {
+        :root {
             --primary-color: #4a90e2;
             --secondary-color: #f5f6fa;
             --text-color: #2c3e50;
@@ -12,13 +13,19 @@
             --hover-color: #357abd;
             --shadow-color: rgba(0, 0, 0, 0.1);
         }
+         html, body {
+            width: 430px;
+            min-width: 430px;
+            margin: 0 auto;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+        
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
             padding: 5px;
             background-color: #f8f9fa;
             color: var(--text-color);
-            max-width: 430px;
-            margin: 0 auto;
         }
 		h1 {
             color: var(--primary-color);
@@ -63,7 +70,7 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 3px 10px;
+            padding: 3px 9px;
             margin: 0 3px;
             border-radius: 4px;
             cursor: pointer;
@@ -108,11 +115,19 @@
             color: var(--primary-color);
         }
 
-        #periodButtons, #rateButtons, #principalButtons, #commissionButtons,#PaymentduringButtons {
+        #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
             margin: 10px 0 20px 15px;
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 8px;
+            width: 100%;
+            overflow-x: visible;
+            white-space: nowrap;
+        }
+        
+        /* 保持按鈕大小一致 */
+        button {
+            flex-shrink: 0;
         }
 
     </style>
