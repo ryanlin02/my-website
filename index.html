@@ -17,7 +17,7 @@
             padding: 5px;
             background-color: #f8f9fa;
             color: var(--text-color);
-            max-width: 400px;
+            max-width: 430px;
             margin: 0 auto;
         }
 		h1 {
@@ -28,13 +28,13 @@
             padding-bottom: 5px;
         }
         .row {
-            margin: 5px 0;
+            margin: 4px 0;
             display: flex;
             align-items: center;
             background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px var(--shadow-color);
+            padding: 3px;
+            border-radius: 20px;
+            box-shadow: 0 3px 15px var(--shadow-color);
         }
         .label {
             width: 120px;
@@ -44,12 +44,12 @@
             color: var(--text-color);
         }
         input {
-            width: 100px;
-            padding: 8px 12px;
+            width: 120px;
+            padding: 5px 12px;
             margin-right: 15px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 15px;
             transition: border-color 0.3s ease;
         }
 
@@ -63,17 +63,29 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 5px 12px;
-            margin: 0 5px;
+            padding: 3px 10px;
+            margin: 0 3px;
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         button:hover {
             background-color: var(--hover-color);
         }
+		
+		 div[id$="Buttons"] button {
+        background-color: white;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        transition: all 0.3s ease;
+    }
+
+    	div[id$="Buttons"] button:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
 
         .readonly {
             background-color: var(--secondary-color);
@@ -81,12 +93,12 @@
         }
 
         #timeDisplay {
-            margin: 20px 0;
-            font-size: 16px;
+            margin: 5px 0;
+            font-size: 15px;
             color: var(--text-color);
             background: white;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 80px;
             box-shadow: 0 2px 4px var(--shadow-color);
         }
 
@@ -106,8 +118,11 @@
     </style>
 </head>
 <body>
+	<div style="text-align: center;">
      <h1>小朋友專用計算機</h1>
-    <div id="timeDisplay">
+	</div>
+	
+    <div id="timeDisplay" style="display: flex; justify-content: center;">
         <span class="time-label">報價時間：</span><span id="currentTime"></span>
     </div>
     
@@ -118,7 +133,7 @@
         <button onclick="clearField('period')">清</button>
     </div>
 
-    <div id="periodButtons">
+    <div id="periodButtons" style="display: flex; justify-content: flex-end;">
 		<button onclick="adjustPeriod(-1)">-1</button>
 		<button onclick="setPeriod(12)">1</button>
         <button onclick="setPeriod(24)">2</button>
@@ -134,7 +149,7 @@
         <button onclick="clearField('rate')">清</button>
     </div>
 
-    <div id="rateButtons">
+    <div id="rateButtons" style="display: flex; justify-content: flex-end;">
         <button onclick="adjustRate(-0.2)">-0.2</button>
         <button onclick="setRate(4)">4</button>
         <button onclick="setRate(7)">7</button>
@@ -148,7 +163,7 @@
         <button onclick="calculatePrincipal()">算</button>
         <button onclick="clearField('principal')">清</button>
     </div>
-    <div id="principalButtons">
+    <div id="principalButtons" style="display: flex; justify-content: flex-end;">
 		<button onclick="adjustPrincipal(-1000000)">-100</button>
 		<button onclick="adjustPrincipal(-100000)">-10</button>
 		<button onclick="adjustPrincipal(-10000)">-1</button>
@@ -162,12 +177,14 @@
         <button onclick="calculatePayment()">算</button>
         <button onclick="clearField('payment')">清</button>
     </div>
-	<div id="PaymentduringButtons">
-		<button onclick="roundPayment('down', 1000)">捨千</button>
-		<button onclick="roundPayment('down', 100)">捨百</button>
-		<button onclick="roundPayment('up', 100)">進百</button>
-		<button onclick="roundPayment('up', 1000)">進千</button>
-	</div>
+	 <div id="PaymentduringButtons" style="display: flex; justify-content: flex-end;">
+        <button onclick="adjustPayment(-100)">-100</button>
+        <button onclick="roundPayment('down', 1000)">捨千</button>
+        <button onclick="roundPayment('down', 100)">捨百</button>
+        <button onclick="roundPayment('up', 100)">進百</button>
+        <button onclick="roundPayment('up', 1000)">進千</button>
+        <button onclick="adjustPayment(100)">+100</button>
+    </div>
 	<div class="row">
         <span class="label">總利息</span>
         <input type="number" id="totalInterest" class="readonly" readonly>
@@ -187,14 +204,14 @@
         <input type="number" id="afterTaxRate" class="readonly" readonly>
     </div>
 
-    <div class="row">
+     <div class="row">
         <span class="label">佣金</span>
         <input type="number" id="commission">
-		<button onclick="calculateAfterCommissionRate()">算</button>
-        <button onclick="clearField('commission')">清</button>
+        <button onclick="calculateAfterCommissionRate()">算</button>
+        <button onclick="clearCommission()">清</button>
     </div>
 
-    <div id="commissionButtons">
+    <div id="commissionButtons" style="display: flex; justify-content: flex-end;">
         <button onclick="setCommissionPercentage(1)">1</button>
         <button onclick="setCommissionPercentage(2)">2</button>
         <button onclick="setCommissionPercentage(3)">3</button>
@@ -228,7 +245,7 @@
 
     <div class="row">
         <span class="label">本月資金成本</span>
-        <input type="number" id="monthlyCost" value="2.09" class="readonly" readonly>
+        <input type="number" id="monthlyCost" value="2.0951" class="readonly" readonly>
     </div>
 
     <div class="row">
@@ -384,6 +401,11 @@
         function clearField(fieldId) {
             document.getElementById(fieldId).value = '';
         }
+	
+		function clearCommission() {
+        	document.getElementById('commission').value = '';
+        	calculateAfterCommissionRate(); // 清除後重新計算稅佣後利率
+    	}
 
         function adjustPeriod(delta) {
             const periodField = document.getElementById('period');
@@ -449,6 +471,12 @@
             paymentField.value = value.toFixed(2);
             calculateRate(); // Recalculate the rate
         }
+	function adjustPayment(delta) {
+    const paymentField = document.getElementById('payment');
+    const currentValue = parseFloat(paymentField.value) || 0;
+    paymentField.value = (currentValue + delta).toFixed(2);
+    calculateRate(); // 重新計算利率
+}
     </script>
 </body>
 </html>
