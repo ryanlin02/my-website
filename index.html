@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-	 <meta name="viewport" content="width=430, user-scalable=no">
+	 <meta name="viewport" content="width=412, user-scalable=no">
     <title>雞肉飯要每天吃</title>
     <style>
         :root {
@@ -14,8 +14,8 @@
             --shadow-color: rgba(0, 0, 0, 0.1);
         }
          html, body {
-            width: 430px;
-            min-width: 430px;
+            width: 412px;
+            min-width: 412px;
             margin: 0 auto;
             overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
@@ -71,7 +71,7 @@
             color: white;
             border: none;
             padding: 3px 9px;
-            margin: 0 3px;
+            margin: 0 5px;
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s ease;
@@ -115,14 +115,15 @@
             color: var(--primary-color);
         }
 
-        #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
-            margin: 10px 0 20px 15px;
+         #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
+            margin: 10px 3px 20px 0;
             display: flex;
             flex-wrap: nowrap;
             gap: 8px;
-            width: 100%;
+            width: calc(100% - 3px);
             overflow-x: visible;
             white-space: nowrap;
+            justify-content: flex-end;
         }
         
         /* 保持按鈕大小一致 */
