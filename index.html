@@ -558,12 +558,14 @@ function generateQuote() {
     // 添加表格內容
     const rows = [
         ['報價時間', document.getElementById('currentTime').textContent],
+		['期數', document.getElementById('period').textContent],
         ['稅前利率', document.getElementById('rate').value + '%'],
         ['本金', document.getElementById('principal').value],
         ['期繳', document.getElementById('payment').value],
         ['稅後利率', document.getElementById('afterTaxRate').value + '%'],
         ['佣金', document.getElementById('commission').value],
-        ['稅佣後利率', document.getElementById('afterCommissionRate').value + '%']
+        ['稅佣利率', document.getElementById('afterCommissionRate').value + '%']
+		['雞肉飯', '你今天吃了嗎？']
     ];
 
     rows.forEach(([label, value]) => {
