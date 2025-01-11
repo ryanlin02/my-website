@@ -15,6 +15,8 @@
         --button-orange: #ff9c33;
         --button-blue: #33b5e5;
 		--button-grey: #333333;
+		--transition-speed: 0.3s;
+    	--transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     html, body {
@@ -33,9 +35,9 @@
     h1 {
         color: var(--text-color);
         font-size: 22px;
-        margin-bottom: 0px;
-        border-bottom: 2px solid var(--button-orange);
-        padding-bottom: 5px;
+        margin-bottom: 5px;
+        border-bottom: 3px solid var(--button-orange);
+        padding-bottom: 10px;
     }
 		
 
@@ -45,9 +47,21 @@
         align-items: center;
         background: var(--secondary-color);
         padding: 3px;
-        border-radius: 4px;
+        border-radius: 7px;
         box-shadow: 0 4px 8px var(--shadow-color);
+		opacity: 0;
+    	animation: fadeIn 0.5s ease-out forwards;
     }
+		@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 
     .label {
         width: 120px;
@@ -64,15 +78,19 @@
         background-color: #222222;
         color: var(--text-color);
         border: 1px solid var(--border-color);
-        border-radius: 4px;
+        border-radius: 7px;
         font-size: 15px;
         transition: border-color 0.3s ease;
+		transform: translateY(0);
+    	transition: all var(--transition-speed) var(--transition-timing);
     }
 
     input:focus {
         outline: none;
         border-color: var(--button-blue);
         box-shadow: 0 0 0 2px rgba(51, 181, 229, 0.2);
+		transform: translateY(-1px);
+    	box-shadow: 0 2px 8px rgba(51, 181, 229, 0.3);
     }
 
     button {
@@ -81,15 +99,22 @@
         border: 1px solid var(--border-color);
         padding: 3px 8px;
         margin: 0 5px;
-        border-radius: 4px;
+        border-radius: 7px;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+		transform: translateY(0);
+    	transition: all var(--transition-speed) var(--transition-timing);
         font-size: 15px;
     }
 
     button:hover {
+		transform: translateY(-1px);
+    	box-shadow: 0 2px 8px var(--shadow-color);
         background-color: var(--hover-color);
     }
+	button:active {
+		transform: translateY(1px);
+		box-shadow: none;
+	}
 	
 	.row button {
         background-color: var(--secondary-color);
@@ -97,7 +122,7 @@
         border: 1px solid var(--button-grey);  /* 使用深灰色邊框 */
         padding: 3px 8px;
         margin: 0 5px;
-        border-radius: 4px;
+        border-radius: 7px;
         cursor: pointer;
         transition: all 0.3s ease;  /* 添加 all 以實現完整的過渡效果 */
         font-size: 15px;
@@ -121,7 +146,7 @@
         border: 1px solid var(--button-orange);
         padding: 4px 9px;  /* 將左右內邊距從 8px 改為 6px */
         margin: 0 4px;     /* 將左右外邊距改為 2px */
-        border-radius: 4px;
+        border-radius: 7px;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 15px;
@@ -144,7 +169,11 @@
         padding: 8px;
         border-radius: 4px;
         box-shadow: 0 2px 4px var(--shadow-color);
+		transition: all var(--transition-speed) var(--transition-timing);
     }
+		#currentTime {
+    transition: opacity 0.2s ease-in-out;
+}
 
     .time-label {
         font-weight: bold;
