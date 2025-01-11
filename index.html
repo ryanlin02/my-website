@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=400, user-scalable=no">
     <title>雞肉飯要每天吃</title>
     <style>
     :root {
@@ -443,6 +443,10 @@
             rate = rate / 100 / 12;
             return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
         }
+        function PMT(rate, nper, pv) {
+            rate = rate / 100 / 12;
+            return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+        }
 
         function RATE(nper, pmt, pv) {
             let rate = 0.1;
@@ -694,7 +698,17 @@
     	paymentField.value = (currentValue + delta).toFixed(2);
     	calculateRate(); // 重新計算利率
 		}
-	
+	function saveData() {
+    const dataToSave = {
+        period: document.getElementById('period').value,
+        rate: document.getElementById('rate').value,
+        principal: document.getElementById('principal').value,
+        payment: document.getElementById('payment').value,
+        commission: document.getElementById('commission').value
+    };
+    localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
+    alert('資料已暫存！');
+}
 
 	function generateQuote() {
 		console.log('開始生成報價...'); // 新增偵錯訊息
@@ -751,19 +765,6 @@
         document.body.removeChild(container); // 確保清理臨時容器
     });
 }
-	function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-const debouncedUpdateAllFields = debounce(updateAllFields, 250);
     </script>
 	<!-- 在 </body> 標籤前添加 -->
 	<div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
