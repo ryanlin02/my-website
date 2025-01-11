@@ -402,7 +402,7 @@
             const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
             const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
             
-            const timeString = `${year}年${month}月${date}日
+            const timeString = `${year}年${month}月${date}日<br>
 				星期${day} ${hours}:${minutes}:${seconds}`;
             document.getElementById('currentTime').textContent = timeString;
         }
