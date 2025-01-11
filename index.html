@@ -402,7 +402,7 @@
             const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
             const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
             
-            const timeString = `${year}年${month}月${date}日<br>
+            const timeString = `${year}年${month}月${date}日
 				星期${day} ${hours}:${minutes}:${seconds}`;
             document.getElementById('currentTime').textContent = timeString;
         }
@@ -652,13 +652,13 @@
 
     // 創建臨時容器
     const container = document.createElement('div');
-	container.style.padding = '20px';
-	container.style.background = '#333333';
-	container.style.borderRadius = '12px';
-    container.appendChild(table);
-    document.body.appendChild(container);
+		container.style.padding = '20px';
+		container.style.background = '#333333';
+		container.style.borderRadius = '12px';
+		container.appendChild(table);
+		document.body.appendChild(container);
 
-    console.log('準備進行截圖...'); // 新增偵錯訊息
+		console.log('準備進行截圖...'); // 新增偵錯訊息
 
     // 使用 html2canvas 轉換為圖片
     html2canvas(container).then(canvas => {
