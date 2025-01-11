@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-	<meta name="viewport" content="width=400, user-scalable=no">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>雞肉飯要每天吃</title>
     <style>
     :root {
@@ -37,6 +37,7 @@
         border-bottom: 2px solid var(--button-orange);
         padding-bottom: 5px;
     }
+		
 
     .row {
         margin: 4px 0;
@@ -140,7 +141,7 @@
         font-size: 15px;
         background: var(--secondary-color);
         color: var(--text-color);
-        padding: 10px;
+        padding: 8px;
         border-radius: 4px;
         box-shadow: 0 2px 4px var(--shadow-color);
     }
@@ -259,6 +260,10 @@
 		height: 30px;
 		margin-top: 0px;
 	}
+		.warning-text {
+		color: #ff0000 !important;
+		font-weight: bold !important;
+	}
 </style>
 </head>
 <body>
@@ -279,7 +284,7 @@
 
     <div id="periodButtons" style="display: flex; justify-content: flex-end;">
 		<button onclick="adjustPeriod(-1)">-1</button>
-		<button onclick="setPeriod(12)">1</button>
+		<button onclick="setPeriod(13)">底</button>
         <button onclick="setPeriod(24)">2</button>
         <button onclick="setPeriod(36)">3</button>
         <button onclick="setPeriod(48)">4</button>
@@ -356,12 +361,15 @@
         <button onclick="clearCommission()">清</button>
     </div>
 
+
     <div id="commissionButtons" style="display: flex; justify-content: flex-end;">
+        <button onclick="adjustCommissionPercentage(-0.1)">-10</button>
         <button onclick="setCommissionPercentage(1)">1</button>
         <button onclick="setCommissionPercentage(2)">2</button>
         <button onclick="setCommissionPercentage(3)">3</button>
         <button onclick="setCommissionPercentage(4)">4</button>
         <button onclick="setCommissionPercentage(5)">5</button>
+        <button onclick="adjustCommissionPercentage(0.1)">+10</button>
     </div>
     <div class="row">
         <span class="label">稅佣後利率</span>
@@ -431,10 +439,6 @@
         updateTime(); // 初始化顯示
 
         // 原始的JavaScript函數保持不變
-        function PMT(rate, nper, pv) {
-            rate = rate / 100 / 12;
-            return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
-        }
         function PMT(rate, nper, pv) {
             rate = rate / 100 / 12;
             return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
@@ -510,46 +514,84 @@
         }
 
         function updateAllFields() {
-            const period = parseFloat(document.getElementById('period').value);
-            const rate = parseFloat(document.getElementById('rate').value);
-            const principal = parseFloat(document.getElementById('principal').value);
-            const payment = parseFloat(document.getElementById('payment').value);
+			// 獲取基本值
+			const period = parseFloat(document.getElementById('period').value);
+			const rate = parseFloat(document.getElementById('rate').value);
+			const principal = parseFloat(document.getElementById('principal').value);
+			const payment = parseFloat(document.getElementById('payment').value);
+			const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
 
-            // Calculate total interest
-            const totalInterest = (payment * period) - principal;
-            document.getElementById('totalInterest').value = totalInterest.toFixed(2);
+			// 要求1: 期數檢查
+			const periodInput = document.getElementById('period');
+			if (period <= 12) {
+				periodInput.classList.add('warning-text');
+			} else {
+				periodInput.classList.remove('warning-text');
+			}
 
-            // Calculate tax
-            const tax = totalInterest / 21;
-            document.getElementById('tax').value = tax.toFixed(2);
+			// 計算總利息
+			const totalInterest = (payment * period) - principal;
+			// 要求2: 總利息格式化到小數點第1位
+			document.getElementById('totalInterest').value = totalInterest.toFixed(1);
 
-            // Calculate after-tax rate
-            const afterTaxRate = RATE(period, payment, principal + tax);
-            document.getElementById('afterTaxRate').value = afterTaxRate.toFixed(3);
+			// 計算稅金
+			const tax = totalInterest / 21;
+			document.getElementById('tax').value = tax.toFixed(2);
 
-            // Calculate after-commission rate
-            calculateAfterCommissionRate();
+			// 計算稅後利率
+			const afterTaxRate = RATE(period, payment, principal + tax);
+			// 要求3: 稅後利率格式化和警告
+			const afterTaxRateInput = document.getElementById('afterTaxRate');
+			afterTaxRateInput.value = afterTaxRate.toFixed(2);
+			if (afterTaxRate <= 2.5) {
+				afterTaxRateInput.classList.add('warning-text');
+			} else {
+				afterTaxRateInput.classList.remove('warning-text');
+			}
 
-            // Calculate million interest
-            const millionPayment = PMT(rate, 12, 1000000);
-            const annualMillionInterest = (millionPayment * 12) - 1000000;
-            document.getElementById('annualMillionInterest').value = annualMillionInterest.toFixed(2);
-            document.getElementById('monthlyMillionInterest').value = (annualMillionInterest / 12).toFixed(2);
+			// 要求4: 佣金格式化
+			const commission = parseFloat(document.getElementById('commission').value) || 0;
+			document.getElementById('commission').value = commission.toFixed(1);
 
-            // Calculate ten thousand interest
-            const tenThousandPayment = PMT(rate, 12, 10000);
-            const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
-            document.getElementById('annualTenThousandInterest').value = annualTenThousandInterest.toFixed(2);
-            document.getElementById('monthlyTenThousandInterest').value = (annualTenThousandInterest / 12).toFixed(2);
+			// 計算稅佣後利率
+			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
+			// 要求5: 稅佣後利率格式化和警告
+			const afterCommissionRateInput = document.getElementById('afterCommissionRate');
+			afterCommissionRateInput.value = afterCommissionRate.toFixed(2);
+			if (afterCommissionRate <= 2.5) {
+				afterCommissionRateInput.classList.add('warning-text');
+			} else {
+				afterCommissionRateInput.classList.remove('warning-text');
+			}
 
-            // Calculate spread
-            const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
-            const afterCommissionRate = parseFloat(document.getElementById('afterCommissionRate').value);
-            document.getElementById('spread').value = (afterCommissionRate - monthlyCost).toFixed(3);
+			// 計算百萬利息
+			const millionPayment = PMT(rate, 12, 1000000);
+			const annualMillionInterest = (millionPayment * 12) - 1000000;
+			// 要求6-7: 百萬利息格式化
+			document.getElementById('annualMillionInterest').value = annualMillionInterest.toFixed(1);
+			document.getElementById('monthlyMillionInterest').value = (annualMillionInterest / 12).toFixed(1);
 
-            // Calculate chicken rice bowls
-            document.getElementById('chickenRice').value = Math.floor(totalInterest / 35);
-        }
+			// 計算一萬利息
+			const tenThousandPayment = PMT(rate, 12, 10000);
+			const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
+			// 要求8-9: 一萬利息格式化
+			document.getElementById('annualTenThousandInterest').value = annualTenThousandInterest.toFixed(1);
+			document.getElementById('monthlyTenThousandInterest').value = (annualTenThousandInterest / 12).toFixed(1);
+
+			// 計算 Spread
+			const spread = afterCommissionRate - monthlyCost;
+			// 要求10: Spread 警告
+			const spreadInput = document.getElementById('spread');
+			spreadInput.value = spread.toFixed(3);
+			if (spread <= 0) {
+				spreadInput.classList.add('warning-text');
+			} else {
+				spreadInput.classList.remove('warning-text');
+			}
+
+			// 計算雞肉飯碗數
+			document.getElementById('chickenRice').value = Math.floor(totalInterest / 35);
+		}
 
         function clearField(fieldId) {
             document.getElementById(fieldId).value = '';
@@ -559,6 +601,28 @@
         	document.getElementById('commission').value = '';
         	calculateAfterCommissionRate(); // 清除後重新計算稅佣後利率
     	}
+	
+		function adjustCommissionPercentage(delta) {
+			const commissionField = document.getElementById('commission');
+			const currentValue = parseFloat(commissionField.value) || 0;
+			let newValue;
+
+			if (delta > 0) {
+				// 當按下 +10 時，乘以 1.1
+				newValue = currentValue * 1.1;
+			} else {
+				// 當按下 -10 時，乘以 0.9
+				newValue = currentValue * 0.9;
+			}
+
+			// 進位至百位數
+			newValue = Math.ceil(newValue / 100) * 100;
+
+			// 更新佣金欄位的值，保留兩位小數
+			commissionField.value = newValue.toFixed(2);
+
+			calculateAfterCommissionRate(); // 更新稅佣後利率
+		}
 
         function adjustPeriod(delta) {
             const periodField = document.getElementById('period');
@@ -630,17 +694,7 @@
     	paymentField.value = (currentValue + delta).toFixed(2);
     	calculateRate(); // 重新計算利率
 		}
-	function saveData() {
-    const dataToSave = {
-        period: document.getElementById('period').value,
-        rate: document.getElementById('rate').value,
-        principal: document.getElementById('principal').value,
-        payment: document.getElementById('payment').value,
-        commission: document.getElementById('commission').value
-    };
-    localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
-    alert('資料已暫存！');
-}
+	
 
 	function generateQuote() {
 		console.log('開始生成報價...'); // 新增偵錯訊息
@@ -697,6 +751,19 @@
         document.body.removeChild(container); // 確保清理臨時容器
     });
 }
+	function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+const debouncedUpdateAllFields = debounce(updateAllFields, 250);
     </script>
 	<!-- 在 </body> 標籤前添加 -->
 	<div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
