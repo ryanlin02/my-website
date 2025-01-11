@@ -551,6 +551,8 @@
 }
 
 function generateQuote() {
+    console.log('開始生成報價...'); // 新增偵錯訊息
+    
     // 創建報價表格
     const table = document.createElement('table');
     table.className = 'quote-table';
@@ -558,16 +560,17 @@ function generateQuote() {
     // 添加表格內容
     const rows = [
         ['報價時間', document.getElementById('currentTime').textContent],
-		['期數', document.getElementById('period').textContent],
-        ['稅前利率', document.getElementById('rate').value + '%'],
-        ['本金', document.getElementById('principal').value],
-        ['期繳', document.getElementById('payment').value],
-        ['稅後利率', document.getElementById('afterTaxRate').value + '%'],
-        ['佣金', document.getElementById('commission').value],
-        ['稅佣利率', document.getElementById('afterCommissionRate').value + '%']
-		['雞肉飯', '你今天吃了嗎？']
+        ['期數', document.getElementById('period').value || ''],
+        ['稅前利率', (document.getElementById('rate').value || '') + '%'],
+        ['本金', document.getElementById('principal').value || ''],
+        ['期繳', document.getElementById('payment').value || ''],
+        ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
+        ['佣金', document.getElementById('commission').value || ''],
+        ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%'],
+        ['雞肉飯', document.getElementById('chickenRice').value + ' 碗']
     ];
 
+    // 建立表格內容
     rows.forEach(([label, value]) => {
         const tr = table.insertRow();
         tr.insertCell().textContent = label;
@@ -581,8 +584,12 @@ function generateQuote() {
     container.appendChild(table);
     document.body.appendChild(container);
 
+    console.log('準備進行截圖...'); // 新增偵錯訊息
+
     // 使用 html2canvas 轉換為圖片
     html2canvas(container).then(canvas => {
+        console.log('Canvas 已生成'); // 新增偵錯訊息
+        
         // 移除臨時容器
         document.body.removeChild(container);
 
@@ -590,7 +597,11 @@ function generateQuote() {
         const link = document.createElement('a');
         link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
         link.href = canvas.toDataURL();
+        console.log('準備下載...'); // 新增偵錯訊息
         link.click();
+    }).catch(error => {
+        console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
+        document.body.removeChild(container); // 確保清理臨時容器
     });
 }
     </script>
