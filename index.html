@@ -5,170 +5,219 @@
 	<meta name="viewport" content="width=400, user-scalable=no">
     <title>雞肉飯要每天吃</title>
     <style>
-        :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #f5f6fa;
-            --text-color: #2c3e50;
-            --border-color: #dcdde1;
-            --hover-color: #357abd;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-        }
-        
-        /* 設定固定寬度和防止內容溢出 */
-        html, body {
-            width: 400px;
-            min-width: 400px;
-            margin: 0 auto;
-            overflow-x: hidden;
-            -webkit-text-size-adjust: 100%;
-            padding: 0 5px;
-        }
-        
-        body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif;
-            padding: 5px 0;
-            background-color: #f8f9fa;
-            color: var(--text-color);
-        }
-		h1 {
-            color: var(--primary-color);
-            font-size: 22px;
-            margin-bottom: 0px;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 5px;
-        }
-        .row {
-            margin: 4px 0;
-            display: flex;
-            align-items: center;
-            background: white;
-            padding: 3px;
-            border-radius: 1px;
-            box-shadow: 0 4px 10px var(--shadow-color);
-        }
-        .label {
-            width: 120px;
-            margin-right: 15px;
-            text-align: right;
-            font-weight: 600;
-            color: var(--text-color);
-        }
-        input {
-            width: 120px;
-            padding: 5px 12px;
-            margin-right: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 15px;
-            transition: border-color 0.3s ease;
-        }
+    :root {
+        --primary-color: #333333;
+        --secondary-color: #4a4a4a;
+        --text-color: #ffffff;
+        --border-color: #555555;
+        --hover-color: #666666;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --button-orange: #ff9c33;
+        --button-blue: #33b5e5;
+		--button-grey: #333333;
+    }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
-        }
+    html, body {
+        width: 400px;
+        min-width: 400px;
+        margin: 0 auto;
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+        padding: 0 5px;
+        background-color: #333333;
+        color: var(--text-color);
+        font-family: "Microsoft JhengHei", Arial, sans-serif;
+    }
 
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 3px 8px;
-            margin: 0 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            font-size: 15px;
-        }
+    h1 {
+        color: var(--text-color);
+        font-size: 22px;
+        margin-bottom: 0px;
+        border-bottom: 2px solid var(--button-orange);
+        padding-bottom: 5px;
+    }
 
-        button:hover {
-            background-color: var(--hover-color);
-        }
-		
-		 div[id$="Buttons"] button {
-        background-color: white;
-        color: var(--primary-color);
-        border: 1px solid var(--primary-color);
+    .row {
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        background: var(--secondary-color);
+        padding: 3px;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px var(--shadow-color);
+    }
+
+    .label {
+        width: 120px;
+        margin-right: 15px;
+        text-align: right;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    input {
+        width: 120px;
+        padding: 5px 12px;
+        margin-right: 15px;
+        background-color: #222222;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 15px;
+        transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--button-blue);
+        box-shadow: 0 0 0 2px rgba(51, 181, 229, 0.2);
+    }
+
+    button {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        padding: 3px 8px;
+        margin: 0 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-size: 15px;
+    }
+
+    button:hover {
+        background-color: var(--hover-color);
+    }
+	
+	.row button {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        border: 1px solid var(--button-grey);  /* 使用深灰色邊框 */
+        padding: 3px 8px;
+        margin: 0 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;  /* 添加 all 以實現完整的過渡效果 */
+        font-size: 15px;
+    }
+
+    .row button:hover {
+        background-color: var(--button-orange);  /* 懸停時變為橙色背景 */
+        color: var(--text-color);
+        border-color: var(--button-orange);  /* 邊框也變為橙色 */
+    }
+
+    .row button:active {
+        background-color: var(--secondary-color);  /* 點擊時恢復原本顏色 */
+        color: var(--text-color);
+        border-color: var(--button-grey);
+    }
+
+    div[id$="Buttons"] button {
+        background-color: var(--secondary-color);
+        color: var(--button-orange);
+        border: 1px solid var(--button-orange);
         transition: all 0.3s ease;
     }
 
-    	div[id$="Buttons"] button:hover {
-        background-color: var(--primary-color);
-        color: white;
+    div[id$="Buttons"] button:hover {
+        background-color: var(--button-orange);
+        color: var(--text-color);
     }
 
-        .readonly {
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-        }
+    .readonly {
+        background-color: #222222;
+    }
 
-        #timeDisplay {
-            margin: 5px 0;
-            font-size: 15px;
-            color: var(--text-color);
-            background: white;
-            padding: 10px;
-            border-radius: 1px;
-            box-shadow: 0 2px 4px var(--shadow-color);
-        }
+    #timeDisplay {
+        margin: 5px 0;
+        font-size: 15px;
+        background: var(--secondary-color);
+        color: var(--text-color);
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+    }
 
-        .time-label {
-            font-weight: bold;
-            margin-right: 10px;
-            color: var(--primary-color);
-        }
+    .time-label {
+        font-weight: bold;
+        margin-right: 10px;
+        color: var(--button-orange);
+    }
 
-         #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
-            margin: 2px 2px 5px 2;
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 8px;
-            width: calc(100% - 2%);
-            overflow-x: visible;
-            white-space: nowrap;
-            justify-content: flex-end;
-        }
-        
-        /* 保持按鈕大小一致 */
-        button {
-            flex-shrink: 0;
-        }
-		/* 在 style 標籤內的最後添加 */
-		.divider {
-			border-top: 2px solid var(--border-color);
-			margin: 10px 0;
-		}
+    #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
+        margin: 2px 2px 5px 2;
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 8px;
+        width: calc(100% - 2%);
+        overflow-x: visible;
+        white-space: nowrap;
+        justify-content: flex-end;
+    }
 
-		.function-buttons {
-			display: flex;
-			justify-content: space-around;
-			margin: 10px 0;
-		}
+    button {
+        flex-shrink: 0;
+    }
 
-		.quote-table {
-			width: 100%;
-			border-collapse: collapse;
-			margin: 20px 0;
-			background: white;
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-		}
+    .divider {
+        border-top: 2px solid var(--border-color);
+        margin: 10px 0;
+    }
 
-		.quote-table th, .quote-table td {
-			padding: 12px;
-			text-align: left;
-			border-bottom: 1px solid var(--border-color);
-		}
+    .function-buttons {
+        display: flex;
+        justify-content: space-around;
+        margin: 10px 0;
+    }
 
-		.quote-table th {
-			background-color: var(--primary-color);
-			color: white;
-		}
+    .quote-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: var(--secondary-color);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-		.quote-table tr:nth-child(even) {
-			background-color: var(--secondary-color);
-		}
+    .quote-table th, .quote-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
 
-    </style>
+    .quote-table th {
+        background-color: var(--button-orange);
+        color: var(--text-color);
+    }
+
+    .quote-table tr:nth-child(even) {
+        background-color: var(--secondary-color);
+    }
+
+    .function-buttons button {
+    background-color: var(--secondary-color);
+    color: var(--button-orange);      /* 改為橘色文字 */
+    border: 1px solid var(--button-orange);  /* 改為橘色邊框 */
+    padding: 3px 8px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.function-buttons button:hover {
+    background-color: var(--button-orange);
+    color: var(--text-color);
+    border-color: var(--button-orange);
+}
+
+.function-buttons button:active {
+    background-color: var(--secondary-color);
+    color: var(--button-orange);
+    border-color: var(--button-orange);
+}
+</style>
 </head>
 <body>
 	<div style="text-align: center;">
@@ -233,10 +282,10 @@
     </div>
 	 <div id="PaymentduringButtons" style="display: flex; justify-content: flex-end;">
         <button onclick="adjustPayment(-100)">-100</button>
-        <button onclick="roundPayment('down', 1000)">捨千</button>
+		 <button onclick="adjustPayment(-50)">-50</button>
         <button onclick="roundPayment('down', 100)">捨百</button>
         <button onclick="roundPayment('up', 100)">進百</button>
-        <button onclick="roundPayment('up', 1000)">進千</button>
+		 <button onclick="adjustPayment(50)">+50</button>
         <button onclick="adjustPayment(100)">+100</button>
     </div>
 	<div class="row">
@@ -309,8 +358,8 @@
 	<!-- 在最後一個 .row div 後面添加 -->
 	<div class="divider"></div>
 	<div class="function-buttons">
-    	<button onclick="location.reload()">全清</button>
-    	<button onclick="saveData()">暫存</button>
+    	<button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
+		<button onclick="location.reload()">全清</button>
     	<button onclick="generateQuote()">截圖</button>
 	</div>
 <script>
