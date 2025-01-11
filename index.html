@@ -173,27 +173,47 @@
     }
 
     .quote-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 20px 0;
-        background: var(--secondary-color);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+    	width: 100%;
+    	border-collapse: separate;
+    	border-spacing: 0;
+		margin: 20px 0;
+		background: var(--primary-color);
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 0 4px 12px var(--shadow-color);
+	}
 
-    .quote-table th, .quote-table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid var(--border-color);
-    }
+	.quote-table tr {
+		background: var(--secondary-color);
+		transition: background-color 0.3s ease;
+	}
 
-    .quote-table th {
-        background-color: var(--button-orange);
-        color: var(--text-color);
-    }
+	.quote-table tr:hover {
+		background: var(--hover-color);
+	}
 
-    .quote-table tr:nth-child(even) {
-        background-color: var(--secondary-color);
-    }
+	.quote-table td {
+		padding: 16px 20px;
+		border-bottom: 1px solid var(--border-color);
+		color: var(--text-color);
+	}
+
+	.quote-table td:first-child {
+		width: 120px;
+		white-space: nowrap;
+		color: var(--button-orange);
+		font-weight: 600;
+	}
+
+	.quote-table td:last-child {
+		text-align: right;
+		font-family: monospace;
+		font-size: 1.1em;
+	}
+
+	.quote-table tr:last-child td {
+		border-bottom: none;
+	}
 
     .function-buttons button {
     background-color: var(--secondary-color);
@@ -600,9 +620,9 @@
     alert('資料已暫存！');
 }
 
-function generateQuote() {
-    console.log('開始生成報價...'); // 新增偵錯訊息
-    
+	function generateQuote() {
+		console.log('開始生成報價...'); // 新增偵錯訊息
+
     // 創建報價表格
     const table = document.createElement('table');
     table.className = 'quote-table';
@@ -629,8 +649,9 @@ function generateQuote() {
 
     // 創建臨時容器
     const container = document.createElement('div');
-    container.style.padding = '20px';
-    container.style.background = 'white';
+	container.style.padding = '20px';
+	container.style.background = '#333333';
+	container.style.borderRadius = '12px';
     container.appendChild(table);
     document.body.appendChild(container);
 
