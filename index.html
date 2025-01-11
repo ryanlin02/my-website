@@ -203,6 +203,8 @@
 		white-space: nowrap;
 		color: var(--button-orange);
 		font-weight: 600;
+		text-align: right;
+		padding-right: 30px;
 	}
 
 	.quote-table td:last-child {
@@ -216,28 +218,28 @@
 	}
 
     .function-buttons button {
-    background-color: var(--secondary-color);
-    color: var(--button-orange);      /* 改為橘色文字 */
-    border: 1px solid var(--button-orange);  /* 改為橘色邊框 */
-    padding: 3px 8px;
-    margin: 0 5px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 15px;
-}
+		background-color: var(--secondary-color);
+		color: var(--button-orange);      /* 改為橘色文字 */
+		border: 1px solid var(--button-orange);  /* 改為橘色邊框 */
+		padding: 3px 8px;
+		margin: 0 5px;
+		border-radius: 4px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		font-size: 15px;
+	}
 
-.function-buttons button:hover {
-    background-color: var(--button-orange);
-    color: var(--text-color);
-    border-color: var(--button-orange);
-}
+	.function-buttons button:hover {
+		background-color: var(--button-orange);
+		color: var(--text-color);
+		border-color: var(--button-orange);
+	}
 
-.function-buttons button:active {
-    background-color: var(--secondary-color);
-    color: var(--button-orange);
-    border-color: var(--button-orange);
-}
+	.function-buttons button:active {
+		background-color: var(--secondary-color);
+		color: var(--button-orange);
+		border-color: var(--button-orange);
+	}
 </style>
 </head>
 <body>
@@ -400,7 +402,8 @@
             const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
             const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
             
-            const timeString = `${year}年${month}月${date}日，星期${day}，${hours}:${minutes}:${seconds}`;
+            const timeString = `${year}年${month}月${date}日
+				星期${day} ${hours}:${minutes}:${seconds}`;
             document.getElementById('currentTime').textContent = timeString;
         }
 
