@@ -15,9 +15,31 @@
         --button-orange: #ff9c33;
         --button-blue: #33b5e5;
 		--button-grey: #333333;
-		--transition-speed: 0.3s;
-    	--transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
     }
+		 /* 添加新的動畫關鍵幀 */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes glowBorder {
+        0% { box-shadow: 0 0 5px var(--button-orange); }
+        50% { box-shadow: 0 0 15px var(--button-orange); }
+        100% { box-shadow: 0 0 5px var(--button-orange); }
+    }
+
+    /* 修改現有的基礎樣式，添加動畫效果 */
 
     html, body {
     	width: 100%;           /* 改為100%寬度 */
@@ -30,14 +52,39 @@
     	color: var(--text-color);
     	font-family: "Microsoft JhengHei", Arial, sans-serif;
     	box-sizing: border-box; /* 添加這行 */
+		animation: fadeIn 0.8s ease-out;
 	}
 
     h1 {
         color: var(--text-color);
         font-size: 22px;
-        margin-bottom: 5px;
-        border-bottom: 3px solid var(--button-orange);
-        padding-bottom: 10px;
+        margin-bottom: 0px;
+        border-bottom: 2px solid var(--button-orange);
+        padding-bottom: 5px;
+		position: relative;
+        animation: slideIn 0.6s ease-out;
+		transition: all 0.3s ease;
+    }
+		h1:hover {
+    transform: translateY(-2px);
+    text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
+}
+		h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--button-orange);
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.6s ease-out;
+    }
+
+    h1:hover::after {
+        transform: scaleX(1);
+        transform-origin: left;
     }
 		
 
@@ -47,20 +94,18 @@
         align-items: center;
         background: var(--secondary-color);
         padding: 3px;
-        border-radius: 7px;
+        border-radius: 4px;
         box-shadow: 0 4px 8px var(--shadow-color);
-		opacity: 0;
-    	animation: fadeIn 0.5s ease-out forwards;
+		animation: slideIn 0.5s ease-out;
+		animation-fill-mode: both;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-		@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+		.row:hover {
+        transform: translateX(5px);
+        box-shadow: 0 6px 12px var(--shadow-color);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+		.row:nth-child(2n) {
+    animation-delay: 0.1s;
 }
 
     .label {
@@ -78,20 +123,17 @@
         background-color: #222222;
         color: var(--text-color);
         border: 1px solid var(--border-color);
-        border-radius: 7px;
+        border-radius: 4px;
         font-size: 15px;
-        transition: border-color 0.3s ease;
-		transform: translateY(0);
-    	transition: all var(--transition-speed) var(--transition-timing);
+        transition: all 0.3s ease;
     }
 
     input:focus {
-        outline: none;
-        border-color: var(--button-blue);
-        box-shadow: 0 0 0 2px rgba(51, 181, 229, 0.2);
-		transform: translateY(-1px);
-    	box-shadow: 0 2px 8px rgba(51, 181, 229, 0.3);
-    }
+		outline: none;
+		border-color: var(--button-orange);
+		box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.2);
+		transform: scale(1.02);
+		}
 
     button {
         background-color: var(--secondary-color);
@@ -99,22 +141,21 @@
         border: 1px solid var(--border-color);
         padding: 3px 8px;
         margin: 0 5px;
-        border-radius: 7px;
+        border-radius: 4px;
         cursor: pointer;
-		transform: translateY(0);
-    	transition: all var(--transition-speed) var(--transition-timing);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 15px;
     }
 
     button:hover {
-		transform: translateY(-1px);
-    	box-shadow: 0 2px 8px var(--shadow-color);
         background-color: var(--hover-color);
+		transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-	button:active {
-		transform: translateY(1px);
-		box-shadow: none;
-	}
+		button:active {
+        transform: scale(0.95) translateY(1px);
+    transition: transform 0.1s;
+    }
 	
 	.row button {
         background-color: var(--secondary-color);
@@ -122,10 +163,12 @@
         border: 1px solid var(--button-grey);  /* 使用深灰色邊框 */
         padding: 3px 8px;
         margin: 0 5px;
-        border-radius: 7px;
+        border-radius: 4px;
         cursor: pointer;
         transition: all 0.3s ease;  /* 添加 all 以實現完整的過渡效果 */
         font-size: 15px;
+		position: relative;
+    	overflow: hidden;
     }
 
     .row button:hover {
@@ -139,6 +182,23 @@
         color: var(--text-color);
         border-color: var(--button-grey);
     }
+		.row button::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 0;
+		height: 0;
+		background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+		transition: width 0.3s ease-out, height 0.3s ease-out;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+	}
+
+	.row button:active::after {
+		width: 150px;
+		height: 150px;
+	}
 
     div[id$="Buttons"] button {
         background-color: var(--secondary-color);
@@ -146,15 +206,21 @@
         border: 1px solid var(--button-orange);
         padding: 4px 9px;  /* 將左右內邊距從 8px 改為 6px */
         margin: 0 4px;     /* 將左右外邊距改為 2px */
-        border-radius: 7px;
+        border-radius: 4px;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 15px;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     div[id$="Buttons"] button:hover {
         background-color: var(--button-orange);
         color: var(--text-color);
+		transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+		div[id$="Buttons"] button:active {
+        transform: translateY(1px);
     }
 
     .readonly {
@@ -169,10 +235,28 @@
         padding: 8px;
         border-radius: 4px;
         box-shadow: 0 2px 4px var(--shadow-color);
-		transition: all var(--transition-speed) var(--transition-timing);
+		animation: fadeIn 0.8s ease-out;
+        transition: all 0.3s ease;
+		position: relative;
+    	overflow: hidden;
     }
-		#currentTime {
-    transition: opacity 0.2s ease-in-out;
+		#timeDisplay:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 12px var(--shadow-color);
+    }
+		#timeDisplay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
+    animation: timelineSlide 3s linear infinite;
+}
+		@keyframes timelineSlide {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
     .time-label {
@@ -207,15 +291,16 @@
         margin: 10px 0;
     }
 
-    .quote-table {
-    	width: 100%;
-    	border-collapse: separate;
-    	border-spacing: 0;
+    /* 在 style 標籤中修改或新增以下 CSS */
+	.quote-table {
+		width: 100%;
+		border-collapse: separate;
+		border-spacing: 0;
 		margin: 20px 0;
 		background: var(--primary-color);
-		border-radius: 8px;
+		border-radius: 12px;
 		overflow: hidden;
-		box-shadow: 0 4px 12px var(--shadow-color);
+		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 	}
 
 	.quote-table tr {
@@ -228,29 +313,41 @@
 	}
 
 	.quote-table td {
-		padding: 16px 20px;
+		padding: 20px 24px; /* 增加內邊距 */
 		border-bottom: 1px solid var(--border-color);
 		color: var(--text-color);
+		font-size: 18px; /* 增加字體大小 */
+		line-height: 1.5; /* 增加行高 */
 	}
 
 	.quote-table td:first-child {
-		width: 120px;
+		width: 140px; /* 增加標籤欄寬度 */
 		white-space: nowrap;
 		color: var(--button-orange);
-		font-weight: 600;
+		font-weight: 700; /* 加粗 */
 		text-align: right;
-		padding-right: 30px;
+		padding-right: 36px;
+		font-size: 20px; /* 標籤文字更大 */
 	}
 
 	.quote-table td:last-child {
 		text-align: right;
 		font-family: monospace;
-		font-size: 1.1em;
+		font-size: 22px; /* 數值更大 */
+		letter-spacing: 0.5px; /* 增加字距 */
 	}
 
-	.quote-table tr:last-child td {
-		border-bottom: none;
+	/* 新增容器樣式 */
+
+	#quoteContainer {
+		padding: 24px;
+		background: #333333;
+		border-radius: 16px;
+		box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+		margin: 20px;
 	}
+
+	
 
     .function-buttons button {
 		background-color: var(--secondary-color);
@@ -262,13 +359,30 @@
 		cursor: pointer;
 		transition: all 0.3s ease;
 		font-size: 15px;
+		position: relative;
+        overflow: hidden;
 	}
+		.function-buttons button::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translate(-50%, -50%) scale(0);
+        border-radius: 50%;
+        transition: transform 0.5s;
+    }
 
 	.function-buttons button:hover {
 		background-color: var(--button-orange);
 		color: var(--text-color);
 		border-color: var(--button-orange);
 	}
+		.function-buttons button:hover::after {
+        transform: translate(-50%, -50%) scale(2);
+    }
 
 	.function-buttons button:active {
 		background-color: var(--secondary-color);
@@ -282,6 +396,10 @@
 		text-align: center;
 		margin-top: 15px;
 		border-radius: 4px;
+		transform: scale(1.05);
+        text-shadow: 0 0 10px var(--button-orange);
+		transition: all 0.3s ease;
+    	position: relative;
 	}
 
 	.footer-spacing {
@@ -289,9 +407,34 @@
 		height: 30px;
 		margin-top: 0px;
 	}
+		.footer-message::before {
+    content: '🍚';
+    margin-right: 8px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.footer-message:hover::before {
+    transform: rotate(360deg);
+}
+		/* 為特定數值添加動畫效果 */
+    #chickenRice {
+        transition: all 0.3s ease;
+    }
+
+    #chickenRice:not([value=""]):not([value="0"]) {
+        animation: glowBorder 2s infinite;
+		background: linear-gradient(45deg, #222222, #2a2a2a);
+		transition: all 0.3s ease;
+    }
+		@keyframes glowBorder {
+    0%, 100% { box-shadow: 0 0 5px var(--button-orange); }
+    50% { box-shadow: 0 0 15px var(--button-orange), 0 0 30px rgba(255, 156, 51, 0.3); }
+}
 		.warning-text {
 		color: #ff0000 !important;
 		font-weight: bold !important;
+		animation: pulse 1s infinite;
 	}
 </style>
 </head>
@@ -472,11 +615,7 @@
             rate = rate / 100 / 12;
             return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
         }
-        function PMT(rate, nper, pv) {
-            rate = rate / 100 / 12;
-            return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
-        }
-
+        
         function RATE(nper, pmt, pv) {
             let rate = 0.1;
             let step = 0.05;
@@ -564,8 +703,8 @@
 
 			// 計算總利息
 			const totalInterest = (payment * period) - principal;
-			// 要求2: 總利息格式化到小數點第1位
-			document.getElementById('totalInterest').value = totalInterest.toFixed(1);
+			// 要求2: 總利息格式化到小數點第2位
+			document.getElementById('totalInterest').value = totalInterest.toFixed(2);
 
 			// 計算稅金
 			const tax = totalInterest / 21;
@@ -582,9 +721,9 @@
 				afterTaxRateInput.classList.remove('warning-text');
 			}
 
-			// 要求4: 佣金格式化
+			 // 要求2: 佣金格式化為整數
 			const commission = parseFloat(document.getElementById('commission').value) || 0;
-			document.getElementById('commission').value = commission.toFixed(1);
+			document.getElementById('commission').value = Math.round(commission);
 
 			// 計算稅佣後利率
 			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
@@ -600,16 +739,20 @@
 			// 計算百萬利息
 			const millionPayment = PMT(rate, 12, 1000000);
 			const annualMillionInterest = (millionPayment * 12) - 1000000;
-			// 要求6-7: 百萬利息格式化
-			document.getElementById('annualMillionInterest').value = annualMillionInterest.toFixed(1);
-			document.getElementById('monthlyMillionInterest').value = (annualMillionInterest / 12).toFixed(1);
+			 // 要求3: 百萬每年利息格式化為整數
+			document.getElementById('annualMillionInterest').value = Math.round(annualMillionInterest);
+			// 要求4: 百萬每月利息格式化為整數
+			document.getElementById('monthlyMillionInterest').value = Math.round(annualMillionInterest / 12);
+
 
 			// 計算一萬利息
 			const tenThousandPayment = PMT(rate, 12, 10000);
 			const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
-			// 要求8-9: 一萬利息格式化
-			document.getElementById('annualTenThousandInterest').value = annualTenThousandInterest.toFixed(1);
-			document.getElementById('monthlyTenThousandInterest').value = (annualTenThousandInterest / 12).toFixed(1);
+			// 要求5: 一萬每年利息格式化為整數
+			document.getElementById('annualTenThousandInterest').value = Math.round(annualTenThousandInterest);
+			// 要求6: 一萬每月利息格式化為整數
+			document.getElementById('monthlyTenThousandInterest').value = Math.round(annualTenThousandInterest / 12);
+
 
 			// 計算 Spread
 			const spread = afterCommissionRate - monthlyCost;
@@ -748,7 +891,7 @@
     
     // 添加表格內容
     const rows = [
-        ['報價時間', document.getElementById('currentTime').textContent],
+        ['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
         ['期數', document.getElementById('period').value || ''],
         ['稅前利率', (document.getElementById('rate').value || '') + '%'],
         ['本金', document.getElementById('principal').value || ''],
@@ -761,14 +904,16 @@
 
     // 建立表格內容
     rows.forEach(([label, value]) => {
-        const tr = table.insertRow();
-        tr.insertCell().textContent = label;
-        tr.insertCell().textContent = value;
+    const tr = table.insertRow();
+    const labelCell = tr.insertCell();
+    const valueCell = tr.insertCell();
+    labelCell.textContent = label;
+    valueCell.innerHTML = value; // 改用 innerHTML 來支援換行標籤
     });
 
     // 創建臨時容器
     const container = document.createElement('div');
-		container.style.padding = '20px';
+		container.style.padding = '24px';
 		container.style.background = '#333333';
 		container.style.borderRadius = '12px';
 		container.appendChild(table);
