@@ -585,6 +585,12 @@
     	<button onclick="generateQuote()">截圖</button>
 	</div>
 <script>
+	// 添加震動函數
+        function vibrate() {
+            if (navigator.vibrate) {
+                navigator.vibrate(50); // 震動50毫秒
+            }
+        }
 	     // 添加更新時間的函數
         function updateTime() {
             const now = new Date();
@@ -770,15 +776,18 @@
 		}
 
         function clearField(fieldId) {
+			vibrate();
             document.getElementById(fieldId).value = '';
         }
 	
 		function clearCommission() {
+			vibrate();
         	document.getElementById('commission').value = '';
         	calculateAfterCommissionRate(); // 清除後重新計算稅佣後利率
     	}
 	
 		function adjustCommissionPercentage(delta) {
+			vibrate();
 			const commissionField = document.getElementById('commission');
 			const currentValue = parseFloat(commissionField.value) || 0;
 			let newValue;
@@ -801,6 +810,7 @@
 		}
 
         function adjustPeriod(delta) {
+			vibrate();
             const periodField = document.getElementById('period');
             const currentValue = parseFloat(periodField.value) || 0;
             periodField.value = currentValue + delta;
@@ -808,11 +818,13 @@
         }
 
         function setPeriod(value) {
+			vibrate();
             document.getElementById('period').value = value;
             calculatePayment();
         }
 
         function adjustRate(delta) {
+			vibrate();
             const rateField = document.getElementById('rate');
             const currentValue = parseFloat(rateField.value) || 0;
             rateField.value = (currentValue + delta).toFixed(2);
@@ -820,11 +832,13 @@
         }
 
         function setRate(value) {
+			vibrate();
             document.getElementById('rate').value = value;
             calculatePayment();
         }
 
         function adjustPrincipal(delta) {
+			vibrate();
             const principalField = document.getElementById('principal');
             const currentValue = parseFloat(principalField.value) || 0;
             principalField.value = currentValue + delta;
@@ -832,6 +846,7 @@
         }
 
         function setCommissionPercentage(percentage) {
+			vibrate();
             const principal = parseFloat(document.getElementById('principal').value);
             document.getElementById('commission').value = (principal * percentage / 100).toFixed(2);
             calculateAfterCommissionRate();
@@ -852,6 +867,7 @@
             document.getElementById('spread').value = (afterCommissionRate - monthlyCost).toFixed(3);
         }
 	 function roundPayment(direction, base) {
+		 vibrate();
             const paymentField = document.getElementById('payment');
             let value = parseFloat(paymentField.value) || 0;
             
@@ -865,6 +881,7 @@
             calculateRate(); // Recalculate the rate
         }
 	function adjustPayment(delta) {
+		vibrate();
     	const paymentField = document.getElementById('payment');
     	const currentValue = parseFloat(paymentField.value) || 0;
     	paymentField.value = (currentValue + delta).toFixed(2);
@@ -883,6 +900,7 @@
 }
 
 	function generateQuote() {
+		vibrate();
 		console.log('開始生成報價...'); // 新增偵錯訊息
 
     // 創建報價表格
