@@ -461,7 +461,7 @@
 	</div>
     <div class="row">
         <span class="label">稅前利率</span>
-        <input type="number" id="rate" step="0.01">
+        <input type="number" id="rate" step="0.001">
         <button onclick="calculateRate()">算</button>
         <button onclick="clearField('rate')">清</button>
     </div>
@@ -519,7 +519,7 @@
 
     <div class="row">
         <span class="label">稅後利率</span>
-        <input type="number" id="afterTaxRate" class="readonly" readonly>
+        <input type="number" id="afterTaxRate" step="0.001" class="readonly" readonly>
     </div>
 
      <div class="row">
@@ -542,6 +542,7 @@
     <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
+		<span style="margin-left: 0px; color: var(--text-color);">(個人)</span>
     </div>
 
     <div class="row">
@@ -572,7 +573,10 @@
     <div class="row">
         <span class="label">Spread</span>
         <input type="number" id="spread" class="readonly" readonly>
+		<span style="margin-left: 0px; color: var(--text-color);">(概略值)</span>
     </div>
+	
+	
 	<!-- 在最後一個 .row div 後面添加 -->
 	<div class="divider"></div>
 	<div class="function-buttons">
@@ -662,7 +666,7 @@
             const payment = parseFloat(document.getElementById('payment').value);
             
             const rate = RATE(period, payment, principal);
-            document.getElementById('rate').value = rate.toFixed(2);
+            document.getElementById('rate').value = rate.toFixed(3);
             
             updateAllFields();
         }
@@ -716,7 +720,7 @@
 			const afterTaxRate = RATE(period, payment, principal + tax);
 			// 要求3: 稅後利率格式化和警告
 			const afterTaxRateInput = document.getElementById('afterTaxRate');
-			afterTaxRateInput.value = afterTaxRate.toFixed(2);
+			afterTaxRateInput.value = afterTaxRate.toFixed(3);
 			if (afterTaxRate <= 2.5) {
 				afterTaxRateInput.classList.add('warning-text');
 			} else {
@@ -726,6 +730,14 @@
 			 // 要求2: 佣金格式化為整數
 			const commission = parseFloat(document.getElementById('commission').value) || 0;
 			document.getElementById('commission').value = Math.round(commission);
+			
+			 // 檢查佣金是否超過總利息的95%
+            const commissionInput = document.getElementById('commission');
+            if (commission >= totalInterest * 0.95) {
+                commissionInput.classList.add('warning-text');
+            } else {
+                commissionInput.classList.remove('warning-text');
+            }
 
 			// 計算稅佣後利率
 			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
@@ -766,6 +778,8 @@
 			} else {
 				spreadInput.classList.remove('warning-text');
 			}
+			
+			
 
 			// 計算雞肉飯碗數
 			document.getElementById('chickenRice').value = Math.floor(totalInterest / 35);
@@ -779,7 +793,7 @@
 		function clearCommission() {
 			vibrate();
         	document.getElementById('commission').value = '';
-        	calculateAfterCommissionRate(); // 清除後重新計算稅佣後利率
+        	updateAllFields(); // 更新所有欄位
     	}
 	
 		function adjustCommissionPercentage(delta) {
@@ -802,7 +816,7 @@
 			// 更新佣金欄位的值，保留兩位小數
 			commissionField.value = newValue.toFixed(2);
 
-			calculateAfterCommissionRate(); // 更新稅佣後利率
+			updateAllFields(); // 更新所有欄位
 		}
 
         function adjustPeriod(delta) {
@@ -823,7 +837,7 @@
 			vibrate();
             const rateField = document.getElementById('rate');
             const currentValue = parseFloat(rateField.value) || 0;
-            rateField.value = (currentValue + delta).toFixed(2);
+            rateField.value = (currentValue + delta).toFixed(3);
             calculatePayment();
         }
 
@@ -845,23 +859,18 @@
 			vibrate();
             const principal = parseFloat(document.getElementById('principal').value);
             document.getElementById('commission').value = (principal * percentage / 100).toFixed(2);
-            calculateAfterCommissionRate();
+            updateAllFields(); // 更新所有欄位
         }
 
         function calculateAfterCommissionRate() {
-            const period = parseFloat(document.getElementById('period').value);
-            const payment = parseFloat(document.getElementById('payment').value);
-            const principal = parseFloat(document.getElementById('principal').value);
-            const tax = parseFloat(document.getElementById('tax').value);
-            const commission = parseFloat(document.getElementById('commission').value) || 0;
+			const period = parseFloat(document.getElementById('period').value);
+			const payment = parseFloat(document.getElementById('payment').value);
+			const principal = parseFloat(document.getElementById('principal').value);
+			const tax = parseFloat(document.getElementById('tax').value);
+			const commission = parseFloat(document.getElementById('commission').value) || 0;
 
-            const afterCommissionRate = RATE(period, payment, principal + tax + commission);
-            document.getElementById('afterCommissionRate').value = afterCommissionRate.toFixed(3);
-            
-            // Update spread
-            const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
-            document.getElementById('spread').value = (afterCommissionRate - monthlyCost).toFixed(3);
-        }
+			updateAllFields(); // 更新所有欄位
+		}
 	 function roundPayment(direction, base) {
 		 vibrate();
             const paymentField = document.getElementById('payment');
