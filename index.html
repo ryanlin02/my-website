@@ -113,9 +113,9 @@
     }
 
     input {
-        width: 80px;
+        width: 85px;
         padding: 5px 12px;
-        margin-right: 15px;
+        margin-right: 10px;
         background-color: #222222;
         color: var(--text-color);
         border: 1px solid var(--border-color);
@@ -128,7 +128,7 @@
 		outline: none;
 		border-color: var(--button-orange);
 		box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.2);
-		transform: scale(1.02);
+		transform: scale(1.07);
 		}
 
     button {
@@ -150,7 +150,7 @@
     }
 		button:active {
         transform: scale(0.95) translateY(1px);
-    transition: transform 0.1s;
+    	transition: transform 0.1s;
     }
 	
 	.row button {
@@ -236,23 +236,23 @@
 		position: relative;
     	overflow: hidden;
     }
-		#timeDisplay:hover {
+	#timeDisplay:hover {
         transform: scale(1.02);
         box-shadow: 0 6px 12px var(--shadow-color);
     }
-		#timeDisplay::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
-    animation: timelineSlide 3s linear infinite;
-}
+	#timeDisplay::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 100%;
+		height: 2px;
+		background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
+		animation: timelineSlide 3s linear infinite;
+	}
 		@keyframes timelineSlide {
-    0% { left: -100%; }
-    100% { left: 100%; }
+		0% { left: -100%; }
+		100% { left: 100%; }
 }
 
     .time-label {
@@ -404,15 +404,15 @@
 		margin-top: 0px;
 	}
 		.footer-message::before {
-    content: '🍚';
-    margin-right: 8px;
-    display: inline-block;
-    transition: transform 0.3s ease;
-}
+		content: '🍚';
+		margin-right: 8px;
+		display: inline-block;
+		transition: transform 0.3s ease;
+	}
 
-.footer-message:hover::before {
-    transform: rotate(360deg);
-}
+	.footer-message:hover::before {
+		transform: rotate(360deg);
+	}
 		/* 為特定數值添加動畫效果 */
     #chickenRice {
         transition: all 0.3s ease;
@@ -424,8 +424,8 @@
 		transition: all 0.3s ease;
     }
 		@keyframes glowBorder {
-    0%, 100% { box-shadow: 0 0 5px var(--button-orange); }
-    50% { box-shadow: 0 0 15px var(--button-orange), 0 0 30px rgba(255, 156, 51, 0.3); }
+		0%, 100% { box-shadow: 0 0 5px var(--button-orange); }
+		50% { box-shadow: 0 0 15px var(--button-orange), 0 0 30px rgba(255, 156, 51, 0.3); }
 }
 		.warning-text {
 		color: #ff0000 !important;
@@ -457,7 +457,7 @@
         <button onclick="setPeriod(36)">3</button>
         <button onclick="setPeriod(48)">4</button>
         <button onclick="setPeriod(60)">5</button>
-      <button onclick="adjustPeriod(1)">+1</button>
+      	<button onclick="adjustPeriod(1)">+1</button>
 	</div>
     <div class="row">
         <span class="label">稅前利率</span>
@@ -586,11 +586,11 @@
 	</div>
 <script>
 	// 添加震動函數
-        function vibrate() {
-            if (navigator.vibrate) {
-                navigator.vibrate(30); // 震動30毫秒
-            }
-        }
+		function vibrate() {
+			if (navigator.vibrate) {
+			navigator.vibrate(30); // 震動30毫秒
+			}
+		}
 	     // 添加更新時間的函數
         function updateTime() {
             const now = new Date();
@@ -709,7 +709,7 @@
 
 			// 計算總利息
 			const totalInterest = (payment * period) - principal;
-			// 要求2: 總利息格式化到小數點第2位
+			// 要求2: 總利息格式化到小數點第3位
 			document.getElementById('totalInterest').value = totalInterest.toFixed(2);
 
 			// 計算稅金
@@ -743,7 +743,7 @@
 			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
 			// 要求5: 稅佣後利率格式化和警告
 			const afterCommissionRateInput = document.getElementById('afterCommissionRate');
-			afterCommissionRateInput.value = afterCommissionRate.toFixed(2);
+			afterCommissionRateInput.value = afterCommissionRate.toFixed(3);
 			if (afterCommissionRate <= 2.5) {
 				afterCommissionRateInput.classList.add('warning-text');
 			} else {
@@ -871,8 +871,8 @@
 
 			updateAllFields(); // 更新所有欄位
 		}
-	 function roundPayment(direction, base) {
-		 vibrate();
+	 	function roundPayment(direction, base) {
+		 	vibrate();
             const paymentField = document.getElementById('payment');
             let value = parseFloat(paymentField.value) || 0;
             
@@ -885,82 +885,82 @@
             paymentField.value = value.toFixed(2);
             calculateRate(); // Recalculate the rate
         }
-	function adjustPayment(delta) {
-		vibrate();
-    	const paymentField = document.getElementById('payment');
-    	const currentValue = parseFloat(paymentField.value) || 0;
-    	paymentField.value = (currentValue + delta).toFixed(2);
-    	calculateRate(); // 重新計算利率
+		function adjustPayment(delta) {
+			vibrate();
+			const paymentField = document.getElementById('payment');
+			const currentValue = parseFloat(paymentField.value) || 0;
+			paymentField.value = (currentValue + delta).toFixed(2);
+			calculateRate(); // 重新計算利率
+			}
+		function saveData() {
+			const dataToSave = {
+			period: document.getElementById('period').value,
+			rate: document.getElementById('rate').value,
+			principal: document.getElementById('principal').value,
+			payment: document.getElementById('payment').value,
+			commission: document.getElementById('commission').value
+			};
+			localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
+			alert('資料已暫存！');
 		}
-	function saveData() {
-    const dataToSave = {
-        period: document.getElementById('period').value,
-        rate: document.getElementById('rate').value,
-        principal: document.getElementById('principal').value,
-        payment: document.getElementById('payment').value,
-        commission: document.getElementById('commission').value
-    };
-    localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
-    alert('資料已暫存！');
-}
 
-	function generateQuote() {
-		vibrate();
-		console.log('開始生成報價...'); // 新增偵錯訊息
+		function generateQuote() {
+			vibrate();
+			console.log('開始生成報價...'); // 新增偵錯訊息
 
-    // 創建報價表格
-    const table = document.createElement('table');
-    table.className = 'quote-table';
-    
-    // 添加表格內容
-    const rows = [
-        ['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
-        ['期數', document.getElementById('period').value || ''],
-        ['稅前利率', (document.getElementById('rate').value || '') + '%'],
-        ['本金', document.getElementById('principal').value || ''],
-        ['期繳', document.getElementById('payment').value || ''],
-        ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
-        ['佣金', document.getElementById('commission').value || ''],
-        ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%'],
-        ['雞肉飯', document.getElementById('chickenRice').value + ' 碗']
-    ];
+			// 創建報價表格
+			const table = document.createElement('table');
+			table.className = 'quote-table';
 
-    // 建立表格內容
-    rows.forEach(([label, value]) => {
-    const tr = table.insertRow();
-    const labelCell = tr.insertCell();
-    const valueCell = tr.insertCell();
-    labelCell.textContent = label;
-    valueCell.innerHTML = value; // 改用 innerHTML 來支援換行標籤
-    });
+			// 添加表格內容
+			const rows = [
+			['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
+			['期數', document.getElementById('period').value || ''],
+			['稅前利率', (document.getElementById('rate').value || '') + '%'],
+			['本金', document.getElementById('principal').value || ''],
+			['期繳', document.getElementById('payment').value || ''],
+			['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
+			['佣金', document.getElementById('commission').value || ''],
+			['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%'],
+			['雞肉飯', document.getElementById('chickenRice').value + ' 碗']
+			];
 
-    // 創建臨時容器
-    const container = document.createElement('div');
-		container.style.padding = '24px';
-		container.style.background = '#333333';
-		container.style.borderRadius = '12px';
-		container.appendChild(table);
-		document.body.appendChild(container);
+			// 建立表格內容
+			rows.forEach(([label, value]) => {
+			const tr = table.insertRow();
+			const labelCell = tr.insertCell();
+			const valueCell = tr.insertCell();
+			labelCell.textContent = label;
+			valueCell.innerHTML = value; // 改用 innerHTML 來支援換行標籤
+			});
 
-		console.log('準備進行截圖...'); // 新增偵錯訊息
+			// 創建臨時容器
+			const container = document.createElement('div');
+				container.style.padding = '24px';
+				container.style.background = '#333333';
+				container.style.borderRadius = '12px';
+				container.appendChild(table);
+				document.body.appendChild(container);
 
-    // 使用 html2canvas 轉換為圖片
-    html2canvas(container).then(canvas => {
-        console.log('Canvas 已生成'); // 新增偵錯訊息
-        
-        // 移除臨時容器
-        document.body.removeChild(container);
+				console.log('準備進行截圖...'); // 新增偵錯訊息
 
-        // 下載圖片
-        const link = document.createElement('a');
-        link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
-        link.href = canvas.toDataURL();
-        console.log('準備下載...'); // 新增偵錯訊息
-        link.click();
-    }).catch(error => {
-        console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
-        document.body.removeChild(container); // 確保清理臨時容器
-    });
+			// 使用 html2canvas 轉換為圖片
+			html2canvas(container).then(canvas => {
+				console.log('Canvas 已生成'); // 新增偵錯訊息
+
+				// 移除臨時容器
+				document.body.removeChild(container);
+
+				// 下載圖片
+				const link = document.createElement('a');
+				link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
+				link.href = canvas.toDataURL();
+				console.log('準備下載...'); // 新增偵錯訊息
+				link.click();
+			}).catch(error => {
+				console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
+				document.body.removeChild(container); // 確保清理臨時容器
+			});
 }
     </script>
 	<!-- 在 </body> 標籤前添加 -->
