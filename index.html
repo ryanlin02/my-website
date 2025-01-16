@@ -100,9 +100,6 @@
         transform: translateX(5px);
         box-shadow: 0 6px 12px var(--shadow-color);
     }
-		.row:nth-child(2n) {
-    
-}
 
     .label {
         width: 120px;
@@ -513,7 +510,7 @@
         <span style="margin-left: 0px; color: var(--text-color);">碗</span>
     </div>
     <div class="row">
-        <span class="label">營業稅</span>
+        <span class="label">稅金</span>
         <input type="number" id="tax" class="readonly" readonly>
     </div>
 
@@ -523,7 +520,7 @@
     </div>
 
      <div class="row">
-        <span class="label">佣金</span>
+        <span class="label">推廣</span>
         <input type="number" id="commission">
         <button onclick="calculateAfterCommissionRate()">算</button>
         <button onclick="clearCommission()">清</button>
@@ -567,6 +564,7 @@
     <div class="row">
         <span class="label">本月資金成本</span>
         <input type="number" id="monthlyCost" value="2.0951" class="readonly" readonly>
+        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 
     <div class="row">
@@ -574,6 +572,11 @@
         <input type="number" id="spread" class="readonly" readonly>
     </div>
 	
+    <div class="row">
+        <span class="label">資金成本</span>
+        <input type="number" id="fundingCost" class="readonly" readonly>
+        <span style="margin-left: 0px; color: var(--text-color);">(元)</span>
+    </div>
 	
 	<!-- 在最後一個 .row div 後面添加 -->
 	<div class="divider"></div>
@@ -664,7 +667,7 @@
             const payment = parseFloat(document.getElementById('payment').value);
             
             const rate = RATE(period, payment, principal);
-            document.getElementById('rate').value = rate.toFixed(3);
+            document.getElementById('rate').value = rate.toFixed(4);
             
             updateAllFields();
         }
@@ -718,7 +721,7 @@
 			const afterTaxRate = RATE(period, payment, principal + tax);
 			// 要求3: 稅後利率格式化和警告
 			const afterTaxRateInput = document.getElementById('afterTaxRate');
-			afterTaxRateInput.value = afterTaxRate.toFixed(3);
+			afterTaxRateInput.value = afterTaxRate.toFixed(4);
 			if (afterTaxRate <= 2.5) {
 				afterTaxRateInput.classList.add('warning-text');
 			} else {
@@ -741,7 +744,7 @@
 			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
 			// 要求5: 稅佣後利率格式化和警告
 			const afterCommissionRateInput = document.getElementById('afterCommissionRate');
-			afterCommissionRateInput.value = afterCommissionRate.toFixed(3);
+			afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
 			if (afterCommissionRate <= 2.5) {
 				afterCommissionRateInput.classList.add('warning-text');
 			} else {
@@ -770,13 +773,31 @@
 			const spread = afterCommissionRate - monthlyCost;
 			// 要求10: Spread 警告
 			const spreadInput = document.getElementById('spread');
-			spreadInput.value = spread.toFixed(3);
+			spreadInput.value = spread.toFixed(4);
 			if (spread <= 0) {
 				spreadInput.classList.add('warning-text');
 			} else {
 				spreadInput.classList.remove('warning-text');
 			}
 			
+            // 在計算 spread 之後添加新的計算邏輯
+            // 使用本月資金成本利率計算回推貸款金額
+            const monthlyRate = monthlyCost / 100 / 12; // 將年利率轉換為月利率
+            const fundingPrincipal = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+            
+            // 計算資金成本差額
+            const fundingCostDiff = Math.round(fundingPrincipal - principal);
+            
+            // 更新資金成本欄位
+            document.getElementById('fundingCost').value = fundingCostDiff;
+            
+            // 如果資金成本為負值，添加警告樣式
+            const fundingCostInput = document.getElementById('fundingCost');
+            if (fundingCostDiff < 0) {
+                fundingCostInput.classList.add('warning-text');
+            } else {
+                fundingCostInput.classList.remove('warning-text');
+            }
 			
 
 			// 計算雞肉飯碗數
@@ -835,7 +856,7 @@
 			vibrate();
             const rateField = document.getElementById('rate');
             const currentValue = parseFloat(rateField.value) || 0;
-            rateField.value = (currentValue + delta).toFixed(3);
+            rateField.value = (currentValue + delta).toFixed(4);
             calculatePayment();
         }
 
