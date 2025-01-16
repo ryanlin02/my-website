@@ -602,6 +602,12 @@
     </div>
 
     <div class="row">
+        <span class="label">推廣費比例</span>
+        <input type="number" id="commissionRatio" class="readonly" readonly>
+        <span style="margin-left: 0px; color: var(--text-color);">%</span>
+    </div>
+
+    <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
     </div>
@@ -810,6 +816,18 @@
                 commissionInput.classList.remove('warning-text');
             }
 
+            // 計算並更新推廣費比例
+            const commissionRatio = commission / principal * 100;
+            const commissionRatioInput = document.getElementById('commissionRatio');
+            commissionRatioInput.value = commissionRatio.toFixed(2);
+
+            // 檢查推廣費比例是否超過5%
+            if (commissionRatio > 5) {
+                commissionRatioInput.classList.add('warning-text');
+            } else {
+                commissionRatioInput.classList.remove('warning-text');
+            }
+
 			// 計算稅佣後利率
 			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
 			// 要求5: 稅佣後利率格式化和警告
@@ -939,6 +957,7 @@
             const currentValue = parseFloat(principalField.value) || 0;
             principalField.value = currentValue + delta;
             calculatePayment();
+            updateAllFields(); // 添加這行
         }
 
         function calculateAfterCommissionRate() {
