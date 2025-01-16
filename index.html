@@ -586,7 +586,7 @@
 
      <div class="row">
         <span class="label">推廣</span>
-        <input type="number" id="commission">
+        <input type="number" id="commission" min="0" step="1" oninput="validateCommissionInput(this)">
         <button onclick="calculateAfterCommissionRate()">算</button>
         <button onclick="clearCommission()">清</button>
     </div>
@@ -610,7 +610,7 @@
     <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
-	<span style="margin-left: 0px; color: var(--text-color);">%</span>
+        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 
     <div class="divider"></div>
@@ -646,7 +646,7 @@
     <div class="row">
         <span class="label">Spread</span>
         <input type="number" id="spread" class="readonly" readonly>
-	<span style="margin-left: 0px; color: var(--text-color);">%</span>
+        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 	
     <div class="row">
@@ -670,6 +670,30 @@
 			navigator.vibrate(30); // 震動30毫秒
 			}
 		}
+
+        // 添加這個新函數到第一個 script 標籤內，updateTime 函數之前
+        function calculateNPV(payment, period, principal, monthlyCost) {
+            try {
+                // 檢查輸入值是否有效
+                if (!payment || !period || !principal || !monthlyCost || 
+                    isNaN(payment) || isNaN(period) || isNaN(principal) || isNaN(monthlyCost)) {
+                    return 0;
+                }
+
+                // 將年利率轉換為月利率
+                const monthlyRate = monthlyCost / 100 / 12;
+
+                // 計算期望現值（使用期繳金額和期數反推）
+                const expectedPresentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+
+                // 計算與實際本金的差額
+                return Math.round(expectedPresentValue - principal);
+            } catch (error) {
+                console.error('NPV 計算錯誤:', error);
+                return 0;
+            }
+        }
+
 	     // 添加更新時間的函數
         function updateTime() {
             const now = new Date();
@@ -769,6 +793,8 @@
             
             updateAllFields();
         }
+
+
 
         function updateAllFields() {
 			// 獲取基本值
@@ -871,19 +897,20 @@
 			}
 			
             // 在計算 spread 之後添加新的計算邏輯
-            // 使用本月資金成本利率計算回推貸款金額
-            const monthlyRate = monthlyCost / 100 / 12; // 將年利率轉換為月利率
-            const fundingPrincipal = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+            // 在計算 spread 之後，替換原有的 NPV 計算代碼為：
+            const npvValue = calculateNPV(
+                parseFloat(document.getElementById('payment').value),
+                parseFloat(document.getElementById('period').value),
+                parseFloat(document.getElementById('principal').value),
+                parseFloat(document.getElementById('monthlyCost').value)
+            );
             
-            // 計算資金成本差額
-            const fundingCostDiff = Math.round(fundingPrincipal - principal);
-            
-            // 更新資金成本欄位
-            document.getElementById('fundingCost').value = fundingCostDiff;
-            
-            // 如果資金成本為負值，添加警告樣式
+            // 更新 NPV 顯示
             const fundingCostInput = document.getElementById('fundingCost');
-            if (fundingCostDiff < 0) {
+            fundingCostInput.value = npvValue;
+            
+            // 更新警告樣式
+            if (npvValue < 0) {
                 fundingCostInput.classList.add('warning-text');
             } else {
                 fundingCostInput.classList.remove('warning-text');
@@ -933,6 +960,22 @@
             calculatePayment();
         }
 
+        function validateCommissionInput(input) {
+            // 移除小數點
+            let value = parseInt(input.value) || 0;
+            
+            // 如果是負數，設為0
+            if (value < 0) {
+                value = 0;
+            }
+            
+            // 更新輸入框的值為整數
+            input.value = Math.floor(value);
+            
+            // 更新相關計算
+            updateAllFields();
+        }
+
         function adjustCommission(delta) {
             // 添加震動效果
             vibrate();
@@ -944,10 +987,10 @@
             const currentValue = parseFloat(commissionField.value) || 0;
             
             // 計算新值（當前值加上變化量）
-            const newValue = currentValue + delta;
+            const newValue = Math.max(0, currentValue + delta);
             
             // 更新輸入框的值，使用 Math.round 去除小數點
-            commissionField.value = Math.round(newValue);
+            commissionField.value = Math.floor(newValue);
             
             // 更新所有相關欄位的計算
             updateAllFields();
@@ -1061,7 +1104,20 @@
 				console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
 				document.body.removeChild(container); // 確保清理臨時容器
 			});
-}
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 為相關輸入欄位添加事件監聽
+            const inputIds = ['period', 'payment', 'principal', 'monthlyCost'];
+            inputIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', updateAllFields);
+                    element.addEventListener('change', updateAllFields);
+                }
+            });
+        });
+
     </script>
 	<!-- 在 </body> 標籤前添加 -->
 	<div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
