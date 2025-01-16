@@ -593,14 +593,14 @@
 
 
     <div id="commissionButtons" style="display: flex; justify-content: flex-end;">
-        <button onclick="adjustCommissionPercentage(-0.1)">-10</button>
-        <button onclick="setCommissionPercentage(1)">1</button>
-        <button onclick="setCommissionPercentage(2)">2</button>
-        <button onclick="setCommissionPercentage(3)">3</button>
-        <button onclick="setCommissionPercentage(4)">4</button>
-        <button onclick="setCommissionPercentage(5)">5</button>
-        <button onclick="adjustCommissionPercentage(0.1)">+10</button>
+        <button onclick="adjustCommission(-10000)">-萬</button>
+        <button onclick="adjustCommission(-1000)">-千</button>
+        <button onclick="adjustCommission(-100)">-百</button>
+        <button onclick="adjustCommission(100)">+百</button>
+        <button onclick="adjustCommission(1000)">+千</button>
+        <button onclick="adjustCommission(10000)">+萬</button>
     </div>
+
     <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
@@ -884,29 +884,6 @@
         	document.getElementById('commission').value = '';
         	updateAllFields(); // 更新所有欄位
     	}
-	
-		function adjustCommissionPercentage(delta) {
-			vibrate();
-			const commissionField = document.getElementById('commission');
-			const currentValue = parseFloat(commissionField.value) || 0;
-			let newValue;
-
-			if (delta > 0) {
-				// 當按下 +10 時，乘以 1.1
-				newValue = currentValue * 1.1;
-			} else {
-				// 當按下 -10 時，乘以 0.9
-				newValue = currentValue * 0.9;
-			}
-
-			// 進位至百位數
-			newValue = Math.ceil(newValue / 100) * 100;
-
-			// 更新佣金欄位的值，保留兩位小數
-			commissionField.value = newValue.toFixed(2);
-
-			updateAllFields(); // 更新所有欄位
-		}
 
         function adjustPeriod(delta) {
 			vibrate();
@@ -936,19 +913,32 @@
             calculatePayment();
         }
 
+        function adjustCommission(delta) {
+            // 添加震動效果
+            vibrate();
+
+            // 獲取佣金輸入框元素
+            const commissionField = document.getElementById('commission');
+            
+            // 獲取當前值，如果為空則預設為0
+            const currentValue = parseFloat(commissionField.value) || 0;
+            
+            // 計算新值（當前值加上變化量）
+            const newValue = currentValue + delta;
+            
+            // 更新輸入框的值，使用 Math.round 去除小數點
+            commissionField.value = Math.round(newValue);
+            
+            // 更新所有相關欄位的計算
+            updateAllFields();
+        }
+
         function adjustPrincipal(delta) {
 			vibrate();
             const principalField = document.getElementById('principal');
             const currentValue = parseFloat(principalField.value) || 0;
             principalField.value = currentValue + delta;
             calculatePayment();
-        }
-
-        function setCommissionPercentage(percentage) {
-			vibrate();
-            const principal = parseFloat(document.getElementById('principal').value);
-            document.getElementById('commission').value = (principal * percentage / 100).toFixed(2);
-            updateAllFields(); // 更新所有欄位
         }
 
         function calculateAfterCommissionRate() {
