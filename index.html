@@ -1,17 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-	<!-- Google Analytics 追蹤程式碼 -->
-    	<!-- Google tag (gtag.js) -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
-	<script>
-	  window.dataLayer = window.dataLayer || [];
-	  function gtag(){dataLayer.push(arguments);}
-	  gtag('js', new Date());
-	
-	  gtag('config', 'G-XE5XMQR0Z1');
-	</script>
-	
     <meta charset="UTF-8">
 	<meta name="viewport" content="width=400, user-scalable=no">
     <title>雞肉飯要每天吃</title>
@@ -74,11 +63,11 @@
 		position: relative;
 		transition: all 0.3s ease;
     }
-		h1:hover {
-    transform: translateY(-2px);
-    text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
-}
-		h1::after {
+	h1:hover {
+        transform: translateY(-2px);
+        text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
+    }
+	h1::after {
         content: '';
         position: absolute;
         bottom: 0;
@@ -106,10 +95,32 @@
         border-radius: 4px;
         box-shadow: 0 4px 8px var(--shadow-color);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        transform-origin: left;
+        will-change: transform; 
     }
-		.row:hover {
+
+	.row:hover {
         transform: translateX(5px);
         box-shadow: 0 6px 12px var(--shadow-color);
+    }
+
+    .row:hover::before {
+        content: '';
+        position: absolute;
+        left: -5px;
+        top: 50%;
+        width: 3px;
+        height: 0;
+        background: var(--button-orange);
+        animation: expandHeight 0.3s forwards;
+    }
+
+    @keyframes expandHeight {
+        to {
+            height: 100%;
+            top: 0;
+        }
     }
 
     .label {
@@ -118,6 +129,8 @@
         text-align: right;
         font-weight: 600;
         color: var(--text-color);
+        position: relative;
+        overflow: hidden;
     }
 
     input {
@@ -137,7 +150,24 @@
 		border-color: var(--button-orange);
 		box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.2);
 		transform: scale(1.07);
-		}
+	}
+
+    .value-changed {
+        animation: valueChange 0.5s ease-out;
+        will-change: background-color;
+    }
+
+    @keyframes valueChange {
+        0% { 
+            background-color: rgba(255, 156, 51, 0.2);
+            transform: scale(1.02);
+        }
+        100% { 
+            background-color: transparent;
+            transform: scale(1);
+        }
+    }
+
 
     button {
         background-color: var(--secondary-color);
@@ -156,7 +186,7 @@
 		transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-		button:active {
+	button:active {
         transform: scale(0.95) translateY(1px);
     	transition: transform 0.1s;
     }
@@ -173,6 +203,9 @@
         font-size: 16px;
 		position: relative;
     	overflow: hidden;
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+        transform: translateZ(0);
     }
 
     .row button:hover {
@@ -186,7 +219,7 @@
         color: var(--text-color);
         border-color: var(--button-grey);
     }
-		.row button::after {
+	.row button::after {
 		content: '';
 		position: absolute;
 		top: 50%;
@@ -223,12 +256,18 @@
 		transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-		div[id$="Buttons"] button:active {
+	div[id$="Buttons"] button:active {
         transform: translateY(1px);
     }
 
     .readonly {
         background-color: #222222;
+        animation: breathe 4s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
     }
 
     #timeDisplay {
@@ -244,10 +283,12 @@
 		position: relative;
     	overflow: hidden;
     }
+
 	#timeDisplay:hover {
         transform: scale(1.02);
         box-shadow: 0 6px 12px var(--shadow-color);
     }
+
 	#timeDisplay::before {
 		content: '';
 		position: absolute;
@@ -258,10 +299,10 @@
 		background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
 		animation: timelineSlide 3s linear infinite;
 	}
-		@keyframes timelineSlide {
+	@keyframes timelineSlide {
 		0% { left: -100%; }
 		100% { left: 100%; }
-}
+    }
 
     .time-label {
         font-weight: bold;
@@ -365,8 +406,35 @@
 		font-size: 16px;
 		position: relative;
         overflow: hidden;
+        will-change: opacity, transform;
 	}
-		.function-buttons button::after {
+
+    .function-buttons button::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: var(--button-orange);
+        z-index: -1;
+        border-radius: 6px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .function-buttons button:hover::before {
+        opacity: 0.2;
+        animation: pulseGlow 1.5s infinite;
+    }
+
+    @keyframes pulseGlow {
+        0% { transform: scale(1); opacity: 0.2; }
+        50% { transform: scale(1.05); opacity: 0.3; }
+        100% { transform: scale(1); opacity: 0.2; }
+    }
+    
+	.function-buttons button::after {
         content: '';
         position: absolute;
         top: 50%;
@@ -384,7 +452,7 @@
 		color: var(--text-color);
 		border-color: var(--button-orange);
 	}
-		.function-buttons button:hover::after {
+	.function-buttons button:hover::after {
         transform: translate(-50%, -50%) scale(2);
     }
 
@@ -411,7 +479,7 @@
 		height: 30px;
 		margin-top: 0px;
 	}
-		.footer-message::before {
+	.footer-message::before {
 		content: '🍚';
 		margin-right: 8px;
 		display: inline-block;
@@ -431,15 +499,24 @@
 		background: linear-gradient(45deg, #222222, #2a2a2a);
 		transition: all 0.3s ease;
     }
-		@keyframes glowBorder {
+
+	@keyframes glowBorder {
 		0%, 100% { box-shadow: 0 0 5px var(--button-orange); }
 		50% { box-shadow: 0 0 15px var(--button-orange), 0 0 30px rgba(255, 156, 51, 0.3); }
     }
-		.warning-text {
+	.warning-text {
 		color: #ff0000 !important;
 		font-weight: bold !important;
-		animation: pulse 1s infinite;
+		animation: pulse 1s infinite, shake 0.5s ease-in-out; 
+        will-change: transform; 
 	}
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-1px); }
+        40%, 80% { transform: translateX(1px); }
+    }
+
 
     /* 更新分隔線樣式 */
     .divider {
@@ -516,7 +593,7 @@
         <span class="time-label">報價時間：</span><span id="currentTime"></span>
     </div>
     
-<div class="row">
+    <div class="row">
         <span class="label">期數</span>
         <input type="number" id="period" step="0.1">
         <button onclick="calculatePeriod()">算</button>
@@ -532,6 +609,7 @@
         <button onclick="setPeriod(60)">5</button>
       	<button onclick="adjustPeriod(1)">+1</button>
 	</div>
+
     <div class="row">
         <span class="label">稅前利率</span>
         <input type="number" id="rate" step="0.001">
@@ -548,12 +626,14 @@
         <button onclick="setRate(13)">13</button>
         <button onclick="adjustRate(0.2)">+0.2</button>
     </div>
+
     <div class="row">
         <span class="label">本金</span>
-        <input type="number" id="principal">
+        <input type="number" id="principal" min="0" oninput="validatePrincipalInput(this)">
         <button onclick="calculatePrincipal()">算</button>
         <button onclick="clearField('principal')">清</button>
     </div>
+
     <div id="principalButtons" style="display: flex; justify-content: flex-end;">
 		<button onclick="adjustPrincipal(-1000000)">-100</button>
 		<button onclick="adjustPrincipal(-100000)">-10</button>
@@ -562,12 +642,14 @@
 		<button onclick="adjustPrincipal(100000)">+10</button>
 		<button onclick="adjustPrincipal(1000000)">+100</button>
     </div>
+
     <div class="row">
         <span class="label">期繳</span>
         <input type="number" id="payment" step="0.01">
         <button onclick="calculatePayment()">算</button>
         <button onclick="clearField('payment')">清</button>
     </div>
+
 	 <div id="PaymentduringButtons" style="display: flex; justify-content: flex-end;">
         <button onclick="adjustPayment(-100)">-100</button>
 		 <button onclick="adjustPayment(-50)">-50</button>
@@ -576,15 +658,18 @@
 		 <button onclick="adjustPayment(50)">+50</button>
         <button onclick="adjustPayment(100)">+100</button>
     </div>
+
 	<div class="row">
         <span class="label">總利息</span>
         <input type="number" id="totalInterest" class="readonly" readonly>
     </div>
+
     <div class="row">
         <span class="label">等於火雞肉飯</span>
         <input type="number" id="chickenRice" class="readonly" readonly>
         <span style="margin-left: 0px; color: var(--text-color);">碗</span>
     </div>
+
     <div class="row">
         <span class="label">稅金</span>
         <input type="number" id="tax" class="readonly" readonly>
@@ -676,458 +761,496 @@
 	</div>
 <script>
 	// 添加震動函數
-		function vibrate() {
-			if (navigator.vibrate) {
-			navigator.vibrate(30); // 震動30毫秒
-			}
+	function vibrate() {
+		if (navigator.vibrate) {
+		navigator.vibrate(30); // 震動30毫秒
 		}
+	}
 
-        // 添加這個新函數到第一個 script 標籤內，updateTime 函數之前
-        function calculateNPV(payment, period, principal, monthlyCost) {
-            try {
-                // 檢查輸入值是否有效
-                if (!payment || !period || !principal || !monthlyCost || 
-                    isNaN(payment) || isNaN(period) || isNaN(principal) || isNaN(monthlyCost)) {
-                    return 0;
-                }
+    // 添加這個新函數到第一個 script 標籤內，updateTime 函數之前
+    function calculateNPV(payment, period, principal, monthlyCost) {
+        try {
+        // 檢查輸入值是否有效
+        if (!payment || !period || !principal || !monthlyCost || 
+            isNaN(payment) || isNaN(period) || isNaN(principal) || isNaN(monthlyCost)) {
+            return 0;
+        }
 
-                // 將年利率轉換為月利率
-                const monthlyRate = monthlyCost / 100 / 12;
+        // 將年利率轉換為月利率
+        const monthlyRate = monthlyCost / 100 / 12;
 
-                // 計算期望現值（使用期繳金額和期數反推）
-                const expectedPresentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+        // 計算期望現值（使用期繳金額和期數反推）
+        const expectedPresentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
 
-                // 計算與實際本金的差額
-                return Math.round(expectedPresentValue - principal);
-            } catch (error) {
-                console.error('NPV 計算錯誤:', error);
-                return 0;
+        // 計算與實際本金的差額
+        return Math.round(expectedPresentValue - principal);
+        } catch (error) {
+        console.error('NPV 計算錯誤:', error);
+        return 0;
+        }
+    }
+
+    // 添加更新時間的函數
+    function updateTime() {
+        const now = new Date();
+        const days = ['日', '一', '二', '三', '四', '五', '六'];
+        
+        // 調整為台北時間 (GMT+8)
+        const taipeiTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+        
+        const year = taipeiTime.getUTCFullYear();
+        const month = String(taipeiTime.getUTCMonth() + 1).padStart(2, '0');
+        const date = String(taipeiTime.getUTCDate()).padStart(2, '0');
+        const day = days[taipeiTime.getUTCDay()];
+        const hours = String(taipeiTime.getUTCHours()).padStart(2, '0');
+        const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
+        
+        const timeString = `${year}年${month}月${date}日
+            星期${day} ${hours}:${minutes}:${seconds}`;
+        document.getElementById('currentTime').textContent = timeString;
+    }
+
+    // 每秒更新一次時間
+    setInterval(updateTime, 1000);
+    updateTime(); // 初始化顯示
+
+    // 原始的JavaScript函數保持不變
+    function PMT(rate, nper, pv) {
+        rate = rate / 100 / 12;
+        return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+    }
+        
+    function RATE(nper, pmt, pv) {
+        let rate = 0.1;
+        let step = 0.05;
+        let tolerance = 0.0001;
+        let maxIterations = 100;
+        let iteration = 0;
+
+        while (iteration < maxIterations) {
+            let monthlyRate = rate / 12;
+            let calculated = pv * monthlyRate * Math.pow(1 + monthlyRate, nper) / 
+                            (Math.pow(1 + monthlyRate, nper) - 1);
+            
+            if (Math.abs(calculated - pmt) < tolerance) {
+                return rate * 100;
             }
-        }
 
-	     // 添加更新時間的函數
-        function updateTime() {
-            const now = new Date();
-            const days = ['日', '一', '二', '三', '四', '五', '六'];
+            if (calculated > pmt) {
+                rate -= step;
+            } else {
+                rate += step;
+            }
             
-            // 調整為台北時間 (GMT+8)
-            const taipeiTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-            
-            const year = taipeiTime.getUTCFullYear();
-            const month = String(taipeiTime.getUTCMonth() + 1).padStart(2, '0');
-            const date = String(taipeiTime.getUTCDate()).padStart(2, '0');
-            const day = days[taipeiTime.getUTCDay()];
-            const hours = String(taipeiTime.getUTCHours()).padStart(2, '0');
-            const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
-            const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
-            
-            const timeString = `${year}年${month}月${date}日
-				星期${day} ${hours}:${minutes}:${seconds}`;
-            document.getElementById('currentTime').textContent = timeString;
-        }
-
-        // 每秒更新一次時間
-        setInterval(updateTime, 1000);
-        updateTime(); // 初始化顯示
-
-        // 原始的JavaScript函數保持不變
-        function PMT(rate, nper, pv) {
-            rate = rate / 100 / 12;
-            return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+            step *= 0.5;
+            iteration++;
         }
         
-        function RATE(nper, pmt, pv) {
-            let rate = 0.1;
-            let step = 0.05;
-            let tolerance = 0.0001;
-            let maxIterations = 100;
-            let iteration = 0;
+        return rate * 100;
+    }
 
-            while (iteration < maxIterations) {
-                let monthlyRate = rate / 12;
-                let calculated = pv * monthlyRate * Math.pow(1 + monthlyRate, nper) / 
-                               (Math.pow(1 + monthlyRate, nper) - 1);
-                
-                if (Math.abs(calculated - pmt) < tolerance) {
-                    return rate * 100;
-                }
+    function calculatePeriod() {
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value);
+        const payment = parseFloat(document.getElementById('payment').value);
+        
+        // TODO: Implement period calculation
+        updateAllFields();
+    }
 
-                if (calculated > pmt) {
-                    rate -= step;
-                } else {
-                    rate += step;
-                }
-                
-                step *= 0.5;
-                iteration++;
-            }
-            
-            return rate * 100;
+    function calculateRate() {
+        const period = parseFloat(document.getElementById('period').value);
+        const principal = parseFloat(document.getElementById('principal').value);
+        const payment = parseFloat(document.getElementById('payment').value);
+        
+        const rate = RATE(period, payment, principal);
+        document.getElementById('rate').value = rate.toFixed(4);
+        
+        updateAllFields();
+    }
+
+    function calculatePrincipal() {
+        const period = parseFloat(document.getElementById('period').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        const payment = parseFloat(document.getElementById('payment').value);
+        
+        // TODO: Implement principal calculation
+        updateAllFields();
+    }
+
+    function calculatePayment() {
+        const period = parseFloat(document.getElementById('period').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value);
+        
+        const payment = PMT(rate, period, principal);
+        document.getElementById('payment').value = payment.toFixed(2);
+        
+        updateAllFields();
+    }
+
+
+    function updateAllFields() {
+        // 獲取基本值
+        const period = parseFloat(document.getElementById('period').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value);
+        const payment = parseFloat(document.getElementById('payment').value);
+        const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
+
+        // 要求1: 期數檢查
+        const periodInput = document.getElementById('period');
+        if (period <= 12) {
+            periodInput.classList.add('warning-text');
+        } else {
+            periodInput.classList.remove('warning-text');
         }
 
-        function calculatePeriod() {
-            const rate = parseFloat(document.getElementById('rate').value);
-            const principal = parseFloat(document.getElementById('principal').value);
-            const payment = parseFloat(document.getElementById('payment').value);
-            
-            // TODO: Implement period calculation
-            updateAllFields();
+        // 計算總利息
+        const totalInterest = (payment * period) - principal;
+        // 要求2: 總利息格式化到小數點第3位
+        document.getElementById('totalInterest').value = totalInterest.toFixed(2);
+
+        // 計算稅金
+        const tax = totalInterest / 21;
+        document.getElementById('tax').value = tax.toFixed(2);
+
+        // 計算稅後利率
+        const afterTaxRate = RATE(period, payment, principal + tax);
+        // 要求3: 稅後利率格式化和警告
+        const afterTaxRateInput = document.getElementById('afterTaxRate');
+        afterTaxRateInput.value = afterTaxRate.toFixed(4);
+        if (afterTaxRate <= 2.5) {
+            afterTaxRateInput.classList.add('warning-text');
+        } else {
+            afterTaxRateInput.classList.remove('warning-text');
         }
 
-        function calculateRate() {
-            const period = parseFloat(document.getElementById('period').value);
-            const principal = parseFloat(document.getElementById('principal').value);
-            const payment = parseFloat(document.getElementById('payment').value);
-            
-            const rate = RATE(period, payment, principal);
-            document.getElementById('rate').value = rate.toFixed(4);
-            
-            updateAllFields();
+        // 要求2: 佣金格式化為整數
+        const commission = parseFloat(document.getElementById('commission').value) || 0;
+        document.getElementById('commission').value = Math.round(commission);
+        
+        // 檢查佣金是否超過總利息的95%
+        const commissionInput = document.getElementById('commission');
+        if (commission >= totalInterest * 0.95) {
+            commissionInput.classList.add('warning-text');
+        } else {
+            commissionInput.classList.remove('warning-text');
         }
 
-        function calculatePrincipal() {
-            const period = parseFloat(document.getElementById('period').value);
-            const rate = parseFloat(document.getElementById('rate').value);
-            const payment = parseFloat(document.getElementById('payment').value);
-            
-            // TODO: Implement principal calculation
-            updateAllFields();
+        // 計算並更新推廣費比例
+        const commissionRatio = commission / principal * 100;
+        const commissionRatioInput = document.getElementById('commissionRatio');
+        commissionRatioInput.value = commissionRatio.toFixed(2);
+
+        // 檢查推廣費比例是否超過5%
+        if (commissionRatio > 5) {
+            commissionRatioInput.classList.add('warning-text');
+        } else {
+            commissionRatioInput.classList.remove('warning-text');
         }
 
-        function calculatePayment() {
-            const period = parseFloat(document.getElementById('period').value);
-            const rate = parseFloat(document.getElementById('rate').value);
-            const principal = parseFloat(document.getElementById('principal').value);
-            
-            const payment = PMT(rate, period, principal);
-            document.getElementById('payment').value = payment.toFixed(2);
-            
-            updateAllFields();
+        // 計算稅佣後利率
+        const afterCommissionRate = RATE(period, payment, principal + tax + commission);
+        // 要求5: 稅佣後利率格式化和警告
+        const afterCommissionRateInput = document.getElementById('afterCommissionRate');
+        afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
+        if (afterCommissionRate <= 2.5) {
+            afterCommissionRateInput.classList.add('warning-text');
+        } else {
+            afterCommissionRateInput.classList.remove('warning-text');
         }
 
+        // 計算百萬利息
+        const millionPayment = PMT(rate, 12, 1000000);
+        const annualMillionInterest = (millionPayment * 12) - 1000000;
+            // 要求3: 百萬每年利息格式化為整數
+        document.getElementById('annualMillionInterest').value = Math.round(annualMillionInterest);
+        // 要求4: 百萬每月利息格式化為整數
+        document.getElementById('monthlyMillionInterest').value = Math.round(annualMillionInterest / 12);
 
 
-        function updateAllFields() {
-			// 獲取基本值
-			const period = parseFloat(document.getElementById('period').value);
-			const rate = parseFloat(document.getElementById('rate').value);
-			const principal = parseFloat(document.getElementById('principal').value);
-			const payment = parseFloat(document.getElementById('payment').value);
-			const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
-
-			// 要求1: 期數檢查
-			const periodInput = document.getElementById('period');
-			if (period <= 12) {
-				periodInput.classList.add('warning-text');
-			} else {
-				periodInput.classList.remove('warning-text');
-			}
-
-			// 計算總利息
-			const totalInterest = (payment * period) - principal;
-			// 要求2: 總利息格式化到小數點第3位
-			document.getElementById('totalInterest').value = totalInterest.toFixed(2);
-
-			// 計算稅金
-			const tax = totalInterest / 21;
-			document.getElementById('tax').value = tax.toFixed(2);
-
-			// 計算稅後利率
-			const afterTaxRate = RATE(period, payment, principal + tax);
-			// 要求3: 稅後利率格式化和警告
-			const afterTaxRateInput = document.getElementById('afterTaxRate');
-			afterTaxRateInput.value = afterTaxRate.toFixed(4);
-			if (afterTaxRate <= 2.5) {
-				afterTaxRateInput.classList.add('warning-text');
-			} else {
-				afterTaxRateInput.classList.remove('warning-text');
-			}
-
-			 // 要求2: 佣金格式化為整數
-			const commission = parseFloat(document.getElementById('commission').value) || 0;
-			document.getElementById('commission').value = Math.round(commission);
-			
-			 // 檢查佣金是否超過總利息的95%
-            const commissionInput = document.getElementById('commission');
-            if (commission >= totalInterest * 0.95) {
-                commissionInput.classList.add('warning-text');
-            } else {
-                commissionInput.classList.remove('warning-text');
-            }
-
-            // 計算並更新推廣費比例
-            const commissionRatio = commission / principal * 100;
-            const commissionRatioInput = document.getElementById('commissionRatio');
-            commissionRatioInput.value = commissionRatio.toFixed(2);
-
-            // 檢查推廣費比例是否超過5%
-            if (commissionRatio > 5) {
-                commissionRatioInput.classList.add('warning-text');
-            } else {
-                commissionRatioInput.classList.remove('warning-text');
-            }
-
-			// 計算稅佣後利率
-			const afterCommissionRate = RATE(period, payment, principal + tax + commission);
-			// 要求5: 稅佣後利率格式化和警告
-			const afterCommissionRateInput = document.getElementById('afterCommissionRate');
-			afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
-			if (afterCommissionRate <= 2.5) {
-				afterCommissionRateInput.classList.add('warning-text');
-			} else {
-				afterCommissionRateInput.classList.remove('warning-text');
-			}
-
-			// 計算百萬利息
-			const millionPayment = PMT(rate, 12, 1000000);
-			const annualMillionInterest = (millionPayment * 12) - 1000000;
-			 // 要求3: 百萬每年利息格式化為整數
-			document.getElementById('annualMillionInterest').value = Math.round(annualMillionInterest);
-			// 要求4: 百萬每月利息格式化為整數
-			document.getElementById('monthlyMillionInterest').value = Math.round(annualMillionInterest / 12);
+        // 計算一萬利息
+        const tenThousandPayment = PMT(rate, 12, 10000);
+        const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
+        // 要求5: 一萬每年利息格式化為整數
+        document.getElementById('annualTenThousandInterest').value = Math.round(annualTenThousandInterest);
+        // 要求6: 一萬每月利息格式化為整數
+        document.getElementById('monthlyTenThousandInterest').value = Math.round(annualTenThousandInterest / 12);
 
 
-			// 計算一萬利息
-			const tenThousandPayment = PMT(rate, 12, 10000);
-			const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
-			// 要求5: 一萬每年利息格式化為整數
-			document.getElementById('annualTenThousandInterest').value = Math.round(annualTenThousandInterest);
-			// 要求6: 一萬每月利息格式化為整數
-			document.getElementById('monthlyTenThousandInterest').value = Math.round(annualTenThousandInterest / 12);
-
-
-			// 計算 Spread
-			const spread = afterCommissionRate - monthlyCost;
-			// 要求10: Spread 警告
-			const spreadInput = document.getElementById('spread');
-			spreadInput.value = spread.toFixed(4);
-			if (spread <= 0) {
-				spreadInput.classList.add('warning-text');
-			} else {
-				spreadInput.classList.remove('warning-text');
-			}
-			
-            // 在計算 spread 之後添加新的計算邏輯
-            // 在計算 spread 之後，替換原有的 NPV 計算代碼為：
-            const npvValue = calculateNPV(
-                parseFloat(document.getElementById('payment').value),
-                parseFloat(document.getElementById('period').value),
-                parseFloat(document.getElementById('principal').value),
-                parseFloat(document.getElementById('monthlyCost').value)
-            );
-            
-            // 更新 NPV 顯示
-            const fundingCostInput = document.getElementById('fundingCost');
-            fundingCostInput.value = npvValue;
-            
-            // 更新警告樣式
-            if (npvValue < 0) {
-                fundingCostInput.classList.add('warning-text');
-            } else {
-                fundingCostInput.classList.remove('warning-text');
-            }
+        // 計算 Spread
+        const spread = afterCommissionRate - monthlyCost;
+        // 要求10: Spread 警告
+        const spreadInput = document.getElementById('spread');
+        spreadInput.value = spread.toFixed(4);
+        if (spread <= 0) {
+            spreadInput.classList.add('warning-text');
+        } else {
+            spreadInput.classList.remove('warning-text');
+        }
+        
+        // 在計算 spread 之後添加新的計算邏輯
+        // 在計算 spread 之後，替換原有的 NPV 計算代碼為：
+        const npvValue = calculateNPV(
+            parseFloat(document.getElementById('payment').value),
+            parseFloat(document.getElementById('period').value),
+            parseFloat(document.getElementById('principal').value),
+            parseFloat(document.getElementById('monthlyCost').value)
+        );
+        
+        // 更新 NPV 顯示
+        const fundingCostInput = document.getElementById('fundingCost');
+        fundingCostInput.value = npvValue;
+        
+        // 更新警告樣式
+        if (npvValue < 0) {
+            fundingCostInput.classList.add('warning-text');
+        } else {
+            fundingCostInput.classList.remove('warning-text');
+        }
 			
 
-			// 計算雞肉飯碗數
-			document.getElementById('chickenRice').value = Math.floor(totalInterest / 35);
-		}
+        // 計算雞肉飯碗數
+        document.getElementById('chickenRice').value = Math.floor(totalInterest / 35);
 
-        function clearField(fieldId) {
-			vibrate();
-            document.getElementById(fieldId).value = '';
-        }
-	
-		function clearCommission() {
-			vibrate();
-        	document.getElementById('commission').value = '';
-        	updateAllFields(); // 更新所有欄位
-    	}
-
-        function adjustPeriod(delta) {
-			vibrate();
-            const periodField = document.getElementById('period');
-            const currentValue = parseFloat(periodField.value) || 0;
-            periodField.value = currentValue + delta;
-            calculatePayment();
-        }
-
-        function setPeriod(value) {
-			vibrate();
-            document.getElementById('period').value = value;
-            calculatePayment();
-        }
-
-        function adjustRate(delta) {
-			vibrate();
-            const rateField = document.getElementById('rate');
-            const currentValue = parseFloat(rateField.value) || 0;
-            rateField.value = (currentValue + delta).toFixed(4);
-            calculatePayment();
-        }
-
-        function setRate(value) {
-			vibrate();
-            document.getElementById('rate').value = value;
-            calculatePayment();
-        }
-
-        function validateCommissionInput(input) {
-            // 移除小數點
-            let value = parseInt(input.value) || 0;
-            
-            // 如果是負數，設為0
-            if (value < 0) {
-                value = 0;
-            }
-            
-            // 更新輸入框的值為整數
-            input.value = Math.floor(value);
-            
-            // 更新相關計算
-            updateAllFields();
-        }
-
-        function adjustCommission(delta) {
-            // 添加震動效果
-            vibrate();
-
-            // 獲取佣金輸入框元素
-            const commissionField = document.getElementById('commission');
-            
-            // 獲取當前值，如果為空則預設為0
-            const currentValue = parseFloat(commissionField.value) || 0;
-            
-            // 計算新值（當前值加上變化量）
-            const newValue = Math.max(0, currentValue + delta);
-            
-            // 更新輸入框的值，使用 Math.round 去除小數點
-            commissionField.value = Math.floor(newValue);
-            
-            // 更新所有相關欄位的計算
-            updateAllFields();
-        }
-
-        function adjustPrincipal(delta) {
-			vibrate();
-            const principalField = document.getElementById('principal');
-            const currentValue = parseFloat(principalField.value) || 0;
-            principalField.value = currentValue + delta;
-            calculatePayment();
-            updateAllFields(); // 添加這行
-        }
-
-        function calculateAfterCommissionRate() {
-			const period = parseFloat(document.getElementById('period').value);
-			const payment = parseFloat(document.getElementById('payment').value);
-			const principal = parseFloat(document.getElementById('principal').value);
-			const tax = parseFloat(document.getElementById('tax').value);
-			const commission = parseFloat(document.getElementById('commission').value) || 0;
-
-			updateAllFields(); // 更新所有欄位
-		}
-	 	function roundPayment(direction, base) {
-		 	vibrate();
-            const paymentField = document.getElementById('payment');
-            let value = parseFloat(paymentField.value) || 0;
-            
-            if (direction === 'down') {
-                value = Math.floor(value / base) * base;
-            } else {
-                value = Math.ceil(value / base) * base;
-            }
-            
-            paymentField.value = value.toFixed(2);
-            calculateRate(); // Recalculate the rate
-        }
-		function adjustPayment(delta) {
-			vibrate();
-			const paymentField = document.getElementById('payment');
-			const currentValue = parseFloat(paymentField.value) || 0;
-			paymentField.value = (currentValue + delta).toFixed(2);
-			calculateRate(); // 重新計算利率
-			}
-		function saveData() {
-			const dataToSave = {
-			period: document.getElementById('period').value,
-			rate: document.getElementById('rate').value,
-			principal: document.getElementById('principal').value,
-			payment: document.getElementById('payment').value,
-			commission: document.getElementById('commission').value
-			};
-			localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
-			alert('資料已暫存！');
-		}
-
-		function generateQuote() {
-			vibrate();
-			console.log('開始生成報價...'); // 新增偵錯訊息
-
-			// 創建報價表格
-			const table = document.createElement('table');
-			table.className = 'quote-table';
-
-			// 添加表格內容
-			const rows = [
-			['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
-			['期數', document.getElementById('period').value || ''],
-			['稅前利率', (document.getElementById('rate').value || '') + '%'],
-			['本金', document.getElementById('principal').value || ''],
-			['期繳', document.getElementById('payment').value || ''],
-			['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
-			['佣金', document.getElementById('commission').value || ''],
-			['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%'],
-			['雞肉飯', document.getElementById('chickenRice').value + ' 碗']
-			];
-
-			// 建立表格內容
-			rows.forEach(([label, value]) => {
-			const tr = table.insertRow();
-			const labelCell = tr.insertCell();
-			const valueCell = tr.insertCell();
-			labelCell.textContent = label;
-			valueCell.innerHTML = value; // 改用 innerHTML 來支援換行標籤
-			});
-
-			// 創建臨時容器
-			const container = document.createElement('div');
-				container.style.padding = '24px';
-				container.style.background = '#333333';
-				container.style.borderRadius = '12px';
-				container.appendChild(table);
-				document.body.appendChild(container);
-
-				console.log('準備進行截圖...'); // 新增偵錯訊息
-
-			// 使用 html2canvas 轉換為圖片
-			html2canvas(container).then(canvas => {
-				console.log('Canvas 已生成'); // 新增偵錯訊息
-
-				// 移除臨時容器
-				document.body.removeChild(container);
-
-				// 下載圖片
-				const link = document.createElement('a');
-				link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
-				link.href = canvas.toDataURL();
-				console.log('準備下載...'); // 新增偵錯訊息
-				link.click();
-			}).catch(error => {
-				console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
-				document.body.removeChild(container); // 確保清理臨時容器
-			});
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // 為相關輸入欄位添加事件監聽
-            const inputIds = ['period', 'payment', 'principal', 'monthlyCost'];
-            inputIds.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.addEventListener('input', updateAllFields);
-                    element.addEventListener('change', updateAllFields);
-                }
-            });
+        // 在更新值之前保存舊值
+        const oldValues = {};
+        const fieldsToTrack = ['totalInterest', 'chickenRice', 'afterTaxRate', 'spread'];
+        fieldsToTrack.forEach(field => {
+            oldValues[field] = document.getElementById(field).value;
         });
+
+        // 在更新後檢查變化
+        fieldsToTrack.forEach(field => {
+            const newValue = document.getElementById(field).value;
+            if (oldValues[field] !== newValue) {
+                animateValueChange(field);
+            }
+        });
+    }
+
+    // 在 clearField 函數之前添加這個新函數
+    function validatePrincipalInput(input) {
+        // 移除負號，轉換為絕對值
+        let value = Math.abs(parseFloat(input.value)) || 0;
+        
+        // 如果輸入為0，設為空值
+        if (value === 0) {
+            input.value = '';
+        } else {
+            input.value = value;
+        }
+        
+        // 更新相關計算
+        updateAllFields();
+    }
+
+    function clearField(fieldId) {
+        vibrate();
+        document.getElementById(fieldId).value = '';
+    }
+
+    function clearCommission() {
+        vibrate();
+        document.getElementById('commission').value = '';
+        updateAllFields(); // 更新所有欄位
+    }
+
+    function adjustPeriod(delta) {
+        vibrate();
+        const periodField = document.getElementById('period');
+        const currentValue = parseFloat(periodField.value) || 0;
+        periodField.value = currentValue + delta;
+        calculatePayment();
+    }
+
+    function setPeriod(value) {
+        vibrate();
+        document.getElementById('period').value = value;
+        calculatePayment();
+    }
+
+    function adjustRate(delta) {
+        vibrate();
+        const rateField = document.getElementById('rate');
+        const currentValue = parseFloat(rateField.value) || 0;
+        rateField.value = (currentValue + delta).toFixed(4);
+        calculatePayment();
+    }
+
+    function setRate(value) {
+        vibrate();
+        document.getElementById('rate').value = value;
+        calculatePayment();
+    }
+
+    function validateCommissionInput(input) {
+        // 移除小數點
+        let value = parseInt(input.value) || 0;
+        
+        // 如果是負數，設為0
+        if (value < 0) {
+            value = 0;
+        }
+        
+        // 更新輸入框的值為整數
+        input.value = Math.floor(value);
+        
+        // 更新相關計算
+        updateAllFields();
+    }
+
+    function adjustCommission(delta) {
+        // 添加震動效果
+        vibrate();
+
+        // 獲取佣金輸入框元素
+        const commissionField = document.getElementById('commission');
+        
+        // 獲取當前值，如果為空則預設為0
+        const currentValue = parseFloat(commissionField.value) || 0;
+        
+        // 計算新值（當前值加上變化量）
+        const newValue = Math.max(0, currentValue + delta);
+        
+        // 更新輸入框的值，使用 Math.round 去除小數點
+        commissionField.value = Math.floor(newValue);
+        
+        // 更新所有相關欄位的計算
+        updateAllFields();
+    }
+
+    function adjustPrincipal(delta) {
+        vibrate();
+        const principalField = document.getElementById('principal');
+        const currentValue = parseFloat(principalField.value) || 0;
+        principalField.value = currentValue + delta;
+        calculatePayment();
+        updateAllFields(); // 添加這行
+    }
+
+    function calculateAfterCommissionRate() {
+        const period = parseFloat(document.getElementById('period').value);
+        const payment = parseFloat(document.getElementById('payment').value);
+        const principal = parseFloat(document.getElementById('principal').value);
+        const tax = parseFloat(document.getElementById('tax').value);
+        const commission = parseFloat(document.getElementById('commission').value) || 0;
+
+        updateAllFields(); // 更新所有欄位
+    }
+    function roundPayment(direction, base) {
+        vibrate();
+        const paymentField = document.getElementById('payment');
+        let value = parseFloat(paymentField.value) || 0;
+        
+        if (direction === 'down') {
+            value = Math.floor(value / base) * base;
+        } else {
+            value = Math.ceil(value / base) * base;
+        }
+        
+        paymentField.value = value.toFixed(2);
+        calculateRate(); // Recalculate the rate
+    }
+    function adjustPayment(delta) {
+        vibrate();
+        const paymentField = document.getElementById('payment');
+        const currentValue = parseFloat(paymentField.value) || 0;
+        paymentField.value = (currentValue + delta).toFixed(2);
+        calculateRate(); // 重新計算利率
+        }
+    function saveData() {
+        const dataToSave = {
+        period: document.getElementById('period').value,
+        rate: document.getElementById('rate').value,
+        principal: document.getElementById('principal').value,
+        payment: document.getElementById('payment').value,
+        commission: document.getElementById('commission').value
+        };
+        localStorage.setItem('loanCalculatorData', JSON.stringify(dataToSave));
+        alert('資料已暫存！');
+    }
+
+    function generateQuote() {
+        vibrate();
+        console.log('開始生成報價...'); // 新增偵錯訊息
+
+        // 創建報價表格
+        const table = document.createElement('table');
+            table.className = 'quote-table';
+
+        // 添加表格內容
+        const rows = [
+            ['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
+            ['期數', document.getElementById('period').value || ''],
+            ['稅前利率', (document.getElementById('rate').value || '') + '%'],
+            ['本金', document.getElementById('principal').value || ''],
+            ['期繳', document.getElementById('payment').value || ''],
+            ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
+            ['佣金', document.getElementById('commission').value || ''],
+            ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%'],
+            ['雞肉飯', document.getElementById('chickenRice').value + ' 碗']
+            ];
+
+        // 建立表格內容
+        rows.forEach(([label, value]) => {
+            const tr = table.insertRow();
+            const labelCell = tr.insertCell();
+            const valueCell = tr.insertCell();
+            labelCell.textContent = label;
+            valueCell.innerHTML = value; // 改用 innerHTML 來支援換行標籤
+            });
+
+        // 創建臨時容器
+        const container = document.createElement('div');
+            container.style.padding = '24px';
+            container.style.background = '#333333';
+            container.style.borderRadius = '12px';
+            container.appendChild(table);
+            document.body.appendChild(container);
+
+            console.log('準備進行截圖...'); // 新增偵錯訊息
+
+        // 使用 html2canvas 轉換為圖片
+        html2canvas(container).then(canvas => {
+            console.log('Canvas 已生成'); // 新增偵錯訊息
+
+        // 移除臨時容器
+        document.body.removeChild(container);
+
+        // 下載圖片
+        const link = document.createElement('a');
+            link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
+            link.href = canvas.toDataURL();
+            console.log('準備下載...'); // 新增偵錯訊息
+            link.click();
+        }).catch(error => {
+            console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
+            document.body.removeChild(container); // 確保清理臨時容器
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 為相關輸入欄位添加事件監聽
+        const inputIds = ['period', 'payment', 'principal', 'monthlyCost'];
+        inputIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', updateAllFields);
+                element.addEventListener('change', updateAllFields);
+            }
+        });
+    });
+
+    // 添加數值變化動畫
+        function animateValueChange(elementId) {
+        const element = document.getElementById(elementId);
+        element.classList.remove('value-changed');
+        void element.offsetWidth; // 觸發重繪
+        element.classList.add('value-changed');
+    }
 
     </script>
 	<!-- 在 </body> 標籤前添加 -->
