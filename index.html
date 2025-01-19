@@ -298,21 +298,17 @@
     h1 {
         color: var(--text-color);
         font-size: 22px;
-        margin-bottom: 2px; /* 改為 2px */
-        border-bottom: none; /* 移除原本的邊框 */
-        padding-bottom: 3px; /* 減少下方內邊距 */
-        position: relative;
-        transition: all 0.3s ease;
-        width: 100%; /* 確保寬度與父容器一致 */
-        max-width: 394px; /* 設定最大寬度，394px = 400px - 6px (左右padding) */
+        margin-bottom: 0px;
+        border-bottom: 2px solid var(--button-orange);
+        padding-bottom: 5px;
+		position: relative;
+		transition: all 0.3s ease;
     }
-
-	h1:hover {
+    h1:hover {
         transform: translateY(-2px);
         text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
     }
-
-	h1::after {
+    h1::after {
         content: '';
         position: absolute;
         bottom: 0;
@@ -320,8 +316,8 @@
         width: 100%;
         height: 2px;
         background: var(--button-orange);
-        transform: scaleX(1); /* 改為預設顯示 */
-        transform-origin: center; /* 改為從中間開始 */
+        transform: scaleX(0);
+        transform-origin: right;
         transition: transform 0.6s ease-out;
     }
 
@@ -516,7 +512,7 @@
     }
 
     #timeDisplay {
-        margin: 5px 0;
+        margin: 3px 0;
         font-size: 15px;
         background: var(--secondary-color);
         color: var(--text-color);
@@ -834,9 +830,9 @@
 </head>
 <body>
 
-	<div style="text-align: center; position: relative; display: flex; align-items: center; justify-content: center; padding: 5px 0; width: calc(100% - 6px);">
-        <h1 style="margin: 0;">小朋友專用計算機</h1>
-    </div>
+	<div style="text-align: center;">
+        <h1>小朋友專用計算機</h1>
+       </div>
 	
     <div id="timeDisplay" style="display: flex; justify-content: center;">
         <span class="time-label">報價時間：</span><span id="currentTime"></span>
