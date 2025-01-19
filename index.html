@@ -14,6 +14,7 @@
 	<meta name="viewport" content="width=400, user-scalable=no">
     <title>雞肉飯天天吃</title>
     <style>
+
     :root {
         --primary-color: #333333;
         --secondary-color: #4a4a4a;
@@ -25,6 +26,198 @@
         --button-blue: #33b5e5;
 		--button-grey: #333333;
     }
+
+    .login-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #333333 0%, #222222 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .login-container {
+        background-color: var(--secondary-color);
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        transform: translateY(0);
+        animation: slideUp 0.5s ease-out;
+        border: 1px solid rgba(255, 156, 51, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
+        animation: loading 3s linear infinite;
+    }
+
+    .login-container h2 {
+        color: var(--text-color);
+        margin-bottom: 30px;
+        font-size: 24px;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        display: inline-block;
+    }
+
+    .login-container h2::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--button-orange);
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.6s ease-out;
+    }
+
+    .login-container:hover h2::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .google-signin {
+        margin-top: 20px;
+        transform: scale(1);
+        transition: transform 0.3s ease;
+        will-change: transform;
+    }
+
+    .google-signin:hover {
+        transform: scale(1.02);
+    }
+
+    @keyframes loading {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .sign-out-btn {
+        background-color: var(--secondary-color);
+        color: var(--button-orange);
+        border: 1px solid var(--button-orange);
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .sign-out-btn:hover {
+        background-color: var(--button-orange);
+        color: var(--text-color);
+        transform: translateY(-2px);
+    }
+
+    /* 添加響應動畫效果 */
+    .login-container:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    /* 為登入按鈕添加動畫效果 */
+    .g_id_signin {
+        transition: all 0.3s ease;
+    }
+
+    .g_id_signin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 在登入容器周圍添加裝飾元素 */
+    .login-container::after {
+        content: '🍚';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 24px;
+        opacity: 0.5;
+        animation: rotate 3s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    #userProfile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        margin: 10px auto;
+        max-width: 380px;
+        justify-content: center;
+        background: var(--secondary-color);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #userImage {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--button-orange);
+    }
+
+    #userName {
+        color: var(--text-color);
+        font-weight: bold;
+    }
+
+    .login-container.loading::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1;
+    }
+
+    .error-message {
+        color: #ff4444;
+        font-size: 14px;
+        margin-top: 10px;
+        animation: shake 0.5s ease-in-out;
+    }
+
 		 /* 添加新的動畫關鍵幀 */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
@@ -592,10 +785,45 @@
     }
 
 </style>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 <body>
+
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-container">
+            <h2>請先登入</h2>
+            <div id="googleSignInContainer" class="google-signin">
+                <div id="g_id_onload"
+                    data-client_id="956050785639-m8f7ps3h62f2dukg9s0vd6dvafg22h89.apps.googleusercontent.com"
+                    data-context="signin"
+                    data-ux_mode="popup"
+                    data-callback="handleCredentialResponse"
+                    data-auto_prompt="false"
+                    data-itp_support="true">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+        </div>
+    </div>
+
 	<div style="text-align: center;">
      <h1>小朋友專用計算機</h1>
+
+     <div id="userProfile" style="display: none;">
+        <img id="userImage" src="" alt="User profile">
+        <span id="userName"></span>
+        <button onclick="signOut()" class="sign-out-btn">登出</button>
+    </div>
+
 	</div>
 	
     <div id="timeDisplay" style="display: flex; justify-content: center;">
@@ -769,6 +997,98 @@
     	<button onclick="generateQuote()">截圖</button>
 	</div>
 <script>
+
+    // 更新 handleCredentialResponse 函數
+    function handleCredentialResponse(response) {
+        const responsePayload = decodeJwtResponse(response.credential);
+        
+        // 保存用戶信息到 localStorage
+        localStorage.setItem('googleUser', JSON.stringify({
+            name: responsePayload.name,
+            picture: responsePayload.picture,
+            email: responsePayload.email,
+            token: response.credential
+        }));
+        
+        // 隱藏登入遮罩
+        hideLoginOverlay();
+        // 更新用戶介面
+        updateUserInterface(responsePayload);
+    }
+
+    // 新增隱藏登入遮罩的函數
+    function hideLoginOverlay() {
+        document.getElementById('loginOverlay').style.display = 'none';
+    }
+
+    // 新增顯示登入遮罩的函數
+    function showLoginOverlay() {
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+
+    // 修改登出功能
+    function signOut() {
+        google.accounts.id.disableAutoSelect();
+        localStorage.removeItem('googleUser');
+        // 顯示登入遮罩
+        showLoginOverlay();
+        document.getElementById('userProfile').style.display = 'none';
+    }
+
+    // 修改檢查登入狀態的函數
+    window.onload = function() {
+        try {
+            // 1. 嘗試從 localStorage 讀取用戶資料
+            const savedUser = localStorage.getItem('googleUser');
+            
+            if (savedUser) {
+                // 2. 嘗試解析用戶資料
+                const user = JSON.parse(savedUser);
+                
+                // 3. 檢查資料是否完整
+                if (user && user.name && user.picture) {
+                    // 資料完整，隱藏登入遮罩並更新界面
+                    hideLoginOverlay();
+                    updateUserInterface(user);
+                } else {
+                    // 資料不完整，顯示登入遮罩
+                    console.log('Incomplete user data, requesting new login');
+                    localStorage.removeItem('googleUser'); // 清除無效資料
+                    showLoginOverlay();
+                }
+            } else {
+                // 沒有儲存的用戶資料，顯示登入遮罩
+                showLoginOverlay();
+            }
+        } catch (error) {
+            // 4. 捕獲任何可能的錯誤
+            console.error('Error while checking login status:', error);
+            localStorage.removeItem('googleUser'); // 清除可能損壞的資料
+            showLoginOverlay();
+        }
+    }
+
+    // 添加這個函數
+    function updateUserInterface(user) {
+        const userProfile = document.getElementById('userProfile');
+        const userImage = document.getElementById('userImage');
+        const userName = document.getElementById('userName');
+        
+        userProfile.style.display = 'flex';
+        userImage.src = user.picture;
+        userName.textContent = user.name;
+    }
+
+    // 添加這個函數
+    function decodeJwtResponse(token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
 	// 添加震動函數
 	function vibrate() {
 		if (navigator.vibrate) {
