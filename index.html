@@ -180,8 +180,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 12px 15px;
-        margin: 15px auto;  /* 改用普通邊距 */
+        padding: 8px 15px;    /* 調整上下內邊距從 12px 改為 8px */
+        margin: 8px auto;     /* 調整上下外邊距從 15px 改為 8px */
         border-radius: 8px;
         background: var(--secondary-color);
         max-width: calc(100% - 30px);
@@ -191,13 +191,13 @@
 
     /* 調整使用者圖片大小和樣式 */
     #userProfile img {
-        width: 22px;
-        height: 22px;
+        width: 20px;         /* 調整圖片大小從 22px 改為 20px */
+        height: 20px;
         border-radius: 50%;
         border: 2px solid var(--button-orange);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
-        margin-right: 12px;
+        margin-right: 8px;   /* 調整右邊距從 12px 改為 8px */
         cursor: pointer;
     }
 
@@ -209,10 +209,13 @@
     #userName {
         color: var(--text-color);
         font-weight: bold;
-    }
-
-    #userName {
-        display: none;
+        font-size: 13px;     /* 改為 13px 更協調 */
+        margin-right: 10px;
+        display: block;
+        white-space: nowrap; /* 防止名稱換行 */
+        max-width: 120px;    /* 限制最大寬度 */
+        overflow: hidden;    /* 超出部分隱藏 */
+        text-overflow: ellipsis; /* 顯示省略號 */
     }
 
     /* 優化登出按鈕樣式 */
@@ -220,11 +223,11 @@
         background-color: var(--secondary-color);
         color: var(--button-orange);
         border: 1px solid var(--button-orange);
-        padding: 6px 12px;
+        padding: 4px 10px;   /* 調整內邊距 */
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.3s ease;
-        font-size: 14px;
+        font-size: 13px;     /* 調整字體大小 */
         white-space: nowrap;
     }
 
@@ -1006,8 +1009,9 @@
 
     <!-- 使用者資料區塊 -->
     <div id="userProfile" style="display: none;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
             <img id="userImage" src="" alt="User profile">
+            <span id="userName"></span>
             <button onclick="signOut()" class="sign-out-btn">登出</button>
         </div>
     </div>
