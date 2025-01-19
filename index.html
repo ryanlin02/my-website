@@ -175,27 +175,33 @@
         to { transform: rotate(360deg); }
     }
 
+    /* 更新用戶配置區域的樣式 */
     #userProfile {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px;
-        margin: 10px auto;
-        max-width: 380px;
         justify-content: center;
-        background: none; /* 移除背景 */
-        box-shadow: none; /* 移除陰影 */
+        padding: 15px;
+        margin: 0 auto;  /* 改為 0 auto */
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: var(--secondary-color);
+        max-width: 200px;
+        position: fixed;  /* 固定在底部 */
+        bottom: 20px;    /* 距離底部 20px */
+        left: 50%;      
+        transform: translateX(-50%); /* 水平居中 */
+        z-index: 100;    /* 確保顯示在其他元素上方 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
+    /* 優化用戶圖像樣式 */
     #userImage {
         width: 40px;
         height: 40px;
         border-radius: 50%;
         border: 2px solid var(--button-orange);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease;
+        transition: all 0.3s ease;
+        margin-right: 10px;
     }
 
     #userImage:hover {
@@ -212,9 +218,25 @@
         display: none;
     }
 
+    /* 優化登出按鈕樣式 */
     .sign-out-btn {
-        display: none;
+        background-color: var(--secondary-color);
+        color: var(--button-orange);
+        border: 1px solid var(--button-orange);
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
     }
+
+    .sign-out-btn:hover {
+        background-color: var(--button-orange);
+        color: var(--text-color);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
 
     .login-container.loading::before {
         content: '';
@@ -693,10 +715,11 @@
 	}
 
 	.footer-spacing {
-		background-color: #333333;
-		height: 30px;
-		margin-top: 0px;
-	}
+        height: 80px; /* 增加底部間距，為固定定位的用戶配置區域留出空間 */
+        background-color: #333333;
+        margin-top: 0px;
+    }
+
 	.footer-message::before {
 		content: '🍚';
 		margin-right: 8px;
@@ -1005,10 +1028,6 @@
 		<button onclick="location.reload()">清除</button>
     	<button onclick="generateQuote()">截圖</button>
 	</div>
-
-    <div id="userProfile" style="display: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
-        <img id="userImage" src="" alt="User profile" style="cursor: pointer;">
-    </div>
 
 <script>
 
@@ -1615,6 +1634,12 @@
 	<!-- 在 </body> 標籤前添加 -->
 	<div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
 	<div class="footer-spacing"></div>
+    <div id="userProfile" style="display: none; margin: 20px auto; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <img id="userImage" src="" alt="User profile" style="cursor: pointer; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--button-orange);">
+            <button onclick="signOut()" class="sign-out-btn">登出</button>
+        </div>
+    </div>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 	
 	<script>
