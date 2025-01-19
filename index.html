@@ -180,23 +180,19 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 15px;
-        margin: 0 auto;  /* 改為 0 auto */
+        padding: 12px 15px;
+        margin: 15px auto;  /* 改用普通邊距 */
         border-radius: 8px;
         background: var(--secondary-color);
-        max-width: calc(100% - 30px); /* 確保不會太寬 */
-        position: fixed;  /* 固定在底部 */
-        bottom: 20px;    /* 距離底部 20px */
-        left: 50%;      
-        transform: translateX(-50%); /* 水平居中 */
-        z-index: 100;    /* 確保顯示在其他元素上方 */
+        max-width: calc(100% - 30px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
     }
 
-    /* 優化用戶圖像樣式 */
-    #userImage {
-        width: 32px;
-        height: 32px;
+    /* 調整使用者圖片大小和樣式 */
+    #userProfile img {
+        width: 22px;
+        height: 22px;
         border-radius: 50%;
         border: 2px solid var(--button-orange);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -716,10 +712,9 @@
     	position: relative;
 	}
 
-	.footer-spacing {
-        height: 85px; /* 增加底部間距，為固定定位的用戶配置區域留出空間 */
-        background-color: #333333;
-        margin-top: 0px;
+	/* 移除 footer-spacing，因為不再需要為固定定位預留空間 */
+    .footer-spacing {
+        display: none;
     }
 
 	.footer-message::before {
@@ -1006,6 +1001,26 @@
 		<button onclick="location.reload()">清除</button>
     	<button onclick="generateQuote()">截圖</button>
 	</div>
+
+    <div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
+
+    <!-- 使用者資料區塊 -->
+    <div id="userProfile" style="display: none;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <img id="userImage" src="" alt="User profile">
+            <button onclick="signOut()" class="sign-out-btn">登出</button>
+        </div>
+    </div>
+
+    <!-- 登入遮罩層保持在最後 -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-container">
+            <h2>請先登入</h2>
+            <div id="googleSignInContainer" class="google-signin">
+                <!-- Google 登入按鈕的內容保持不變 -->
+            </div>
+        </div>
+    </div>
 
 <script>
 
@@ -1609,41 +1624,6 @@
     }
 
     </script>
-	<!-- 在 </body> 標籤前添加 -->
-	<div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
-
-	<div class="footer-spacing"></div>
-
-    <div id="userProfile" style="display: none; margin: 18px auto; text-align: center;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <img id="userImage" src="" alt="User profile" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--button-orange);">
-            <button onclick="signOut()" class="sign-out-btn">登出</button>
-        </div>
-    </div>
-
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-container">
-            <h2>請先登入</h2>
-            <div id="googleSignInContainer" class="google-signin">
-                <div id="g_id_onload"
-                    data-client_id="956050785639-m8f7ps3h62f2dukg9s0vd6dvafg22h89.apps.googleusercontent.com"
-                    data-context="signin"
-                    data-ux_mode="popup"
-                    data-callback="handleCredentialResponse"
-                    data-auto_prompt="false"
-                    data-itp_support="true">
-                </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-shape="rectangular"
-                     data-theme="outline"
-                     data-text="signin_with"
-                     data-size="large"
-                     data-logo_alignment="left">
-                </div>
-            </div>
-        </div>
-    </div>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
