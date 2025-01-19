@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
+
+    <!-- 在 <head> 標籤內添加以下內容 -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#333333">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="雞肉飯">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
     <meta charset="UTF-8">
 	<meta name="viewport" content="width=400, user-scalable=no">
     <title>雞肉飯要每天吃</title>
@@ -1263,5 +1272,20 @@
         document.body.classList.add('loaded');
     });
 </script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful');
+          })
+          .catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+    </script>
+
 </body>
 </html>
