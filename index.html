@@ -184,7 +184,7 @@
         margin: 0 auto;  /* 改為 0 auto */
         border-radius: 8px;
         background: var(--secondary-color);
-        max-width: 200px;
+        max-width: calc(100% - 30px); /* 確保不會太寬 */
         position: fixed;  /* 固定在底部 */
         bottom: 20px;    /* 距離底部 20px */
         left: 50%;      
@@ -195,13 +195,14 @@
 
     /* 優化用戶圖像樣式 */
     #userImage {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         border: 2px solid var(--button-orange);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
-        margin-right: 10px;
+        margin-right: 12px;
+        cursor: pointer;
     }
 
     #userImage:hover {
@@ -228,6 +229,7 @@
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 14px;
+        white-space: nowrap;
     }
 
     .sign-out-btn:hover {
@@ -715,7 +717,7 @@
 	}
 
 	.footer-spacing {
-        height: 80px; /* 增加底部間距，為固定定位的用戶配置區域留出空間 */
+        height: 85px; /* 增加底部間距，為固定定位的用戶配置區域留出空間 */
         background-color: #333333;
         margin-top: 0px;
     }
@@ -829,30 +831,6 @@
 
 </head>
 <body>
-
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-container">
-            <h2>請先登入</h2>
-            <div id="googleSignInContainer" class="google-signin">
-                <div id="g_id_onload"
-                    data-client_id="956050785639-m8f7ps3h62f2dukg9s0vd6dvafg22h89.apps.googleusercontent.com"
-                    data-context="signin"
-                    data-ux_mode="popup"
-                    data-callback="handleCredentialResponse"
-                    data-auto_prompt="false"
-                    data-itp_support="true">
-                </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-shape="rectangular"
-                     data-theme="outline"
-                     data-text="signin_with"
-                     data-size="large"
-                     data-logo_alignment="left">
-                </div>
-            </div>
-        </div>
-    </div>
 
 	<div style="text-align: center; position: relative; display: flex; align-items: center; justify-content: center; padding: 10px 0;">
         <h1 style="margin: 0;">小朋友專用計算機</h1>
@@ -1633,14 +1611,43 @@
     </script>
 	<!-- 在 </body> 標籤前添加 -->
 	<div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
+
 	<div class="footer-spacing"></div>
-    <div id="userProfile" style="display: none; margin: 20px auto; text-align: center;">
+
+    <div id="userProfile" style="display: none; margin: 18px auto; text-align: center;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <img id="userImage" src="" alt="User profile" style="cursor: pointer; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--button-orange);">
+            <img id="userImage" src="" alt="User profile" style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--button-orange);">
             <button onclick="signOut()" class="sign-out-btn">登出</button>
         </div>
     </div>
+
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-container">
+            <h2>請先登入</h2>
+            <div id="googleSignInContainer" class="google-signin">
+                <div id="g_id_onload"
+                    data-client_id="956050785639-m8f7ps3h62f2dukg9s0vd6dvafg22h89.apps.googleusercontent.com"
+                    data-context="signin"
+                    data-ux_mode="popup"
+                    data-callback="handleCredentialResponse"
+                    data-auto_prompt="false"
+                    data-itp_support="true">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+        </div>
+    </div>
+
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 	
 	<script>
     document.addEventListener('DOMContentLoaded', function() {
