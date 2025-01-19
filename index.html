@@ -183,7 +183,8 @@
         margin: 10px auto;
         max-width: 380px;
         justify-content: center;
-        background: var(--secondary-color);
+        background: none; /* 移除背景 */
+        box-shadow: none; /* 移除陰影 */
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
@@ -193,11 +194,26 @@
         height: 40px;
         border-radius: 50%;
         border: 2px solid var(--button-orange);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    #userImage:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
     #userName {
         color: var(--text-color);
         font-weight: bold;
+    }
+
+    #userName {
+        display: none;
+    }
+
+    .sign-out-btn {
+        display: none;
     }
 
     .login-container.loading::before {
@@ -815,16 +831,12 @@
         </div>
     </div>
 
-	<div style="text-align: center;">
-     <h1>小朋友專用計算機</h1>
-
-     <div id="userProfile" style="display: none;">
-        <img id="userImage" src="" alt="User profile">
-        <span id="userName"></span>
-        <button onclick="signOut()" class="sign-out-btn">登出</button>
+	<div style="text-align: center; position: relative; display: flex; align-items: center; justify-content: center; padding: 10px 0;">
+        <h1 style="margin: 0;">小朋友專用計算機</h1>
+        <div id="userProfile" style="display: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
+            <img id="userImage" src="" alt="User profile" style="cursor: pointer;">
+        </div>
     </div>
-
-	</div>
 	
     <div id="timeDisplay" style="display: flex; justify-content: center;">
         <span class="time-label">報價時間：</span><span id="currentTime"></span>
@@ -1077,6 +1089,8 @@
         userProfile.style.display = 'flex';
         userImage.src = user.picture;
         userName.textContent = user.name;
+
+        setupUserProfileInteraction(); // 添加這行
     }
 
     // 添加這個函數
@@ -1087,6 +1101,20 @@
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
         return JSON.parse(jsonPayload);
+    }
+
+    // 添加點擊頭像彈出登出選項的功能
+    function setupUserProfileInteraction() {
+        const userImage = document.getElementById('userImage');
+        userImage.addEventListener('click', function(event) {
+            const shouldLogout = confirm('確定要登出嗎？');
+            if (shouldLogout) {
+                signOut();
+            }
+        });
+        
+        // 添加懸停提示
+        userImage.title = '點擊登出';
     }
 
 	// 添加震動函數
