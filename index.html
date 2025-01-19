@@ -833,9 +833,6 @@
 
 	<div style="text-align: center; position: relative; display: flex; align-items: center; justify-content: center; padding: 10px 0;">
         <h1 style="margin: 0;">小朋友專用計算機</h1>
-        <div id="userProfile" style="display: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
-            <img id="userImage" src="" alt="User profile" style="cursor: pointer;">
-        </div>
     </div>
 	
     <div id="timeDisplay" style="display: flex; justify-content: center;">
@@ -1008,6 +1005,11 @@
 		<button onclick="location.reload()">清除</button>
     	<button onclick="generateQuote()">截圖</button>
 	</div>
+
+    <div id="userProfile" style="display: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
+        <img id="userImage" src="" alt="User profile" style="cursor: pointer;">
+    </div>
+
 <script>
 
     // 更新 handleCredentialResponse 函數
