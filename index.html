@@ -1064,18 +1064,77 @@
     function handleCredentialResponse(response) {
         const responsePayload = decodeJwtResponse(response.credential);
         
+        // 發送登入事件到 GA4
+        gtag('event', 'login', {
+            'method': 'Google',
+            'user_id': responsePayload.email,
+            'user_name': responsePayload.name,
+            'login_time': new Date().toISOString(),
+            'device_type': getDeviceType(),  // 新增裝置類型
+            'screen_resolution': `${window.screen.width}x${window.screen.height}`,  // 新增螢幕解析度
+            'browser_info': getBrowserInfo()  // 新增瀏覽器資訊
+        });
+
         // 保存用戶信息到 localStorage
         localStorage.setItem('googleUser', JSON.stringify({
             name: responsePayload.name,
             picture: responsePayload.picture,
             email: responsePayload.email,
-            token: response.credential
+            token: response.credential,
         }));
         
         // 隱藏登入遮罩
         hideLoginOverlay();
         // 更新用戶介面
         updateUserInterface(responsePayload);
+    }
+
+    // 獲取裝置類型
+    function getDeviceType() {
+        const ua = navigator.userAgent;
+        if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+            return "tablet";
+        }
+        if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+            return "mobile";
+        }
+        return "desktop";
+    }
+
+    // 獲取瀏覽器資訊
+    function getBrowserInfo() {
+        const ua = navigator.userAgent;
+        let browser = "Unknown";
+        if (ua.indexOf("Chrome") > -1) browser = "Chrome";
+        else if (ua.indexOf("Safari") > -1) browser = "Safari";
+        else if (ua.indexOf("Firefox") > -1) browser = "Firefox";
+        else if (ua.indexOf("Edge") > -1) browser = "Edge";
+        else if (ua.indexOf("Opera") > -1) browser = "Opera";
+        else if (ua.indexOf("MSIE") > -1 || ua.indexOf("Trident/") > -1) browser = "Internet Explorer";
+        
+        return `${browser} ${navigator.platform}`;
+    }
+
+    // 添加登出事件追蹤
+    function signOut() {
+        // 獲取當前用戶信息
+        const user = JSON.parse(localStorage.getItem('googleUser'));
+        
+        // 發送登出事件到 GA4
+        if (user && user.email) {
+            gtag('event', 'logout', {
+                'user_id': user.email,
+                'user_name': user.name,
+                'logout_time': new Date().toISOString(),
+                'session_duration': user.lastLogin ? 
+                    Math.round((new Date() - new Date(user.lastLogin)) / 1000) : 0
+            });
+        }
+
+        google.accounts.id.disableAutoSelect();
+        localStorage.removeItem('googleUser');
+        showLoginOverlay();
+        document.getElementById('userProfile').style.display = 'none';
     }
 
     // 新增隱藏登入遮罩的函數
@@ -1086,15 +1145,6 @@
     // 新增顯示登入遮罩的函數
     function showLoginOverlay() {
         document.getElementById('loginOverlay').style.display = 'flex';
-    }
-
-    // 修改登出功能
-    function signOut() {
-        google.accounts.id.disableAutoSelect();
-        localStorage.removeItem('googleUser');
-        // 顯示登入遮罩
-        showLoginOverlay();
-        document.getElementById('userProfile').style.display = 'none';
     }
 
     // 修改檢查登入狀態的函數
@@ -1683,7 +1733,32 @@
           });
       });
     }
-    </script>
+</script>
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGeG8vHMIGJuFPMR-FQghcAXKk9Jv72d0",
+      authDomain: "my-loan-calculator-448313.firebaseapp.com",
+      projectId: "my-loan-calculator-448313",
+      storageBucket: "my-loan-calculator-448313.firebasestorage.app",
+      messagingSenderId: "956050785639",
+      appId: "1:956050785639:web:a4f1eef8aa25032abfdbc2",
+      measurementId: "G-RJB9J9BHPT"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+</script>
+
 
 </body>
 </html>
