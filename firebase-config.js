@@ -2,12 +2,12 @@
 
 // 從 Firebase Console 複製的設定
 const firebaseConfig = {
-    apiKey: "你的-api-key",
-    authDomain: "你的-project-id.firebaseapp.com",
-    projectId: "你的-project-id",
-    storageBucket: "你的-project-id.appspot.com",
-    messagingSenderId: "你的-messaging-sender-id",
-    appId: "你的-app-id"
+    apiKey: "AIzaSyDGeG8vHMIGJuFPMR-FQghcAXKk9Jv72d0",
+    authDomain: "my-loan-calculator-448313.firebaseapp.com",
+    projectId: "my-loan-calculator-448313",
+    storageBucket: "my-loan-calculator-448313.appspot.com",
+    messagingSenderId: "95605078639",
+    appId: "956050785639:web:a4f1eef8aa25032abfdbc2"
 };
 
 // 導出設定
