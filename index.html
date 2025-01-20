@@ -849,7 +849,12 @@
 
 	<div style="text-align: center;">
         <h1>小朋友專用計算機</h1>
-       </div>
+    </div>
+
+    <!-- 注意：type="module" 很重要 -->
+    <script type="module" src="./firebase-config.js"></script>
+    <script type="module" src="./firebase-init.js"></script>
+    <script type="module" src="./app.js"></script>
 	
     <div id="timeDisplay" style="display: flex; justify-content: center;">
         <span class="time-label">報價時間：</span><span id="currentTime"></span>
@@ -1759,6 +1764,10 @@
     const analytics = getAnalytics(app);
 </script>
 
+<!-- 在 HTML 中添加 Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
 
 </body>
 </html>
