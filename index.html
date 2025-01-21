@@ -1029,6 +1029,8 @@
 
     <div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
 
+    <div class="divider"></div>
+
     <!-- 使用者資料區塊 -->
     <div id="userProfile" style="display: none;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -1037,6 +1039,8 @@
             <button onclick="signOut()" class="sign-out-btn">登出</button>
         </div>
     </div>
+
+    <div class="footer-spacing"></div>
 
     <!-- 登入遮罩層保持在最後 -->
     <div id="loginOverlay" class="login-overlay">
@@ -1717,8 +1721,6 @@
     </script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
 	
 	<script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -1739,6 +1741,35 @@
       });
     }
 </script>
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyDGeG8vHMIGJuFPMR-FQghcAXKk9Jv72d0",
+      authDomain: "my-loan-calculator-448313.firebaseapp.com",
+      projectId: "my-loan-calculator-448313",
+      storageBucket: "my-loan-calculator-448313.firebasestorage.app",
+      messagingSenderId: "956050785639",
+      appId: "1:956050785639:web:a4f1eef8aa25032abfdbc2",
+      measurementId: "G-RJB9J9BHPT"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+</script>
+
+<!-- 在 HTML 中添加 Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
 
 </body>
 </html>
