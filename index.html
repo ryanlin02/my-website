@@ -527,6 +527,30 @@
         50% { opacity: 0.8; }
     }
 
+    /* 包装容器样式 */
+    .time-display-wrapper {
+        position: relative;
+        height: auto;
+        margin: 3px 0;
+        z-index: 100;
+    }
+
+    /* 修改原有的timeDisplay样式 */
+    .sticky-header {
+        position: -webkit-sticky; /* Safari支持 */
+        position: sticky;
+        top: 0;
+        background: var(--secondary-color);
+        padding: 8px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        animation: fadeIn 0.8s ease-out;
+        transition: all 0.3s ease;
+        z-index: 99;
+        width: calc(100% - 16px); /* 考虑内边距 */
+        margin: 0 auto;
+    }
+
     #timeDisplay {
         margin: 3px 0;
         font-size: 15px;
@@ -565,6 +589,18 @@
         font-weight: bold;
         margin-right: 10px;
         color: var(--button-orange);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 添加滚动时的效果 */
+    .sticky-header.is-sticky {
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transform: translateY(0);
     }
 
     #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
@@ -843,8 +879,11 @@
     <script type="module" src="./firebase-init.js"></script>
     <script type="module" src="./app.js"></script>
 	
-    <div id="timeDisplay" style="display: flex; justify-content: center;">
-        <span class="time-label">報價時間：</span><span id="currentTime"></span>
+    <div class="time-display-wrapper">
+        <div id="timeDisplay" style="display: flex; justify-content: center;">
+            <span class="time-label">報價時間：</span>
+            <span id="currentTime"></span>
+        </div>
     </div>
     
     <div class="row">
@@ -1710,11 +1749,41 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 	
-	<script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.add('loaded');
     });
 </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const header = document.querySelector('.sticky-header');
+        const wrapper = document.querySelector('.time-display-wrapper');
+        const h1Element = document.querySelector('h1');
+        
+        let lastScrollTop = 0;
+        
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const headerRect = header.getBoundingClientRect();
+            const h1Rect = h1Element.getBoundingClientRect();
+            
+            // 检查是否达到粘性定位条件
+            if (headerRect.top <= 0) {
+                header.classList.add('is-sticky');
+                
+                // 如果h1进入视图，移除粘性效果
+                if (h1Rect.bottom > 0) {
+                    header.classList.remove('is-sticky');
+                }
+            } else {
+                header.classList.remove('is-sticky');
+            }
+            
+            lastScrollTop = scrollTop;
+        });
+    });
+    </script>
 
 <script>
     if ('serviceWorker' in navigator) {
