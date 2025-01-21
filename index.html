@@ -302,6 +302,7 @@
     	width: 100%;           /* 改為100%寬度 */
     	max-width: 400px;      /* 設定最大寬度 */
     	margin: 0 auto;
+        position: relative; /* 添加这行 */
     	overflow-x: hidden;
     	-webkit-text-size-adjust: 100%;
     	padding: 0 3px;       /* 增加左右padding */
@@ -528,17 +529,18 @@
     }
 
     /* 包装容器样式 */
+    /* 修改 wrapper 样式 */
     .time-display-wrapper {
         position: relative;
         height: auto;
         margin: 3px 0;
-        z-index: 100;
+        z-index: 1000; /* 提高 z-index */
     }
 
     /* 修改原有的timeDisplay样式 */
     .sticky-header {
-        position: -webkit-sticky; /* Safari支持 */
-        position: sticky;
+        position: -webkit-sticky !important; /* 添加 !important */ /* Safari支持 */
+        position: sticky!important;         /* 添加 !important */
         top: 0;
         background: var(--secondary-color);
         padding: 8px;
@@ -546,9 +548,15 @@
         box-shadow: 0 2px 4px var(--shadow-color);
         animation: fadeIn 0.8s ease-out;
         transition: all 0.3s ease;
-        z-index: 99;
+        z-index: 999;
         width: calc(100% - 16px); /* 考虑内边距 */
         margin: 0 auto;
+    }
+
+    /* 添加固定状态的样式 */
+    .sticky-header.is-sticky {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 0 0 4px 4px;
     }
 
     #timeDisplay {
@@ -880,9 +888,11 @@
     <script type="module" src="./app.js"></script>
 	
     <div class="time-display-wrapper">
-        <div id="timeDisplay" class="sticky-header" style="display: flex; justify-content: center;">
-            <span class="time-label">報價時間：</span>
-            <span id="currentTime"></span>
+        <div id="timeDisplay" class="sticky-header">
+            <div style="display: flex; justify-content: center; width: 100%;">
+                <span class="time-label">報價時間：</span>
+                <span id="currentTime"></span>
+            </div>
         </div>
     </div>
     
@@ -1757,31 +1767,26 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const header = document.querySelector('.sticky-header');
-        const wrapper = document.querySelector('.time-display-wrapper');
-        const h1Element = document.querySelector('h1');
+    const header = document.querySelector('.sticky-header');
+    const h1Element = document.querySelector('h1');
+    
+    if (!header || !h1Element) return; // 添加检查
+
+    window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const headerRect = header.getBoundingClientRect();
+        const h1Rect = h1Element.getBoundingClientRect();
         
-        let lastScrollTop = 0;
-        
-        window.addEventListener('scroll', function() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const headerRect = header.getBoundingClientRect();
-            const h1Rect = h1Element.getBoundingClientRect();
-            
-            // 检查是否达到粘性定位条件
-            if (headerRect.top <= 0) {
-                header.classList.add('is-sticky');
-                
-                // 如果h1进入视图，移除粘性效果
-                if (h1Rect.bottom > 0) {
-                    header.classList.remove('is-sticky');
-                }
-            } else {
+        // 使用更精确的条件判断
+        if (scrollTop > header.offsetTop) {
+            header.classList.add('is-sticky');
+            if (h1Rect.bottom > 0) {
                 header.classList.remove('is-sticky');
             }
-            
-            lastScrollTop = scrollTop;
-        });
+        } else {
+            header.classList.remove('is-sticky');
+        }
+    });
     });
     </script>
 
