@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chicken-rice-v1.03';
+const CACHE_NAME = 'chicken-rice-v1.09';
 
 // 需要緩存的檔案清單
 const filesToCache = [
