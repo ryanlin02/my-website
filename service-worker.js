@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chicken-rice-v1.12';
+const CACHE_NAME = 'chicken-rice-v1.13';
 const filesToCache = [
   './',
   './index.html',
