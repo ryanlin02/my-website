@@ -1164,10 +1164,10 @@
 
     // 添加登出事件追蹤
     function signOut() {
-        vibrate();
-        
-        // 獲取當前用戶信息並發送 GA4 事件
+        // 獲取當前用戶信息
         const user = JSON.parse(localStorage.getItem('googleUser'));
+        
+        // 發送登出事件到 GA4
         if (user && user.email) {
             gtag('event', 'logout', {
                 'user_id': user.email,
@@ -1177,15 +1177,11 @@
                     Math.round((new Date() - new Date(user.lastLogin)) / 1000) : 0
             });
         }
-        
-        if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-            google.accounts.id.disableAutoSelect();
-        }
-        
+
+        google.accounts.id.disableAutoSelect();
         localStorage.removeItem('googleUser');
         showLoginOverlay();
         document.getElementById('userProfile').style.display = 'none';
-        location.reload();
     }
 
     // 新增隱藏登入遮罩的函數
@@ -1200,11 +1196,6 @@
 
     // 修改檢查登入狀態的函數
     window.onload = function() {
-        if (typeof google === 'undefined') {
-            console.error('Google Sign-In API not loaded');
-            return;
-        }
-
         try {
             // 1. 嘗試從 localStorage 讀取用戶資料
             const savedUser = localStorage.getItem('googleUser');
@@ -1243,15 +1234,10 @@
         const userName = document.getElementById('userName');
         
         userProfile.style.display = 'flex';
-        
-        if (user.picture) {
-            userImage.src = user.picture;
-            userImage.onerror = function() {
-                this.src = 'path/to/default-avatar.png';
-            };
-        }
-        
-        userName.textContent = user.name || 'User';
+        userImage.src = user.picture;
+        userName.textContent = user.name;
+
+        setupUserProfileInteraction(); // 添加這行
     }
 
     // 添加這個函數
@@ -1844,9 +1830,9 @@
 </script>
 
 <!-- 在 HTML 中添加 Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.2.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.2.2/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.2.2/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
 
 </body>
 </html>
