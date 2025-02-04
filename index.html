@@ -881,11 +881,6 @@
 	<div style="text-align: center;">
         <h1>小朋友專用計算機</h1>
     </div>
-
-    <!-- 注意：type="module" 很重要 -->
-    <script type="module" src="./firebase-config.js"></script>
-    <script type="module" src="./firebase-init.js"></script>
-    <script type="module" src="./app.js"></script>
 	
     <div class="time-display-wrapper">
         <div id="timeDisplay" class="sticky-header">
@@ -927,7 +922,8 @@
         <button onclick="setRate(6)">6</button>
 		<button onclick="setRate(8)">8</button>
         <button onclick="setRate(10)">10</button>
-        <button onclick="setRate(13)">13</button>
+        <button onclick="setRate(12)">12</button>
+        <button onclick="setRate(14)">14</button>
         <button onclick="adjustRate(0.2)">+0.2</button>
     </div>
 
@@ -1804,35 +1800,6 @@
       });
     }
 </script>
-
-<script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-  
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyDGeG8vHMIGJuFPMR-FQghcAXKk9Jv72d0",
-      authDomain: "my-loan-calculator-448313.firebaseapp.com",
-      projectId: "my-loan-calculator-448313",
-      storageBucket: "my-loan-calculator-448313.firebasestorage.app",
-      messagingSenderId: "956050785639",
-      appId: "1:956050785639:web:a4f1eef8aa25032abfdbc2",
-      measurementId: "G-RJB9J9BHPT"
-    };
-  
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-</script>
-
-<!-- 在 HTML 中添加 Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
 
 </body>
 </html>
