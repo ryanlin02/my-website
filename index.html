@@ -786,16 +786,6 @@
 	.footer-message:hover::before {
 		transform: rotate(360deg);
 	}
-		/* 為特定數值添加動畫效果 */
-    #chickenRice {
-        transition: all 0.3s ease;
-    }
-
-    #chickenRice:not([value=""]):not([value="0"]) {
-        animation: glowBorder 2s infinite;
-		background: linear-gradient(45deg, #222222, #2a2a2a);
-		transition: all 0.3s ease;
-    }
 
 	@keyframes glowBorder {
 		0%, 100% { box-shadow: 0 0 5px var(--button-orange); }
@@ -961,12 +951,6 @@
 	<div class="row">
         <span class="label">總利息</span>
         <input type="number" id="totalInterest" class="readonly" readonly>
-    </div>
-
-    <div class="row">
-        <span class="label">等於火雞肉飯</span>
-        <input type="number" id="chickenRice" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">碗</span>
     </div>
 
     <div class="row">
@@ -1509,14 +1493,10 @@
         } else {
             fundingCostInput.classList.remove('warning-text');
         }
-			
-
-        // 計算雞肉飯碗數
-        document.getElementById('chickenRice').value = Math.floor(totalInterest / 35);
 
         // 在更新值之前保存舊值
         const oldValues = {};
-        const fieldsToTrack = ['totalInterest', 'chickenRice', 'afterTaxRate', 'spread'];
+        const fieldsToTrack = ['totalInterest', 'afterTaxRate', 'spread'];
         fieldsToTrack.forEach(field => {
             oldValues[field] = document.getElementById(field).value;
         });
@@ -1689,9 +1669,8 @@
             ['期繳', document.getElementById('payment').value || ''],
             ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
             ['佣金', document.getElementById('commission').value || ''],
-            ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%'],
-            ['雞肉飯', document.getElementById('chickenRice').value + ' 碗']
-            ];
+            ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%']
+        ];
 
         // 建立表格內容
         rows.forEach(([label, value]) => {
