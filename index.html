@@ -861,6 +861,33 @@
         }
     }
 
+    /* 強調重要欄位 */
+    .emphasized-row {
+        border-left: 3px solid var(--button-orange);
+        background: linear-gradient(90deg, rgba(255, 156, 51, 0.1), transparent);
+        transform: scale(1.01);
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .emphasized-row .label {
+        color: var(--button-orange);
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .emphasized-row input {
+        font-weight: bold;
+        color: #ffffff;
+        font-size: 17px;
+        border-color: var(--button-orange);
+    }
+
+    .emphasized-row:hover {
+        transform: scale(1.02) translateX(5px);
+        box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25);
+    }
+
 </style>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -958,10 +985,9 @@
         <input type="number" id="tax" class="readonly" readonly>
     </div>
 
-    <div class="row">
+    <div class="row emphasized-row">
         <span class="label">稅後利率</span>
         <input type="number" id="afterTaxRate" step="0.001" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 
      <div class="row">
@@ -984,13 +1010,11 @@
     <div class="row">
         <span class="label">推廣比例</span>
         <input type="number" id="commissionRatio" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 
-    <div class="row">
+    <div class="row emphasized-row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 
     <div class="divider-flow"></div>
@@ -1020,13 +1044,11 @@
     <div class="row">
         <span class="label">本月資金成本</span>
         <input type="number" id="monthlyCost" value="2.1106" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 
     <div class="row">
         <span class="label">Spread</span>
         <input type="number" id="spread" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">%</span>
     </div>
 	
     <div class="row">
@@ -1664,12 +1686,12 @@
         const rows = [
             ['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
             ['期數', document.getElementById('period').value || ''],
-            ['稅前利率', (document.getElementById('rate').value || '') + '%'],
+            ['稅前利率', (document.getElementById('rate').value || '') + '%'],  // 保留這裡的百分比符號
             ['本金', document.getElementById('principal').value || ''],
             ['期繳', document.getElementById('payment').value || ''],
-            ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],
+            ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],  // 保留這裡的百分比符號
             ['佣金', document.getElementById('commission').value || ''],
-            ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%']
+            ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%']  // 保留這裡的百分比符號
         ];
 
         // 建立表格內容
