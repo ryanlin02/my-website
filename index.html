@@ -888,6 +888,323 @@
         box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25);
     }
 
+    /* 歷史記錄面板樣式 */
+    .history-panel {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        overflow-y: auto;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background-color: var(--primary-color);
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+        border-bottom: 2px solid var(--button-orange);
+    }
+
+    .header-left {
+        flex: 1;
+    }
+
+    .header-right {
+        margin-right: 20px;
+    }
+
+    .history-header h2 {
+        margin: 0;
+        color: var(--button-orange);
+        font-size: 20px;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 5px 10px;
+        border-radius: 50%;
+        margin-left: 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .close-btn:hover {
+        color: var(--button-orange);
+        transform: scale(1.1);
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .history-content {
+        padding: 10px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .history-item {
+        background-color: var(--secondary-color);
+        padding: 8px 10px;
+        border-radius: 8px;
+        position: relative;
+        transition: all 0.3s ease;
+        border-left: 3px solid var(--button-orange);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas: 
+            "date actions"
+            "rate rate"
+            "details details";
+        gap: 4px;
+    }
+
+    .history-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .history-date {
+        font-weight: bold;
+        color: var(--button-orange);
+        font-size: 14px;
+        margin-bottom: 2px;
+        grid-area: date;
+    }
+
+    .history-rate {
+        font-size: 16px;
+        margin-bottom: 4px;
+        grid-area: rate;
+    }
+
+    .history-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        font-size: 13px;
+        color: #cccccc;
+        margin-bottom: 4px;
+        grid-area: details;
+    }
+
+    .history-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        grid-area: actions;
+        align-self: start;
+    }
+
+    .delete-btn, .detail-btn {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 3px 8px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .delete-btn {
+        border-color: #e74c3c;
+        color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .detail-btn {
+        border-color: var(--button-blue);
+        color: var(--button-blue);
+    }
+
+    .detail-btn:hover {
+        background-color: var(--button-blue);
+        color: white;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #cccccc;
+        font-style: italic;
+        padding: 20px 0;
+    }
+
+    .delete-all-btn {
+        background: none;
+        border: 1px solid #e74c3c;
+        color: #e74c3c;
+        font-size: 13px;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .delete-all-btn:hover {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    /* 模態框樣式 */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-container {
+        background-color: var(--primary-color);
+        border-radius: 10px;
+        width: 90%;
+        max-width: 350px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        animation: modalSlideIn 0.3s ease-out;
+        overflow: hidden;
+    }
+
+    @keyframes modalSlideIn {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--secondary-color);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--button-orange);
+        font-size: 18px;
+    }
+
+    .modal-content {
+        padding: 20px 15px;
+        color: var(--text-color);
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .modal-footer {
+        padding: 10px 15px 15px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        border-top: 1px solid var(--border-color);
+        background-color: var(--secondary-color);
+    }
+
+    .modal-btn {
+        padding: 8px 15px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .modal-btn-primary {
+        background-color: var(--button-orange);
+        color: white;
+    }
+
+    .modal-btn-primary:hover {
+        background-color: #e88a22;
+        transform: translateY(-2px);
+    }
+
+    .modal-btn-secondary {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .modal-btn-secondary:hover {
+        background-color: var(--hover-color);
+        transform: translateY(-2px);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin: 10px 0;
+        padding: 0 5px;
+    }
+
+    .action-btn {
+        flex: 1;
+        margin: 0 5px;
+        padding: 12px 5px;
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .action-btn:hover {
+        background-color: var(--button-orange);
+        border-color: var(--button-orange);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* 提示框樣式 */
+    .toast-message {
+        position: fixed;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(51, 181, 229, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 9999;
+        font-weight: bold;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        opacity: 1;
+        transition: opacity 0.5s ease;
+    }
+
 </style>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1076,6 +1393,55 @@
             <img id="userImage" src="" alt="User profile">
             <span id="userName"></span>
             <button onclick="signOut()" class="sign-out-btn">登出</button>
+        </div>
+    </div>
+
+    <!-- 添加在 divider-flow 之前 -->
+    <div class="action-buttons">
+        <button class="action-btn" id="saveLoan" onclick="saveLoanData()">保存計算</button>
+        <button class="action-btn" id="viewHistory" onclick="toggleHistoryPanel()">歷史記錄</button>
+    </div>
+
+    <!-- 添加歷史記錄面板 -->
+    <div id="historyPanel" class="history-panel">
+        <div class="history-header">
+            <div class="header-left">
+                <h2>貸款計算歷史記錄</h2>
+            </div>
+            <div class="header-right">
+                <button class="delete-all-btn" onclick="confirmDeleteAll()">全部刪除</button>
+            </div>
+            <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
+        </div>
+        <div id="historyContent" class="history-content"></div>
+    </div>
+
+    <!-- 普通提示模態框 -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modalTitle">提示</h3>
+                <button class="close-btn" onclick="hideModal()">×</button>
+            </div>
+            <div id="modalContent" class="modal-content"></div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="hideModal()">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認模態框 -->
+    <div id="confirmModalOverlay" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">確認</h3>
+                <button class="close-btn" onclick="hideConfirmModal()">×</button>
+            </div>
+            <div id="confirmModalContent" class="modal-content"></div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="hideConfirmModal()">取消</button>
+                <button id="confirmModalOk" class="modal-btn modal-btn-primary">確定</button>
+            </div>
         </div>
     </div>
 
@@ -1750,6 +2116,259 @@
         element.classList.remove('value-changed');
         void element.offsetWidth; // 觸發重繪
         element.classList.add('value-changed');
+    }
+
+    // 保存貸款計算結果
+    function saveLoanData() {
+        const period = document.getElementById('period').value;
+        const rate = document.getElementById('rate').value;
+        const principal = document.getElementById('principal').value;
+        const payment = document.getElementById('payment').value;
+        const afterTaxRate = document.getElementById('afterTaxRate').value;
+        const commission = document.getElementById('commission').value;
+        const afterCommissionRate = document.getElementById('afterCommissionRate').value;
+        
+        // 檢查必要欄位是否填寫
+        if (!period || !rate || !principal || !payment) {
+            showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
+            return;
+        }
+        
+        const loanDate = new Date();
+        const year = loanDate.getFullYear();
+        const month = String(loanDate.getMonth() + 1).padStart(2, '0');
+        const date = String(loanDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${date}`;
+        
+        const loanData = {
+            id: new Date().getTime(),
+            date: formattedDate,
+            period: period,
+            rate: rate,
+            principal: principal,
+            payment: payment,
+            afterTaxRate: afterTaxRate,
+            commission: commission || '0',
+            afterCommissionRate: afterCommissionRate,
+            totalInterest: document.getElementById('totalInterest').value,
+            timestamp: new Date().toISOString()
+        };
+        
+        // 獲取已存儲的貸款記錄
+        let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        loanHistory.push(loanData);
+        
+        // 保存到 localStorage
+        localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
+        
+        // 顯示成功提示
+        showToast('貸款計算結果已保存！');
+        
+        // 觸覺反饋（如果設備支持）
+        if (navigator.vibrate) {
+            navigator.vibrate(70);
+        }
+    }
+
+    // 顯示/隱藏歷史記錄面板
+    function toggleHistoryPanel() {
+        const panel = document.getElementById('historyPanel');
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+        } else {
+            panel.style.display = 'block';
+            loadHistoryData();
+        }
+    }
+
+    // 載入歷史記錄
+    function loadHistoryData() {
+        const historyContent = document.getElementById('historyContent');
+        const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        
+        if (loanHistory.length === 0) {
+            historyContent.innerHTML = '<p class="no-data">尚無貸款計算記錄</p>';
+            return;
+        }
+        
+        // 按日期排序，最新的在前面
+        loanHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        let html = '<div class="history-list">';
+        loanHistory.forEach(loan => {
+            html += `
+                <div class="history-item">
+                    <div class="history-date">${formatDate(loan.date)}</div>
+                    <div class="history-rate">稅佣後利率: ${loan.afterCommissionRate}%</div>
+                    <div class="history-details">
+                        <div>期數: ${loan.period}</div>
+                        <div>本金: ${formatNumber(loan.principal)}</div>
+                        <div>期繳: ${formatNumber(loan.payment)}</div>
+                        <div>推廣: ${formatNumber(loan.commission)}</div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入</button>
+                        <button class="delete-btn" onclick="deleteLoan(${loan.id})">刪除</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        historyContent.innerHTML = html;
+    }
+
+    // 格式化日期顯示
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+    }
+
+    // 格式化數字顯示千位分隔符
+    function formatNumber(num) {
+        if (!num) return '0';
+        return parseInt(num).toLocaleString();
+    }
+
+    // 載入貸款記錄到表單
+    function loadLoanToForm(id) {
+        const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        const loan = loanHistory.find(item => item.id === id);
+        
+        if (loan) {
+            // 填充表單欄位
+            document.getElementById('period').value = loan.period;
+            document.getElementById('rate').value = loan.rate;
+            document.getElementById('principal').value = loan.principal;
+            document.getElementById('payment').value = loan.payment;
+            document.getElementById('commission').value = loan.commission;
+            
+            // 更新計算
+            updateAllFields();
+            
+            // 隱藏歷史面板
+            document.getElementById('historyPanel').style.display = 'none';
+            
+            // 顯示提示
+            showToast('已載入貸款計算資料');
+            
+            // 觸覺反饋
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        }
+    }
+
+    // 刪除貸款記錄
+    function deleteLoan(id) {
+        let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        loanHistory = loanHistory.filter(loan => loan.id !== id);
+        localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
+        loadHistoryData(); // 重新載入歷史記錄
+        showToast('貸款記錄已刪除！');
+        
+        // 觸覺反饋
+        if (navigator.vibrate) {
+            navigator.vibrate([30, 20, 30]);
+        }
+    }
+
+    // 確認是否刪除所有貸款記錄
+    function confirmDeleteAll() {
+        showConfirmModal('確認刪除', '確定要刪除所有貸款計算記錄嗎？此操作無法撤銷。', deleteAllLoans);
+    }
+
+    // 刪除所有貸款記錄
+    function deleteAllLoans() {
+        localStorage.removeItem('loanHistory');
+        loadHistoryData(); // 重新載入歷史記錄（會顯示無記錄）
+        showToast('所有貸款記錄已刪除！');
+        
+        // 觸覺反饋
+        if (navigator.vibrate) {
+            navigator.vibrate([50, 30, 50, 30, 50]);
+        }
+    }
+
+    // 顯示一般模態框
+    function showModal(title, content) {
+        document.getElementById('modalTitle').textContent = title || '提示';
+        document.getElementById('modalContent').innerHTML = content;
+        document.getElementById('modalOverlay').style.display = 'flex';
+        
+        // 添加背景點擊關閉功能
+        document.getElementById('modalOverlay').onclick = function(event) {
+            if (event.target === this) {
+                hideModal();
+            }
+        };
+    }
+
+    // 隱藏一般模態框
+    function hideModal() {
+        document.getElementById('modalOverlay').style.display = 'none';
+    }
+
+    // 顯示確認模態框
+    function showConfirmModal(title, content, confirmCallback) {
+        document.getElementById('confirmModalTitle').textContent = title || '確認';
+        document.getElementById('confirmModalContent').innerHTML = content;
+        document.getElementById('confirmModalOverlay').style.display = 'flex';
+        
+        // 設定確認按鈕點擊事件
+        const confirmButton = document.getElementById('confirmModalOk');
+        
+        // 移除舊的事件監聽器（如果有的話）
+        const newConfirmButton = confirmButton.cloneNode(true);
+        confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+        
+        // 添加新的事件監聽器
+        newConfirmButton.addEventListener('click', function() {
+            hideConfirmModal();
+            if (typeof confirmCallback === 'function') {
+                confirmCallback();
+            }
+        });
+        
+        // 添加背景點擊關閉功能
+        document.getElementById('confirmModalOverlay').onclick = function(event) {
+            if (event.target === this) {
+                hideConfirmModal();
+            }
+        };
+    }
+
+    // 隱藏確認模態框
+    function hideConfirmModal() {
+        document.getElementById('confirmModalOverlay').style.display = 'none';
+    }
+
+    // 顯示輕量級的提示訊息
+    function showToast(message) {
+        // 檢查是否已有 toast 存在
+        const existingToast = document.querySelector('.toast-message');
+        if (existingToast) {
+            document.body.removeChild(existingToast);
+        }
+        
+        // 創建一個新的 toast 元素
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 2秒後自動消失
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 500);
+        }, 2000);
     }
 
     </script>
