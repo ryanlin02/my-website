@@ -374,42 +374,52 @@
         animation: expandHeight 0.3s forwards;
     }
 
-    /* 創建輸入框與按鍵組的視覺關聯 */
+    /* 創建輸入框與按鍵的視覺分組 */
     .input-button-group {
-        background: linear-gradient(to bottom, var(--secondary-color), transparent);
-        border-radius: 4px;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin: 8px 0;
+        padding: 5px;
+        background: var(--secondary-color);
+        box-shadow: 0 4px 8px var(--shadow-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .input-button-group::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--button-orange);
+        opacity: 0.7;
     }
 
     .input-button-group .row {
-        margin-bottom: 2px;
-        border-bottom: none;
+        background: transparent;
+        box-shadow: none;
+        margin: 2px 0;
+        padding-top: 3px;
+        padding-bottom: 3px;
     }
 
+    .input-button-group .row:hover {
+        transform: translateX(2px);
+        box-shadow: none;
+    }
+
+    .input-button-group .row:hover::before {
+        display: none;
+    }
+
+    /* 按鍵容器樣式調整 */
     .input-button-group div[id$="Buttons"] {
-        margin-top: 0;
-        border-top: 1px dashed rgba(255, 156, 51, 0.3);
-        padding-top: 5px;
-    }
-
-    /* 創建輸入框與按鍵組的視覺關聯 */
-    .input-button-group {
-        background: linear-gradient(to bottom, var(--secondary-color), transparent);
-        border-radius: 4px;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
-    }
-
-    .input-button-group .row {
-        margin-bottom: 2px;
-        border-bottom: none;
-    }
-
-    .input-button-group div[id$="Buttons"] {
-        margin-top: 0;
-        border-top: 1px dashed rgba(255, 156, 51, 0.3);
-        padding-top: 5px;
+        margin: 0 0 4px 0;
+        padding-top: 2px;
+        padding-bottom: 5px;
+        border-top: 1px dashed rgba(255, 156, 51, 0.2);
     }
 
     @keyframes expandHeight {
@@ -569,6 +579,31 @@
 		height: 150px;
 	}
 
+    /* 當滑鼠懸停在按鍵組上時的效果 */
+    .input-button-group div[id$="Buttons"]:hover {
+        background-color: rgba(255, 156, 51, 0.05);
+        border-radius: 4px;
+    }
+
+    /* 將組內的按鍵輕微突出顯示 */
+    .input-button-group div[id$="Buttons"] button {
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 改進按鍵點擊反饋 */
+    .input-button-group div[id$="Buttons"] button:active {
+        transform: scale(0.95);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    /* 添加輕微的懸停效果 */
+    .input-button-group div[id$="Buttons"] button:hover {
+        border-color: var(--button-orange);
+    }
+
     div[id$="Buttons"] button {
         background-color: var(--secondary-color);
         color: var(--button-orange);
@@ -686,16 +721,16 @@
     }
 
     #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
-        margin: 2px 1px 5px 1px;
+        margin: 0;
         display: flex;
         flex-wrap: wrap;
         gap: 3px;
         width: 100%;
-        justify-content: center; /* 改為居中對齊 */
-        padding: 0 5px;          /* 左右都加padding */
+        justify-content: center;
+        padding: 0 5px;
         box-sizing: border-box;
-        height: 36px;            /* 統一高度 */
-        align-items: center;     /* 垂直居中 */
+        min-height: 32px;
+        align-items: center;
     }
 
     button {
@@ -1385,7 +1420,7 @@
             <button onclick="calculateRate()">算</button>
             <button onclick="clearField('rate')">清</button>
         </div>
-    
+
         <div id="rateButtons">
             <button onclick="adjustRate(-0.2)">-0.2</button>
             <button onclick="setRate(4)">4</button>
@@ -1404,7 +1439,7 @@
             <button onclick="calculatePrincipal()">算</button>
             <button onclick="clearField('principal')">清</button>
         </div>
-    
+
         <div id="principalButtons">
             <button onclick="adjustPrincipal(-1000000)">-100</button>
             <button onclick="adjustPrincipal(-100000)">-10</button>
@@ -1422,7 +1457,7 @@
             <button onclick="calculatePayment()">算</button>
             <button onclick="clearField('payment')">清</button>
         </div>
-    
+
         <div id="PaymentduringButtons">
             <button onclick="adjustPayment(-100)">-100</button>
             <button onclick="adjustPayment(-50)">-50</button>
@@ -1455,7 +1490,7 @@
             <button onclick="calculateAfterCommissionRate()">算</button>
             <button onclick="clearCommission()">清</button>
         </div>
-    
+
         <div id="commissionButtons">
             <button onclick="adjustCommission(-10000)">-萬</button>
             <button onclick="adjustCommission(-1000)">-千</button>
