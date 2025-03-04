@@ -628,8 +628,46 @@
 
     .function-buttons {
         display: flex;
-        justify-content: space-around;
+        flex-wrap: wrap;
+        justify-content: space-between;
         margin: 10px 0;
+        gap: 8px;
+    }
+
+    .function-buttons button {
+        flex: 1;
+        min-width: 110px;
+        background-color: var(--secondary-color);
+        color: var(--button-orange);
+        border: 1px solid var(--button-orange);
+        padding: 10px 8px;
+        margin: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 16px;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+        will-change: opacity, transform;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 添加主要操作按鈕樣式 */
+    .function-buttons .main-action-btn {
+        flex-basis: 48%;
+        background-color: var(--button-orange);
+        color: var(--text-color);
+        border: 1px solid var(--button-orange);
+        margin-bottom: 8px;
+        font-weight: bold;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .function-buttons .main-action-btn:hover {
+        background-color: #ff8c00;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
     }
 
     /* 在 style 標籤中修改或新增以下 CSS */
@@ -1156,38 +1194,6 @@
         transform: translateY(-2px);
     }
 
-    .action-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin: 10px 0;
-        padding: 0 5px;
-    }
-
-    .action-btn {
-        flex: 1;
-        margin: 0 5px;
-        padding: 12px 5px;
-        background-color: var(--secondary-color);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 16px;
-        font-weight: bold;
-    }
-
-    .action-btn:hover {
-        background-color: var(--button-orange);
-        border-color: var(--button-orange);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .action-btn:active {
-        transform: scale(0.95);
-    }
-
     /* 提示框樣式 */
     .toast-message {
         position: fixed;
@@ -1378,10 +1384,12 @@
 	<div class="divider-flow"></div>
 
 	<div class="function-buttons">
-    	<button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
-		<button onclick="location.reload()">清除</button>
-    	<button onclick="generateQuote()">截圖</button>
-	</div>
+        <button onclick="saveLoanData()" class="main-action-btn">保存計算</button>
+        <button onclick="toggleHistoryPanel()" class="main-action-btn">歷史記錄</button>
+        <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
+        <button onclick="location.reload()">清除</button>
+        <button onclick="generateQuote()">截圖</button>
+    </div>
 
     <div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
 
@@ -1394,12 +1402,6 @@
             <span id="userName"></span>
             <button onclick="signOut()" class="sign-out-btn">登出</button>
         </div>
-    </div>
-
-    <!-- 添加在 divider-flow 之前 -->
-    <div class="action-buttons">
-        <button class="action-btn" id="saveLoan" onclick="saveLoanData()">保存計算</button>
-        <button class="action-btn" id="viewHistory" onclick="toggleHistoryPanel()">歷史記錄</button>
     </div>
 
     <!-- 添加歷史記錄面板 -->
