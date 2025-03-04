@@ -734,13 +734,14 @@
         flex-direction: column;
         gap: 4px;
         margin: 4px 0;
-        padding: 0 5px;
+        padding: 0;  /* 移除左右內邊距 */
+        width: 100%; /* 確保寬度與其他欄位一致 */
     }
 
     .function-buttons .button-row {
         display: flex;
         justify-content: space-between;
-        gap: 10px;
+        gap: 4px;  /* 縮小按鈕之間的間距 */
         width: 100%;
     }
 
@@ -765,10 +766,14 @@
 
     .function-buttons .top-row button {
         flex: 1;
+        min-width: 0;
+        margin: 0;  /* 確保沒有額外的外邊距 */
     }
 
     .function-buttons .bottom-row button {
         flex: 1;
+        min-width: 0;
+        margin: 0;  /* 確保沒有額外的外邊距 */
     }
 
     /* 統一所有功能按鈕的基礎樣式 */
@@ -786,6 +791,9 @@
         text-align: center;
         position: relative;
         overflow: hidden;
+        flex: 1;  /* 確保按鈕平均分配空間 */
+        min-width: 0;  /* 允許按鈕變窄 */
+        margin: 0;  /* 移除按鈕外邊距 */
     }
 
     .function-buttons button::before {
@@ -1391,74 +1399,6 @@
             background-color: rgba(255, 156, 51, 0.08);
             transform: scale(1);
         }
-    }
-
-    /* 電流特效容器 */
-    .electric-effect-container {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 10000;
-        pointer-events: none;
-        overflow: hidden;
-    }
-
-    /* 電流特效 */
-    .electric-effect {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(45deg, 
-            rgba(33, 150, 243, 0) 0%,
-            rgba(33, 150, 243, 0.5) 50%, 
-            rgba(33, 150, 243, 0) 100%);
-        opacity: 0;
-        animation: electricEffect 0.4s ease-out;
-    }
-
-    .electric-flash {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 255, 255, 0.8);
-        opacity: 0;
-        animation: flashEffect 0.4s ease-out;
-    }
-
-    .electric-line {
-        position: absolute;
-        background-color: #00BFFF;
-        height: 2px;
-        width: 100%;
-        opacity: 0.7; /* 從0改為0.7 */
-        filter: blur(2px);
-        box-shadow: 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 30px #00BFFF;
-    }
-
-    @keyframes electricEffect {
-        0% { opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { opacity: 0; }
-    }
-
-    @keyframes flashEffect {
-        0% { opacity: 0; }
-        5% { opacity: 0.8; }
-        20% { opacity: 0; }
-        60% { opacity: 0.4; }
-        100% { opacity: 0; }
-    }
-
-    @keyframes electricLine {
-        0% { transform: translateY(-200px); opacity: 0; }
-        30% { opacity: 1; }
-        70% { opacity: 1; }
-        100% { transform: translateY(2000px); opacity: 0; }
     }
 
 </style>
@@ -2403,9 +2343,6 @@
             showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
             return;
         }
-
-        // 電流特效
-        showElectricEffect();
         
         const loanDate = new Date();
         const year = loanDate.getFullYear();
@@ -2441,57 +2378,6 @@
         if (navigator.vibrate) {
             navigator.vibrate(70);
         }
-    }
-
-    // 顯示電流特效
-    function showElectricEffect() {
-        // 創建電流效果容器
-        const effectContainer = document.createElement('div');
-        effectContainer.className = 'electric-effect-container';
-        effectContainer.style.display = 'block';
-        
-        // 創建電流背景
-        const electricEffect = document.createElement('div');
-        electricEffect.className = 'electric-effect';
-        
-        // 創建閃光效果
-        const flashEffect = document.createElement('div');
-        flashEffect.className = 'electric-flash';
-        
-        // 創建多條電流線
-        const lineCount = 10;
-        for (let i = 0; i < lineCount; i++) {
-            const line = document.createElement('div');
-            line.className = 'electric-line';
-            
-            // 隨機定位
-            line.style.top = `${Math.random() * 100}%`;
-            line.style.left = `${Math.random() * 20}%`;
-            line.style.width = `${80 + Math.random() * 20}%`;
-            
-            // 隨機動畫延遲
-            const delay = Math.random() * 0.3;
-            line.style.animation = `electricLine ${0.3 + Math.random() * 0.2}s ease-out ${delay}s`;
-            
-            // 隨機亮度
-            const intensity = 0.7 + Math.random() * 0.3;
-            line.style.opacity = intensity;
-            
-            effectContainer.appendChild(line);
-        }
-        
-        // 添加效果元素到容器
-        effectContainer.appendChild(electricEffect);
-        effectContainer.appendChild(flashEffect);
-        
-        // 添加到頁面
-        document.body.appendChild(effectContainer);
-        
-        // 定時移除
-        setTimeout(() => {
-            effectContainer.style.display = 'none';
-            document.body.removeChild(effectContainer);
-        }, 500);
     }
 
     // 顯示/隱藏歷史記錄面板
@@ -2743,9 +2629,6 @@
       });
     }
 </script>
-
-<!-- 電流特效容器 -->
-<div id="electricEffectContainer" class="electric-effect-container"></div>
 
 </body>
 </html>
