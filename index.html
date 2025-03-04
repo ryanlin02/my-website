@@ -728,12 +728,32 @@
         flex-shrink: 0;
     }
 
+    /* 新的按鈕組樣式 */
     .function-buttons {
         display: flex;
         flex-direction: column;
-        gap: 4px; /* 進一步減少間隔 */
-        margin: 4px 0; /* 減小上下外邊距與其他欄位一致 */
+        gap: 4px;
+        margin: 4px 0;
         padding: 0 5px;
+    }
+
+    .function-buttons .button-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+    }
+
+    /* 調整頂部按鈕組 */
+    .top-buttons .button-row button {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* 調整底部按鈕組 */
+    .bottom-buttons .button-row button {
+        flex: 1;
+        min-width: 0;
     }
 
     .function-buttons .top-row,
@@ -751,21 +771,21 @@
         flex: 1;
     }
 
+    /* 統一所有功能按鈕的基礎樣式 */
     .function-buttons button {
-        position: relative;
         background-color: var(--secondary-color);
-        color: var(--button-orange);
-        border: none;
-        border-radius: 10px;
-        padding: 12px 0;
+        color: #ffffff; /* 使用白色文字而非橙色 */
+        border: 1px solid var(--button-orange);
+        border-radius: 6px; /* 統一圓角 */
+        padding: 8px 0;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-        z-index: 1;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         text-align: center;
+        position: relative;
+        overflow: hidden;
     }
 
     .function-buttons button::before {
@@ -781,31 +801,33 @@
         transition: transform 0.6s ease;
     }
 
+    /* 統一所有按鈕的懸停效果 */
     .function-buttons button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
-        color: var(--text-color);
         background-color: var(--button-orange);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
     .function-buttons button:hover::before {
         transform: translateX(0);
     }
 
+    /* 統一所有按鈕的點擊效果 */
     .function-buttons button:active {
         transform: translateY(1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        transition: all 0.1s;
     }
 
     /* 主要操作按鈕樣式 */
+    /* 移除main-action-btn特殊樣式，保持統一 */
     .function-buttons .main-action-btn {
+        /* 移除差異化樣式，保持與其他按鈕一致 */
         background-color: var(--secondary-color);
-        color: var(--text-color);
-        padding: 8px 0; /* 調整上下內邊距 */
-        font-weight: bold;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        border: 1px solid var(--border-color);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #ffffff;
+        padding: 8px 0;
+        border: 1px solid var(--button-orange);
     }
 
     .function-buttons .main-action-btn::before {
@@ -877,23 +899,6 @@
 		border-radius: 16px;
 		box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
 		margin: 20px;
-	}
-
-	
-
-    .function-buttons button {
-		background-color: var(--secondary-color);
-		color: var(--button-orange);      /* 改為橘色文字 */
-		border: 1px solid var(--button-orange);  /* 改為橘色邊框 */
-		padding: 3px 8px;
-		margin: 0 5px;
-		border-radius: 4px;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		font-size: 16px;
-		position: relative;
-        overflow: hidden;
-        will-change: opacity, transform;
 	}
 
     .function-buttons button::before {
@@ -1388,6 +1393,74 @@
         }
     }
 
+    /* 電流特效容器 */
+    .electric-effect-container {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    /* 電流特效 */
+    .electric-effect {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, 
+            rgba(33, 150, 243, 0) 0%,
+            rgba(33, 150, 243, 0.5) 50%, 
+            rgba(33, 150, 243, 0) 100%);
+        opacity: 0;
+        animation: electricEffect 0.4s ease-out;
+    }
+
+    .electric-flash {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        opacity: 0;
+        animation: flashEffect 0.4s ease-out;
+    }
+
+    .electric-line {
+        position: absolute;
+        background-color: #00BFFF;
+        height: 2px;
+        width: 100%;
+        opacity: 0.7; /* 從0改為0.7 */
+        filter: blur(2px);
+        box-shadow: 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 30px #00BFFF;
+    }
+
+    @keyframes electricEffect {
+        0% { opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    @keyframes flashEffect {
+        0% { opacity: 0; }
+        5% { opacity: 0.8; }
+        20% { opacity: 0; }
+        60% { opacity: 0.4; }
+        100% { opacity: 0; }
+    }
+
+    @keyframes electricLine {
+        0% { transform: translateY(-200px); opacity: 0; }
+        30% { opacity: 1; }
+        70% { opacity: 1; }
+        100% { transform: translateY(2000px); opacity: 0; }
+    }
+
 </style>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -1565,16 +1638,21 @@
         <input type="number" id="fundingCost" class="readonly" readonly>
         <span style="margin-left: 0px; color: var(--text-color);">修正中</span>
     </div>
-	
-	<!-- 在最後一個 .row div 後面添加 -->
-	<div class="divider-flow"></div>
 
-	<div class="function-buttons">
-        <div class="top-row">
-            <button onclick="saveLoanData()" class="main-action-btn">保存計算</button>
-            <button onclick="toggleHistoryPanel()" class="main-action-btn">歷史記錄</button>
+	<!-- 按鈕區域重新組織 -->
+    <div class="divider-flow"></div>
+
+    <div class="function-buttons top-buttons">
+        <div class="button-row">
+            <button onclick="saveLoanData()" >保存計算</button>
+            <button onclick="toggleHistoryPanel()" >歷史記錄</button>
         </div>
-        <div class="bottom-row">
+    </div>
+
+    <div class="divider-flow"></div>
+
+    <div class="function-buttons bottom-buttons">
+        <div class="button-row">
             <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
             <button onclick="location.reload()">清除</button>
             <button onclick="generateQuote()">截圖</button>
@@ -2325,6 +2403,9 @@
             showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
             return;
         }
+
+        // 電流特效
+        showElectricEffect();
         
         const loanDate = new Date();
         const year = loanDate.getFullYear();
@@ -2360,6 +2441,57 @@
         if (navigator.vibrate) {
             navigator.vibrate(70);
         }
+    }
+
+    // 顯示電流特效
+    function showElectricEffect() {
+        // 創建電流效果容器
+        const effectContainer = document.createElement('div');
+        effectContainer.className = 'electric-effect-container';
+        effectContainer.style.display = 'block';
+        
+        // 創建電流背景
+        const electricEffect = document.createElement('div');
+        electricEffect.className = 'electric-effect';
+        
+        // 創建閃光效果
+        const flashEffect = document.createElement('div');
+        flashEffect.className = 'electric-flash';
+        
+        // 創建多條電流線
+        const lineCount = 10;
+        for (let i = 0; i < lineCount; i++) {
+            const line = document.createElement('div');
+            line.className = 'electric-line';
+            
+            // 隨機定位
+            line.style.top = `${Math.random() * 100}%`;
+            line.style.left = `${Math.random() * 20}%`;
+            line.style.width = `${80 + Math.random() * 20}%`;
+            
+            // 隨機動畫延遲
+            const delay = Math.random() * 0.3;
+            line.style.animation = `electricLine ${0.3 + Math.random() * 0.2}s ease-out ${delay}s`;
+            
+            // 隨機亮度
+            const intensity = 0.7 + Math.random() * 0.3;
+            line.style.opacity = intensity;
+            
+            effectContainer.appendChild(line);
+        }
+        
+        // 添加效果元素到容器
+        effectContainer.appendChild(electricEffect);
+        effectContainer.appendChild(flashEffect);
+        
+        // 添加到頁面
+        document.body.appendChild(effectContainer);
+        
+        // 定時移除
+        setTimeout(() => {
+            effectContainer.style.display = 'none';
+            document.body.removeChild(effectContainer);
+        }, 500);
     }
 
     // 顯示/隱藏歷史記錄面板
@@ -2611,6 +2743,9 @@
       });
     }
 </script>
+
+<!-- 電流特效容器 -->
+<div id="electricEffectContainer" class="electric-effect-container"></div>
 
 </body>
 </html>
