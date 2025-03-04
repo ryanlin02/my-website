@@ -1594,7 +1594,7 @@
     <div class="function-buttons bottom-buttons">
         <div class="button-row">
             <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
-            <button onclick="location.reload()">清除</button>
+            <button onclick="clearAllFieldsExceptMonthlyCost()">清除</button>
             <button onclick="generateQuote()">截圖</button>
         </div>
     </div>
@@ -2217,6 +2217,7 @@
 
         updateAllFields(); // 更新所有欄位
     }
+
     function roundPayment(direction, base) {
         vibrate();
         const paymentField = document.getElementById('payment');
@@ -2231,6 +2232,7 @@
         paymentField.value = value.toFixed(2);
         calculateRate(); // Recalculate the rate
     }
+
     function adjustPayment(delta) {
         vibrate();
         const paymentField = document.getElementById('payment');
@@ -2238,6 +2240,7 @@
         paymentField.value = (currentValue + delta).toFixed(2);
         calculateRate(); // 重新計算利率
         }
+
     function saveData() {
         const dataToSave = {
         period: document.getElementById('period').value,
@@ -2327,6 +2330,8 @@
         void element.offsetWidth; // 觸發重繪
         element.classList.add('value-changed');
     }
+
+    
 
     // 保存貸款計算結果
     function saveLoanData() {
@@ -2579,6 +2584,32 @@
                 }
             }, 500);
         }, 2000);
+    }
+
+    // 清空所有欄位除了本月資金成本
+    function clearAllFieldsExceptMonthlyCost() {
+        // 震動效果
+        vibrate();
+        
+        // 要清空的欄位ID列表
+        const fieldsToReset = [
+            'period', 'rate', 'principal', 'payment', 
+            'totalInterest', 'tax', 'afterTaxRate', 
+            'commission', 'commissionRatio', 'afterCommissionRate',
+            'annualMillionInterest', 'monthlyMillionInterest',
+            'annualTenThousandInterest', 'monthlyTenThousandInterest',
+            'spread', 'fundingCost'
+        ];
+        
+        // 清空每個欄位
+        fieldsToReset.forEach(fieldId => {
+            document.getElementById(fieldId).value = '';
+            // 移除任何警告樣式
+            document.getElementById(fieldId).classList.remove('warning-text');
+        });
+        
+        // 顯示提示訊息
+        showToast('已清空所有欄位');
     }
 
     </script>
