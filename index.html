@@ -627,11 +627,26 @@
     }
 
     .function-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-gap: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
         margin: 15px 0;
         padding: 0 5px;
+    }
+
+    .function-buttons .top-row,
+    .function-buttons .bottom-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .function-buttons .top-row button {
+        flex: 1;
+    }
+
+    .function-buttons .bottom-row button {
+        flex: 1;
     }
 
     .function-buttons button {
@@ -682,13 +697,11 @@
 
     /* 主要操作按鈕樣式 */
     .function-buttons .main-action-btn {
-        grid-column: span 2;
         background-color: var(--button-orange);
         color: var(--text-color);
         padding: 14px 0;
         font-weight: bold;
         box-shadow: 0 4px 10px rgba(255, 156, 51, 0.3);
-        margin-bottom: 0;
     }
 
     .function-buttons .main-action-btn::before {
@@ -698,34 +711,6 @@
     .function-buttons .main-action-btn:hover {
         background-color: #ff8c00;
         box-shadow: 0 7px 14px rgba(255, 156, 51, 0.4);
-    }
-
-    /* 為特定按鈕添加圖標 */
-    .function-buttons button::after {
-        font-family: 'Arial', sans-serif;
-        margin-left: 8px;
-        font-size: 14px;
-        opacity: 0.8;
-    }
-
-    .function-buttons .save-btn::after {
-        content: '💾';
-    }
-
-    .function-buttons .history-btn::after {
-        content: '📋';
-    }
-
-    .function-buttons .food-btn::after {
-        content: '🍚';
-    }
-
-    .function-buttons .clear-btn::after {
-        content: '🗑️';
-    }
-
-    .function-buttons .screenshot-btn::after {
-        content: '📸';
     }
 
     /* 在 style 標籤中修改或新增以下 CSS */
@@ -1442,11 +1427,15 @@
 	<div class="divider-flow"></div>
 
 	<div class="function-buttons">
-        <button onclick="saveLoanData()" class="main-action-btn save-btn">保存計算</button>
-        <button onclick="toggleHistoryPanel()" class="main-action-btn history-btn">歷史記錄</button>
-        <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')" class="food-btn">雞肉飯</button>
-        <button onclick="location.reload()" class="clear-btn">清除</button>
-        <button onclick="generateQuote()" class="screenshot-btn">截圖</button>
+        <div class="top-row">
+            <button onclick="saveLoanData()" class="main-action-btn">保存計算</button>
+            <button onclick="toggleHistoryPanel()" class="main-action-btn">歷史記錄</button>
+        </div>
+        <div class="bottom-row">
+            <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
+            <button onclick="location.reload()">清除</button>
+            <button onclick="generateQuote()">截圖</button>
+        </div>
     </div>
 
     <div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
