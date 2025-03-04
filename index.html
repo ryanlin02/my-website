@@ -592,26 +592,30 @@
 
     div[id$="Buttons"] button {
         background-color: var(--secondary-color);
-        color: #999999; /* 降低文字亮度，從橙色改為灰色 */
-        border: 1px solid #555555; /* 將邊框從橙色改為淺灰色 */
+        color: #bcbcbc; /* 提高文字明度 */
+        border: 1px solid var(--button-orange); /* 使用橘色外框 */
         padding: 4px 9px;
         margin: 0 4px;
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 15px;
-        opacity: 0.85;
+        opacity: 0.95; /* 提高不透明度 */
     }
 
     div[id$="Buttons"] button:hover {
-        background-color: #555555; /* 改為淺灰色而非橙色 */
+        background-color: rgba(255, 156, 51, 0.15); /* 淡橘色背景 */
         color: #ffffff;
+        border-color: var(--button-orange);
         transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(255, 156, 51, 0.2);
     }
 
 	div[id$="Buttons"] button:active {
         transform: translateY(1px);
+        background-color: rgba(255, 156, 51, 0.3); /* 點擊時只改變當前按鈕的背景 */
+        box-shadow: 0 0 5px rgba(255, 156, 51, 0.5) inset; /* 內陰影效果 */
+        transition: all 0.1s ease;
     }
 
     .readonly {
@@ -727,8 +731,8 @@
     .function-buttons {
         display: flex;
         flex-direction: column;
-        gap: 8px; /* 減少間隔 */
-        margin: 10px 0; /* 減少上下外邊距 */
+        gap: 4px; /* 進一步減少間隔 */
+        margin: 4px 0; /* 減小上下外邊距與其他欄位一致 */
         padding: 0 5px;
     }
 
@@ -1360,13 +1364,13 @@
         transition: opacity 0.5s ease;
     }
 
-    /* 讓「稅佣後利率」輸入框更明顯 */
+    /* 讓「稅佣後利率」輸入框更明顯但不突兀 */
     #afterCommissionRate {
         font-weight: bold;
         color: #ffffff;
-        background-color: #2a2a2a;
-        border: 1px solid #666666;
-        box-shadow: 0 0 3px rgba(255, 156, 51, 0.2);
+        background-color: rgba(255, 156, 51, 0.08); /* 更淡的橘色背景 */
+        border: 1px solid rgba(255, 156, 51, 0.6); /* 半透明橘色邊框 */
+        box-shadow: 0 0 4px rgba(255, 156, 51, 0.15); /* 微弱的發光效果 */
     }
 
     #afterCommissionRate.value-changed {
@@ -1376,10 +1380,10 @@
     @keyframes afterRateChange {
         0% { 
             background-color: rgba(255, 156, 51, 0.3);
-            transform: scale(1.03);
+            transform: scale(1.02);
         }
         100% { 
-            background-color: #2a2a2a;
+            background-color: rgba(255, 156, 51, 0.08);
             transform: scale(1);
         }
     }
