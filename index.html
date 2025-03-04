@@ -487,6 +487,29 @@
         text-overflow: ellipsis; /* 超出部分使用省略號 */
     }
 
+    /* 針對按鈕數量多的兩個組別進行特殊調整 */
+    #periodButtons button, 
+    #rateButtons button {
+        min-width: 35px;      /* 減小最小寬度 */
+        max-width: 50px;      /* 減小最大寬度 */
+        padding: 0 3px;       /* 減小內部間距 */
+        font-size: 15px;      /* 稍微減小字體大小 */
+    }
+
+    /* 減小這兩個按鈕組的按鈕間距 */
+    #periodButtons, 
+    #rateButtons {
+        gap: 2px;             /* 減小按鈕之間的間距 */
+    }
+
+    /* 進一步調整按鈕大小和間距 */
+    #periodButtons button, 
+    #rateButtons button {
+        min-width: 30px;      /* 再減小最小寬度 */
+        max-width: 45px;      /* 再減小最大寬度 */
+        margin: 0 1px;        /* 減小外邊距 */
+    }
+
     .row button:hover {
         background-color: var(--button-orange);  /* 懸停時變為橙色背景 */
         color: var(--text-color);
