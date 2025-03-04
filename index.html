@@ -627,47 +627,105 @@
     }
 
     .function-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        margin: 10px 0;
-        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 10px;
+        margin: 15px 0;
+        padding: 0 5px;
     }
 
     .function-buttons button {
-        flex: 1;
-        min-width: 110px;
+        position: relative;
         background-color: var(--secondary-color);
         color: var(--button-orange);
-        border: 1px solid var(--button-orange);
-        padding: 10px 8px;
-        margin: 0;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        padding: 12px 0;
         font-size: 16px;
         font-weight: 600;
-        position: relative;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: hidden;
-        will-change: opacity, transform;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        z-index: 1;
+        text-align: center;
     }
 
-    /* 添加主要操作按鈕樣式 */
+    .function-buttons button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to right, rgba(255, 156, 51, 0.1), transparent);
+        z-index: -1;
+        transform: translateX(-100%);
+        transition: transform 0.6s ease;
+    }
+
+    .function-buttons button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 14px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+        color: var(--text-color);
+        background-color: var(--button-orange);
+    }
+
+    .function-buttons button:hover::before {
+        transform: translateX(0);
+    }
+
+    .function-buttons button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 主要操作按鈕樣式 */
     .function-buttons .main-action-btn {
-        flex-basis: 48%;
+        grid-column: span 2;
         background-color: var(--button-orange);
         color: var(--text-color);
-        border: 1px solid var(--button-orange);
-        margin-bottom: 8px;
+        padding: 14px 0;
         font-weight: bold;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 10px rgba(255, 156, 51, 0.3);
+        margin-bottom: 0;
+    }
+
+    .function-buttons .main-action-btn::before {
+        background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
     }
 
     .function-buttons .main-action-btn:hover {
         background-color: #ff8c00;
-        transform: translateY(-3px);
-        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 7px 14px rgba(255, 156, 51, 0.4);
+    }
+
+    /* 為特定按鈕添加圖標 */
+    .function-buttons button::after {
+        font-family: 'Arial', sans-serif;
+        margin-left: 8px;
+        font-size: 14px;
+        opacity: 0.8;
+    }
+
+    .function-buttons .save-btn::after {
+        content: '💾';
+    }
+
+    .function-buttons .history-btn::after {
+        content: '📋';
+    }
+
+    .function-buttons .food-btn::after {
+        content: '🍚';
+    }
+
+    .function-buttons .clear-btn::after {
+        content: '🗑️';
+    }
+
+    .function-buttons .screenshot-btn::after {
+        content: '📸';
     }
 
     /* 在 style 標籤中修改或新增以下 CSS */
@@ -1384,11 +1442,11 @@
 	<div class="divider-flow"></div>
 
 	<div class="function-buttons">
-        <button onclick="saveLoanData()" class="main-action-btn">保存計算</button>
-        <button onclick="toggleHistoryPanel()" class="main-action-btn">歷史記錄</button>
-        <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')">雞肉飯</button>
-        <button onclick="location.reload()">清除</button>
-        <button onclick="generateQuote()">截圖</button>
+        <button onclick="saveLoanData()" class="main-action-btn save-btn">保存計算</button>
+        <button onclick="toggleHistoryPanel()" class="main-action-btn history-btn">歷史記錄</button>
+        <button onclick="window.open('https://travel.chiayi.gov.tw/Folder/TurkeyRice', '_blank')" class="food-btn">雞肉飯</button>
+        <button onclick="location.reload()" class="clear-btn">清除</button>
+        <button onclick="generateQuote()" class="screenshot-btn">截圖</button>
     </div>
 
     <div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
