@@ -466,6 +466,27 @@
         transform: translateZ(0);
     }
 
+    /* 統一按鈕區域中的按鈕樣式 */
+    #periodButtons button, 
+    #rateButtons button, 
+    #principalButtons button, 
+    #commissionButtons button, 
+    #PaymentduringButtons button {
+        min-width: 50px;       /* 設置最小寬度 */
+        text-align: center;    /* 文字居中 */
+        flex: 1;               /* 平均分配空間 */
+        max-width: 80px;       /* 限制最大寬度 */
+        margin: 0 2px;         /* 調整邊距 */
+        height: 28px;          /* 統一高度 */
+        padding: 0 5px;        /* 調整內距 */
+        display: flex;         /* 使用flex佈局 */
+        align-items: center;   /* 垂直居中 */
+        justify-content: center; /* 水平居中 */
+        white-space: nowrap;   /* 防止文字換行 */
+        overflow: hidden;      /* 隱藏溢出內容 */
+        text-overflow: ellipsis; /* 超出部分使用省略號 */
+    }
+
     .row button:hover {
         background-color: var(--button-orange);  /* 懸停時變為橙色背景 */
         color: var(--text-color);
@@ -612,15 +633,17 @@
     }
 
     #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
-    	margin: 2px 1px 5px 1px;    /* 修改邊距 */
-    	display: flex;
-    	flex-wrap: wrap;        /* 允許按鈕換行 */
-    	gap: 3px;
-    	width: 100%;            /* 修改寬度設定 */
-    	justify-content: flex-end;
-    	padding-right: 5px;     /* 添加右側padding */
-    	box-sizing: border-box; /* 添加這行 */
-	}
+        margin: 2px 1px 5px 1px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        width: 100%;
+        justify-content: center; /* 改為居中對齊 */
+        padding: 0 5px;          /* 左右都加padding */
+        box-sizing: border-box;
+        height: 36px;            /* 統一高度 */
+        align-items: center;     /* 垂直居中 */
+    }
 
     button {
         flex-shrink: 0;
@@ -1289,7 +1312,7 @@
         <button onclick="clearField('period')">清</button>
     </div>
 
-    <div id="periodButtons" style="display: flex; justify-content: flex-end;">
+    <div id="periodButtons">
 		<button onclick="adjustPeriod(-1)">-1</button>
 		<button onclick="setPeriod(13)">底</button>
         <button onclick="setPeriod(24)">2</button>
@@ -1307,7 +1330,7 @@
         <button onclick="clearField('rate')">清</button>
     </div>
 
-    <div id="rateButtons" style="display: flex; justify-content: flex-end;">
+    <div id="rateButtons">
         <button onclick="adjustRate(-0.2)">-0.2</button>
         <button onclick="setRate(4)">4</button>
         <button onclick="setRate(6)">6</button>
@@ -1324,7 +1347,7 @@
         <button onclick="clearField('principal')">清</button>
     </div>
 
-    <div id="principalButtons" style="display: flex; justify-content: flex-end;">
+    <div id="principalButtons">
 		<button onclick="adjustPrincipal(-1000000)">-100</button>
 		<button onclick="adjustPrincipal(-100000)">-10</button>
 		<button onclick="adjustPrincipal(-10000)">-1</button>
@@ -1340,7 +1363,7 @@
         <button onclick="clearField('payment')">清</button>
     </div>
 
-	 <div id="PaymentduringButtons" style="display: flex; justify-content: flex-end;">
+	 <div id="PaymentduringButtons">
         <button onclick="adjustPayment(-100)">-100</button>
 		 <button onclick="adjustPayment(-50)">-50</button>
         <button onclick="roundPayment('down', 100)">捨百</button>
@@ -1372,7 +1395,7 @@
     </div>
 
 
-    <div id="commissionButtons" style="display: flex; justify-content: flex-end;">
+    <div id="commissionButtons">
         <button onclick="adjustCommission(-10000)">-萬</button>
         <button onclick="adjustCommission(-1000)">-千</button>
         <button onclick="adjustCommission(-100)">-百</button>
