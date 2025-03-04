@@ -379,7 +379,7 @@
         border: 1px solid var(--border-color);
         border-radius: 8px;
         margin: 4px 0;
-        padding: 2px;
+        padding: 1px; /* 減少整體內邊距 */
         background: var(--secondary-color);
         box-shadow: 0 4px 8px var(--shadow-color);
         position: relative;
@@ -389,9 +389,9 @@
     .input-button-group .row {
         background: transparent;
         box-shadow: none;
-        margin: 4px 0;
-        padding-top: 2px;
-        padding-bottom: 2px;
+        margin: 2px 0;  /* 減少上下間距 */
+        padding-top: 1px; /* 減少上部內邊距 */
+        padding-bottom: 1px; /* 減少下部內邊距 */
     }
 
     .input-button-group .row:hover {
@@ -407,8 +407,8 @@
     .input-button-group div[id$="Buttons"] {
         margin: 0;
         padding-top: 0;
-        padding-bottom: 3px;
-        border-top: 1px dashed rgba(255, 156, 51, 0.2);
+        padding-bottom: 2px; /* 減少下部內邊距 */
+        border-top: none; /* 移除虛線邊框 */
     }
 
     @keyframes expandHeight {
@@ -1467,7 +1467,7 @@
         <input type="number" id="tax" class="readonly" readonly>
     </div>
 
-    <div class="row emphasized-row">
+    <div class="row">
         <span class="label">稅後利率</span>
         <input type="number" id="afterTaxRate" step="0.001" class="readonly" readonly>
     </div>
@@ -1495,7 +1495,7 @@
         <input type="number" id="commissionRatio" class="readonly" readonly>
     </div>
 
-    <div class="row emphasized-row">
+    <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="number" id="afterCommissionRate" class="readonly" readonly>
     </div>
