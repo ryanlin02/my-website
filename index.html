@@ -447,6 +447,29 @@
 		transform: scale(1.07);
 	}
 
+    #afterTaxRate, #afterCommissionRate {
+        background-color: rgba(255, 156, 51, 0.1); /* 添加淡橙色背景 */
+        color: #ffffff; /* 確保文字為白色 */
+        font-weight: bold; /* 文字加粗 */
+        font-size: 18px; /* 增加字體大小 */
+        border: 1px solid var(--button-orange); /* 使用橙色邊框 */
+        box-shadow: inset 0 0 4px rgba(255, 156, 51, 0.2); /* 內部陰影效果 */
+        text-shadow: 0 0 2px rgba(255, 255, 255, 0.5); /* 文字發光效果 */
+    }
+
+    /* 當這些輸入框具有警告樣式時 */
+    #afterTaxRate.warning-text, #afterCommissionRate.warning-text {
+        background-color: rgba(255, 0, 0, 0.1); /* 紅色背景 */
+        border-color: #ff0000;
+        box-shadow: inset 0 0 6px rgba(255, 0, 0, 0.3);
+    }
+
+    /* 當獲得焦點時 */
+    #afterTaxRate:focus, #afterCommissionRate:focus {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.3), inset 0 0 4px rgba(255, 156, 51, 0.2);
+    }
+
     .value-changed {
         animation: valueChange 0.5s ease-out;
         will-change: background-color;
@@ -488,19 +511,35 @@
 	
 	.row button {
         background-color: var(--secondary-color);
-        color: var(--text-color);
-        border: 1px solid var(--button-grey);  /* 使用深灰色邊框 */
+        color: rgba(255, 255, 255, 0.6); /* 降低文字明度 */
+        border: 1px solid var(--border-color);
         padding: 3px 8px;
         margin: 0 5px;
         border-radius: 4px;
         cursor: pointer;
-        transition: all 0.3s ease;  /* 添加 all 以實現完整的過渡效果 */
+        transition: all 0.3s ease;
         font-size: 16px;
-		position: relative;
-    	overflow: hidden;
+        position: relative;
+        overflow: hidden;
+        opacity: 0.8; /* 降低整體不透明度 */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* 添加輕微陰影 */
         will-change: transform, opacity;
         backface-visibility: hidden;
         transform: translateZ(0);
+    }
+
+    .row button:hover {
+        background-color: var(--hover-color);
+        color: rgba(255, 255, 255, 0.8); /* 懸停時提高明度 */
+        opacity: 1;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .row button:active {
+        transform: scale(0.95) translateY(1px);
+        transition: transform 0.1s;
+        opacity: 1;
+        color: white;
     }
 
     /* 統一按鈕區域中的按鈕樣式 */
@@ -539,17 +578,6 @@
         gap: 2px;             /* 減小按鈕之間的間距 */
     }
 
-    .row button:hover {
-        background-color: var(--button-orange);  /* 懸停時變為橙色背景 */
-        color: var(--text-color);
-        border-color: var(--button-orange);  /* 邊框也變為橙色 */
-    }
-
-    .row button:active {
-        background-color: var(--secondary-color);  /* 點擊時恢復原本顏色 */
-        color: var(--text-color);
-        border-color: var(--button-grey);
-    }
 	.row button::after {
 		content: '';
 		position: absolute;
@@ -596,22 +624,27 @@
     div[id$="Buttons"] button {
         background-color: var(--secondary-color);
         color: var(--button-orange);
-        border: 1px solid var(--button-orange);
-        padding: 4px 9px;  /* 將左右內邊距從 8px 改為 6px */
-        margin: 0 4px;     /* 將左右外邊距改為 2px */
-        border-radius: 4px;
+        border: 2px solid var(--button-orange); /* 增加邊框寬度 */
+        padding: 4px 9px;
+        margin: 0 4px;
+        border-radius: 10px; /* 增加圓角 */
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 16px;
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3); /* 添加陰影效果 */
+        height: 32px; /* 設定固定高度 */
+        min-height: 30px; /* 設定最小高度 */
+        position: relative;
+        overflow: hidden;
     }
 
-    div[id$="Buttons"] button:hover {
+    div[id$="Buttons"] button:active {
+        transform: scale(0.95) translateY(1px);
+        transition: transform 0.1s;
         background-color: var(--button-orange);
-        color: var(--text-color);
-		transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        color: white;
     }
+
 	div[id$="Buttons"] button:active {
         transform: translateY(1px);
     }
