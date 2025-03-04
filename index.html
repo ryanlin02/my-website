@@ -378,31 +378,20 @@
     .input-button-group {
         border: 1px solid var(--border-color);
         border-radius: 8px;
-        margin: 8px 0;
-        padding: 5px;
+        margin: 4px 0;
+        padding: 2px;
         background: var(--secondary-color);
         box-shadow: 0 4px 8px var(--shadow-color);
         position: relative;
         overflow: hidden;
     }
 
-    .input-button-group::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--button-orange);
-        opacity: 0.7;
-    }
-
     .input-button-group .row {
         background: transparent;
         box-shadow: none;
-        margin: 2px 0;
-        padding-top: 3px;
-        padding-bottom: 3px;
+        margin: 4px 0;
+        padding-top: 2px;
+        padding-bottom: 2px;
     }
 
     .input-button-group .row:hover {
@@ -416,9 +405,9 @@
 
     /* 按鍵容器樣式調整 */
     .input-button-group div[id$="Buttons"] {
-        margin: 0 0 4px 0;
-        padding-top: 2px;
-        padding-bottom: 5px;
+        margin: 0;
+        padding-top: 0;
+        padding-bottom: 3px;
         border-top: 1px dashed rgba(255, 156, 51, 0.2);
     }
 
@@ -583,6 +572,13 @@
     .input-button-group div[id$="Buttons"]:hover {
         background-color: rgba(255, 156, 51, 0.05);
         border-radius: 4px;
+    }
+
+    /* 將組內的按鍵輕微突出顯示 */
+    .input-button-group div[id$="Buttons"] button {
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     }
 
     /* 改進按鍵點擊反饋 */
