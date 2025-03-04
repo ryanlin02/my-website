@@ -697,20 +697,28 @@
 
     /* 主要操作按鈕樣式 */
     .function-buttons .main-action-btn {
-        background-color: var(--button-orange);
-        color: var(--text-color);
-        padding: 14px 0;
+        background-color: var(--secondary-color);  /* 改為暗灰色背景 */
+        color: var(--text-color);                  /* 保持白色文字 */
+        padding: 10px 0;                           /* 降低高度從14px改為10px */
         font-weight: bold;
-        box-shadow: 0 4px 10px rgba(255, 156, 51, 0.3);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);  /* 減少橙色陰影 */
+        border: 1px solid var(--border-color);      /* 添加邊框 */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .function-buttons .main-action-btn::before {
-        background: linear-gradient(to right, rgba(255, 255, 255, 0.1), transparent);
+        background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);  /* 降低漸變亮度 */
     }
 
     .function-buttons .main-action-btn:hover {
-        background-color: #ff8c00;
+        background-color: var(--button-orange);  /* 懸停時改為橙色 */
         box-shadow: 0 7px 14px rgba(255, 156, 51, 0.4);
+        transform: translateY(-3px);
+    }
+
+    .function-buttons .main-action-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     /* 在 style 標籤中修改或新增以下 CSS */
