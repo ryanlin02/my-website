@@ -2108,24 +2108,24 @@
     function calculatePayment() {
         const period = parseFloat(document.getElementById('period').value);
         const rate = parseFloat(document.getElementById('rate').value);
-        const principal = parseFloat(document.getElementById('principal').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
         
         const payment = PMT(rate, period, principal);
-        document.getElementById('payment').value = payment.toFixed(2);
+        document.getElementById('payment').value = formatNumberWithCommas(payment.toFixed(2));
         
         updateAllFields();
     }
 
 
     function updateAllFields() {
-        // 獲取基本值
+        // 獲取基本值 - 需要先移除千位分隔符再轉換為數字
         const period = parseFloat(document.getElementById('period').value);
         const rate = parseFloat(document.getElementById('rate').value);
-        const principal = parseFloat(document.getElementById('principal').value);
-        const payment = parseFloat(document.getElementById('payment').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, '')) || 0;
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, '')) || 0;
         const monthlyCost = parseFloat(document.getElementById('monthlyCost').value);
 
-        // 要求1: 期數檢查
+        // 期數檢查
         const periodInput = document.getElementById('period');
         if (period <= 12) {
             periodInput.classList.add('warning-text');
@@ -2135,16 +2135,16 @@
 
         // 計算總利息
         const totalInterest = (payment * period) - principal;
-        // 要求2: 總利息格式化到小數點第3位
-        document.getElementById('totalInterest').value = totalInterest.toFixed(2);
+        // 總利息格式化帶千位分隔符
+        document.getElementById('totalInterest').value = formatNumberWithCommas(totalInterest.toFixed(2));
 
         // 計算稅金
         const tax = totalInterest / 21;
-        document.getElementById('tax').value = tax.toFixed(2);
+        document.getElementById('tax').value = formatNumberWithCommas(tax.toFixed(2));
 
         // 計算稅後利率
         const afterTaxRate = RATE(period, payment, principal + tax);
-        // 要求3: 稅後利率格式化和警告
+        // 稅後利率不需要千位分隔符
         const afterTaxRateInput = document.getElementById('afterTaxRate');
         afterTaxRateInput.value = afterTaxRate.toFixed(4);
         if (afterTaxRate <= 2.5) {
@@ -2153,9 +2153,9 @@
             afterTaxRateInput.classList.remove('warning-text');
         }
 
-        // 要求2: 佣金格式化為整數
-        const commission = parseFloat(document.getElementById('commission').value) || 0;
-        document.getElementById('commission').value = Math.round(commission);
+        // 佣金格式化為整數並帶千位分隔符
+        const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
+        document.getElementById('commission').value = formatNumberWithCommas(Math.round(commission));
         
         // 檢查佣金是否超過總利息的95%
         const commissionInput = document.getElementById('commission');
@@ -2179,7 +2179,7 @@
 
         // 計算稅佣後利率
         const afterCommissionRate = RATE(period, payment, principal + tax + commission);
-        // 要求5: 稅佣後利率格式化和警告
+        // 稅佣後利率不需要千位分隔符
         const afterCommissionRateInput = document.getElementById('afterCommissionRate');
         afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
         if (afterCommissionRate <= 2.5) {
@@ -2191,24 +2191,22 @@
         // 計算百萬利息
         const millionPayment = PMT(rate, 12, 1000000);
         const annualMillionInterest = (millionPayment * 12) - 1000000;
-            // 要求3: 百萬每年利息格式化為整數
-        document.getElementById('annualMillionInterest').value = Math.round(annualMillionInterest);
-        // 要求4: 百萬每月利息格式化為整數
-        document.getElementById('monthlyMillionInterest').value = Math.round(annualMillionInterest / 12);
-
+        // 百萬每年利息格式化為整數帶千位分隔符
+        document.getElementById('annualMillionInterest').value = formatNumberWithCommas(Math.round(annualMillionInterest));
+        // 百萬每月利息格式化為整數帶千位分隔符
+        document.getElementById('monthlyMillionInterest').value = formatNumberWithCommas(Math.round(annualMillionInterest / 12));
 
         // 計算一萬利息
         const tenThousandPayment = PMT(rate, 12, 10000);
         const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
-        // 要求5: 一萬每年利息格式化為整數
-        document.getElementById('annualTenThousandInterest').value = Math.round(annualTenThousandInterest);
-        // 要求6: 一萬每月利息格式化為整數
-        document.getElementById('monthlyTenThousandInterest').value = Math.round(annualTenThousandInterest / 12);
-
+        // 一萬每年利息格式化為整數帶千位分隔符
+        document.getElementById('annualTenThousandInterest').value = formatNumberWithCommas(Math.round(annualTenThousandInterest));
+        // 一萬每月利息格式化為整數帶千位分隔符
+        document.getElementById('monthlyTenThousandInterest').value = formatNumberWithCommas(Math.round(annualTenThousandInterest / 12));
 
         // 計算 Spread
         const spread = afterCommissionRate - monthlyCost;
-        // 要求10: Spread 警告
+        // Spread 不需要千位分隔符
         const spreadInput = document.getElementById('spread');
         spreadInput.value = spread.toFixed(4);
         if (spread <= 0) {
@@ -2217,18 +2215,17 @@
             spreadInput.classList.remove('warning-text');
         }
         
-        // 在計算 spread 之後添加新的計算邏輯
-        // 在計算 spread 之後，替換原有的 NPV 計算代碼為：
+        // 計算 NPV
         const npvValue = calculateNPV(
-            parseFloat(document.getElementById('payment').value),
-            parseFloat(document.getElementById('period').value),
-            parseFloat(document.getElementById('principal').value),
-            parseFloat(document.getElementById('monthlyCost').value)
+            payment,
+            period,
+            principal,
+            monthlyCost
         );
         
-        // 更新 NPV 顯示
+        // 更新 NPV 顯示，帶千位分隔符
         const fundingCostInput = document.getElementById('fundingCost');
-        fundingCostInput.value = npvValue;
+        fundingCostInput.value = formatNumberWithCommas(npvValue);
         
         // 更新警告樣式
         if (npvValue < 0) {
@@ -2325,20 +2322,17 @@
     }
 
     function adjustCommission(delta) {
-        // 添加震動效果
         vibrate();
-
-        // 獲取佣金輸入框元素
         const commissionField = document.getElementById('commission');
         
-        // 獲取當前值，如果為空則預設為0
-        const currentValue = parseFloat(commissionField.value) || 0;
+        // 獲取當前值，如果為空則預設為0，移除千位分隔符
+        const currentValue = parseFloat(commissionField.value.replace(/,/g, '')) || 0;
         
-        // 計算新值（當前值加上變化量）
+        // 計算新值
         const newValue = Math.max(0, currentValue + delta);
         
-        // 更新輸入框的值，使用 Math.round 去除小數點
-        commissionField.value = Math.floor(newValue);
+        // 更新輸入框的值，使用 Math.floor 取整數並添加千位分隔符
+        commissionField.value = formatNumberWithCommas(Math.floor(newValue));
         
         // 更新所有相關欄位的計算
         updateAllFields();
@@ -2347,10 +2341,12 @@
     function adjustPrincipal(delta) {
         vibrate();
         const principalField = document.getElementById('principal');
-        const currentValue = parseFloat(principalField.value) || 0;
-        principalField.value = currentValue + delta;
+        // 移除千位分隔符後再轉換為數字
+        const currentValue = parseFloat(principalField.value.replace(/,/g, '')) || 0;
+        // 添加千位分隔符顯示
+        principalField.value = formatNumberWithCommas(currentValue + delta);
         calculatePayment();
-        updateAllFields(); // 添加這行
+        updateAllFields();
     }
 
     function calculateAfterCommissionRate() {
@@ -2366,7 +2362,8 @@
     function roundPayment(direction, base) {
         vibrate();
         const paymentField = document.getElementById('payment');
-        let value = parseFloat(paymentField.value) || 0;
+        // 移除千位分隔符後再轉換為數字
+        let value = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
         
         if (direction === 'down') {
             value = Math.floor(value / base) * base;
@@ -2374,17 +2371,20 @@
             value = Math.ceil(value / base) * base;
         }
         
-        paymentField.value = value.toFixed(2);
-        calculateRate(); // Recalculate the rate
+        // 添加千位分隔符顯示
+        paymentField.value = formatNumberWithCommas(value.toFixed(2));
+        calculateRate();
     }
 
     function adjustPayment(delta) {
         vibrate();
         const paymentField = document.getElementById('payment');
-        const currentValue = parseFloat(paymentField.value) || 0;
-        paymentField.value = (currentValue + delta).toFixed(2);
-        calculateRate(); // 重新計算利率
-        }
+        // 移除千位分隔符後再轉換為數字
+        const currentValue = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
+        // 添加千位分隔符顯示
+        paymentField.value = formatNumberWithCommas((currentValue + delta).toFixed(2));
+        calculateRate();
+    }
 
     function saveData() {
         const dataToSave = {
@@ -2886,7 +2886,7 @@
         // 根據不同輸入框進行驗證
         switch (currentInputField) {
             case 'period':
-                // 驗證期數（正整數，最多2位數）
+                // 期數不需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
                     showToast('錯誤：期數不能為負數', true);
@@ -2896,10 +2896,11 @@
                     showToast('錯誤：期數不能超過2位數', true);
                     return;
                 }
+                document.getElementById(currentInputField).value = value;
                 break;
                 
             case 'rate':
-                // 驗證稅前利率（正數，不超過20）
+                // 利率不需要千位分隔符
                 if (value < 0) {
                     showToast('錯誤：利率不能為負數', true);
                     return;
@@ -2908,10 +2909,11 @@
                     showToast('錯誤：利率不能超過20', true);
                     return;
                 }
+                document.getElementById(currentInputField).value = value.toFixed(4);
                 break;
                 
             case 'principal':
-                // 驗證本金（正整數，不超過9位數）
+                // 本金需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
                     showToast('錯誤：本金不能為負數', true);
@@ -2921,10 +2923,11 @@
                     showToast('錯誤：本金不能超過9位數', true);
                     return;
                 }
+                document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
                 
             case 'payment':
-                // 驗證期繳（正整數，不超過6位數）
+                // 期繳需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
                     showToast('錯誤：期繳不能為負數', true);
@@ -2934,10 +2937,11 @@
                     showToast('錯誤：期繳不能超過6位數', true);
                     return;
                 }
+                document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
                 
             case 'commission':
-                // 驗證推廣（正整數，不超過6位數）
+                // 推廣需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
                     showToast('錯誤：推廣費不能為負數', true);
@@ -2947,11 +2951,9 @@
                     showToast('錯誤：推廣費不能超過6位數', true);
                     return;
                 }
+                document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
         }
-        
-        // 更新輸入框值
-        document.getElementById(currentInputField).value = value;
         
         // 觸發 change 事件以更新相關計算
         const event = new Event('change');
@@ -2999,6 +3001,12 @@
                 }
             }, 500);
         }, 2000);
+    }
+
+    // 格式化數字 - 添加千位分隔符
+    function formatNumberWithCommas(num) {
+        if (!num && num !== 0) return '';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
     </script>
