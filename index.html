@@ -2133,17 +2133,49 @@
             periodInput.classList.remove('warning-text');
         }
 
-        // 計算總利息
-        const totalInterest = (payment * period) - principal;
-        // 總利息格式化帶千位分隔符
-        document.getElementById('totalInterest').value = formatNumberWithCommas(totalInterest.toFixed(2));
+        // 檢查四個基本輸入框是否都有值
+        const hasAllRequiredValues = period && rate && principal && payment && 
+                                    !isNaN(period) && !isNaN(rate) && !isNaN(principal) && !isNaN(payment);
 
-        // 計算稅金
-        const tax = totalInterest / 21;
-        document.getElementById('tax').value = formatNumberWithCommas(tax.toFixed(2));
+        // 計算並顯示總利息
+        const totalInterestField = document.getElementById('totalInterest');
+        if (hasAllRequiredValues) {
+            // 計算總利息
+            const totalInterest = (payment * period) - principal;
+            // 總利息格式化帶千位分隔符
+            totalInterestField.value = formatNumberWithCommas(totalInterest.toFixed(2));
+        } else {
+            // 如果缺少任何必要值，清空總利息輸入框
+            totalInterestField.value = '';
+        }
 
-        // 計算稅後利率
-        const afterTaxRate = RATE(period, payment, principal + tax);
+        // 計算稅金 - 同樣需要檢查總利息是否已計算
+        const taxField = document.getElementById('tax');
+        if (hasAllRequiredValues) {
+            const totalInterest = (payment * period) - principal;
+            const tax = totalInterest / 21;
+            taxField.value = formatNumberWithCommas(tax.toFixed(2));
+        } else {
+            taxField.value = '';
+        }
+
+        // 計算稅後利率 - 同樣需要檢查必要值
+        const afterTaxRateInput = document.getElementById('afterTaxRate');
+        if (hasAllRequiredValues) {
+            const totalInterest = (payment * period) - principal;
+            const tax = totalInterest / 21;
+            const afterTaxRate = RATE(period, payment, principal + tax);
+            afterTaxRateInput.value = afterTaxRate.toFixed(4);
+            if (afterTaxRate <= 2.5) {
+                afterTaxRateInput.classList.add('warning-text');
+            } else {
+                afterTaxRateInput.classList.remove('warning-text');
+            }
+        } else {
+            afterTaxRateInput.value = '';
+            afterTaxRateInput.classList.remove('warning-text');
+        }
+
         // 稅後利率不需要千位分隔符
         const afterTaxRateInput = document.getElementById('afterTaxRate');
         afterTaxRateInput.value = afterTaxRate.toFixed(4);
