@@ -2087,8 +2087,8 @@
 
     function calculateRate() {
         const period = parseFloat(document.getElementById('period').value);
-        const principal = parseFloat(document.getElementById('principal').value);
-        const payment = parseFloat(document.getElementById('payment').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
         
         const rate = RATE(period, payment, principal);
         document.getElementById('rate').value = rate.toFixed(4);
@@ -2371,9 +2371,9 @@
             value = Math.ceil(value / base) * base;
         }
         
-        // 添加千位分隔符顯示
-        paymentField.value = formatNumberWithCommas(value.toFixed(2));
-        calculateRate();
+        // 添加千位分隔符顯示，並取整數
+        paymentField.value = formatNumberWithCommas(Math.round(value));
+        calculateRate(); // 確保這個調用能正確計算稅前利率
     }
 
     function adjustPayment(delta) {
@@ -2381,9 +2381,9 @@
         const paymentField = document.getElementById('payment');
         // 移除千位分隔符後再轉換為數字
         const currentValue = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
-        // 添加千位分隔符顯示
-        paymentField.value = formatNumberWithCommas((currentValue + delta).toFixed(2));
-        calculateRate();
+        // 添加千位分隔符顯示，並取整數
+        paymentField.value = formatNumberWithCommas(Math.round(currentValue + delta));
+        calculateRate(); // 確保這個調用能正確計算稅前利率
     }
 
     function saveData() {
@@ -2963,10 +2963,12 @@
         closeModal('numberInputModal');
         
         // 根據欄位執行相應的計算函數
+        // 在 submitCalculatorValue 函數中
+        // 根據欄位執行相應的計算函數
         if (currentInputField === 'period' || currentInputField === 'rate' || currentInputField === 'principal') {
             calculatePayment();
         } else if (currentInputField === 'payment') {
-            calculateRate();
+            calculateRate();  // 確保這個函數能正確處理帶千位分隔符的值
         } else if (currentInputField === 'commission') {
             calculateAfterCommissionRate();
         }
