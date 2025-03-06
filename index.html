@@ -2532,15 +2532,18 @@
         const loan = loanHistory.find(item => item.id === id);
         
         if (loan) {
-            // 填充表單欄位
+            // 更精確地處理數值
             document.getElementById('period').value = loan.period;
             document.getElementById('rate').value = loan.rate;
-            document.getElementById('principal').value = formatNumberWithCommas(loan.principal);
-            document.getElementById('payment').value = formatNumberWithCommas(loan.payment);
-            document.getElementById('commission').value = formatNumberWithCommas(loan.commission);
             
-            // 更新計算
-            updateAllFields();
+            // 使用 Math.round() 確保整數，並格式化
+            document.getElementById('principal').value = formatNumberWithCommas(Math.round(parseFloat(loan.principal)));
+            document.getElementById('payment').value = formatNumberWithCommas(Math.round(parseFloat(loan.payment)));
+            document.getElementById('commission').value = formatNumberWithCommas(Math.round(parseFloat(loan.commission)));
+            
+            // 更新計算，觸發所有相關函數
+            calculatePayment(); // 觸發重新計算
+            updateAllFields(); // 更新所有關聯欄位
             
             // 隱藏歷史面板
             document.getElementById('historyPanel').style.display = 'none';
@@ -2553,9 +2556,6 @@
                 navigator.vibrate(50);
             }
         }
-
-        // 在 loadLoanToForm 函數中，可以添加以下代碼
-        document.getElementById('payment').value = formatNumberWithCommas(Math.round(parseFloat(loan.payment)));
     }
 
     // 刪除貸款記錄
