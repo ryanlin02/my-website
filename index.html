@@ -2078,8 +2078,8 @@
 
     function calculatePeriod() {
         const rate = parseFloat(document.getElementById('rate').value);
-        const principal = parseFloat(document.getElementById('principal').value);
-        const payment = parseFloat(document.getElementById('payment').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
         
         // TODO: Implement period calculation
         updateAllFields();
@@ -2099,7 +2099,7 @@
     function calculatePrincipal() {
         const period = parseFloat(document.getElementById('period').value);
         const rate = parseFloat(document.getElementById('rate').value);
-        const payment = parseFloat(document.getElementById('payment').value);
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
         
         // TODO: Implement principal calculation
         updateAllFields();
@@ -2415,10 +2415,10 @@
 
     function calculateAfterCommissionRate() {
         const period = parseFloat(document.getElementById('period').value);
-        const payment = parseFloat(document.getElementById('payment').value);
-        const principal = parseFloat(document.getElementById('principal').value);
-        const tax = parseFloat(document.getElementById('tax').value);
-        const commission = parseFloat(document.getElementById('commission').value) || 0;
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        const tax = parseFloat(document.getElementById('tax').value.replace(/,/g, ''));
+        const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
 
         updateAllFields(); // 更新所有欄位
     }
@@ -2673,9 +2673,9 @@
             // 填充表單欄位
             document.getElementById('period').value = loan.period;
             document.getElementById('rate').value = loan.rate;
-            document.getElementById('principal').value = loan.principal;
-            document.getElementById('payment').value = loan.payment;
-            document.getElementById('commission').value = loan.commission;
+            document.getElementById('principal').value = formatNumberWithCommas(loan.principal);
+            document.getElementById('payment').value = formatNumberWithCommas(loan.payment);
+            document.getElementById('commission').value = formatNumberWithCommas(loan.commission);
             
             // 更新計算
             updateAllFields();
