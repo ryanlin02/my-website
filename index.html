@@ -1569,7 +1569,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">期數</span>
-            <input type="number" id="period" step="0.1" readonly>
+            <input type="text" id="period" step="0.1" readonly>
             <button onclick="calculatePeriod()">算</button>
             <button onclick="clearField('period')">清</button>
         </div>
@@ -1589,7 +1589,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">稅前利率</span>
-            <input type="number" id="rate" step="0.001" readonly>
+            <input type="text" id="rate" step="0.001" readonly>
             <button onclick="calculateRate()">算</button>
             <button onclick="clearField('rate')">清</button>
         </div>
@@ -1608,7 +1608,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">本金</span>
-            <input type="number" id="principal" min="0" oninput="validatePrincipalInput(this)" readonly>
+            <input type="text" id="principal" min="0" readonly>
             <button onclick="calculatePrincipal()">算</button>
             <button onclick="clearField('principal')">清</button>
         </div>
@@ -1626,7 +1626,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">期繳</span>
-            <input type="number" id="payment" step="0.01" readonly>
+            <input type="text" id="payment" step="0.01" readonly>
             <button onclick="calculatePayment()">算</button>
             <button onclick="clearField('payment')">清</button>
         </div>
@@ -1643,23 +1643,23 @@
 
 	<div class="row">
         <span class="label">總利息</span>
-        <input type="number" id="totalInterest" class="readonly" readonly>
+        <input type="text" id="totalInterest" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">稅金</span>
-        <input type="number" id="tax" class="readonly" readonly>
+        <input type="text" id="tax" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">稅後利率</span>
-        <input type="number" id="afterTaxRate" step="0.001" class="readonly" readonly>
+        <input type="text" id="afterTaxRate" step="0.001" class="readonly" readonly>
     </div>
 
     <div class="input-button-group">
         <div class="row">
             <span class="label">推廣</span>
-            <input type="number" id="commission" min="0" step="1" oninput="validateCommissionInput(this)" readonly>
+            <input type="text" id="commission" min="0" step="1" readonly>
             <button onclick="calculateAfterCommissionRate()">算</button>
             <button onclick="clearCommission()">清</button>
         </div>
@@ -1676,51 +1676,51 @@
 
     <div class="row">
         <span class="label">推廣比例</span>
-        <input type="number" id="commissionRatio" class="readonly" readonly>
+        <input type="text" id="commissionRatio" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">稅佣後利率</span>
-        <input type="number" id="afterCommissionRate" class="readonly" readonly>
+        <input type="text" id="afterCommissionRate" class="readonly" readonly>
     </div>
 
     <div class="divider-flow"></div>
 
     <div class="row">
         <span class="label">百萬每年利息</span>
-        <input type="number" id="annualMillionInterest" class="readonly" readonly>
+        <input type="text" id="annualMillionInterest" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">百萬每月利息</span>
-        <input type="number" id="monthlyMillionInterest" class="readonly" readonly>
+        <input type="text" id="monthlyMillionInterest" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">一萬每年利息</span>
-        <input type="number" id="annualTenThousandInterest" class="readonly" readonly>
+        <input type="text" id="annualTenThousandInterest" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">一萬每月利息</span>
-        <input type="number" id="monthlyTenThousandInterest" class="readonly" readonly>
+        <input type="text" id="monthlyTenThousandInterest" class="readonly" readonly>
     </div>
 
     <div class="divider-flow"></div>
 
     <div class="row">
         <span class="label">本月資金成本</span>
-        <input type="number" id="monthlyCost" value="2.1106" class="readonly" readonly>
+        <input type="text" id="monthlyCost" value="2.1106" class="readonly" readonly>
     </div>
 
     <div class="row">
         <span class="label">Spread</span>
-        <input type="number" id="spread" class="readonly" readonly>
+        <input type="text" id="spread" class="readonly" readonly>
     </div>
 	
     <div class="row">
         <span class="label">NPV</span>
-        <input type="number" id="fundingCost" class="readonly" readonly>
+        <input type="text" id="fundingCost" class="readonly" readonly>
         <span style="margin-left: 0px; color: var(--text-color);">修正中</span>
     </div>
 
