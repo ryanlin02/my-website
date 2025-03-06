@@ -2251,18 +2251,20 @@
     }
 
     // 在 clearField 函數之前添加這個新函數
+    // 修改 validatePrincipalInput 函数
     function validatePrincipalInput(input) {
-        // 移除負號，轉換為絕對值
-        let value = Math.abs(parseFloat(input.value)) || 0;
+        // 移除负号，确保为正整数
+        let value = Math.floor(Math.abs(parseFloat(input.value))) || 0;
         
-        // 如果輸入為0，設為空值
-        if (value === 0) {
-            input.value = '';
-        } else {
-            input.value = value;
+        // 如果输入为0，设置为最小值1
+        if (value <= 0) {
+            value = 1;
         }
         
-        // 更新相關計算
+        // 更新输入框值并格式化
+        input.value = formatNumberWithCommas(value);
+        
+        // 更新相关计算
         updateAllFields();
     }
 
@@ -2338,13 +2340,16 @@
         updateAllFields();
     }
 
+    // 修改 adjustPrincipal 函数
     function adjustPrincipal(delta) {
         vibrate();
         const principalField = document.getElementById('principal');
-        // 移除千位分隔符後再轉換為數字
+        // 移除千位分隔符后再转换为数字
         const currentValue = parseFloat(principalField.value.replace(/,/g, '')) || 0;
-        // 添加千位分隔符顯示
-        principalField.value = formatNumberWithCommas(currentValue + delta);
+        // 计算新值，确保是正整数
+        const newValue = Math.max(1, Math.floor(currentValue + delta)); // 确保最小值为1且为整数
+        // 添加千位分隔符显示
+        principalField.value = formatNumberWithCommas(newValue);
         calculatePayment();
         updateAllFields();
     }
@@ -2359,10 +2364,11 @@
         updateAllFields(); // 更新所有欄位
     }
 
+    // 修改 roundPayment 函数以保持正数限制
     function roundPayment(direction, base) {
         vibrate();
         const paymentField = document.getElementById('payment');
-        // 移除千位分隔符後再轉換為數字
+        // 移除千位分隔符后再转换为数字
         let value = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
         
         if (direction === 'down') {
@@ -2371,19 +2377,25 @@
             value = Math.ceil(value / base) * base;
         }
         
-        // 添加千位分隔符顯示，並取整數
-        paymentField.value = formatNumberWithCommas(Math.round(value));
-        calculateRate(); // 確保這個調用能正確計算稅前利率
+        // 确保值为正数
+        value = Math.max(0.01, value);
+        
+        // 添加千位分隔符显示
+        paymentField.value = formatNumberWithCommas(value.toFixed(2));
+        calculateRate(); // 确保这个调用能正确计算税前利率
     }
 
+    // 修改 adjustPayment 函数
     function adjustPayment(delta) {
         vibrate();
         const paymentField = document.getElementById('payment');
-        // 移除千位分隔符後再轉換為數字
+        // 移除千位分隔符后再转换为数字
         const currentValue = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
-        // 添加千位分隔符顯示，並取整數
-        paymentField.value = formatNumberWithCommas(Math.round(currentValue + delta));
-        calculateRate(); // 確保這個調用能正確計算稅前利率
+        // 计算新值，确保是正数
+        const newValue = Math.max(0.01, currentValue + delta); // 确保最小值为0.01
+        // 添加千位分隔符显示，保留两位小数
+        paymentField.value = formatNumberWithCommas(newValue.toFixed(2));
+        calculateRate(); // 确保这个调用能正确计算税前利率
     }
 
     function saveData() {
@@ -2876,24 +2888,24 @@
         vibrate();
     }
 
-    // 提交計算機值
+    // 修改 submitCalculatorValue 函数
     function submitCalculatorValue() {
         if (!currentInputField) return;
         
         let value = parseFloat(calculatorValue);
         if (isNaN(value)) value = 0;
         
-        // 根據不同輸入框進行驗證
+        // 根据不同输入框进行验证
         switch (currentInputField) {
             case 'period':
-                // 期數不需要千位分隔符
+                // 期数不需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
-                    showToast('錯誤：期數不能為負數', true);
+                    showToast('错误：期数不能为负数', true);
                     return;
                 }
                 if (value > 99) {
-                    showToast('錯誤：期數不能超過2位數', true);
+                    showToast('错误：期数不能超过2位数', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = value;
@@ -2902,78 +2914,75 @@
             case 'rate':
                 // 利率不需要千位分隔符
                 if (value < 0) {
-                    showToast('錯誤：利率不能為負數', true);
+                    showToast('错误：利率不能为负数', true);
                     return;
                 }
                 if (value > 20) {
-                    showToast('錯誤：利率不能超過20', true);
+                    showToast('错误：利率不能超过20', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = value.toFixed(4);
                 break;
                 
             case 'principal':
-                // 本金需要千位分隔符
-                value = Math.floor(value);
-                if (value < 0) {
-                    showToast('錯誤：本金不能為負數', true);
+                // 本金需要千位分隔符并且只能是正整数
+                value = Math.floor(value); // 确保是整数
+                if (value <= 0) {
+                    showToast('错误：本金必须是正整数', true);
                     return;
                 }
                 if (value > 999999999) {
-                    showToast('錯誤：本金不能超過9位數', true);
+                    showToast('错误：本金不能超过9位数', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
                 
             case 'payment':
-                // 期繳需要千位分隔符
-                value = Math.floor(value);
-                if (value < 0) {
-                    showToast('錯誤：期繳不能為負數', true);
+                // 期繳必须是正数，但可以有小数
+                if (value <= 0) {
+                    showToast('错误：期繳必须是正数', true);
                     return;
                 }
                 if (value > 999999) {
-                    showToast('錯誤：期繳不能超過6位數', true);
+                    showToast('错误：期繳不能超过6位数', true);
                     return;
                 }
-                document.getElementById(currentInputField).value = formatNumberWithCommas(value);
+                document.getElementById(currentInputField).value = formatNumberWithCommas(value.toFixed(2));
                 break;
                 
             case 'commission':
                 // 推廣需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
-                    showToast('錯誤：推廣費不能為負數', true);
+                    showToast('错误：推廣费不能为负数', true);
                     return;
                 }
                 if (value > 999999) {
-                    showToast('錯誤：推廣費不能超過6位數', true);
+                    showToast('错误：推廣费不能超过6位数', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
         }
         
-        // 觸發 change 事件以更新相關計算
+        // 触发 change 事件以更新相关计算
         const event = new Event('change');
         document.getElementById(currentInputField).dispatchEvent(event);
         
-        // 關閉模態框
+        // 关闭模态框
         closeModal('numberInputModal');
         
-        // 根據欄位執行相應的計算函數
-        // 在 submitCalculatorValue 函數中
-        // 根據欄位執行相應的計算函數
+        // 根据字段执行相应的计算函数
         if (currentInputField === 'period' || currentInputField === 'rate' || currentInputField === 'principal') {
             calculatePayment();
         } else if (currentInputField === 'payment') {
-            calculateRate();  // 確保這個函數能正確處理帶千位分隔符的值
+            calculateRate();
         } else if (currentInputField === 'commission') {
             calculateAfterCommissionRate();
         }
         
-        // 添加震動效果
+        // 添加震动效果
         vibrate();
     }
 
