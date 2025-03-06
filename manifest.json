@@ -1,7 +1,7 @@
 {
-  "name": "雞肉飯天天吃",
-  "short_name": "雞肉飯好吃",
-  "description": "貸款計算機",
+  "name": "小朋友計算機",
+  "short_name": "計算機",
+  "description": "豬豬人專用計算機",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#333333",
