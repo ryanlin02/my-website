@@ -1569,7 +1569,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">期數</span>
-            <input type="number" id="period" step="0.1">
+            <input type="number" id="period" step="0.1" readonly>
             <button onclick="calculatePeriod()">算</button>
             <button onclick="clearField('period')">清</button>
         </div>
@@ -1589,7 +1589,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">稅前利率</span>
-            <input type="number" id="rate" step="0.001">
+            <input type="number" id="rate" step="0.001" readonly>
             <button onclick="calculateRate()">算</button>
             <button onclick="clearField('rate')">清</button>
         </div>
@@ -1608,7 +1608,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">本金</span>
-            <input type="number" id="principal" min="0" oninput="validatePrincipalInput(this)">
+            <input type="number" id="principal" min="0" oninput="validatePrincipalInput(this)" readonly>
             <button onclick="calculatePrincipal()">算</button>
             <button onclick="clearField('principal')">清</button>
         </div>
@@ -1626,7 +1626,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">期繳</span>
-            <input type="number" id="payment" step="0.01">
+            <input type="number" id="payment" step="0.01" readonly>
             <button onclick="calculatePayment()">算</button>
             <button onclick="clearField('payment')">清</button>
         </div>
@@ -1659,7 +1659,7 @@
     <div class="input-button-group">
         <div class="row">
             <span class="label">推廣</span>
-            <input type="number" id="commission" min="0" step="1" oninput="validateCommissionInput(this)">
+            <input type="number" id="commission" min="0" step="1" oninput="validateCommissionInput(this)" readonly>
             <button onclick="calculateAfterCommissionRate()">算</button>
             <button onclick="clearCommission()">清</button>
         </div>
