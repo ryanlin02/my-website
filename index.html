@@ -28,7 +28,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
-    <title>雞肉飯天天吃</title>
+    <title>小朋友計算機</title>
     <style>
 
     :root {
@@ -41,259 +41,6 @@
         --button-orange: #ff9c33;
         --button-blue: #33b5e5;
 		--button-grey: #333333;
-    }
-
-    .login-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #333333 0%, #222222 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    .login-container {
-        background-color: var(--secondary-color);
-        padding: 40px;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        text-align: center;
-        transform: translateY(0);
-        animation: slideUp 0.5s ease-out;
-        border: 1px solid rgba(255, 156, 51, 0.2);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .login-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
-        animation: loading 3s linear infinite;
-    }
-
-    .login-container h2 {
-        color: var(--text-color);
-        margin-bottom: 30px;
-        font-size: 24px;
-        font-weight: bold;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        position: relative;
-        display: inline-block;
-    }
-
-    .login-container h2::after {
-        content: '';
-        position: absolute;
-        bottom: -8px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: var(--button-orange);
-        transform: scaleX(0);
-        transform-origin: right;
-        transition: transform 0.6s ease-out;
-    }
-
-    .login-container:hover h2::after {
-        transform: scaleX(1);
-        transform-origin: left;
-    }
-
-    .google-signin {
-        margin-top: 20px;
-        transform: scale(1);
-        transition: transform 0.3s ease;
-        will-change: transform;
-    }
-
-    .google-signin:hover {
-        transform: scale(1.02);
-    }
-
-    @keyframes loading {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .sign-out-btn {
-        background-color: var(--secondary-color);
-        color: var(--button-orange);
-        border: 1px solid var(--button-orange);
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .sign-out-btn:hover {
-        background-color: var(--button-orange);
-        color: var(--text-color);
-        transform: translateY(-2px);
-    }
-
-    /* 添加響應動畫效果 */
-    .login-container:hover {
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-
-    /* 為登入按鈕添加動畫效果 */
-    .g_id_signin {
-        transition: all 0.3s ease;
-    }
-
-    .g_id_signin:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    /* 在登入容器周圍添加裝飾元素 */
-    .login-container::after {
-        content: '🍚';
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 24px;
-        opacity: 0.5;
-        animation: rotate 3s linear infinite;
-    }
-
-    @keyframes rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-
-    /* 更新用戶配置區域的樣式 */
-    #userProfile {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8px 15px;    /* 調整上下內邊距從 12px 改為 8px */
-        margin: 8px auto;     /* 調整上下外邊距從 15px 改為 8px */
-        border-radius: 8px;
-        background: var(--secondary-color);
-        max-width: calc(100% - 30px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-    }
-
-    /* 調整使用者圖片大小和樣式 */
-    #userProfile img {
-        width: 20px;         /* 調整圖片大小從 22px 改為 20px */
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid var(--button-orange);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        margin-right: 8px;   /* 調整右邊距從 12px 改為 8px */
-        cursor: pointer;
-    }
-
-    #userImage:hover {
-        transform: scale(1.1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    #userName {
-        color: var(--text-color);
-        font-weight: bold;
-        font-size: 13px;     /* 改為 13px 更協調 */
-        margin-right: 10px;
-        display: block;
-        white-space: nowrap; /* 防止名稱換行 */
-        max-width: 120px;    /* 限制最大寬度 */
-        overflow: hidden;    /* 超出部分隱藏 */
-        text-overflow: ellipsis; /* 顯示省略號 */
-    }
-
-    /* 優化登出按鈕樣式 */
-    .sign-out-btn {
-        background-color: var(--secondary-color);
-        color: var(--button-orange);
-        border: 1px solid var(--button-orange);
-        padding: 4px 10px;   /* 調整內邊距 */
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 13px;     /* 調整字體大小 */
-        white-space: nowrap;
-    }
-
-    .sign-out-btn:hover {
-        background-color: var(--button-orange);
-        color: var(--text-color);
-        transform: translateY(-2px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-
-    .login-container.loading::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1;
-    }
-
-    .error-message {
-        color: #ff4444;
-        font-size: 14px;
-        margin-top: 10px;
-        animation: shake 0.5s ease-in-out;
-    }
-
-		 /* 添加新的動畫關鍵幀 */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
-    @keyframes slideIn {
-        from { transform: translateX(-20px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-
-    @keyframes glowBorder {
-        0% { box-shadow: 0 0 5px var(--button-orange); }
-        50% { box-shadow: 0 0 15px var(--button-orange); }
-        100% { box-shadow: 0 0 5px var(--button-orange); }
     }
 
     /* 修改現有的基礎樣式，添加動畫效果 */
@@ -1093,6 +840,7 @@
     }
 
     /* 歷史記錄面板樣式 */
+    /* 重新设计历史记录面板样式 */
     .history-panel {
         display: none;
         position: fixed;
@@ -1100,7 +848,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
+        background-color: rgba(0, 0, 0, 0.95); /* 深色背景增加对比度 */
         z-index: 1000;
         overflow-y: auto;
         animation: fadeIn 0.3s ease-out;
@@ -1110,12 +858,13 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 15px;
+        padding: 15px;
         background-color: var(--primary-color);
         position: sticky;
         top: 0;
         z-index: 1001;
         border-bottom: 2px solid var(--button-orange);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
     .header-left {
@@ -1123,13 +872,14 @@
     }
 
     .header-right {
-        margin-right: 20px;
+        margin-right: 10px;
     }
 
     .history-header h2 {
         margin: 0;
         color: var(--button-orange);
         font-size: 20px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
     .close-btn {
@@ -1152,121 +902,217 @@
     }
 
     .history-content {
-        padding: 10px;
+        padding: 8px; /* 從 10px 減少到 8px */
         max-width: 400px;
         margin: 0 auto;
     }
 
+    /* 改进历史记录列表 */
     .history-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px; /* 從 12px 減少到 10px */
+        padding: 3px; /* 從 5px 減少到 3px */
+        margin-bottom: 10px; /* 增加底部間距 */
     }
 
+    /* 重新设计历史项目卡片 */
+    /* 位置: .history-item 樣式 (約在 CSS 第 1010 行附近) */
     .history-item {
         background-color: var(--secondary-color);
-        padding: 8px 10px;
-        border-radius: 8px;
+        padding: 8px; /* 從 12px 減少到 8px */
+        border-radius: 8px; /* 從 10px 減少到 8px */
         position: relative;
         transition: all 0.3s ease;
         border-left: 3px solid var(--button-orange);
-        display: grid;
-        grid-template-columns: 1fr auto;
-        grid-template-areas: 
-            "date actions"
-            "rate rate"
-            "details details";
-        gap: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px; /* 從 8px 減少到 6px */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* 稍微降低陰影 */
+        margin-bottom: 10px; /* 增加卡片間的間距 */
     }
 
     .history-item:hover {
         transform: translateX(5px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 历史记录顶部区域 - 日期和按钮 */
+    /* 修改历史记录卡片头部布局样式 */
+    .history-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding-bottom: 2px; /* 增加底部一點間距 */
     }
 
     .history-date {
         font-weight: bold;
         color: var(--button-orange);
-        font-size: 14px;
-        margin-bottom: 2px;
-        grid-area: date;
+        font-size: 14px; /* 從 15px 減少到 14px */
+        padding: 2px 0; /* 從 3px 減少到 2px */
     }
 
-    .history-rate {
-        font-size: 16px;
-        margin-bottom: 4px;
-        grid-area: rate;
+    /* 将税佣后利率移到头部右侧 */
+    .history-header-rate {
+        font-weight: bold;
+        color: #ffffff;
+        font-size: 16px; /* 從 16px 減少到 14px */
+        background-color: rgba(255, 156, 51, 0.2);
+        padding: 2px 6px; /* 從 3px 8px 改為 2px 6px */
+        border-radius: 4px;
     }
 
+
+    /* 历史详情展示区 */
     .history-details {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        font-size: 13px;
-        color: #cccccc;
-        margin-bottom: 4px;
-        grid-area: details;
+        gap: 6px; /* 從 10px 減少到 6px */
+        background-color: rgba(0, 0, 0, 0.15);
+        padding: 6px; /* 從 10px 減少到 6px */
+        border-radius: 4px; /* 從 6px 減少到 4px */
     }
 
+    .history-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 1px; /* 從 3px 減少到 1px */
+    }
+
+    .detail-label {
+        font-size: 12px; /* 從 13px 減少到 12px */
+        color: #aaaaaa;
+    }
+
+    /* 增大字体大小 */
+    .detail-value {
+        font-size: 18px; /* 從 18px 減少到 16px */
+        font-weight: bold;
+        color: #ffffff;
+        line-height: 1.2; /* 添加行高控制 */
+    }
+
+    /* 适配移动设备 */
+    @media screen and (max-width: 360px) {
+        .history-item {
+            padding: 6px;
+            gap: 4px;
+        }
+        
+        .history-header-rate {
+            font-size: 13px;
+            padding: 2px 5px;
+        }
+        
+        .history-date {
+            font-size: 13px;
+        }
+        
+        .detail-value {
+            font-size: 15px;
+        }
+        
+        .history-details {
+            padding: 5px;
+            gap: 5px;
+        }
+        
+        .delete-btn, .detail-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            min-width: 65px;
+        }
+    }
+
+
+    /* 按钮区域 */
     .history-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 6px;
-        grid-area: actions;
-        align-self: start;
+        gap: 8px; /* 從 10px 減少到 8px */
+        margin-top: 3px; /* 從 5px 減少到 3px */
     }
 
     .delete-btn, .detail-btn {
-        background-color: var(--secondary-color);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 3px 8px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.3s ease;
+        padding: 6px 12px; /* 從 8px 15px 改為 6px 12px */
+        border-radius: 4px; /* 從 6px 減少到 4px */
+        font-size: 13px; /* 從 14px 減少到 13px */
+        font-weight: bold;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        min-width: 70px; /* 增加最小寬度確保可點擊區域 */
     }
 
     .delete-btn {
-        border-color: #e74c3c;
-        color: #e74c3c;
+        background-color: rgba(231, 76, 60, 0.25); /* 增加背景不透明度 */
+        color: #ffffff; /* 改為白色文字 */
+        border: 1px solid rgba(231, 76, 60, 0.5); /* 增加邊框 */
     }
 
     .delete-btn:hover {
         background-color: #e74c3c;
         color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 5px rgba(231, 76, 60, 0.4);
+    }
+
+    .delete-btn:active {
+        transform: translateY(1px);
     }
 
     .detail-btn {
-        border-color: var(--button-blue);
-        color: var(--button-blue);
+        background-color: rgba(51, 181, 229, 0.25); /* 增加背景不透明度 */
+        color: #ffffff; /* 改為白色文字 */
+        border: 1px solid rgba(51, 181, 229, 0.5); /* 增加邊框 */
     }
 
     .detail-btn:hover {
         background-color: var(--button-blue);
         color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 5px rgba(51, 181, 229, 0.4);
+    }
+
+    .detail-btn:active {
+        transform: translateY(1px);
     }
 
     .no-data {
         text-align: center;
         color: #cccccc;
         font-style: italic;
-        padding: 20px 0;
+        padding: 30px 0;
+        font-size: 16px;
     }
 
+    /* 全部删除按钮改进 */
     .delete-all-btn {
-        background: none;
+        background: rgba(231, 76, 60, 0.15);
         border: 1px solid #e74c3c;
         color: #e74c3c;
-        font-size: 13px;
-        padding: 4px 12px;
-        border-radius: 4px;
+        font-size: 14px;
+        padding: 6px 14px;
+        border-radius: 6px;
         cursor: pointer;
         transition: all 0.3s ease;
+        font-weight: bold;
     }
 
     .delete-all-btn:hover {
         background-color: #e74c3c;
         color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 3px 5px rgba(231, 76, 60, 0.4);
+    }
+
+    .delete-all-btn:active {
+        transform: translateY(1px);
+        box-shadow: none;
     }
 
     /* 模態框樣式 */
@@ -1546,15 +1392,138 @@
         background-color: rgba(231, 76, 60, 0.9);
     }
 
-</style>
+    .toggle-view-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: var(--secondary-color);
+        color: var(--button-orange);
+        border: 1px solid var(--button-orange);
+        border-radius: 50%;
+        width: 24px;         /* 縮小按鈕尺寸 */
+        height: 24px;        /* 縮小按鈕尺寸 */
+        font-size: 12px;     /* 縮小圖標大小 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        overflow: hidden;    /* 確保效果在按鈕內部 */
+    }
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+    .toggle-view-btn:hover {
+        background-color: rgba(255, 156, 51, 0.2);
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle-view-btn:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    /* 添加按鈕波紋動畫效果 */
+    .toggle-view-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 156, 51, 0.6) 0%, rgba(255, 156, 51, 0) 70%);
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+        border-radius: 50%;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+    }
+
+    .toggle-view-btn:hover::after {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+
+    /* 添加箭頭旋轉動畫 */
+    #toggleIcon {
+        display: inline-block;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #toggleIcon.icon-rotate-up {
+        transform: rotate(180deg);
+    }
+
+    .icon-rotate-up {
+        transform: rotate(180deg);
+    }
+
+    /* 用於隱藏元素的類 */
+    .hidden-element {
+        display: none !important;
+    }
+
+    /* 添加在現有 CSS 中 */
+    .input-button-group {
+        transition: all 0.3s ease-in-out;
+        overflow: hidden;
+    }
+
+    .input-button-group div[id$="Buttons"] {
+        transition: all 0.3s ease-in-out, max-height 0.3s ease-in-out;
+        max-height: 100px; /* 預設最大高度 */
+        opacity: 1;
+    }
+
+    .input-button-group div[id$="Buttons"].hidden-element {
+        max-height: 0;
+        opacity: 0;
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .hidden-element {
+        max-height: 0 !important;
+        opacity: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transition: all 0.3s ease-in-out;
+        overflow: hidden !important;
+    }
+
+    /* 添加縮放和淡入淡出效果 */
+    @keyframes smoothFadeIn {
+        from {
+            opacity: 0;
+            transform: scaleY(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+    }
+
+    @keyframes smoothFadeOut {
+        from {
+            opacity: 1;
+            transform: scaleY(1);
+        }
+        to {
+            opacity: 0;
+            transform: scaleY(0.8);
+        }
+    }
+
+</style>
 
 </head>
 <body>
 
-	<div style="text-align: center;">
+	<div style="text-align: center; position: relative;">
         <h1>小朋友專用計算機</h1>
+        <button id="toggleViewBtn" class="toggle-view-btn">
+            <span id="toggleIcon">▼</span>
+        </button>
     </div>
 	
     <div class="time-display-wrapper">
@@ -1747,17 +1716,9 @@
     <div class="footer-message">報價後記得吃碗火雞肉飯唷！</div>
 
     <div class="divider-flow"></div>
-    
-    <!-- 使用者資料區塊 -->
-    <div id="userProfile" style="display: none;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <img id="userImage" src="" alt="User profile">
-            <span id="userName"></span>
-            <button onclick="signOut()" class="sign-out-btn">登出</button>
-        </div>
-    </div>
 
     <!-- 添加歷史記錄面板 -->
+    <!-- 重新设计的历史记录面板 -->
     <div id="historyPanel" class="history-panel">
         <div class="history-header">
             <div class="header-left">
@@ -1802,60 +1763,11 @@
 
     <div class="footer-spacing"></div>
 
-    <!-- 登入遮罩層保持在最後 -->
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-container">
-            <h2>請先登入</h2>
-            <div id="googleSignInContainer" class="google-signin">
-                <div id="g_id_onload"
-                    data-client_id="956050785639-m8f7ps3h62f2dukg9s0vd6dvafg22h89.apps.googleusercontent.com"
-                    data-context="signin"
-                    data-ux_mode="popup"
-                    data-callback="handleCredentialResponse"
-                    data-auto_prompt="false"
-                    data-itp_support="true">
-                </div>
-                <div class="g_id_signin"
-                    data-type="standard"
-                    data-shape="rectangular"
-                    data-theme="outline"
-                    data-text="signin_with"
-                    data-size="large"
-                    data-logo_alignment="left">
-                </div>
-            </div>
-        </div>
-    </div>
-
 <script>
 
-    // 更新 handleCredentialResponse 函數
-    function handleCredentialResponse(response) {
-        const responsePayload = decodeJwtResponse(response.credential);
-        
-        // 發送登入事件到 GA4
-        gtag('event', 'login', {
-            'method': 'Google',
-            'user_id': responsePayload.email,
-            'user_name': responsePayload.name,
-            'login_time': new Date().toISOString(),
-            'device_type': getDeviceType(),  // 新增裝置類型
-            'screen_resolution': `${window.screen.width}x${window.screen.height}`,  // 新增螢幕解析度
-            'browser_info': getBrowserInfo()  // 新增瀏覽器資訊
-        });
-
-        // 保存用戶信息到 localStorage
-        localStorage.setItem('googleUser', JSON.stringify({
-            name: responsePayload.name,
-            picture: responsePayload.picture,
-            email: responsePayload.email,
-            token: response.credential,
-        }));
-        
-        // 隱藏登入遮罩
-        hideLoginOverlay();
-        // 更新用戶介面
-        updateUserInterface(responsePayload);
+    window.onload = function() {
+        // 僅初始化時間顯示
+        updateTime();
     }
 
     // 獲取裝置類型
@@ -1882,108 +1794,6 @@
         else if (ua.indexOf("MSIE") > -1 || ua.indexOf("Trident/") > -1) browser = "Internet Explorer";
         
         return `${browser} ${navigator.platform}`;
-    }
-
-    // 添加登出事件追蹤
-    function signOut() {
-        // 獲取當前用戶信息
-        const user = JSON.parse(localStorage.getItem('googleUser'));
-        
-        // 發送登出事件到 GA4
-        if (user && user.email) {
-            gtag('event', 'logout', {
-                'user_id': user.email,
-                'user_name': user.name,
-                'logout_time': new Date().toISOString(),
-                'session_duration': user.lastLogin ? 
-                    Math.round((new Date() - new Date(user.lastLogin)) / 1000) : 0
-            });
-        }
-
-        google.accounts.id.disableAutoSelect();
-        localStorage.removeItem('googleUser');
-        showLoginOverlay();
-        document.getElementById('userProfile').style.display = 'none';
-    }
-
-    // 新增隱藏登入遮罩的函數
-    function hideLoginOverlay() {
-        document.getElementById('loginOverlay').style.display = 'none';
-    }
-
-    // 新增顯示登入遮罩的函數
-    function showLoginOverlay() {
-        document.getElementById('loginOverlay').style.display = 'flex';
-    }
-
-    // 修改檢查登入狀態的函數
-    window.onload = function() {
-        try {
-            // 1. 嘗試從 localStorage 讀取用戶資料
-            const savedUser = localStorage.getItem('googleUser');
-            
-            if (savedUser) {
-                // 2. 嘗試解析用戶資料
-                const user = JSON.parse(savedUser);
-                
-                // 3. 檢查資料是否完整
-                if (user && user.name && user.picture) {
-                    // 資料完整，隱藏登入遮罩並更新界面
-                    hideLoginOverlay();
-                    updateUserInterface(user);
-                } else {
-                    // 資料不完整，顯示登入遮罩
-                    console.log('Incomplete user data, requesting new login');
-                    localStorage.removeItem('googleUser'); // 清除無效資料
-                    showLoginOverlay();
-                }
-            } else {
-                // 沒有儲存的用戶資料，顯示登入遮罩
-                showLoginOverlay();
-            }
-        } catch (error) {
-            // 4. 捕獲任何可能的錯誤
-            console.error('Error while checking login status:', error);
-            localStorage.removeItem('googleUser'); // 清除可能損壞的資料
-            showLoginOverlay();
-        }
-    }
-
-    // 添加這個函數
-    function updateUserInterface(user) {
-        const userProfile = document.getElementById('userProfile');
-        const userImage = document.getElementById('userImage');
-        const userName = document.getElementById('userName');
-        
-        userProfile.style.display = 'flex';
-        userImage.src = user.picture;
-        userName.textContent = user.name;
-
-        setupUserProfileInteraction(); // 添加這行
-    }
-
-    // 添加這個函數
-    function decodeJwtResponse(token) {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    }
-
-    // 添加點擊頭像彈出登出選項的功能
-    function setupUserProfileInteraction() {
-        const userImage = document.getElementById('userImage');
-        userImage.addEventListener('click', function(event) {
-            const shouldLogout = confirm('確定要登出嗎？');
-            if (shouldLogout) {
-                signOut();
-            }
-        });
-        
-        // 添加懸停提示
-        userImage.title = '點擊登出';
     }
 
 	// 添加震動函數
@@ -2110,8 +1920,15 @@
         const rate = parseFloat(document.getElementById('rate').value);
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
         
+        // 確保所有必要輸入都有效
+        if (isNaN(period) || isNaN(rate) || isNaN(principal) || period <= 0 || rate <= 0 || principal <= 0) {
+            // 缺少必要輸入，不進行計算
+            return;
+        }
+        
         const payment = PMT(rate, period, principal);
-        document.getElementById('payment').value = formatNumberWithCommas(payment.toFixed(2));
+        // 修改：將結果四捨五入為整數並格式化
+        document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
         
         updateAllFields();
     }
@@ -2349,7 +2166,14 @@
     function setPeriod(value) {
         vibrate();
         document.getElementById('period').value = value;
-        calculatePayment();
+        
+        // 檢查其他必要輸入是否已有值
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        
+        if (!isNaN(rate) && !isNaN(principal) && rate > 0 && principal > 0) {
+            calculatePayment(); // 只有當其他必要值都存在時才計算
+        }
     }
 
     function adjustRate(delta) {
@@ -2436,11 +2260,11 @@
             value = Math.ceil(value / base) * base;
         }
         
-        // 确保值为正数
-        value = Math.max(0.01, value);
+        // 确保值为正整数
+        value = Math.max(1, Math.round(value));
         
-        // 添加千位分隔符显示
-        paymentField.value = formatNumberWithCommas(value.toFixed(2));
+        // 添加千位分隔符显示，不再保留小數位
+        paymentField.value = formatNumberWithCommas(value);
         calculateRate(); // 确保这个调用能正确计算税前利率
     }
 
@@ -2450,10 +2274,10 @@
         const paymentField = document.getElementById('payment');
         // 移除千位分隔符后再转换为数字
         const currentValue = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
-        // 计算新值，确保是正数
-        const newValue = Math.max(0.01, currentValue + delta); // 确保最小值为0.01
-        // 添加千位分隔符显示，保留两位小数
-        paymentField.value = formatNumberWithCommas(newValue.toFixed(2));
+        // 计算新值，确保是正整数
+        const newValue = Math.max(1, Math.round(currentValue + delta)); // 使用Math.round確保是整數
+        // 添加千位分隔符显示，不再保留小數
+        paymentField.value = formatNumberWithCommas(newValue);
         calculateRate(); // 确保这个调用能正确计算税前利率
     }
 
@@ -2550,16 +2374,18 @@
     
 
     // 保存貸款計算結果
+    // 修改 saveLoanData 函数来确保保存的数据是干净的数字值
     function saveLoanData() {
         const period = document.getElementById('period').value;
         const rate = document.getElementById('rate').value;
-        const principal = document.getElementById('principal').value;
-        const payment = document.getElementById('payment').value;
+        // 移除千位分隔符以保存干净的数值
+        const principal = document.getElementById('principal').value.replace(/,/g, '');
+        const payment = document.getElementById('payment').value.replace(/,/g, '');
         const afterTaxRate = document.getElementById('afterTaxRate').value;
-        const commission = document.getElementById('commission').value;
+        const commission = document.getElementById('commission').value.replace(/,/g, '');
         const afterCommissionRate = document.getElementById('afterCommissionRate').value;
         
-        // 檢查必要欄位是否填寫
+        // 检查必要字段是否填写
         if (!period || !rate || !principal || !payment) {
             showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
             return;
@@ -2581,21 +2407,21 @@
             afterTaxRate: afterTaxRate,
             commission: commission || '0',
             afterCommissionRate: afterCommissionRate,
-            totalInterest: document.getElementById('totalInterest').value,
+            totalInterest: document.getElementById('totalInterest').value.replace(/,/g, ''),
             timestamp: new Date().toISOString()
         };
         
-        // 獲取已存儲的貸款記錄
+        // 获取已存储的贷款记录
         let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
         loanHistory.push(loanData);
         
         // 保存到 localStorage
         localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
         
-        // 顯示成功提示
+        // 显示成功提示
         showToast('貸款計算結果已保存！');
         
-        // 觸覺反饋（如果設備支持）
+        // 触觉反馈（如果设备支持）
         if (navigator.vibrate) {
             navigator.vibrate(70);
         }
@@ -2609,10 +2435,18 @@
         } else {
             panel.style.display = 'block';
             loadHistoryData();
+            
+            // 添加一次性背景点击关闭事件
+            panel.onclick = function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                }
+            };
         }
     }
 
     // 載入歷史記錄
+    // 修改 loadHistoryData 函数以使用新的设计
     function loadHistoryData() {
         const historyContent = document.getElementById('historyContent');
         const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
@@ -2627,18 +2461,39 @@
         
         let html = '<div class="history-list">';
         loanHistory.forEach(loan => {
+            // 确保数值正确显示，移除千位分隔符后再格式化
+            const principalDisplay = formatNumber(loan.principal);
+            const paymentDisplay = formatNumber(loan.payment);
+            const commissionDisplay = formatNumber(loan.commission);
+            
             html += `
                 <div class="history-item">
-                    <div class="history-date">${formatDate(loan.date)}</div>
-                    <div class="history-rate">稅佣後利率: ${loan.afterCommissionRate}%</div>
-                    <div class="history-details">
-                        <div>期數: ${loan.period}</div>
-                        <div>本金: ${formatNumber(loan.principal)}</div>
-                        <div>期繳: ${formatNumber(loan.payment)}</div>
-                        <div>推廣: ${formatNumber(loan.commission)}</div>
+                    <div class="history-item-header">
+                        <div class="history-date">${formatDate(loan.date)}</div>
+                        <div class="history-header-rate">稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</div>
                     </div>
+                    
+                    <div class="history-details">
+                        <div class="history-detail-item">
+                            <span class="detail-label">期數</span>
+                            <span class="detail-value">${loan.period}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">推廣</span>
+                            <span class="detail-value">${commissionDisplay}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">本金</span>
+                            <span class="detail-value">${principalDisplay}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">期繳</span>
+                            <span class="detail-value">${paymentDisplay}</span>
+                        </div>
+                    </div>
+                    
                     <div class="history-actions">
-                        <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入</button>
+                        <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入計算</button>
                         <button class="delete-btn" onclick="deleteLoan(${loan.id})">刪除</button>
                     </div>
                 </div>
@@ -2658,10 +2513,17 @@
         return `${year}/${month}/${day}`;
     }
 
-    // 格式化數字顯示千位分隔符
+    // 修改 formatNumber 函数
     function formatNumber(num) {
         if (!num) return '0';
-        return parseInt(num).toLocaleString();
+        
+        // 如果是字符串且包含逗号，先去除千位分隔符
+        if (typeof num === 'string') {
+            num = num.replace(/,/g, '');
+        }
+        
+        // 确保是数字，然后格式化
+        return parseFloat(num).toLocaleString();
     }
 
     // 載入貸款記錄到表單
@@ -2691,6 +2553,9 @@
                 navigator.vibrate(50);
             }
         }
+
+        // 在 loadLoanToForm 函數中，可以添加以下代碼
+        document.getElementById('payment').value = formatNumberWithCommas(Math.round(parseFloat(loan.payment)));
     }
 
     // 刪除貸款記錄
@@ -2997,17 +2862,15 @@
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
                 
+            // 在 submitCalculatorValue 函數中找到 case 'payment': 部分
             case 'payment':
-                // 期繳必须是正数，但可以有小数
-                if (value <= 0) {
-                    showToast('错误：期繳必须是正数', true);
-                    return;
-                }
+                // 期繳必须是正整数
+                value = Math.max(1, Math.round(value)); // 改為取整數
                 if (value > 999999) {
                     showToast('错误：期繳不能超过6位数', true);
                     return;
                 }
-                document.getElementById(currentInputField).value = formatNumberWithCommas(value.toFixed(2));
+                document.getElementById(currentInputField).value = formatNumberWithCommas(value); // 不再保留小數位
                 break;
                 
             case 'commission':
@@ -3156,6 +3019,14 @@
                     closeModal('numberInputModal');
                 }
             });
+
+            // 在这里添加历史记录面板背景点击关闭功能
+            document.getElementById('historyPanel').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+
         });
     </script>
 
@@ -3198,6 +3069,147 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('toggleViewBtn');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            // 需要切換顯示的元素
+            const buttonGroups = [
+                'periodButtons',
+                'rateButtons',
+                'principalButtons',
+                'PaymentduringButtons',
+                'commissionButtons'
+            ];
+            
+            // 需要隱藏的整行元素
+            const hideRows = [
+                document.querySelector('.row:has(#tax)'), // 稅金欄位
+            ];
+            
+            // 需要隱藏的區段（百萬每年利息到NPV）
+            const hideSection = document.querySelectorAll('.row:has(#annualMillionInterest), .row:has(#monthlyMillionInterest), .row:has(#annualTenThousandInterest), .row:has(#monthlyTenThousandInterest), .row:has(#monthlyCost), .row:has(#spread), .row:has(#fundingCost)');
+            
+            let isSimpleView = false;
+            
+            toggleBtn.addEventListener('click', function() {
+                isSimpleView = !isSimpleView;
+                
+                // 更改圖標並添加旋轉動畫
+                if (isSimpleView) {
+                    toggleIcon.classList.add('icon-rotate-up');
+                } else {
+                    toggleIcon.classList.remove('icon-rotate-up');
+                }
+                
+                // 定義統一的動畫效果
+                const animationOptions = {
+                    duration: 300,
+                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                };
+                
+                // 切換按鈕組的顯示
+                buttonGroups.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        if (isSimpleView) {
+                            // 使用 Web Animations API 實現統一的動畫
+                            element.animate([
+                                { opacity: 1, transform: 'scaleY(1)' },
+                                { opacity: 0, transform: 'scaleY(0.8)' }
+                            ], animationOptions).onfinish = () => {
+                                element.classList.add('hidden-element');
+                            };
+                        } else {
+                            element.classList.remove('hidden-element');
+                            element.animate([
+                                { opacity: 0, transform: 'scaleY(0.8)' },
+                                { opacity: 1, transform: 'scaleY(1)' }
+                            ], animationOptions);
+                        }
+                    }
+                });
+                
+                // 切換稅金欄位的顯示
+                hideRows.forEach(row => {
+                    if (row) {
+                        if (isSimpleView) {
+                            row.animate([
+                                { opacity: 1, transform: 'scaleY(1)' },
+                                { opacity: 0, transform: 'scaleY(0.8)' }
+                            ], animationOptions).onfinish = () => {
+                                row.classList.add('hidden-element');
+                            };
+                        } else {
+                            row.classList.remove('hidden-element');
+                            row.animate([
+                                { opacity: 0, transform: 'scaleY(0.8)' },
+                                { opacity: 1, transform: 'scaleY(1)' }
+                            ], animationOptions);
+                        }
+                    }
+                });
+                
+                // 切換百萬每年利息到NPV區段的顯示
+                hideSection.forEach(row => {
+                    if (row) {
+                        if (isSimpleView) {
+                            row.animate([
+                                { opacity: 1, transform: 'scaleY(1)' },
+                                { opacity: 0, transform: 'scaleY(0.8)' }
+                            ], animationOptions).onfinish = () => {
+                                row.classList.add('hidden-element');
+                            };
+                        } else {
+                            row.classList.remove('hidden-element');
+                            row.animate([
+                                { opacity: 0, transform: 'scaleY(0.8)' },
+                                { opacity: 1, transform: 'scaleY(1)' }
+                            ], animationOptions);
+                        }
+                    }
+                });
+                
+                // 處理分隔線
+                const dividers = document.querySelectorAll('.divider-flow');
+                
+                if (isSimpleView) {
+                    if (dividers.length >= 3) {
+                        dividers[0].animate([
+                            { opacity: 1, transform: 'scaleX(1)' },
+                            { opacity: 0, transform: 'scaleX(0.8)' }
+                        ], animationOptions).onfinish = () => {
+                            dividers[0].classList.add('hidden-element');
+                        };
+                        
+                        for (let i = 1; i < dividers.length - 1; i++) {
+                            dividers[i].animate([
+                                { opacity: 1, transform: 'scaleX(1)' },
+                                { opacity: 0, transform: 'scaleX(0.8)' }
+                            ], animationOptions).onfinish = () => {
+                                dividers[i].classList.add('hidden-element');
+                            };
+                        }
+                        
+                        dividers[dividers.length - 1].classList.remove('hidden-element');
+                    }
+                } else {
+                    dividers.forEach(divider => {
+                        divider.classList.remove('hidden-element');
+                        divider.animate([
+                            { opacity: 0, transform: 'scaleX(0.8)' },
+                            { opacity: 1, transform: 'scaleX(1)' }
+                        ], animationOptions);
+                    });
+                }
+                
+                // 觸發震動效果
+                vibrate();
+            });
+        });
+    </script>
 
 </body>
 </html>
