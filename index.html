@@ -1401,6 +1401,151 @@
         }
     }
 
+    /* Number Input Modal */
+    .number-input-modal {
+        background-color: var(--primary-color);
+        border-radius: 12px;
+        width: 95%;
+        max-width: 350px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    .calculator-display {
+        background-color: #222222;
+        color: var(--text-color);
+        font-size: 32px;
+        padding: 10px 15px;
+        text-align: right;
+        margin: 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .calculator-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(5, auto);
+        gap: 6px;
+        padding: 10px;
+    }
+
+    .calculator-buttons button {
+        padding: 10px 0;
+        font-size: 20px;
+        border-radius: 10px;
+        background-color: #3a3a3a;
+        color: var(--text-color);
+        border: none;
+        transition: all 0.2s ease;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 48px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .calculator-buttons button:hover {
+        background-color: #464646;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .calculator-buttons button:active {
+        transform: scale(0.95);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 按鈕按下後產生波紋效果 */
+    .calculator-buttons button::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.5);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%, -50%);
+        transform-origin: 50% 50%;
+    }
+
+    .calculator-buttons button:active::after {
+        animation: ripple 0.4s ease-out;
+    }
+
+    @keyframes ripple {
+        0% {
+            transform: scale(0, 0) translate(-50%, -50%);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(20, 20) translate(-50%, -50%);
+            opacity: 0;
+        }
+    }
+
+    /* 功能鍵樣式 */
+    .calculator-buttons .function {
+        background-color: #4d4d4d;
+        color: #eee;
+        font-weight: bold;
+    }
+
+    /* 運算符號樣式 */
+    .calculator-buttons .operator {
+        background-color: rgba(255, 156, 51, 0.9);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(255, 156, 51, 0.4);
+    }
+
+    /* 清除鍵樣式 */
+    .calculator-buttons .clear {
+        background-color: rgba(231, 76, 60, 0.9);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(231, 76, 60, 0.4);
+    }
+
+    /* 等號鍵樣式 */
+    .calculator-buttons .equals {
+        background-color: rgba(52, 152, 219, 0.9);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+    }
+
+    /* 零鍵佔據兩欄 */
+    .calculator-buttons .zero {
+        grid-column: span 2;
+        background-color: #3a3a3a;
+    }
+
+    /* 提交按鈕佔據兩欄 */
+    .calculator-buttons .submit {
+        grid-column: span 2;
+        background-color: var(--button-orange);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 2px 6px rgba(255, 156, 51, 0.4);
+    }
+
+    .toast-error {
+        background-color: rgba(231, 76, 60, 0.9);
+    }
+
 </style>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2612,6 +2757,250 @@
         showToast('已清空所有欄位');
     }
 
+    // 全局變量
+    let currentInputField = null;
+    let calculatorValue = "0";
+    let calculatorOperator = null;
+    let calculatorFirstValue = null;
+    let calculatorWaitingForSecondValue = false;
+
+    // 開啟計算機輸入器
+    function openCalculator(inputId, title) {
+        currentInputField = inputId;
+        document.getElementById('inputModalTitle').textContent = title;
+        document.getElementById('calculatorDisplay').textContent = '0';
+        calculatorValue = "0";
+        calculatorOperator = null;
+        calculatorFirstValue = null;
+        calculatorWaitingForSecondValue = false;
+        
+        document.getElementById('numberInputModal').style.display = 'flex';
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 關閉模態框
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 計算機數字輸入
+    function calculatorInput(num) {
+        if (calculatorWaitingForSecondValue) {
+            calculatorValue = num.toString();
+            calculatorWaitingForSecondValue = false;
+        } else {
+            calculatorValue = calculatorValue === '0' ? num.toString() : calculatorValue + num.toString();
+        }
+        document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 計算機清除
+    function calculatorClear() {
+        calculatorValue = '0';
+        calculatorOperator = null;
+        calculatorFirstValue = null;
+        calculatorWaitingForSecondValue = false;
+        document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 計算機退格
+    function calculatorBackspace() {
+        if (calculatorValue.length > 1) {
+            calculatorValue = calculatorValue.slice(0, -1);
+        } else {
+            calculatorValue = '0';
+        }
+        document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 計算機運算符
+    function calculatorOperation(op) {
+        // 如果已有第一個值和運算符，先進行計算
+        if (calculatorFirstValue !== null && calculatorOperator !== null && !calculatorWaitingForSecondValue) {
+            calculatorEquals();
+        }
+        
+        calculatorFirstValue = parseFloat(calculatorValue);
+        calculatorOperator = op;
+        calculatorWaitingForSecondValue = true;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 計算機等號
+    function calculatorEquals() {
+        if (calculatorOperator === null) return;
+        
+        const secondValue = parseFloat(calculatorValue);
+        let result;
+        
+        switch (calculatorOperator) {
+            case '+':
+                result = calculatorFirstValue + secondValue;
+                break;
+            case '-':
+                result = calculatorFirstValue - secondValue;
+                break;
+            case '*':
+                result = calculatorFirstValue * secondValue;
+                break;
+            case '/':
+                result = calculatorFirstValue / secondValue;
+                break;
+            default:
+                return;
+        }
+        
+        calculatorValue = result.toString();
+        document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        calculatorOperator = null;
+        calculatorFirstValue = result;
+        calculatorWaitingForSecondValue = true;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 提交計算機值
+    function submitCalculatorValue() {
+        if (!currentInputField) return;
+        
+        let value = parseFloat(calculatorValue);
+        if (isNaN(value)) value = 0;
+        
+        // 根據不同輸入框進行驗證
+        switch (currentInputField) {
+            case 'period':
+                // 驗證期數（正整數，最多2位數）
+                value = Math.floor(value);
+                if (value < 0) {
+                    showToast('錯誤：期數不能為負數', true);
+                    return;
+                }
+                if (value > 99) {
+                    showToast('錯誤：期數不能超過2位數', true);
+                    return;
+                }
+                break;
+                
+            case 'rate':
+                // 驗證稅前利率（正數，不超過20）
+                if (value < 0) {
+                    showToast('錯誤：利率不能為負數', true);
+                    return;
+                }
+                if (value > 20) {
+                    showToast('錯誤：利率不能超過20', true);
+                    return;
+                }
+                break;
+                
+            case 'principal':
+                // 驗證本金（正整數，不超過9位數）
+                value = Math.floor(value);
+                if (value < 0) {
+                    showToast('錯誤：本金不能為負數', true);
+                    return;
+                }
+                if (value > 999999999) {
+                    showToast('錯誤：本金不能超過9位數', true);
+                    return;
+                }
+                break;
+                
+            case 'payment':
+                // 驗證期繳（正整數，不超過6位數）
+                value = Math.floor(value);
+                if (value < 0) {
+                    showToast('錯誤：期繳不能為負數', true);
+                    return;
+                }
+                if (value > 999999) {
+                    showToast('錯誤：期繳不能超過6位數', true);
+                    return;
+                }
+                break;
+                
+            case 'commission':
+                // 驗證推廣（正整數，不超過6位數）
+                value = Math.floor(value);
+                if (value < 0) {
+                    showToast('錯誤：推廣費不能為負數', true);
+                    return;
+                }
+                if (value > 999999) {
+                    showToast('錯誤：推廣費不能超過6位數', true);
+                    return;
+                }
+                break;
+        }
+        
+        // 更新輸入框值
+        document.getElementById(currentInputField).value = value;
+        
+        // 觸發 change 事件以更新相關計算
+        const event = new Event('change');
+        document.getElementById(currentInputField).dispatchEvent(event);
+        
+        // 關閉模態框
+        closeModal('numberInputModal');
+        
+        // 根據欄位執行相應的計算函數
+        if (currentInputField === 'period' || currentInputField === 'rate' || currentInputField === 'principal') {
+            calculatePayment();
+        } else if (currentInputField === 'payment') {
+            calculateRate();
+        } else if (currentInputField === 'commission') {
+            calculateAfterCommissionRate();
+        }
+        
+        // 添加震動效果
+        vibrate();
+    }
+
+    // 顯示提示訊息（可重用現有的 showToast 函數，如果沒有的話添加這個）
+    function showToast(message, isError = false) {
+        // 檢查是否已有 toast
+        const existingToast = document.querySelector('.toast-message');
+        if (existingToast) {
+            document.body.removeChild(existingToast);
+        }
+        
+        // 創建新的 toast
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        if (isError) {
+            toast.classList.add('toast-error');
+        }
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 2秒後自動消失
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 500);
+        }, 2000);
+    }
+
     </script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2647,19 +3036,90 @@
     });
     </script>
 
-<script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(registration => {
-            console.log('ServiceWorker registration successful');
-          })
-          .catch(err => {
-            console.log('ServiceWorker registration failed: ', err);
-          });
-      });
-    }
-</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+            .then(registration => {
+                console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+        }
+
+        // 在所有 JavaScript 函數定義之後添加
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設置輸入框點擊事件
+            document.getElementById('period').addEventListener('click', function() {
+                openCalculator('period', '請輸入【期數】');
+            });
+            
+            document.getElementById('rate').addEventListener('click', function() {
+                openCalculator('rate', '請輸入【稅前利率】');
+            });
+            
+            document.getElementById('principal').addEventListener('click', function() {
+                openCalculator('principal', '請輸入【本金】');
+            });
+            
+            document.getElementById('payment').addEventListener('click', function() {
+                openCalculator('payment', '請輸入【期繳】');
+            });
+            
+            document.getElementById('commission').addEventListener('click', function() {
+                openCalculator('commission', '請輸入【推廣】');
+            });
+            
+            // 點擊模態框背景關閉模態框
+            document.getElementById('numberInputModal').addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeModal('numberInputModal');
+                }
+            });
+        });
+    </script>
+
+    <!-- 數字輸入器模態框 -->
+    <div id="numberInputModal" class="modal-overlay">
+        <div class="number-input-modal">
+            <div class="modal-header">
+                <h3 id="inputModalTitle">數字輸入器</h3>
+                <button class="close-btn" onclick="closeModal('numberInputModal')">×</button>
+            </div>
+            <div class="calculator-display" id="calculatorDisplay">0</div>
+            <div class="calculator-buttons">
+                <!-- 第一行：功能鍵 -->
+                <button onclick="calculatorClear()" class="clear">C</button>
+                <button onclick="calculatorBackspace()" class="function">⌫</button>
+                <button onclick="calculatorOperation('/')" class="operator">÷</button>
+                <button onclick="calculatorOperation('*')" class="operator">×</button>
+                
+                <!-- 第二行：數字和減號 -->
+                <button onclick="calculatorInput(7)">7</button>
+                <button onclick="calculatorInput(8)">8</button>
+                <button onclick="calculatorInput(9)">9</button>
+                <button onclick="calculatorOperation('-')" class="operator">−</button>
+                
+                <!-- 第三行：數字和加號 -->
+                <button onclick="calculatorInput(4)">4</button>
+                <button onclick="calculatorInput(5)">5</button>
+                <button onclick="calculatorInput(6)">6</button>
+                <button onclick="calculatorOperation('+')" class="operator">+</button>
+                
+                <!-- 第四行：底部數字和等號 -->
+                <button onclick="calculatorInput(1)">1</button>
+                <button onclick="calculatorInput(2)">2</button>
+                <button onclick="calculatorInput(3)">3</button>
+                <button onclick="calculatorEquals()" class="equals">=</button>
+                
+                <!-- 第五行：零和更寬的等號鍵 -->
+                <button onclick="calculatorInput(0)" class="zero">0</button>
+                <button onclick="submitCalculatorValue()" class="submit">確認輸入</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
