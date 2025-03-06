@@ -2176,75 +2176,97 @@
             afterTaxRateInput.classList.remove('warning-text');
         }
 
-        // 稅後利率不需要千位分隔符
-        const afterTaxRateInput = document.getElementById('afterTaxRate');
-        afterTaxRateInput.value = afterTaxRate.toFixed(4);
-        if (afterTaxRate <= 2.5) {
-            afterTaxRateInput.classList.add('warning-text');
-        } else {
-            afterTaxRateInput.classList.remove('warning-text');
-        }
-
         // 佣金格式化為整數並帶千位分隔符
         const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
         document.getElementById('commission').value = formatNumberWithCommas(Math.round(commission));
         
         // 檢查佣金是否超過總利息的95%
         const commissionInput = document.getElementById('commission');
-        if (commission >= totalInterest * 0.95) {
-            commissionInput.classList.add('warning-text');
+        if (hasAllRequiredValues) {
+            const totalInterest = (payment * period) - principal;
+            if (commission >= totalInterest * 0.95) {
+                commissionInput.classList.add('warning-text');
+            } else {
+                commissionInput.classList.remove('warning-text');
+            }
         } else {
             commissionInput.classList.remove('warning-text');
         }
 
         // 計算並更新推廣費比例
-        const commissionRatio = commission / principal * 100;
         const commissionRatioInput = document.getElementById('commissionRatio');
-        commissionRatioInput.value = commissionRatio.toFixed(2);
-
-        // 檢查推廣費比例是否超過5%
-        if (commissionRatio > 5) {
-            commissionRatioInput.classList.add('warning-text');
+        if (principal > 0 && commission > 0) {
+            const commissionRatio = commission / principal * 100;
+            commissionRatioInput.value = commissionRatio.toFixed(2);
+            
+            // 檢查推廣費比例是否超過5%
+            if (commissionRatio > 5) {
+                commissionRatioInput.classList.add('warning-text');
+            } else {
+                commissionRatioInput.classList.remove('warning-text');
+            }
         } else {
+            commissionRatioInput.value = '';
             commissionRatioInput.classList.remove('warning-text');
         }
 
         // 計算稅佣後利率
-        const afterCommissionRate = RATE(period, payment, principal + tax + commission);
-        // 稅佣後利率不需要千位分隔符
         const afterCommissionRateInput = document.getElementById('afterCommissionRate');
-        afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
-        if (afterCommissionRate <= 2.5) {
-            afterCommissionRateInput.classList.add('warning-text');
+        if (hasAllRequiredValues) {
+            const totalInterest = (payment * period) - principal;
+            const tax = totalInterest / 21;
+            const afterCommissionRate = RATE(period, payment, principal + tax + commission);
+            
+            // 稅佣後利率不需要千位分隔符
+            afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
+            if (afterCommissionRate <= 2.5) {
+                afterCommissionRateInput.classList.add('warning-text');
+            } else {
+                afterCommissionRateInput.classList.remove('warning-text');
+            }
+            
+            // 計算 Spread
+            const spread = afterCommissionRate - monthlyCost;
+            // Spread 不需要千位分隔符
+            const spreadInput = document.getElementById('spread');
+            spreadInput.value = spread.toFixed(4);
+            if (spread <= 0) {
+                spreadInput.classList.add('warning-text');
+            } else {
+                spreadInput.classList.remove('warning-text');
+            }
         } else {
+            afterCommissionRateInput.value = '';
             afterCommissionRateInput.classList.remove('warning-text');
+            
+            document.getElementById('spread').value = '';
+            document.getElementById('spread').classList.remove('warning-text');
         }
-
-        // 計算百萬利息
-        const millionPayment = PMT(rate, 12, 1000000);
-        const annualMillionInterest = (millionPayment * 12) - 1000000;
-        // 百萬每年利息格式化為整數帶千位分隔符
-        document.getElementById('annualMillionInterest').value = formatNumberWithCommas(Math.round(annualMillionInterest));
-        // 百萬每月利息格式化為整數帶千位分隔符
-        document.getElementById('monthlyMillionInterest').value = formatNumberWithCommas(Math.round(annualMillionInterest / 12));
-
-        // 計算一萬利息
-        const tenThousandPayment = PMT(rate, 12, 10000);
-        const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
-        // 一萬每年利息格式化為整數帶千位分隔符
-        document.getElementById('annualTenThousandInterest').value = formatNumberWithCommas(Math.round(annualTenThousandInterest));
-        // 一萬每月利息格式化為整數帶千位分隔符
-        document.getElementById('monthlyTenThousandInterest').value = formatNumberWithCommas(Math.round(annualTenThousandInterest / 12));
-
-        // 計算 Spread
-        const spread = afterCommissionRate - monthlyCost;
-        // Spread 不需要千位分隔符
-        const spreadInput = document.getElementById('spread');
-        spreadInput.value = spread.toFixed(4);
-        if (spread <= 0) {
-            spreadInput.classList.add('warning-text');
+        
+        // 計算百萬利息相關
+        if (rate > 0) {
+            // 百萬利息計算
+            const millionPayment = PMT(rate, 12, 1000000);
+            const annualMillionInterest = (millionPayment * 12) - 1000000;
+            
+            // 百萬每年利息格式化為整數帶千位分隔符
+            document.getElementById('annualMillionInterest').value = formatNumberWithCommas(Math.round(annualMillionInterest));
+            // 百萬每月利息格式化為整數帶千位分隔符
+            document.getElementById('monthlyMillionInterest').value = formatNumberWithCommas(Math.round(annualMillionInterest / 12));
+            
+            // 一萬利息
+            const tenThousandPayment = PMT(rate, 12, 10000);
+            const annualTenThousandInterest = (tenThousandPayment * 12) - 10000;
+            
+            // 一萬每年利息格式化為整數帶千位分隔符
+            document.getElementById('annualTenThousandInterest').value = formatNumberWithCommas(Math.round(annualTenThousandInterest));
+            // 一萬每月利息格式化為整數帶千位分隔符
+            document.getElementById('monthlyTenThousandInterest').value = formatNumberWithCommas(Math.round(annualTenThousandInterest / 12));
         } else {
-            spreadInput.classList.remove('warning-text');
+            document.getElementById('annualMillionInterest').value = '';
+            document.getElementById('monthlyMillionInterest').value = '';
+            document.getElementById('annualTenThousandInterest').value = '';
+            document.getElementById('monthlyTenThousandInterest').value = '';
         }
         
         // 計算 NPV
@@ -2257,12 +2279,17 @@
         
         // 更新 NPV 顯示，帶千位分隔符
         const fundingCostInput = document.getElementById('fundingCost');
-        fundingCostInput.value = formatNumberWithCommas(npvValue);
-        
-        // 更新警告樣式
-        if (npvValue < 0) {
-            fundingCostInput.classList.add('warning-text');
+        if (hasAllRequiredValues) {
+            fundingCostInput.value = formatNumberWithCommas(npvValue);
+            
+            // 更新警告樣式
+            if (npvValue < 0) {
+                fundingCostInput.classList.add('warning-text');
+            } else {
+                fundingCostInput.classList.remove('warning-text');
+            }
         } else {
+            fundingCostInput.value = '';
             fundingCostInput.classList.remove('warning-text');
         }
 
