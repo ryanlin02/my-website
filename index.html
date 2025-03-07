@@ -1399,6 +1399,79 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
+    /* 數字按鈕樣式 */
+    /* 數字按鈕樣式 - 水平排列 */
+    .calculator-buttons .number-btn {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 2px;
+        position: relative;
+    }
+
+    .calculator-buttons .arabic-number {
+        font-size: 28px;
+        font-weight: bold;
+        line-height: 1;
+        margin-right: 3px;
+        flex-grow: 0;
+    }
+
+    .calculator-buttons .financial-char {
+        font-size: 18px;
+        color: var(--button-orange);
+        line-height: 1;
+        position: absolute;
+        right: 6px;
+        opacity: 0.9;
+    }
+
+    /* 調整零鍵的樣式 */
+    .calculator-buttons .zero.number-btn {
+        position: relative;
+    }
+
+    .calculator-buttons .zero .arabic-number {
+        position: absolute;
+        left: 40%;
+        transform: translateX(-50%);
+        margin-right: 0;
+    }
+
+    .calculator-buttons .zero .financial-char {
+        right: 15px;
+    }
+
+    /* 當數字按鈕被點擊時，改變數字和大寫的顏色 */
+    .calculator-buttons .number-btn:active .arabic-number,
+    .calculator-buttons .number-btn:active .financial-char {
+        color: white;
+    }
+
+    /* 調整零鍵的寬度樣式，確保適應新的佈局 */
+    .calculator-buttons .zero {
+        grid-column: span 2;
+        background-color: #3a3a3a;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 減小等號和運算符的字體大小，使布局更平衡 */
+    .calculator-buttons .operator,
+    .calculator-buttons .equals {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    /* 調整清除和退格鍵的字體大小 */
+    .calculator-buttons .clear,
+    .calculator-buttons .function {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
     /* 按鈕按下後產生波紋效果 */
     .calculator-buttons button::after {
         content: '';
@@ -1709,6 +1782,37 @@
         margin: 0 0 8px 0;
         padding-bottom: 8px;
         border-bottom: 1px solid rgba(255, 156, 51, 0.3);
+    }
+
+    /* 新增截圖加載提示樣式 */
+    /* 新增截圖加載提示樣式 */
+    #screenshot-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .loading-content {
+        background-color: rgba(51, 181, 229, 0.9);
+        color: white;
+        padding: 15px 25px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        animation: pulseLoading 1.5s infinite;
+    }
+
+    @keyframes pulseLoading {
+        0%, 100% { opacity: 0.9; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
     }
 
 </style>
@@ -2491,61 +2595,117 @@
     }
 
     function generateQuote() {
+        // 觸發振動反饋
         vibrate();
-        console.log('開始生成報價...'); // 新增偵錯訊息
-
-        // 創建報價表格
-        const table = document.createElement('table');
-            table.className = 'quote-table';
-
-        // 添加表格內容
-        const rows = [
-            ['報價時間', `${document.getElementById('currentTime').textContent.split('星期')[0]}<br>星期${document.getElementById('currentTime').textContent.split('星期')[1]}`],
-            ['期數', document.getElementById('period').value || ''],
-            ['稅前利率', (document.getElementById('rate').value || '') + '%'],  // 保留這裡的百分比符號
-            ['本金', document.getElementById('principal').value || ''],
-            ['期繳', document.getElementById('payment').value || ''],
-            ['稅後利率', (document.getElementById('afterTaxRate').value || '') + '%'],  // 保留這裡的百分比符號
-            ['佣金', document.getElementById('commission').value || ''],
-            ['稅佣後利率', (document.getElementById('afterCommissionRate').value || '') + '%']  // 保留這裡的百分比符號
-        ];
-
-        // 建立表格內容
-        rows.forEach(([label, value]) => {
-            const tr = table.insertRow();
-            const labelCell = tr.insertCell();
-            const valueCell = tr.insertCell();
-            labelCell.textContent = label;
-            valueCell.innerHTML = value; // 改用 innerHTML 來支援換行標籤
+        
+        // 檢查表單是否有必要數據
+        const requiredFields = ['period', 'rate', 'principal', 'payment'];
+        const missingFields = requiredFields.filter(fieldId => !document.getElementById(fieldId).value);
+        
+        if (missingFields.length > 0) {
+            showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
+            return;
+        }
+        
+        // 顯示加載提示
+        const loadingToast = document.createElement('div');
+        loadingToast.id = 'screenshot-loading';
+        loadingToast.innerHTML = '<div class="loading-content">正在生成截圖...</div>';
+        document.body.appendChild(loadingToast);
+        
+        // 保存當前視圖狀態
+        const toggleBtn = document.getElementById('toggleViewBtn');
+        const toggleIcon = document.getElementById('toggleIcon');
+        let wasSimpleView = toggleIcon.classList.contains('icon-rotate-up');
+        let viewChanged = false;
+        
+        // 如果不是簡化版，切換到簡化版
+        const switchToSimpleView = () => {
+            return new Promise(resolve => {
+                if (!wasSimpleView) {
+                    viewChanged = true;
+                    // 模擬點擊切換按鈕
+                    toggleBtn.click();
+                    // 給UI一些時間更新
+                    setTimeout(resolve, 500);
+                } else {
+                    resolve();
+                }
             });
-
-        // 創建臨時容器
-        const container = document.createElement('div');
-            container.style.padding = '24px';
-            container.style.background = '#333333';
-            container.style.borderRadius = '12px';
-            container.appendChild(table);
-            document.body.appendChild(container);
-
-            console.log('準備進行截圖...'); // 新增偵錯訊息
-
-        // 使用 html2canvas 轉換為圖片
-        html2canvas(container).then(canvas => {
-            console.log('Canvas 已生成'); // 新增偵錯訊息
-
-        // 移除臨時容器
-        document.body.removeChild(container);
-
-        // 下載圖片
-        const link = document.createElement('a');
-            link.download = `報價_${document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '')}.png`;
-            link.href = canvas.toDataURL();
-            console.log('準備下載...'); // 新增偵錯訊息
-            link.click();
-        }).catch(error => {
-            console.error('截圖過程發生錯誤:', error); // 新增錯誤處理
-            document.body.removeChild(container); // 確保清理臨時容器
-        });
+        };
+        
+        // 創建截圖並下載
+        // 創建截圖並下載
+        const captureAndDownload = () => {
+            // 暫時隱藏加載提示
+            const loadingEl = document.getElementById('screenshot-loading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+            
+            // 給DOM一點時間更新
+            setTimeout(() => {
+                // 捕獲整個頁面
+                html2canvas(document.body, {
+                    allowTaint: true,
+                    useCORS: true,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: document.documentElement.offsetWidth,
+                    windowHeight: document.documentElement.offsetHeight
+                }).then(canvas => {
+                    // 恢復加載提示顯示
+                    if (loadingEl) {
+                        loadingEl.style.display = 'block';
+                    }
+                    
+                    // 創建下載鏈接
+                    const link = document.createElement('a');
+                    const dateTime = document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '');
+                    link.download = `小朋友貸款計算_${dateTime}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    // 完成後顯示成功消息
+                    showToast('截圖已保存至您的設備！');
+                    
+                    // 如果之前切換了視圖，切換回原來的視圖
+                    if (viewChanged) {
+                        setTimeout(() => {
+                            toggleBtn.click();
+                        }, 300);
+                    }
+                    
+                }).catch(error => {
+                    console.error('截圖過程發生錯誤:', error);
+                    showToast('截圖時出現錯誤，請稍後再試', true);
+                }).finally(() => {
+                    // 移除加載提示
+                    if (loadingEl) {
+                        document.body.removeChild(loadingEl);
+                    }
+                });
+            }, 50); // 短暫等待DOM更新
+        };
+        
+        // 執行流程: 切換視圖 -> 截圖 -> 恢復視圖
+        switchToSimpleView()
+            .then(captureAndDownload)
+            .catch(error => {
+                console.error('截圖流程發生錯誤:', error);
+                showToast('截圖處理過程中出現錯誤', true);
+                
+                // 確保加載提示被移除
+                const loadingEl = document.getElementById('screenshot-loading');
+                if (loadingEl) {
+                    document.body.removeChild(loadingEl);
+                }
+                
+                // 如果視圖被改變，恢復原狀
+                if (viewChanged) {
+                    toggleBtn.click();
+                }
+            });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -3472,11 +3632,13 @@
                 <h3 id="inputModalTitle">數字輸入器</h3>
                 <button class="close-btn" onclick="closeModal('numberInputModal')">×</button>
             </div>
+
             <div class="calculator-display-container">
                 <div class="calculator-scroll-indicator" id="historyScrollIndicator"></div>
                 <div class="calculator-history" id="calculatorHistory"></div>
                 <div class="calculator-display" id="calculatorDisplay">0</div>
             </div>
+
             <div class="calculator-buttons">
                 <!-- 第一行：功能鍵 -->
                 <button onclick="calculatorClear()" class="clear">C</button>
@@ -3485,25 +3647,55 @@
                 <button onclick="calculatorOperation('*')" class="operator">×</button>
                 
                 <!-- 第二行：數字和減號 -->
-                <button onclick="calculatorInput(7)">7</button>
-                <button onclick="calculatorInput(8)">8</button>
-                <button onclick="calculatorInput(9)">9</button>
+                <button onclick="calculatorInput(7)" class="number-btn">
+                    <div class="arabic-number">7</div>
+                    <div class="financial-char">柒</div>
+                </button>
+                <button onclick="calculatorInput(8)" class="number-btn">
+                    <div class="arabic-number">8</div>
+                    <div class="financial-char">捌</div>
+                </button>
+                <button onclick="calculatorInput(9)" class="number-btn">
+                    <div class="arabic-number">9</div>
+                    <div class="financial-char">玖</div>
+                </button>
                 <button onclick="calculatorOperation('-')" class="operator">−</button>
                 
                 <!-- 第三行：數字和加號 -->
-                <button onclick="calculatorInput(4)">4</button>
-                <button onclick="calculatorInput(5)">5</button>
-                <button onclick="calculatorInput(6)">6</button>
+                <button onclick="calculatorInput(4)" class="number-btn">
+                    <div class="arabic-number">4</div>
+                    <div class="financial-char">肆</div>
+                </button>
+                <button onclick="calculatorInput(5)" class="number-btn">
+                    <div class="arabic-number">5</div>
+                    <div class="financial-char">伍</div>
+                </button>
+                <button onclick="calculatorInput(6)" class="number-btn">
+                    <div class="arabic-number">6</div>
+                    <div class="financial-char">陸</div>
+                </button>
                 <button onclick="calculatorOperation('+')" class="operator">+</button>
                 
                 <!-- 第四行：底部數字和等號 -->
-                <button onclick="calculatorInput(1)">1</button>
-                <button onclick="calculatorInput(2)">2</button>
-                <button onclick="calculatorInput(3)">3</button>
+                <button onclick="calculatorInput(1)" class="number-btn">
+                    <div class="arabic-number">1</div>
+                    <div class="financial-char">壹</div>
+                </button>
+                <button onclick="calculatorInput(2)" class="number-btn">
+                    <div class="arabic-number">2</div>
+                    <div class="financial-char">貳</div>
+                </button>
+                <button onclick="calculatorInput(3)" class="number-btn">
+                    <div class="arabic-number">3</div>
+                    <div class="financial-char">參</div>
+                </button>
                 <button onclick="calculatorEquals()" class="equals">=</button>
                 
                 <!-- 第五行：零和更寬的等號鍵 -->
-                <button onclick="calculatorInput(0)" class="zero">0</button>
+                <button onclick="calculatorInput(0)" class="zero number-btn">
+                    <div class="arabic-number">0</div>
+                    <div class="financial-char">零</div>
+                </button>
                 <button onclick="submitCalculatorValue()" class="submit">確認輸入</button>
             </div>
         </div>
