@@ -1514,6 +1514,85 @@
         }
     }
 
+    .history-note-container {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        margin: 6px 0;
+        padding: 6px;
+    }
+
+    .history-item-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .history-note-preview {
+        color: #bcbcbc;
+        font-size: 14px;
+        min-height: 20px;
+        padding: 4px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
+        max-width: 170px; /* 縮小寬度 */
+    }
+
+    .history-actions {
+        display: flex;
+        gap: 4px;
+        margin-left: auto; /* 將按鈕推到右側 */
+    }
+
+    .history-note-preview:hover {
+        background-color: rgba(255, 156, 51, 0.1);
+        border-color: rgba(255, 156, 51, 0.3);
+    }
+
+    .note-editor-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .note-editor-content {
+        background-color: var(--primary-color);
+        border-radius: 10px;
+        width: 90%;
+        max-width: 350px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .note-editor-input {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        background-color: #222222;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        min-height: 100px;
+        resize: none;
+    }
+
+    .note-editor-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
 </style>
 
 </head>
@@ -2408,7 +2487,8 @@
             commission: commission || '0',
             afterCommissionRate: afterCommissionRate,
             totalInterest: document.getElementById('totalInterest').value.replace(/,/g, ''),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            note: '' // 初始備註為空
         };
         
         // 获取已存储的贷款记录
@@ -2491,10 +2571,17 @@
                             <span class="detail-value">${paymentDisplay}</span>
                         </div>
                     </div>
-                    
-                    <div class="history-actions">
-                        <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入計算</button>
-                        <button class="delete-btn" onclick="deleteLoan(${loan.id})">刪除</button>
+
+                    <div class="history-note-container">
+                        <div class="history-item-footer">
+                            <div class="history-note-preview" onclick="openNoteEditor(${loan.id}, '${loan.note || ''}')">
+                                ${loan.note ? loan.note : '點擊添加備註'}
+                            </div>
+                            <div class="history-actions">
+                                <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入計算</button>
+                                <button class="delete-btn" onclick="deleteLoan(${loan.id})">刪除</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2502,6 +2589,67 @@
         html += '</div>';
         
         historyContent.innerHTML = html;
+    }
+
+    function openNoteEditor(loanId, existingNote = '') {
+        // 創建備註編輯器模態框
+        const noteEditorModal = document.createElement('div');
+        noteEditorModal.className = 'note-editor-modal';
+        noteEditorModal.id = 'noteEditorModal';
+        noteEditorModal.innerHTML = `
+            <div class="note-editor-content">
+                <h3>請輸入備註</h3>
+                <textarea id="noteEditorInput" class="note-editor-input" placeholder="輸入備註...">${existingNote}</textarea>
+                <div class="note-editor-buttons">
+                    <button onclick="closeNoteEditor(false)" class="modal-btn modal-btn-secondary">取消</button>
+                    <button onclick="saveNote(${loanId})" class="modal-btn modal-btn-primary">儲存</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(noteEditorModal);
+        
+        // 顯示模態框
+        noteEditorModal.style.display = 'flex';
+        
+        // 自動聚焦到輸入框並調出鍵盤
+        const noteInput = document.getElementById('noteEditorInput');
+        noteInput.focus();
+    }
+
+    function closeNoteEditor(isCancelled = true) {
+        const noteEditorModal = document.getElementById('noteEditorModal');
+        if (noteEditorModal) {
+            document.body.removeChild(noteEditorModal);
+        }
+    }
+
+    function saveNote(loanId) {
+        const noteInput = document.getElementById('noteEditorInput');
+        const newNote = noteInput.value.trim();
+        
+        // 獲取當前的歷史記錄
+        let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        
+        // 找到對應的貸款記錄並更新備註
+        const updatedHistory = loanHistory.map(loan => {
+            if (loan.id === loanId) {
+                return { ...loan, note: newNote };
+            }
+            return loan;
+        });
+        
+        // 儲存更新後的歷史記錄
+        localStorage.setItem('loanHistory', JSON.stringify(updatedHistory));
+        
+        // 關閉備註編輯器
+        closeNoteEditor();
+        
+        // 重新載入歷史記錄
+        loadHistoryData();
+        
+        // 顯示成功提示
+        showToast('備註已儲存');
     }
 
     // 格式化日期顯示
@@ -2532,26 +2680,21 @@
         const loan = loanHistory.find(item => item.id === id);
         
         if (loan) {
-            // 更精確地處理數值
+            // 除了原有的載入邏輯外，不要重置備註
             document.getElementById('period').value = loan.period;
             document.getElementById('rate').value = loan.rate;
             
-            // 使用 Math.round() 確保整數，並格式化
             document.getElementById('principal').value = formatNumberWithCommas(Math.round(parseFloat(loan.principal)));
             document.getElementById('payment').value = formatNumberWithCommas(Math.round(parseFloat(loan.payment)));
             document.getElementById('commission').value = formatNumberWithCommas(Math.round(parseFloat(loan.commission)));
             
-            // 更新計算，觸發所有相關函數
-            calculatePayment(); // 觸發重新計算
-            updateAllFields(); // 更新所有關聯欄位
+            calculatePayment();
+            updateAllFields();
             
-            // 隱藏歷史面板
             document.getElementById('historyPanel').style.display = 'none';
             
-            // 顯示提示
             showToast('已載入貸款計算資料');
             
-            // 觸覺反饋
             if (navigator.vibrate) {
                 navigator.vibrate(50);
             }
@@ -2704,8 +2847,20 @@
     function openCalculator(inputId, title) {
         currentInputField = inputId;
         document.getElementById('inputModalTitle').textContent = title;
-        document.getElementById('calculatorDisplay').textContent = '0';
-        calculatorValue = "0";
+        
+        // 獲取當前輸入框的值
+        const currentValue = document.getElementById(inputId).value;
+        
+        if (currentValue && currentValue !== '') {
+            // 如果輸入框有值，使用該值初始化計算器
+            calculatorValue = currentValue.replace(/,/g, ''); // 移除千位分隔符
+            document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        } else {
+            // 如果輸入框沒有值，使用 "0"
+            calculatorValue = "0";
+            document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        }
+        
         calculatorOperator = null;
         calculatorFirstValue = null;
         calculatorWaitingForSecondValue = false;
@@ -2765,8 +2920,8 @@
 
     // 計算機運算符
     function calculatorOperation(op) {
-        // 如果已有第一個值和運算符，先進行計算
-        if (calculatorFirstValue !== null && calculatorOperator !== null && !calculatorWaitingForSecondValue) {
+        // 如果已經有運算符在等待，先進行計算
+        if (calculatorFirstValue !== null && calculatorOperator !== null) {
             calculatorEquals();
         }
         
@@ -2780,7 +2935,7 @@
 
     // 計算機等號
     function calculatorEquals() {
-        if (calculatorOperator === null) return;
+        if (calculatorFirstValue === null || calculatorOperator === null) return;
         
         const secondValue = parseFloat(calculatorValue);
         let result;
@@ -2796,16 +2951,24 @@
                 result = calculatorFirstValue * secondValue;
                 break;
             case '/':
+                // 增加除零檢查
+                if (secondValue === 0) {
+                    showToast('錯誤：不能除以零', true);
+                    calculatorClear();
+                    return;
+                }
                 result = calculatorFirstValue / secondValue;
                 break;
             default:
                 return;
         }
         
-        calculatorValue = result.toString();
+        // 限制小數點位數
+        calculatorValue = result.toFixed(8).replace(/\.?0+$/, '');
+        
         document.getElementById('calculatorDisplay').textContent = calculatorValue;
         calculatorOperator = null;
-        calculatorFirstValue = result;
+        calculatorFirstValue = parseFloat(calculatorValue);
         calculatorWaitingForSecondValue = true;
         
         // 添加震動效果
@@ -2862,7 +3025,6 @@
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
                 
-            // 在 submitCalculatorValue 函數中找到 case 'payment': 部分
             case 'payment':
                 // 期繳必须是正整数
                 value = Math.max(1, Math.round(value)); // 改為取整數
@@ -2870,7 +3032,7 @@
                     showToast('错误：期繳不能超过6位数', true);
                     return;
                 }
-                document.getElementById(currentInputField).value = formatNumberWithCommas(value); // 不再保留小數位
+                document.getElementById(currentInputField).value = formatNumberWithCommas(value);
                 break;
                 
             case 'commission':
@@ -3026,6 +3188,8 @@
                     this.style.display = 'none';
                 }
             });
+
+            
 
         });
     </script>
