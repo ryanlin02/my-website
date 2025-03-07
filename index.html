@@ -2107,23 +2107,48 @@
     // 添加這個新函數到第一個 script 標籤內，updateTime 函數之前
     function calculateNPV(payment, period, principal, monthlyCost) {
         try {
-        // 檢查輸入值是否有效
-        if (!payment || !period || !principal || !monthlyCost || 
-            isNaN(payment) || isNaN(period) || isNaN(principal) || isNaN(monthlyCost)) {
-            return 0;
-        }
-
-        // 將年利率轉換為月利率
-        const monthlyRate = monthlyCost / 100 / 12;
-
-        // 計算期望現值（使用期繳金額和期數反推）
-        const expectedPresentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
-
-        // 計算與實際本金的差額
-        return Math.round(expectedPresentValue - principal);
+            // 檢查輸入值是否有效
+            if (!payment || !period || !principal || !monthlyCost || 
+                isNaN(payment) || isNaN(period) || isNaN(principal) || isNaN(monthlyCost)) {
+                return 0;
+            }
+            
+            // 檢查極端值
+            if (period > 1200) { // 100年
+                console.warn('NPV計算: 期數過大可能導致計算不準確');
+                period = 1200; // 限制最大期數
+            }
+            
+            // 將年利率轉換為月利率
+            const monthlyRate = monthlyCost / 100 / 12;
+            
+            // 處理利率接近0的情況
+            if (Math.abs(monthlyRate) < 1e-10) {
+                // 如果利率接近0，使用簡化公式計算現值
+                const expectedPresentValue = payment * period;
+                return Math.round(expectedPresentValue - principal);
+            }
+            
+            // 處理極端的負期數
+            if (period < -1000) {
+                console.warn('NPV計算: 極端負期數可能導致計算不準確');
+                return 0;
+            }
+            
+            // 標準NPV計算
+            const expectedPresentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+            
+            // 檢查計算結果是否有效
+            if (!isFinite(expectedPresentValue) || isNaN(expectedPresentValue)) {
+                console.error('NPV計算結果無效');
+                return 0;
+            }
+            
+            // 計算與實際本金的差額
+            return Math.round(expectedPresentValue - principal);
         } catch (error) {
-        console.error('NPV 計算錯誤:', error);
-        return 0;
+            console.error('NPV 計算錯誤:', error);
+            return 0;
         }
     }
 
@@ -2154,37 +2179,104 @@
 
     // 原始的JavaScript函數保持不變
     function PMT(rate, nper, pv) {
+        // 參數驗證
+        if (!nper || nper <= 0) {
+            showToast('錯誤：期數必須為正數', true);
+            return 0;
+        }
+        
+        if (!pv || pv <= 0) {
+            showToast('錯誤：本金必須為正數', true);
+            return 0;
+        }
+        
+        // 轉換利率為月利率
         rate = rate / 100 / 12;
-        return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+        
+        try {
+            // 特殊情況：利率為0或接近0
+            if (Math.abs(rate) < 1e-10) {
+                return pv / nper; // 如果利率接近0，簡單地將本金除以期數
+            }
+            
+            // 標準等額本息公式
+            return (pv * rate * Math.pow(1 + rate, nper)) / (Math.pow(1 + rate, nper) - 1);
+        } catch (error) {
+            console.error('PMT 計算錯誤:', error);
+            showToast('期繳金額計算出錯，請檢查輸入值', true);
+            return 0;
+        }
     }
         
     function RATE(nper, pmt, pv) {
-        let rate = 0.1;
+        // 參數驗證
+        if (!nper || nper <= 0) {
+            showToast('錯誤：期數必須為正數', true);
+            return 0;
+        }
+        
+        if (!pmt || pmt <= 0) {
+            showToast('錯誤：期繳金額必須為正數', true);
+            return 0;
+        }
+        
+        if (!pv || pv <= 0) {
+            showToast('錯誤：本金必須為正數', true);
+            return 0;
+        }
+        
+        // 基本檢查：如果期繳總額小於本金，無法計算有效利率
+        if (pmt * nper <= pv) {
+            showToast('錯誤：期繳總額必須大於本金才能計算利率', true);
+            return 0;
+        }
+        
+        let rate = 0.1; // 初始猜測值，10%
         let step = 0.05;
         let tolerance = 0.0001;
         let maxIterations = 100;
         let iteration = 0;
-
-        while (iteration < maxIterations) {
-            let monthlyRate = rate / 12;
-            let calculated = pv * monthlyRate * Math.pow(1 + monthlyRate, nper) / 
-                            (Math.pow(1 + monthlyRate, nper) - 1);
-            
-            if (Math.abs(calculated - pmt) < tolerance) {
-                return rate * 100;
-            }
-
-            if (calculated > pmt) {
-                rate -= step;
-            } else {
-                rate += step;
-            }
-            
-            step *= 0.5;
-            iteration++;
-        }
         
-        return rate * 100;
+        try {
+            while (iteration < maxIterations) {
+                let monthlyRate = rate / 12;
+                
+                // 避免除零錯誤
+                let denominator = Math.pow(1 + monthlyRate, nper) - 1;
+                if (Math.abs(denominator) < 1e-10) { // 接近零的情況
+                    rate += step; // 調整並繼續迭代
+                    step *= 0.5;
+                    iteration++;
+                    continue;
+                }
+                
+                let calculated = pv * monthlyRate * Math.pow(1 + monthlyRate, nper) / denominator;
+                
+                if (Math.abs(calculated - pmt) < tolerance) {
+                    return Math.max(0, rate * 100); // 確保不返回負利率
+                }
+                
+                if (calculated > pmt) {
+                    rate -= step;
+                } else {
+                    rate += step;
+                }
+                
+                // 確保利率不會變為負數
+                rate = Math.max(0.0001, rate);
+                
+                step *= 0.5;
+                iteration++;
+            }
+            
+            // 如果達到最大迭代次數仍未收斂
+            console.warn('RATE 計算未收斂，返回最佳近似值');
+            return Math.max(0, rate * 100);
+        } catch (error) {
+            console.error('RATE 計算錯誤:', error);
+            showToast('利率計算出錯，請檢查輸入值', true);
+            return 0;
+        }
     }
 
     function calculatePeriod() {
@@ -2201,10 +2293,66 @@
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
         const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
         
-        const rate = RATE(period, payment, principal);
-        document.getElementById('rate').value = rate.toFixed(4);
+        // 只有當至少三個欄位已填寫時才顯示警告
+        const filledFields = countFilledFields();
+        const shouldWarn = filledFields >= 3;
         
-        updateAllFields();
+        // 輸入驗證
+        if (shouldWarn) {
+            if (isNaN(period) || period <= 0) {
+                showToast('請輸入有效的期數', true);
+                return;
+            }
+            
+            if (isNaN(principal) || principal <= 0) {
+                showToast('請輸入有效的本金', true);
+                return;
+            }
+            
+            if (isNaN(payment) || payment <= 0) {
+                showToast('請輸入有效的期繳金額', true);
+                return;
+            }
+            
+            // 基本財務檢查：總還款應超過本金
+            if (payment * period <= principal) {
+                showToast('期繳總額必須大於本金才能計算有效利率', true);
+                return;
+            }
+        } else {
+            // 如果欄位數不足，但輸入無效，直接返回
+            if (isNaN(period) || isNaN(principal) || isNaN(payment) || 
+                period <= 0 || principal <= 0 || payment <= 0 ||
+                payment * period <= principal) {
+                return;
+            }
+        }
+        
+        try {
+            const rate = RATE(period, payment, principal);
+            
+            // 檢查計算結果是否有效
+            if (isNaN(rate) || !isFinite(rate) || rate < 0) {
+                if (shouldWarn) {
+                    showToast('利率計算結果無效，請檢查輸入值', true);
+                }
+                return;
+            }
+            
+            // 檢查利率是否超過20%
+            if (rate > 20) {
+                showToast('警告：計算結果顯示利率超過20%，可能不符合一般貸款條件', true);
+            }
+            
+            // 限制利率顯示的小數位數並更新界面，不截斷超過20%的數值
+            document.getElementById('rate').value = rate.toFixed(4);
+            updateAllFields();
+        } catch (error) {
+            console.error('利率計算錯誤:', error);
+            if (shouldWarn) {
+                showToast('計算利率時出錯', true);
+            }
+        }
     }
 
     function calculatePrincipal() {
@@ -2221,17 +2369,58 @@
         const rate = parseFloat(document.getElementById('rate').value);
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
         
-        // 確保所有必要輸入都有效
-        if (isNaN(period) || isNaN(rate) || isNaN(principal) || period <= 0 || rate <= 0 || principal <= 0) {
-            // 缺少必要輸入，不進行計算
-            return;
+        // 只有當至少三個欄位已填寫時才顯示警告
+        const filledFields = countFilledFields();
+        const shouldWarn = filledFields >= 3;
+        
+        // 檢查所有輸入並提供具體錯誤訊息
+        if (shouldWarn) {
+            if (isNaN(period) || period <= 0) {
+                showToast('請輸入有效的期數', true);
+                return;
+            }
+            
+            if (isNaN(rate) || rate <= 0) {
+                showToast('請輸入有效的利率', true);
+                return;
+            }
+            
+            if (isNaN(principal) || principal <= 0) {
+                showToast('請輸入有效的本金', true);
+                return;
+            }
+        } else {
+            // 如果欄位數不足，但輸入無效，直接返回
+            if (isNaN(period) || isNaN(rate) || isNaN(principal) || 
+                period <= 0 || rate <= 0 || principal <= 0) {
+                return;
+            }
         }
         
-        const payment = PMT(rate, period, principal);
-        // 修改：將結果四捨五入為整數並格式化
-        document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
-        
-        updateAllFields();
+        try {
+            // 限制極端值
+            const safeRate = Math.min(Math.max(rate, 0.0001), 50); // 限制利率在合理範圍內
+            const safePeriod = Math.min(Math.max(period, 1), 600); // 限制期數不超過50年
+            
+            const payment = PMT(safeRate, safePeriod, principal);
+            
+            // 檢查計算結果是否有效
+            if (isNaN(payment) || !isFinite(payment) || payment <= 0) {
+                if (shouldWarn) {
+                    showToast('計算結果無效，請檢查輸入值', true);
+                }
+                return;
+            }
+            
+            // 四捨五入為整數並格式化
+            document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
+            updateAllFields();
+        } catch (error) {
+            console.error('期繳金額計算錯誤:', error);
+            if (shouldWarn) {
+                showToast('計算期繳金額時出錯', true);
+            }
+        }
     }
 
 
@@ -2284,7 +2473,14 @@
             const tax = totalInterest / 21;
             const afterTaxRate = RATE(period, payment, principal + tax);
             afterTaxRateInput.value = afterTaxRate.toFixed(4);
-            if (afterTaxRate <= 2.5) {
+            
+            // 檢查稅後利率是否超過20%
+            if (afterTaxRate > 20) {
+                afterTaxRateInput.classList.add('warning-text');
+                if (countFilledFields() >= 3) {
+                    showToast('警告：稅後利率超過20%，可能不符合一般貸款條件', true);
+                }
+            } else if (afterTaxRate <= 2.5) {
                 afterTaxRateInput.classList.add('warning-text');
             } else {
                 afterTaxRateInput.classList.remove('warning-text');
@@ -2329,29 +2525,60 @@
         }
 
         // 計算稅佣後利率
+        // 計算稅佣後利率
         const afterCommissionRateInput = document.getElementById('afterCommissionRate');
         if (hasAllRequiredValues) {
-            const totalInterest = (payment * period) - principal;
-            const tax = totalInterest / 21;
-            const afterCommissionRate = RATE(period, payment, principal + tax + commission);
-            
-            // 稅佣後利率不需要千位分隔符
-            afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
-            if (afterCommissionRate <= 2.5) {
+            try {
+                const totalInterest = (payment * period) - principal;
+                const tax = totalInterest / 21;
+                
+                // 檢查計算是否合理
+                const totalCost = principal + tax + commission;
+                if (totalCost >= payment * period) {
+                    // 如果成本超過總還款額，無法計算有效利率
+                    afterCommissionRateInput.value = "N/A";
+                    afterCommissionRateInput.classList.add('warning-text');
+                    
+                    // 同時更新 Spread
+                    const spreadInput = document.getElementById('spread');
+                    spreadInput.value = "N/A";
+                    spreadInput.classList.add('warning-text');
+                } else {
+                    // 正常計算
+                    const afterCommissionRate = RATE(period, payment, principal + tax + commission);
+                    
+                    // 檢查結果是否有效
+                    if (isNaN(afterCommissionRate) || !isFinite(afterCommissionRate)) {
+                        afterCommissionRateInput.value = "計算錯誤";
+                        afterCommissionRateInput.classList.add('warning-text');
+                    } else {
+                        // 稅佣後利率不需要千位分隔符
+                        afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
+                        if (afterCommissionRate <= 2.5) {
+                            afterCommissionRateInput.classList.add('warning-text');
+                        } else {
+                            afterCommissionRateInput.classList.remove('warning-text');
+                        }
+                        
+                        // 計算 Spread
+                        const spread = afterCommissionRate - monthlyCost;
+                        // Spread 不需要千位分隔符
+                        const spreadInput = document.getElementById('spread');
+                        spreadInput.value = spread.toFixed(4);
+                        if (spread <= 0) {
+                            spreadInput.classList.add('warning-text');
+                        } else {
+                            spreadInput.classList.remove('warning-text');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('稅佣後利率計算錯誤:', error);
+                afterCommissionRateInput.value = "計算錯誤";
                 afterCommissionRateInput.classList.add('warning-text');
-            } else {
-                afterCommissionRateInput.classList.remove('warning-text');
-            }
-            
-            // 計算 Spread
-            const spread = afterCommissionRate - monthlyCost;
-            // Spread 不需要千位分隔符
-            const spreadInput = document.getElementById('spread');
-            spreadInput.value = spread.toFixed(4);
-            if (spread <= 0) {
-                spreadInput.classList.add('warning-text');
-            } else {
-                spreadInput.classList.remove('warning-text');
+                
+                document.getElementById('spread').value = '';
+                document.getElementById('spread').classList.remove('warning-text');
             }
         } else {
             afterCommissionRateInput.value = '';
@@ -2481,12 +2708,24 @@
         vibrate();
         const rateField = document.getElementById('rate');
         const currentValue = parseFloat(rateField.value) || 0;
-        rateField.value = (currentValue + delta).toFixed(4);
+        const newRate = currentValue + delta;
+        
+        // 檢查新利率是否超過20%
+        if (newRate > 20) {
+            showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
+        }
+        
+        rateField.value = newRate.toFixed(4);
         calculatePayment();
     }
 
     function setRate(value) {
         vibrate();
+        // 檢查新利率是否超過20%
+        if (value > 20) {
+            showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
+        }
+        
         document.getElementById('rate').value = value;
         calculatePayment();
     }
@@ -3366,18 +3605,18 @@
                 document.getElementById(currentInputField).value = value;
                 break;
                 
-            case 'rate':
-                // 利率不需要千位分隔符
-                if (value < 0) {
-                    showToast('错误：利率不能为负数', true);
-                    return;
-                }
-                if (value > 20) {
-                    showToast('错误：利率不能超过20', true);
-                    return;
-                }
-                document.getElementById(currentInputField).value = value.toFixed(4);
-                break;
+                case 'rate':
+                    // 利率不需要千位分隔符
+                    if (value < 0) {
+                        showToast('错误：利率不能为负数', true);
+                        return;
+                    }
+                    if (value > 20) {
+                        showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
+                        // 允許超過20%的利率，但顯示警告
+                    }
+                    document.getElementById(currentInputField).value = value.toFixed(4);
+                    break;
                 
             case 'principal':
                 // 本金需要千位分隔符并且只能是正整数
@@ -3489,6 +3728,21 @@
         } else {
             historyElement.classList.remove('has-overflow');
         }
+    }
+
+    function countFilledFields() {
+        const period = document.getElementById('period').value;
+        const rate = document.getElementById('rate').value;
+        const principal = document.getElementById('principal').value;
+        const payment = document.getElementById('payment').value;
+        
+        let count = 0;
+        if (period && period !== '0') count++;
+        if (rate && rate !== '0') count++;
+        if (principal && principal !== '0') count++;
+        if (payment && payment !== '0') count++;
+        
+        return count;
     }
 
     </script>
