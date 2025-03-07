@@ -1562,35 +1562,63 @@
         height: 100%;
         background-color: rgba(0, 0, 0, 0.7);
         z-index: 2000;
-        justify-content: center;
-        align-items: center;
+        justify-content: center;  /* 水平置中 */
+        align-items: flex-start;  /* 垂直從頂部開始，但不是頂部對齊 */
+        padding-top: 60px;  /* 增加頂部間距，避免太貼近頂部 */
     }
 
     .note-editor-content {
         background-color: var(--primary-color);
-        border-radius: 10px;
-        width: 90%;
-        max-width: 350px;
-        padding: 20px;
+        border-radius: 12px;
+        width: 80%;  /* 改為80%寬度 */
+        max-width: 320px;  /* 減小最大寬度 */
+        padding: 15px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--button-orange);
+        animation: slideDown 0.3s ease-out;
+        margin: 0 auto;  /* 確保水平置中 */
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
     }
 
     .note-editor-input {
-        width: 100%;
-        padding: 10px;
-        margin: 10px 0;
+        width: calc(100% - 24px);  /* 減去padding寬度，避免溢出 */
+        padding: 12px;
+        margin: 12px 0;
         background-color: #222222;
         color: var(--text-color);
         border: 1px solid var(--border-color);
-        border-radius: 4px;
-        min-height: 100px;
+        border-radius: 8px;
+        min-height: 80px;
         resize: none;
+        font-size: 16px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        box-sizing: border-box;  /* 確保寬度計算包含padding */
+    }
+
+    .note-editor-input:focus {
+        border-color: var(--button-orange);
+        box-shadow: 0 0 0 2px rgba(255, 156, 51, 0.2);
+        outline: none;
     }
 
     .note-editor-buttons {
         display: flex;
-        justify-content: space-between;
-        margin-top: 10px;
+        justify-content: flex-end;  /* 按鈕靠右對齊 */
+        gap: 8px;  /* 減少按鈕間隙 */
+        margin-top: 8px;
+    }
+
+    .note-editor-content h3 {
+        color: var(--button-orange);
+        font-size: 18px;
+        margin: 0 0 8px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 156, 51, 0.3);
     }
 
 </style>
@@ -2598,8 +2626,8 @@
         noteEditorModal.id = 'noteEditorModal';
         noteEditorModal.innerHTML = `
             <div class="note-editor-content">
-                <h3>請輸入備註</h3>
-                <textarea id="noteEditorInput" class="note-editor-input" placeholder="輸入備註...">${existingNote}</textarea>
+                <h3>備註編輯</h3>
+                <textarea id="noteEditorInput" class="note-editor-input" placeholder="請輸入備註內容...">${existingNote}</textarea>
                 <div class="note-editor-buttons">
                     <button onclick="closeNoteEditor(false)" class="modal-btn modal-btn-secondary">取消</button>
                     <button onclick="saveNote(${loanId})" class="modal-btn modal-btn-primary">儲存</button>
@@ -2615,6 +2643,40 @@
         // 自動聚焦到輸入框並調出鍵盤
         const noteInput = document.getElementById('noteEditorInput');
         noteInput.focus();
+        
+        // 添加點擊空白處關閉功能
+        noteEditorModal.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeNoteEditor();
+            }
+        });
+        
+        // 監聽鍵盤彈出事件，進一步調整位置
+        window.addEventListener('resize', adjustNoteEditorPosition);
+        
+        // 初始調整位置
+        adjustNoteEditorPosition();
+    }
+
+    // 新增函數：調整備註編輯器位置
+    function adjustNoteEditorPosition() {
+        const modal = document.getElementById('noteEditorModal');
+        if (!modal) return;
+        
+        // 偵測視窗高度變化來推測鍵盤是否彈出
+        const windowHeight = window.innerHeight;
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : windowHeight;
+        
+        // 鍵盤彈出時會減少視口高度
+        if (viewportHeight < windowHeight * 0.8) {
+            // 鍵盤已彈出，將編輯器移至更靠頂部的位置
+            modal.style.paddingTop = '20px';
+            modal.style.justifyContent = 'center'; // 保持水平置中
+        } else {
+            // 鍵盤收起，恢復原本位置
+            modal.style.paddingTop = '60px';
+            modal.style.justifyContent = 'center'; // 保持水平置中
+        }
     }
 
     function closeNoteEditor(isCancelled = true) {
@@ -2622,6 +2684,9 @@
         if (noteEditorModal) {
             document.body.removeChild(noteEditorModal);
         }
+        
+        // 移除事件監聽器
+        window.removeEventListener('resize', adjustNoteEditorPosition);
     }
 
     function saveNote(loanId) {
