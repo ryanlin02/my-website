@@ -1395,28 +1395,31 @@
     .toggle-view-btn {
         position: absolute;
         right: 10px;
-        top: 50%;
+        top: 40%;            /* 從 50% 改為 40%，讓按鈕位置上移 */
         transform: translateY(-50%);
-        background-color: var(--secondary-color);
-        color: var(--button-orange);
-        border: 1px solid var(--button-orange);
+        background-color: rgba(74, 74, 74, 0.8);   /* 改為半透明深灰色，更低調 */
+        color: #cccccc;      /* 改為淺灰色，不使用橘色，更低調 */
+        border: 1px solid #555555;  /* 使用灰色邊框而非橘色 */
         border-radius: 50%;
-        width: 24px;         /* 縮小按鈕尺寸 */
-        height: 24px;        /* 縮小按鈕尺寸 */
-        font-size: 12px;     /* 縮小圖標大小 */
+        width: 22px;         /* 稍微縮小尺寸 */
+        height: 22px;        /* 稍微縮小尺寸 */
+        font-size: 10px;     /* 縮小圖標大小 */
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);  /* 減輕陰影效果 */
         overflow: hidden;    /* 確保效果在按鈕內部 */
+        opacity: 0.7;        /* 增加透明度，使其更低調 */
     }
 
     .toggle-view-btn:hover {
-        background-color: rgba(255, 156, 51, 0.2);
-        transform: translateY(-50%) scale(1.1);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        background-color: rgba(100, 100, 100, 0.8);  /* 改為灰色調 */
+        transform: translateY(-50%) scale(1.05);     /* 縮小放大效果 */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 減輕陰影效果 */
+        opacity: 1;                                  /* 懸停時不透明 */
+        color: #ffffff;                              /* 懸停時文字變白 */
     }
 
     .toggle-view-btn:active {
@@ -1431,16 +1434,16 @@
         left: 50%;
         width: 100%;
         height: 100%;
-        background: radial-gradient(circle, rgba(255, 156, 51, 0.6) 0%, rgba(255, 156, 51, 0) 70%);
+        background: radial-gradient(circle, rgba(200, 200, 200, 0.4) 0%, rgba(200, 200, 200, 0) 70%);  /* 改為灰色調 */
         opacity: 0;
         transform: translate(-50%, -50%) scale(0);
         border-radius: 50%;
-        transition: transform 0.5s ease, opacity 0.5s ease;
+        transition: transform 0.4s ease, opacity 0.4s ease;  /* 稍微加快動畫 */
     }
 
     .toggle-view-btn:hover::after {
-        opacity: 0.3;
-        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0.2;  /* 降低不透明度 */
+        transform: translate(-50%, -50%) scale(1.3);  /* 縮小效果範圍 */
     }
 
     /* 添加箭頭旋轉動畫 */
