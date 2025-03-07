@@ -1275,6 +1275,93 @@
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
+    .calculator-display-container {
+        display: flex;
+        flex-direction: column;
+        background-color: #1a1a1a;
+        margin: 10px;
+        border-radius: 10px;
+        border: 1px solid #444444;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        height: 110px; /* 固定高度 */
+        position: relative;
+    }
+
+    .calculator-history {
+        color: #9e9e9e;
+        font-size: 16px;
+        padding: 8px 15px;
+        text-align: right;
+        height: 40px; /* 固定高度 */
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        line-height: 1.3;
+        word-break: break-all;
+        font-family: 'Consolas', monospace;
+        position: relative;
+        background: linear-gradient(to bottom, #1e1e1e, #2a2a2a);
+    }
+
+    .calculator-history::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(255, 156, 51, 0.4), transparent);
+    }
+
+    .calculator-display {
+        background-color: #2a2a2a;
+        color: white;
+        font-size: 36px;
+        padding: 10px 15px;
+        text-align: right;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        overflow: hidden;
+        margin: 0;
+        border: none;
+        box-shadow: none;
+        font-family: 'Consolas', monospace;
+        font-weight: bold;
+        letter-spacing: 1px;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        position: relative;
+        background: linear-gradient(to bottom, #2a2a2a, #222222);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .calculator-scroll-indicator {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 12px;
+        height: 12px;
+        background-color: rgba(255, 156, 51, 0.7);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+    }
+
+    .has-overflow .calculator-scroll-indicator {
+        opacity: 1;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.7; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.1); }
+    }
+
     .calculator-buttons {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -2910,6 +2997,7 @@
     let calculatorOperator = null;
     let calculatorFirstValue = null;
     let calculatorWaitingForSecondValue = false;
+    let calculatorHistory = ""; // 新增：計算過程記錄
 
     // 開啟計算機輸入器
     function openCalculator(inputId, title) {
@@ -2932,6 +3020,9 @@
         calculatorOperator = null;
         calculatorFirstValue = null;
         calculatorWaitingForSecondValue = false;
+        calculatorHistory = ""; // 清空計算歷史
+        document.getElementById('calculatorHistory').textContent = ""; // 清空歷史顯示
+        document.getElementById('historyScrollIndicator').style.opacity = '0'; // 隱藏滾動指示器
         
         document.getElementById('numberInputModal').style.display = 'flex';
         
@@ -2967,7 +3058,10 @@
         calculatorOperator = null;
         calculatorFirstValue = null;
         calculatorWaitingForSecondValue = false;
+        calculatorHistory = ""; // 清空計算歷史
         document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        document.getElementById('calculatorHistory').textContent = ""; // 清空歷史顯示
+        document.getElementById('historyScrollIndicator').style.opacity = '0'; // 隱藏滾動指示器
         
         // 添加震動效果
         vibrate();
@@ -2997,6 +3091,30 @@
         calculatorOperator = op;
         calculatorWaitingForSecondValue = true;
         
+        // 更新計算歷史
+        let opSymbol = op;
+        switch(op) {
+            case '+': opSymbol = ' + '; break;
+            case '-': opSymbol = ' - '; break;
+            case '*': opSymbol = ' × '; break;
+            case '/': opSymbol = ' ÷ '; break;
+        }
+        
+        // 添加當前數字和運算符到歷史記錄
+        if (calculatorHistory === "") {
+            calculatorHistory = calculatorValue + opSymbol;
+        } else {
+            // 檢查是否需要換行
+            if (calculatorHistory.length > 20) {
+                calculatorHistory += "\n" + calculatorValue + opSymbol;
+            } else {
+                calculatorHistory += calculatorValue + opSymbol;
+            }
+        }
+        
+        // 顯示計算歷史並檢查是否需要顯示滾動指示器
+        updateCalculatorHistory();
+        
         // 添加震動效果
         vibrate();
     }
@@ -3007,6 +3125,9 @@
         
         const secondValue = parseFloat(calculatorValue);
         let result;
+        
+        // 完成歷史記錄的運算式
+        let completeExpression = calculatorHistory + calculatorValue + " = ";
         
         switch (calculatorOperator) {
             case '+':
@@ -3031,10 +3152,29 @@
                 return;
         }
         
-        // 限制小數點位數
-        calculatorValue = result.toFixed(8).replace(/\.?0+$/, '');
+        // 限制小數點位數，但保留有意義的數字
+        calculatorValue = result.toString();
+        if (calculatorValue.includes('.')) {
+            // 如果是小數，限制最多顯示8位，但去除尾部無意義的零
+            calculatorValue = parseFloat(result.toFixed(8)).toString();
+        }
         
+        // 更新顯示
         document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        
+        // 更新歷史記錄，保持較短的顯示
+        if (completeExpression.length > 30) {
+            // 如果表達式太長，只顯示最後的等號部分
+            calculatorHistory = calculatorValue;
+        } else {
+            // 如果表達式不太長，顯示完整表達式
+            calculatorHistory = completeExpression;
+        }
+        
+        // 顯示計算歷史並檢查是否需要顯示滾動指示器
+        updateCalculatorHistory();
+        
+        // 為下一次計算準備
         calculatorOperator = null;
         calculatorFirstValue = parseFloat(calculatorValue);
         calculatorWaitingForSecondValue = true;
@@ -3172,6 +3312,25 @@
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
+    // 更新計算歷史顯示，並檢查是否需要顯示滾動指示器
+    function updateCalculatorHistory() {
+        const historyElement = document.getElementById('calculatorHistory');
+        const indicatorElement = document.getElementById('historyScrollIndicator');
+        
+        // 更新歷史內容
+        historyElement.textContent = calculatorHistory;
+        
+        // 檢查是否內容溢出需要顯示滾動指示器
+        const isOverflowing = historyElement.scrollWidth > historyElement.clientWidth || 
+                            historyElement.scrollHeight > historyElement.clientHeight;
+        
+        if (isOverflowing) {
+            historyElement.classList.add('has-overflow');
+        } else {
+            historyElement.classList.remove('has-overflow');
+        }
+    }
+
     </script>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -3256,8 +3415,52 @@
                     this.style.display = 'none';
                 }
             });
-
             
+            // 添加計算歷史的滾動功能
+            const historyElement = document.getElementById('calculatorHistory');
+            let isScrolling = false;
+            let startX;
+            let scrollLeft;
+
+            historyElement.addEventListener('mousedown', (e) => {
+                isScrolling = true;
+                startX = e.pageX - historyElement.offsetLeft;
+                scrollLeft = historyElement.scrollLeft;
+            });
+
+            historyElement.addEventListener('mouseleave', () => {
+                isScrolling = false;
+            });
+
+            historyElement.addEventListener('mouseup', () => {
+                isScrolling = false;
+            });
+
+            historyElement.addEventListener('mousemove', (e) => {
+                if (!isScrolling) return;
+                e.preventDefault();
+                const x = e.pageX - historyElement.offsetLeft;
+                const walk = (x - startX) * 2; // 滾動速度
+                historyElement.scrollLeft = scrollLeft - walk;
+            });
+
+            // 添加觸摸事件支持
+            historyElement.addEventListener('touchstart', (e) => {
+                isScrolling = true;
+                startX = e.touches[0].pageX - historyElement.offsetLeft;
+                scrollLeft = historyElement.scrollLeft;
+            });
+
+            historyElement.addEventListener('touchend', () => {
+                isScrolling = false;
+            });
+
+            historyElement.addEventListener('touchmove', (e) => {
+                if (!isScrolling) return;
+                const x = e.touches[0].pageX - historyElement.offsetLeft;
+                const walk = (x - startX) * 2;
+                historyElement.scrollLeft = scrollLeft - walk;
+            });
 
         });
     </script>
@@ -3269,7 +3472,11 @@
                 <h3 id="inputModalTitle">數字輸入器</h3>
                 <button class="close-btn" onclick="closeModal('numberInputModal')">×</button>
             </div>
-            <div class="calculator-display" id="calculatorDisplay">0</div>
+            <div class="calculator-display-container">
+                <div class="calculator-scroll-indicator" id="historyScrollIndicator"></div>
+                <div class="calculator-history" id="calculatorHistory"></div>
+                <div class="calculator-display" id="calculatorDisplay">0</div>
+            </div>
             <div class="calculator-buttons">
                 <!-- 第一行：功能鍵 -->
                 <button onclick="calculatorClear()" class="clear">C</button>
