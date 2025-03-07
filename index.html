@@ -1592,7 +1592,7 @@
         color: var(--text-color);
         border: 1px solid var(--border-color);
         border-radius: 8px;
-        min-height: 80px;
+        min-height: 100px;
         resize: none;
         font-size: 16px;
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -2670,11 +2670,11 @@
         // 鍵盤彈出時會減少視口高度
         if (viewportHeight < windowHeight * 0.8) {
             // 鍵盤已彈出，將編輯器移至更靠頂部的位置
-            modal.style.paddingTop = '20px';
+            modal.style.paddingTop = '180px';
             modal.style.justifyContent = 'center'; // 保持水平置中
         } else {
             // 鍵盤收起，恢復原本位置
-            modal.style.paddingTop = '60px';
+            modal.style.paddingTop = '180px';
             modal.style.justifyContent = 'center'; // 保持水平置中
         }
     }
