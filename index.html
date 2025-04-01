@@ -246,12 +246,12 @@
         opacity: 0.8;
     }
 
-    /* 統一按鈕區域中的按鈕樣式 */
     #periodButtons button, 
     #rateButtons button, 
     #principalButtons button, 
     #commissionButtons button, 
-    #PaymentduringButtons button {
+    #PaymentduringButtons button,
+    #commissionPercentButtons button {
         min-width: 50px;       /* 設置最小寬度 */
         text-align: center;    /* 文字居中 */
         flex: 1;               /* 平均分配空間 */
@@ -458,7 +458,7 @@
         transform: translateY(0);
     }
 
-    #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
+    #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons, #commissionPercentButtons {
         margin: 0;
         display: flex;
         flex-wrap: wrap;
@@ -1427,20 +1427,21 @@
         opacity: 0.9;
     }
 
-    /* 調整零鍵的樣式 */
-    .calculator-buttons .zero.number-btn {
+    /* 調整數字按鈕（包括零鍵）的樣式 */
+    .calculator-buttons .number-btn {
         position: relative;
     }
 
-    .calculator-buttons .zero .arabic-number {
-        position: absolute;
-        left: 40%;
-        transform: translateX(-50%);
-        margin-right: 0;
+    .calculator-buttons .number-btn .arabic-number {
+        margin-right: 3px;
     }
 
-    .calculator-buttons .zero .financial-char {
-        right: 15px;
+    .calculator-buttons .number-btn .financial-char {
+        right: 6px;
+        font-size: 18px;
+        color: var(--button-orange);
+        position: absolute;
+        opacity: 0.9;
     }
 
     /* 當數字按鈕被點擊時，改變數字和大寫的顏色 */
@@ -1451,7 +1452,6 @@
 
     /* 調整零鍵的寬度樣式，確保適應新的佈局 */
     .calculator-buttons .zero {
-        grid-column: span 2;
         background-color: #3a3a3a;
         flex-direction: column;
         align-items: center;
@@ -1944,9 +1944,19 @@
         </div>
     </div>
 
-    <div class="row">
-        <span class="label">推廣比例</span>
-        <input type="text" id="commissionRatio" class="readonly" readonly>
+    <div class="input-button-group">
+        <div class="row">
+            <span class="label">推廣比例</span>
+            <input type="text" id="commissionRatio" class="readonly" readonly>
+        </div>
+    
+        <div id="commissionPercentButtons">
+            <button onclick="setCommissionPercent(1)">1%</button>
+            <button onclick="setCommissionPercent(2)">2%</button>
+            <button onclick="setCommissionPercent(3)">3%</button>
+            <button onclick="setCommissionPercent(4)">4%</button>
+            <button onclick="setCommissionPercent(5)">5%</button>
+        </div>
     </div>
 
     <div class="row">
@@ -2763,6 +2773,27 @@
         updateAllFields();
     }
 
+    function setCommissionPercent(percent) {
+        vibrate(); // 觸發震動
+        
+        // 獲取本金值（移除千位分隔符）
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, '')) || 0;
+        
+        if (principal <= 0) {
+            showToast('請先輸入有效的本金金額', true);
+            return;
+        }
+        
+        // 計算對應百分比的金額，並無條件捨去至整數
+        const commissionAmount = Math.floor(principal * (percent / 100));
+        
+        // 更新推廣輸入框的值，並添加千位分隔符
+        document.getElementById('commission').value = formatNumberWithCommas(commissionAmount);
+        
+        // 更新相關欄位的計算
+        updateAllFields();
+    }
+
     // 修改 adjustPrincipal 函数
     function adjustPrincipal(delta) {
         vibrate();
@@ -3451,6 +3482,25 @@
         vibrate();
     }
 
+    // 計算機小數點輸入
+    function calculatorDecimal() {
+        // 如果正在等待第二個值，重置顯示
+        if (calculatorWaitingForSecondValue) {
+            calculatorValue = '0';
+            calculatorWaitingForSecondValue = false;
+        }
+        
+        // 如果當前值不包含小數點，則添加
+        if (!calculatorValue.includes('.')) {
+            calculatorValue += '.';
+        }
+        
+        document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
     // 計算機清除
     function calculatorClear() {
         calculatorValue = '0';
@@ -3945,11 +3995,12 @@
                 </button>
                 <button onclick="calculatorEquals()" class="equals">=</button>
                 
-                <!-- 第五行：零和更寬的等號鍵 -->
-                <button onclick="calculatorInput(0)" class="zero number-btn">
+                <!-- 第五行：零、小數點和確認鍵 -->
+                <button onclick="calculatorInput(0)" class="number-btn">
                     <div class="arabic-number">0</div>
                     <div class="financial-char">零</div>
                 </button>
+                <button onclick="calculatorDecimal()" class="function">.</button>
                 <button onclick="submitCalculatorValue()" class="submit">確認輸入</button>
             </div>
         </div>
@@ -3966,7 +4017,8 @@
                 'rateButtons',
                 'principalButtons',
                 'PaymentduringButtons',
-                'commissionButtons'
+                'commissionButtons',
+                'commissionPercentButtons'
             ];
             
             // 需要隱藏的整行元素
