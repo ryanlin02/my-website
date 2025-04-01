@@ -246,12 +246,12 @@
         opacity: 0.8;
     }
 
-    /* 統一按鈕區域中的按鈕樣式 */
     #periodButtons button, 
     #rateButtons button, 
     #principalButtons button, 
     #commissionButtons button, 
-    #PaymentduringButtons button {
+    #PaymentduringButtons button,
+    #commissionPercentButtons button {
         min-width: 50px;       /* 設置最小寬度 */
         text-align: center;    /* 文字居中 */
         flex: 1;               /* 平均分配空間 */
@@ -458,7 +458,7 @@
         transform: translateY(0);
     }
 
-    #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons {
+    #periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons, #commissionPercentButtons {
         margin: 0;
         display: flex;
         flex-wrap: wrap;
@@ -1944,9 +1944,19 @@
         </div>
     </div>
 
-    <div class="row">
-        <span class="label">推廣比例</span>
-        <input type="text" id="commissionRatio" class="readonly" readonly>
+    <div class="input-button-group">
+        <div class="row">
+            <span class="label">推廣比例</span>
+            <input type="text" id="commissionRatio" class="readonly" readonly>
+        </div>
+    
+        <div id="commissionPercentButtons">
+            <button onclick="setCommissionPercent(1)">1%</button>
+            <button onclick="setCommissionPercent(2)">2%</button>
+            <button onclick="setCommissionPercent(3)">3%</button>
+            <button onclick="setCommissionPercent(4)">4%</button>
+            <button onclick="setCommissionPercent(5)">5%</button>
+        </div>
     </div>
 
     <div class="row">
@@ -2760,6 +2770,27 @@
         commissionField.value = formatNumberWithCommas(Math.floor(newValue));
         
         // 更新所有相關欄位的計算
+        updateAllFields();
+    }
+
+    function setCommissionPercent(percent) {
+        vibrate(); // 觸發震動
+        
+        // 獲取本金值（移除千位分隔符）
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, '')) || 0;
+        
+        if (principal <= 0) {
+            showToast('請先輸入有效的本金金額', true);
+            return;
+        }
+        
+        // 計算對應百分比的金額，並無條件捨去至整數
+        const commissionAmount = Math.floor(principal * (percent / 100));
+        
+        // 更新推廣輸入框的值，並添加千位分隔符
+        document.getElementById('commission').value = formatNumberWithCommas(commissionAmount);
+        
+        // 更新相關欄位的計算
         updateAllFields();
     }
 
@@ -3986,7 +4017,8 @@
                 'rateButtons',
                 'principalButtons',
                 'PaymentduringButtons',
-                'commissionButtons'
+                'commissionButtons',
+                'commissionPercentButtons'
             ];
             
             // 需要隱藏的整行元素
