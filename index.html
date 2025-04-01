@@ -1818,8 +1818,9 @@
     /* 分享模態框樣式 */
     #shareModalOverlay .modal-container {
         width: 95%;
-        max-width: 420px;
+        max-width: 370px;
         padding-bottom: 15px;
+        background-color: #333333;
     }
 
     #shareQuoteCard {
@@ -1827,6 +1828,7 @@
         overflow: hidden;
         background-color: #333333;
         margin: 10px auto;
+        max-width: 340px;
     }
 
     #shareOptions button {
@@ -1846,7 +1848,25 @@
         font-style: italic;
     }
 
+    /* 報價卡片圖片樣式 */
+    #shareQuoteCard img {
+        width: 100%;
+        max-width: 380px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        display: block;
+        margin: 0 auto;
+    }
+
+    /* 調整分享模態框內容區域 */
+    #shareModalOverlay .modal-content {
+        padding: 10px !important;
+        overflow: visible !important;
+    }
+
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </head>
 <body>
@@ -2914,107 +2934,182 @@
         loadingToast.innerHTML = '<div class="loading-content">正在生成報價卡片...</div>';
         document.body.appendChild(loadingToast);
         
-        try {
-            // 獲取數據
-            const period = document.getElementById('period').value;
-            const rate = document.getElementById('rate').value;
-            const principal = document.getElementById('principal').value;
-            const payment = document.getElementById('payment').value;
-            const totalInterest = document.getElementById('totalInterest').value;
-            const afterTaxRate = document.getElementById('afterTaxRate').value;
-            const commission = document.getElementById('commission').value;
-            const afterCommissionRate = document.getElementById('afterCommissionRate').value;
-            
-            // 顯示報價卡片模板
-            const quoteTemplate = document.getElementById('quoteCardTemplate');
-            quoteTemplate.style.display = 'block';
-            
-            // 更新報價卡片數據
-            document.getElementById('quoteDate').textContent = document.getElementById('currentTime').textContent;
-            document.getElementById('quotePeriod').textContent = period + " 期";
-            document.getElementById('quoteRate').textContent = rate + "%";
-            document.getElementById('quotePrincipal').textContent = principal + " 元";
-            document.getElementById('quotePayment').textContent = payment + " 元/期";
-            document.getElementById('quoteTotalInterest').textContent = totalInterest + " 元";
-            document.getElementById('quoteAfterTaxRate').textContent = afterTaxRate + "%";
-            
-            // 處理推廣費用
-            if (commission && commission !== "0") {
-                document.getElementById('quoteCommission').textContent = commission + " 元";
-                document.getElementById('quoteCommissionRow').style.display = '';
-            } else {
-                document.getElementById('quoteCommissionRow').style.display = 'none';
-            }
-            
-            document.getElementById('quoteAfterCommissionRate').textContent = afterCommissionRate + "%";
-            
-            // 獲取報價卡片元素
-            const quoteCard = document.getElementById('quoteCard');
-            
-            // 使用 html2canvas 捕獲報價卡片
-            html2canvas(quoteCard, {
-                backgroundColor: '#333333',
-                scale: 2, // 提高圖片質量
-                logging: false,
-                useCORS: true,
-                allowTaint: true
-            }).then(canvas => {
-                // 移除加載提示
-                if (document.getElementById('screenshot-loading')) {
-                    document.body.removeChild(document.getElementById('screenshot-loading'));
-                }
+        // 延遲一點時間以確保加載提示顯示
+        setTimeout(() => {
+            try {
+                // 創建一個簡單的報價卡片 HTML
+                const quoteHtml = generateQuoteCardHtml();
                 
-                // 隱藏報價卡片模板
-                quoteTemplate.style.display = 'none';
+                // 創建一個臨時的容器來渲染報價卡片
+                const tempContainer = document.createElement('div');
+                tempContainer.id = 'tempQuoteContainer';
+                tempContainer.style.position = 'fixed';
+                tempContainer.style.left = '-9999px';
+                tempContainer.style.top = '0';
+                tempContainer.style.zIndex = '-1000';
+                tempContainer.style.background = '#333333';
+                tempContainer.style.width = '380px';  // 增加寬度
+                tempContainer.style.padding = '10px'; // 減少內邊距
+                tempContainer.innerHTML = quoteHtml;
+                document.body.appendChild(tempContainer);
                 
-                // 獲取圖片數據URL
-                const imageDataUrl = canvas.toDataURL('image/png');
-                
-                // 準備分享模態框的內容
+                // 確保模態框已準備好
                 const shareQuoteCard = document.getElementById('shareQuoteCard');
-                shareQuoteCard.innerHTML = `<img src="${imageDataUrl}" style="width: 100%; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">`;
+                if (shareQuoteCard) {
+                    shareQuoteCard.innerHTML = quoteHtml;
+                }
                 
-                // 顯示分享模態框
-                document.getElementById('shareModalOverlay').style.display = 'flex';
-                
-                // 設置下載按鈕功能
-                document.getElementById('downloadBtn').onclick = function() {
-                    const link = document.createElement('a');
-                    const dateTime = document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '');
-                    link.download = `貸款計算報價_${dateTime}.png`;
-                    link.href = imageDataUrl;
-                    link.click();
-                    showToast('圖片已保存至您的設備！');
-                };
-                
-                // 設置分享按鈕功能
-                document.getElementById('shareBtn').onclick = function() {
-                    shareQuoteImage(imageDataUrl);
-                };
-            }).catch(error => {
-                console.error('生成報價卡片時出錯:', error);
-                showToast('生成報價卡片時出錯，請稍後再試', true);
-                
-                // 隱藏報價卡片模板
-                quoteTemplate.style.display = 'none';
+                // 使用html2canvas將臨時容器轉為圖片
+                html2canvas(tempContainer, {
+                    backgroundColor: '#333333',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    width: 380,  // 增加寬度以確保完整顯示
+                    height: 520  // 增加高度以確保完整顯示
+                }).then(canvas => {
+                    // 生成圖片URL
+                    const imageDataUrl = canvas.toDataURL('image/png');
+                    
+                    // 更新分享模態框中的內容為圖片
+                    if (shareQuoteCard) {
+                        shareQuoteCard.innerHTML = `<img src="${imageDataUrl}" style="width: 100%; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">`;
+                    }
+                    
+                    // 設置下載按鈕功能
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    if (downloadBtn) {
+                        downloadBtn.onclick = function() {
+                            const link = document.createElement('a');
+                            const dateTime = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+                            link.download = `貸款計算報價_${dateTime}.png`;
+                            link.href = imageDataUrl;
+                            link.click();
+                            showToast('圖片已保存至您的設備！');
+                        };
+                    }
+                    
+                    // 設置分享按鈕功能
+                    const shareBtn = document.getElementById('shareBtn');
+                    if (shareBtn) {
+                        shareBtn.onclick = function() {
+                            shareQuoteImage(imageDataUrl);
+                        };
+                        shareBtn.style.display = 'inline-block';
+                    }
+                    
+                    // 移除加載提示並顯示分享模態框
+                    if (document.getElementById('screenshot-loading')) {
+                        document.body.removeChild(document.getElementById('screenshot-loading'));
+                    }
+                    
+                    // 移除臨時容器
+                    document.body.removeChild(tempContainer);
+                    
+                    // 顯示分享模態框
+                    document.getElementById('shareModalOverlay').style.display = 'flex';
+                    
+                    // 重置狀態訊息
+                    const shareStatus = document.getElementById('shareStatus');
+                    if (shareStatus) {
+                        shareStatus.textContent = '';
+                    }
+                    
+                }).catch(error => {
+                    console.error('生成報價卡片圖片時出錯:', error);
+                    
+                    // 移除加載提示
+                    if (document.getElementById('screenshot-loading')) {
+                        document.body.removeChild(document.getElementById('screenshot-loading'));
+                    }
+                    
+                    // 移除臨時容器
+                    if (document.body.contains(tempContainer)) {
+                        document.body.removeChild(tempContainer);
+                    }
+                    
+                    // 顯示錯誤訊息
+                    showToast('生成報價卡片時出錯，請稍後再試', true);
+                });
+            } catch (error) {
+                console.error('準備報價卡片時出錯:', error);
                 
                 // 移除加載提示
                 if (document.getElementById('screenshot-loading')) {
                     document.body.removeChild(document.getElementById('screenshot-loading'));
                 }
-            });
-        } catch (error) {
-            console.error('準備報價卡片時出錯:', error);
-            showToast('生成報價卡片時出錯，請稍後再試', true);
-            
-            // 確保加載提示被移除
-            if (document.getElementById('screenshot-loading')) {
-                document.body.removeChild(document.getElementById('screenshot-loading'));
+                
+                showToast('生成報價卡片時出錯，請稍後再試', true);
             }
-            
-            // 確保報價卡片模板被隱藏
-            document.getElementById('quoteCardTemplate').style.display = 'none';
-        }
+        }, 100);
+    }
+
+    // 生成報價卡片 HTML
+    function generateQuoteCardHtml() {
+        // 獲取數據
+        const period = document.getElementById('period').value;
+        const rate = document.getElementById('rate').value;
+        const principal = document.getElementById('principal').value;
+        const payment = document.getElementById('payment').value;
+        const totalInterest = document.getElementById('totalInterest').value;
+        const afterTaxRate = document.getElementById('afterTaxRate').value;
+        const commission = document.getElementById('commission').value;
+        const afterCommissionRate = document.getElementById('afterCommissionRate').value;
+        const currentTime = document.getElementById('currentTime').textContent;
+        
+        // 是否顯示推廣費用
+        const showCommission = commission && commission !== "0";
+        
+        return `
+            <div style="width: 90%; max-width: 340px; margin: 0 auto; background-color: #333333; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: #ffffff; border: 2px solid #ff9c33; box-sizing: border-box;">
+                <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #ff9c33; padding-bottom: 10px;">
+                    <div style="margin: 0; font-size: 22px; color: #ff9c33; font-weight: bold;">貸款計算報價單</div>
+                    <div style="font-size: 14px; margin-top: 8px;">${currentTime}</div>
+                </div>
+                
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px; font-size: 16px;">
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">期數:</td>
+                        <td style="text-align: left; font-weight: bold;">${period} 期</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅前利率:</td>
+                        <td style="text-align: left; font-weight: bold;">${rate}%</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">本金:</td>
+                        <td style="text-align: left; font-weight: bold;">${principal} 元</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">期繳:</td>
+                        <td style="text-align: left; font-weight: bold;">${payment} 元/期</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">總利息:</td>
+                        <td style="text-align: left; font-weight: bold;">${totalInterest} 元</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅後利率:</td>
+                        <td style="text-align: left; font-weight: bold;">${afterTaxRate}%</td>
+                    </tr>
+                    ${showCommission ? `
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">推廣:</td>
+                        <td style="text-align: left; font-weight: bold;">${commission} 元</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅佣後利率:</td>
+                        <td style="text-align: left; font-weight: bold;">${afterCommissionRate}%</td>
+                    </tr>
+                </table>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 14px; color: #cccccc; border-top: 1px dashed #555555; padding-top: 12px;">
+                    報價後記得吃碗火雞肉飯唷！
+                </div>
+            </div>
+        `;
     }
 
     // 隱藏分享模態框
@@ -3029,36 +3124,24 @@
         // 檢查瀏覽器是否支持網頁分享API
         if (navigator.share) {
             try {
-                // 創建一個 Blob 對象
-                fetch(imageDataUrl)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        // 創建文件對象
-                        const dateTime = document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '');
-                        const fileName = `貸款計算報價_${dateTime}.png`;
-                        const file = new File([blob], fileName, { type: 'image/png' });
-                        
-                        // 使用 Web Share API 分享
-                        navigator.share({
-                            title: '貸款計算報價',
-                            text: '這是我的貸款計算報價結果',
-                            files: [file]
-                        })
-                        .then(() => {
-                            shareStatusElement.textContent = '分享成功！';
-                            setTimeout(() => {
-                                shareStatusElement.textContent = '';
-                            }, 2000);
-                        })
-                        .catch(err => {
-                            console.error('分享失敗:', err);
-                            shareStatusElement.textContent = '分享功能只在支持的設備和瀏覽器上可用。請使用下載選項。';
-                        });
-                    })
-                    .catch(err => {
-                        console.error('處理圖片失敗:', err);
-                        shareStatusElement.textContent = '處理圖片時出錯，請使用下載選項。';
-                    });
+                // 首先嘗試分享URL
+                navigator.share({
+                    title: '貸款計算報價',
+                    text: '這是我的貸款計算報價結果',
+                    url: location.href
+                })
+                .then(() => {
+                    shareStatusElement.textContent = '分享連結成功！';
+                    setTimeout(() => {
+                        shareStatusElement.textContent = '';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('分享連結失敗:', err);
+                    
+                    // 失敗後嘗試分享文件
+                    shareQuoteImageAsFile(imageDataUrl, shareStatusElement);
+                });
             } catch (error) {
                 console.error('準備分享時出錯:', error);
                 shareStatusElement.textContent = '分享過程中出錯，請使用下載選項。';
@@ -3066,6 +3149,81 @@
         } else {
             // 如果瀏覽器不支持，顯示提示
             shareStatusElement.textContent = '您的設備不支持直接分享功能。請使用下載選項。';
+        }
+    }
+
+    function shareQuoteImageAsFile(imageDataUrl, statusElement) {
+        try {
+            // 創建一個 Blob 對象
+            fetch(imageDataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    // 創建文件對象
+                    const dateTime = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+                    const fileName = `貸款計算報價_${dateTime}.png`;
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    
+                    // 使用 Web Share API 分享文件
+                    navigator.share({
+                        title: '貸款計算報價',
+                        files: [file]
+                    })
+                    .then(() => {
+                        statusElement.textContent = '分享圖片成功！';
+                        setTimeout(() => {
+                            statusElement.textContent = '';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('分享圖片失敗:', err);
+                        statusElement.textContent = '分享圖片失敗，請使用下載選項。';
+                    });
+                })
+                .catch(err => {
+                    console.error('處理圖片失敗:', err);
+                    statusElement.textContent = '處理圖片時出錯，請使用下載選項。';
+                });
+        } catch (error) {
+            console.error('分享圖片出錯:', error);
+            statusElement.textContent = '分享圖片失敗，請使用下載選項。';
+        }
+    }
+
+    // 嘗試將圖片作為文件分享
+    function shareQuoteImageAsFile(imageDataUrl, statusElement) {
+        try {
+            // 創建一個 Blob 對象
+            fetch(imageDataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    // 創建文件對象
+                    const dateTime = document.getElementById('currentTime').textContent.replace(/[^0-9]/g, '');
+                    const fileName = `貸款計算報價_${dateTime}.png`;
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    
+                    // 使用 Web Share API 分享文件
+                    navigator.share({
+                        title: '貸款計算報價',
+                        files: [file]
+                    })
+                    .then(() => {
+                        statusElement.textContent = '分享圖片成功！';
+                        setTimeout(() => {
+                            statusElement.textContent = '';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('分享圖片失敗:', err);
+                        statusElement.textContent = '分享圖片失敗，請使用下載選項。';
+                    });
+                })
+                .catch(err => {
+                    console.error('處理圖片失敗:', err);
+                    statusElement.textContent = '處理圖片時出錯，請使用下載選項。';
+                });
+        } catch (error) {
+            console.error('分享圖片出錯:', error);
+            statusElement.textContent = '分享圖片失敗，請使用下載選項。';
         }
     }
 
@@ -3887,8 +4045,6 @@
     }
 
     </script>
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 	
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -4240,8 +4396,8 @@
     </script>
 
     <!-- 報價卡片模板 -->
-    <div id="quoteCardTemplate" style="display: none;">
-        <div id="quoteCard" style="width: 380px; background-color: #333333; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: #ffffff; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); border: 2px solid #ff9c33;">
+    <div id="quoteCardTemplate" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background-color: #333333; padding: 20px; box-sizing: border-box;">
+        <div id="quoteCard" style="width: 100%; max-width: 380px; margin: 0 auto; background-color: #333333; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: #ffffff; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); border: 2px solid #ff9c33;">
             <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #ff9c33; padding-bottom: 10px;">
                 <h2 style="margin: 0; font-size: 20px; color: #ff9c33;">貸款計算報價單</h2>
                 <div style="font-size: 14px; margin-top: 5px;" id="quoteDate"></div>
@@ -4296,7 +4452,7 @@
                 <button class="close-btn" onclick="hideShareModal()">×</button>
             </div>
             <div class="modal-content" style="text-align: center; padding: 0;">
-                <div id="shareQuoteCard" style="margin: 0 auto; max-width: 380px;"></div>
+                <div id="shareQuoteCard" style="margin: 0 auto; max-width: 380px; padding: 0;"></div>
                 <div style="margin: 15px 0;">
                     <div id="shareOptions" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
                         <button id="downloadBtn" class="modal-btn modal-btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
