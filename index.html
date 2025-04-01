@@ -1864,6 +1864,38 @@
         overflow: visible !important;
     }
 
+    /* 優化手機版報價卡片樣式 */
+    @media screen and (max-width: 480px) {
+        #shareQuoteCard {
+            width: 95%;
+            max-width: 340px;
+            margin: 0 auto;
+        }
+        
+        #shareQuoteCard img {
+            width: 100%;
+            max-width: 340px;
+        }
+        
+        .modal-container {
+            width: 95%;
+            max-width: 350px;
+        }
+        
+        .modal-content {
+            padding: 5px !important;
+        }
+        
+        #shareOptions {
+            gap: 8px;
+        }
+        
+        #shareOptions button {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+    }
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2934,12 +2966,55 @@
         loadingToast.innerHTML = '<div class="loading-content">正在生成報價卡片...</div>';
         document.body.appendChild(loadingToast);
         
+        // 檢測是否為移動設備
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         // 延遲一點時間以確保加載提示顯示
         setTimeout(() => {
             try {
                 // 創建一個簡單的報價卡片 HTML
                 const quoteHtml = generateQuoteCardHtml();
                 
+                // 創建一個用於顯示的報價卡片
+                const shareQuoteCard = document.getElementById('shareQuoteCard');
+                if (shareQuoteCard) {
+                    shareQuoteCard.innerHTML = quoteHtml;
+                }
+                
+                // 如果是移動設備，嘗試使用備用方法
+                if (isMobileDevice) {
+                    // 移動設備上使用備用方案：直接使用HTML版本
+                    if (document.getElementById('screenshot-loading')) {
+                        document.body.removeChild(document.getElementById('screenshot-loading'));
+                    }
+                    
+                    document.getElementById('shareModalOverlay').style.display = 'flex';
+                    
+                    // 調整下載按鈕功能 - 在移動設備上提示用戶截屏
+                    const downloadBtn = document.getElementById('downloadBtn');
+                    if (downloadBtn) {
+                        downloadBtn.textContent = '手動截屏';
+                        downloadBtn.onclick = function() {
+                            showToast('請使用系統截屏功能保存圖片', false, 3000);
+                        };
+                    }
+                    
+                    // 隱藏分享按鈕，因為沒有圖片
+                    const shareBtn = document.getElementById('shareBtn');
+                    if (shareBtn) {
+                        shareBtn.style.display = 'none';
+                    }
+                    
+                    const shareStatus = document.getElementById('shareStatus');
+                    if (shareStatus) {
+                        shareStatus.textContent = '請使用系統截屏功能保存此報價';
+                        shareStatus.style.color = '#ff9c33';
+                    }
+                    
+                    return;
+                }
+                
+                // 以下是桌面版的處理邏輯
                 // 創建一個臨時的容器來渲染報價卡片
                 const tempContainer = document.createElement('div');
                 tempContainer.id = 'tempQuoteContainer';
@@ -2948,16 +3023,10 @@
                 tempContainer.style.top = '0';
                 tempContainer.style.zIndex = '-1000';
                 tempContainer.style.background = '#333333';
-                tempContainer.style.width = '380px';  // 增加寬度
-                tempContainer.style.padding = '10px'; // 減少內邊距
+                tempContainer.style.width = '380px';
+                tempContainer.style.padding = '10px';
                 tempContainer.innerHTML = quoteHtml;
                 document.body.appendChild(tempContainer);
-                
-                // 確保模態框已準備好
-                const shareQuoteCard = document.getElementById('shareQuoteCard');
-                if (shareQuoteCard) {
-                    shareQuoteCard.innerHTML = quoteHtml;
-                }
                 
                 // 使用html2canvas將臨時容器轉為圖片
                 html2canvas(tempContainer, {
@@ -2966,20 +3035,21 @@
                     logging: false,
                     useCORS: true,
                     allowTaint: true,
-                    width: 380,  // 增加寬度以確保完整顯示
-                    height: 520  // 增加高度以確保完整顯示
+                    width: 380,
+                    height: 520
                 }).then(canvas => {
                     // 生成圖片URL
                     const imageDataUrl = canvas.toDataURL('image/png');
                     
                     // 更新分享模態框中的內容為圖片
                     if (shareQuoteCard) {
-                        shareQuoteCard.innerHTML = `<img src="${imageDataUrl}" style="width: 100%; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">`;
+                        shareQuoteCard.innerHTML = `<img src="${imageDataUrl}" style="width: 100%; max-width: 340px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">`;
                     }
                     
                     // 設置下載按鈕功能
                     const downloadBtn = document.getElementById('downloadBtn');
                     if (downloadBtn) {
+                        downloadBtn.textContent = '💾 下載圖片';
                         downloadBtn.onclick = function() {
                             const link = document.createElement('a');
                             const dateTime = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
@@ -2993,10 +3063,10 @@
                     // 設置分享按鈕功能
                     const shareBtn = document.getElementById('shareBtn');
                     if (shareBtn) {
+                        shareBtn.style.display = 'inline-block';
                         shareBtn.onclick = function() {
                             shareQuoteImage(imageDataUrl);
                         };
-                        shareBtn.style.display = 'inline-block';
                     }
                     
                     // 移除加載提示並顯示分享模態框
@@ -3018,19 +3088,8 @@
                     
                 }).catch(error => {
                     console.error('生成報價卡片圖片時出錯:', error);
-                    
-                    // 移除加載提示
-                    if (document.getElementById('screenshot-loading')) {
-                        document.body.removeChild(document.getElementById('screenshot-loading'));
-                    }
-                    
-                    // 移除臨時容器
-                    if (document.body.contains(tempContainer)) {
-                        document.body.removeChild(tempContainer);
-                    }
-                    
-                    // 顯示錯誤訊息
-                    showToast('生成報價卡片時出錯，請稍後再試', true);
+                    // 錯誤時的備用方案
+                    handleGenerateError(shareQuoteCard, quoteHtml);
                 });
             } catch (error) {
                 console.error('準備報價卡片時出錯:', error);
@@ -3043,6 +3102,44 @@
                 showToast('生成報價卡片時出錯，請稍後再試', true);
             }
         }, 100);
+    }
+
+    // 添加一個新的錯誤處理函數
+    function handleGenerateError(shareQuoteCard, quoteHtml) {
+        // 移除加載提示
+        if (document.getElementById('screenshot-loading')) {
+            document.body.removeChild(document.getElementById('screenshot-loading'));
+        }
+        
+        // 回退到純HTML方式顯示
+        if (shareQuoteCard) {
+            shareQuoteCard.innerHTML = quoteHtml;
+        }
+        
+        // 設置下載按鈕功能
+        const downloadBtn = document.getElementById('downloadBtn');
+        if (downloadBtn) {
+            downloadBtn.textContent = '手動截屏';
+            downloadBtn.onclick = function() {
+                showToast('請使用系統截屏功能保存圖片', false, 3000);
+            };
+        }
+        
+        // 隱藏分享按鈕，因為沒有圖片
+        const shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.style.display = 'none';
+        }
+        
+        // 顯示分享模態框
+        document.getElementById('shareModalOverlay').style.display = 'flex';
+        
+        // 更新狀態訊息
+        const shareStatus = document.getElementById('shareStatus');
+        if (shareStatus) {
+            shareStatus.textContent = '請使用系統截屏功能保存此報價';
+            shareStatus.style.color = '#ff9c33';
+        }
     }
 
     // 生成報價卡片 HTML
@@ -3114,7 +3211,34 @@
 
     // 隱藏分享模態框
     function hideShareModal() {
-        document.getElementById('shareModalOverlay').style.display = 'none';
+        const overlay = document.getElementById('shareModalOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+            
+            // 重置內容，以便下次打開時重新生成
+            const shareQuoteCard = document.getElementById('shareQuoteCard');
+            if (shareQuoteCard) {
+                shareQuoteCard.innerHTML = '';
+            }
+            
+            // 重置狀態訊息
+            const shareStatus = document.getElementById('shareStatus');
+            if (shareStatus) {
+                shareStatus.textContent = '';
+            }
+            
+            // 重設按鈕文字
+            const downloadBtn = document.getElementById('downloadBtn');
+            if (downloadBtn) {
+                downloadBtn.textContent = '💾 下載圖片';
+            }
+            
+            // 重設分享按鈕顯示
+            const shareBtn = document.getElementById('shareBtn');
+            if (shareBtn) {
+                shareBtn.style.display = 'inline-block';
+            }
+        }
     }
 
     // 分享報價圖片
@@ -3620,7 +3744,7 @@
     }
 
     // 顯示輕量級的提示訊息
-    function showToast(message) {
+    function showToast(message, isError = false, duration = 2000) {
         // 檢查是否已有 toast 存在
         const existingToast = document.querySelector('.toast-message');
         if (existingToast) {
@@ -3630,10 +3754,13 @@
         // 創建一個新的 toast 元素
         const toast = document.createElement('div');
         toast.className = 'toast-message';
+        if (isError) {
+            toast.classList.add('toast-error');
+        }
         toast.textContent = message;
         document.body.appendChild(toast);
         
-        // 2秒後自動消失
+        // 指定時間後自動消失
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => {
@@ -3641,7 +3768,7 @@
                     document.body.removeChild(toast);
                 }
             }, 500);
-        }, 2000);
+        }, duration);
     }
 
     // 清空所有欄位除了本月資金成本
@@ -4445,13 +4572,14 @@
     </div>
 
     <!-- 分享模態框 -->
+    <!-- 分享模態框 -->
     <div id="shareModalOverlay" class="modal-overlay">
         <div class="modal-container" style="max-width: 400px;">
             <div class="modal-header">
                 <h3>分享貸款計算結果</h3>
                 <button class="close-btn" onclick="hideShareModal()">×</button>
             </div>
-            <div class="modal-content" style="text-align: center; padding: 0;">
+            <div class="modal-content" style="text-align: center; padding: 10px;">
                 <div id="shareQuoteCard" style="margin: 0 auto; max-width: 380px; padding: 0;"></div>
                 <div style="margin: 15px 0;">
                     <div id="shareOptions" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
