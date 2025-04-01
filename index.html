@@ -1427,20 +1427,21 @@
         opacity: 0.9;
     }
 
-    /* 調整零鍵的樣式 */
-    .calculator-buttons .zero.number-btn {
+    /* 調整數字按鈕（包括零鍵）的樣式 */
+    .calculator-buttons .number-btn {
         position: relative;
     }
 
-    .calculator-buttons .zero .arabic-number {
-        position: absolute;
-        left: 40%;
-        transform: translateX(-50%);
-        margin-right: 0;
+    .calculator-buttons .number-btn .arabic-number {
+        margin-right: 3px;
     }
 
-    .calculator-buttons .zero .financial-char {
-        right: 15px;
+    .calculator-buttons .number-btn .financial-char {
+        right: 6px;
+        font-size: 18px;
+        color: var(--button-orange);
+        position: absolute;
+        opacity: 0.9;
     }
 
     /* 當數字按鈕被點擊時，改變數字和大寫的顏色 */
@@ -1451,7 +1452,6 @@
 
     /* 調整零鍵的寬度樣式，確保適應新的佈局 */
     .calculator-buttons .zero {
-        grid-column: span 2;
         background-color: #3a3a3a;
         flex-direction: column;
         align-items: center;
@@ -1980,7 +1980,7 @@
 
     <div class="row">
         <span class="label">本月資金成本</span>
-        <input type="text" id="monthlyCost" value="2.2427" class="readonly" readonly>
+        <input type="text" id="monthlyCost" value="2.1106" class="readonly" readonly>
     </div>
 
     <div class="row">
@@ -3451,6 +3451,25 @@
         vibrate();
     }
 
+    // 計算機小數點輸入
+    function calculatorDecimal() {
+        // 如果正在等待第二個值，重置顯示
+        if (calculatorWaitingForSecondValue) {
+            calculatorValue = '0';
+            calculatorWaitingForSecondValue = false;
+        }
+        
+        // 如果當前值不包含小數點，則添加
+        if (!calculatorValue.includes('.')) {
+            calculatorValue += '.';
+        }
+        
+        document.getElementById('calculatorDisplay').textContent = calculatorValue;
+        
+        // 添加震動效果
+        vibrate();
+    }
+
     // 計算機清除
     function calculatorClear() {
         calculatorValue = '0';
@@ -3945,11 +3964,12 @@
                 </button>
                 <button onclick="calculatorEquals()" class="equals">=</button>
                 
-                <!-- 第五行：零和更寬的等號鍵 -->
-                <button onclick="calculatorInput(0)" class="zero number-btn">
+                <!-- 第五行：零、小數點和確認鍵 -->
+                <button onclick="calculatorInput(0)" class="number-btn">
                     <div class="arabic-number">0</div>
                     <div class="financial-char">零</div>
                 </button>
+                <button onclick="calculatorDecimal()" class="function">.</button>
                 <button onclick="submitCalculatorValue()" class="submit">確認輸入</button>
             </div>
         </div>
