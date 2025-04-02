@@ -1601,14 +1601,52 @@
         overflow: hidden !important;
     }
 
-    /* 標題容器 */
+    /* 標題容器 - 添加獨立的z-index確保正確的層疊關係 */
     .header-container {
         text-align: center;
         position: relative;
         margin-bottom: 0px;
+        z-index: 5; /* 添加明確的z-index */
     }
 
-    /* 統一的標題按鈕樣式 */
+    /* 標題樣式 - 確保懸停效果不會影響按鈕 */
+    h1 {
+        color: var(--text-color);
+        font-size: 22px;
+        margin-bottom: 0px;
+        border-bottom: 2px solid var(--button-orange);
+        padding-bottom: 5px;
+        position: relative;
+        z-index: 1; /* 使h1位於較低層級 */
+    }
+
+    /* 移除h1懸停時的變形效果，防止影響按鈕 */
+    h1:hover {
+        text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
+        /* 移除transform以防止影響按鈕位置 */
+    }
+
+    /* 標題下方橙色線條效果 */
+    h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--button-orange);
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.6s ease-out;
+        z-index: 1; /* 確保在h1下方 */
+    }
+
+    h1:hover::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    /* 徹底重寫標題按鈕樣式，確保完全獨立 */
     .header-btn {
         position: absolute;
         top: 50%;
@@ -1623,96 +1661,51 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        opacity: 0.6;
-        z-index: 100;
+        z-index: 10; /* 提高z-index使按鈕始終位於最上層 */
         padding: 0;
         transition: color 0.2s ease;
-        outline: none; /* 移除點擊時的輪廓 */
+        outline: none;
+        
+        /* 明確禁止所有可能的變形和動畫 */
+        transform: translateY(-50%) !important;
+        animation: none !important;
+        box-shadow: none !important;
     }
 
+    /* 固定懸停效果僅改變顏色 */
     .header-btn:hover {
-        opacity: 0.9;
-        color: #888888;
+        color: #999999;
+        /* 明確禁止任何位置或大小變化 */
+        transform: translateY(-50%) !important;
     }
 
+    /* 固定點擊效果僅改變顏色 */
     .header-btn:active {
-        color: var(--button-orange); /* 點擊時變為橘色 */
-        opacity: 1;
-        /* 不改變位置或大小，只改變顏色 */
+        color: var(--button-orange);
+        /* 明確禁止任何位置或大小變化 */
+        transform: translateY(-50%) !important;
     }
 
-    /* 添加按鈕的波紋效果 */
-    .header-btn::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: rgba(255, 156, 51, 0.3); /* 使用橘色作為波紋 */
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        opacity: 0;
-        pointer-events: none; /* 確保波紋不會影響交互 */
-    }
-
-    .header-btn:active::after {
-        animation: btnRipple 0.4s ease-out;
-    }
-
-    @keyframes btnRipple {
-        0% {
-            width: 0;
-            height: 0;
-            opacity: 0.5;
-        }
-        100% {
-            width: 25px;
-            height: 25px;
-            opacity: 0;
-        }
-    }
-
-    /* 左側按鈕位置 */
+    /* 左右按鈕位置 */
     .header-btn-left {
         left: 5px;
     }
 
-    /* 右側按鈕位置 */
     .header-btn-right {
         right: 5px;
     }
 
-    /* 恢復原始標題樣式 */
-    h1 {
-        color: var(--text-color);
-        font-size: 22px;
-        margin-bottom: 0px;
-        border-bottom: 2px solid var(--button-orange);
-        padding-bottom: 5px;
-        position: relative;
-        transition: all 0.3s ease;
-    }
-    h1:hover {
-        transform: translateY(-2px);
-        text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
-    }
-    h1::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: var(--button-orange);
-        transform: scaleX(0);
-        transform-origin: right;
-        transition: transform 0.6s ease-out;
+    /* 清除可能影響到按鈕的其他CSS規則 */
+    .header-btn * {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
     }
 
-    h1:hover::after {
-        transform: scaleX(1);
-        transform-origin: left;
+    /* 禁用任何可能影響按鈕的全局懸停效果 */
+    *:hover .header-btn {
+        transform: translateY(-50%) !important;
+        position: absolute !important;
     }
 
     /* 添加縮放和淡入淡出效果 */
@@ -5064,7 +5057,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.19</div>
+            <div class="version-info">v2.28</div>
         </div>
     </div>
 
