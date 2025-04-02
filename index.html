@@ -1605,10 +1605,7 @@
     .header-container {
         text-align: center;
         position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 5px 0;
+        margin-bottom: 0px;
     }
 
     /* 統一的標題按鈕樣式 */
@@ -1617,76 +1614,106 @@
         top: 50%;
         transform: translateY(-50%);
         background-color: transparent;
-        color: #888888;
+        color: #666666;
         border: none;
-        width: 30px;
-        height: 30px;
-        font-size: 18px;
+        width: 22px;
+        height: 22px;
+        font-size: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s ease;
-        opacity: 0.7;
+        opacity: 0.6;
         z-index: 100;
         padding: 0;
+        transition: color 0.2s ease;
+        outline: none; /* 移除點擊時的輪廓 */
     }
 
     .header-btn:hover {
-        color: var(--button-orange);
-        opacity: 1;
+        opacity: 0.9;
+        color: #888888;
     }
 
     .header-btn:active {
-        transform: translateY(-50%) scale(0.9);
+        color: var(--button-orange); /* 點擊時變為橘色 */
+        opacity: 1;
+        /* 不改變位置或大小，只改變顏色 */
+    }
+
+    /* 添加按鈕的波紋效果 */
+    .header-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 156, 51, 0.3); /* 使用橘色作為波紋 */
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none; /* 確保波紋不會影響交互 */
+    }
+
+    .header-btn:active::after {
+        animation: btnRipple 0.4s ease-out;
+    }
+
+    @keyframes btnRipple {
+        0% {
+            width: 0;
+            height: 0;
+            opacity: 0.5;
+        }
+        100% {
+            width: 25px;
+            height: 25px;
+            opacity: 0;
+        }
     }
 
     /* 左側按鈕位置 */
     .header-btn-left {
-        left: 8px;
+        left: 5px;
     }
 
     /* 右側按鈕位置 */
     .header-btn-right {
-        right: 8px;
+        right: 5px;
     }
 
-    /* 調整標題樣式，確保與按鈕不重疊 */
+    /* 恢復原始標題樣式 */
     h1 {
         color: var(--text-color);
         font-size: 22px;
-        margin: 0;
-        padding: 0 36px 5px;
+        margin-bottom: 0px;
         border-bottom: 2px solid var(--button-orange);
+        padding-bottom: 5px;
         position: relative;
         transition: all 0.3s ease;
-        text-align: center;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-}
+    }
+    h1:hover {
+        transform: translateY(-2px);
+        text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
+    }
+    h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--button-orange);
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.6s ease-out;
+    }
 
-/* 響應式調整 */
-@media screen and (min-width: 768px) {
-    .header-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 20px;
+    h1:hover::after {
+        transform: scaleX(1);
+        transform-origin: left;
     }
-    
-    .header-btn-left {
-        left: 12px;
-    }
-    
-    .header-btn-right {
-        right: 12px;
-    }
-    
-    h1 {
-        padding: 0 42px 5px;
-    }
-}
 
     /* 添加縮放和淡入淡出效果 */
     @keyframes smoothFadeIn {
@@ -2205,11 +2232,11 @@
 <body>
 
 	<div class="header-container">
-        <button id="menuBtn" class="header-btn header-btn-left">
+        <button id="menuBtn" class="header-btn header-btn-left" aria-label="選單">
             <span id="menuIcon">≡</span>
         </button>
         <h1>小朋友專用計算機</h1>
-        <button id="toggleViewBtn" class="header-btn header-btn-right">
+        <button id="toggleViewBtn" class="header-btn header-btn-right" aria-label="切換視圖">
             <span id="toggleIcon">▼</span>
         </button>
     </div>
@@ -4834,8 +4861,9 @@
             // 綁定選單按鈕事件
             const menuBtn = document.getElementById('menuBtn');
             menuBtn.addEventListener('click', function() {
+                // 移除任何影響按鈕位置的代碼
                 openMainMenu();
-                vibrate(); // 使用現有的震動函數
+                vibrate();
             });
             
             // 點擊背景關閉選單
