@@ -43,21 +43,36 @@
 		--button-grey: #333333;
     }
 
+    /* 添加在現有的:root選擇器下方，約在第45行左右 */
+    /* 白白主題 */
+    :root[data-theme="white"] {
+        --primary-color: #f5f5f5;      /* 主色調：淺灰近白 */
+        --secondary-color: #ffffff;     /* 次色調：純白 */
+        --text-color: #333333;          /* 文字色：深灰 */
+        --border-color: #dddddd;        /* 邊框色：淺灰 */
+        --hover-color: #eeeeee;         /* 懸停色：淺灰 */
+        --shadow-color: rgba(0, 0, 0, 0.1); /* 陰影色：淺黑透明 */
+        --button-orange: #ff9c33;       /* 保留橙色按鈕 */
+        --button-blue: #33b5e5;         /* 保留藍色按鈕 */
+        --button-grey: #f0f0f0;         /* 調整灰色按鈕為更淺的灰 */
+        background-color: #f5f5f5;
+    }
+
     /* 修改現有的基礎樣式，添加動畫效果 */
 
     html, body {
-    	width: 100%;           /* 改為100%寬度 */
-    	max-width: 400px;      /* 設定最大寬度 */
-    	margin: 0 auto;
+        width: 100%;           /* 改為100%寬度 */
+        max-width: 400px;      /* 設定最大寬度 */
+        margin: 0 auto;
         position: relative; /* 添加这行 */
-    	overflow-x: hidden;
-    	-webkit-text-size-adjust: 100%;
-    	padding: 0 3px;       /* 增加左右padding */
-    	background-color: #333333;
-    	color: var(--text-color);
-    	font-family: "Microsoft JhengHei", Arial, sans-serif;
-    	box-sizing: border-box; /* 添加這行 */
-	}
+        overflow-x: hidden;
+        -webkit-text-size-adjust: 100%;
+        padding: 0 3px;       /* 增加左右padding */
+        background-color: var(--primary-color);
+        color: var(--text-color);
+        font-family: "Microsoft JhengHei", Arial, sans-serif;
+        box-sizing: border-box; /* 添加這行 */
+    }
 
     h1 {
         color: var(--text-color);
@@ -700,6 +715,7 @@
 		color: var(--text-color);
 		border-color: var(--button-orange);
 	}
+
 	.function-buttons button:hover::after {
         transform: translate(-50%, -50%) scale(2);
     }
@@ -709,24 +725,25 @@
 		color: var(--button-orange);
 		border-color: var(--button-orange);
 	}
+
 	.footer-message {
-		background-color: #333333;
-		color: var(--text-color);
-		padding: 15px;
-		text-align: center;
-		margin-top: 15px;
-		border-radius: 4px;
-		transform: scale(1.05);
+        background-color: var(--primary-color);
+        color: var(--text-color);
+        padding: 15px;
+        text-align: center;
+        margin-top: 15px;
+        border-radius: 4px;
+        transform: scale(1.05);
         text-shadow: 0 0 10px var(--button-orange);
-		transition: all 0.3s ease;
-    	position: relative;
-	}
+        transition: all 0.3s ease;
+        position: relative;
+    }
 
 	.footer-spacing {
-		background-color: #333333;
-		height: 50px;
-		margin-top: 0px;
-	}
+        background-color: var(--primary-color);
+        height: 50px;
+        margin-top: 0px;
+    }
 
 	.footer-message::before {
 		content: '🍚';
@@ -2215,6 +2232,190 @@
         .menu-content, .submenu-content {
             width: 85%; /* 更寬的比例 */
         }
+    }
+
+    /* 添加在CSS的最後，在最後的樣式規則之後（約在1860行左右） */
+
+    /* 白色主題特定調整 */
+    :root[data-theme="white"] .row {
+        background: var(--secondary-color);
+        box-shadow: 0 2px 5px var(--shadow-color);
+    }
+
+    :root[data-theme="white"] .input-button-group {
+        background: var(--secondary-color);
+        border: 1px solid var(--border-color);
+    }
+
+    :root[data-theme="white"] input {
+        background-color: #ffffff;
+        border: 1px solid #dddddd;
+        color: #333333;
+    }
+
+    :root[data-theme="white"] .time-display-wrapper,
+    :root[data-theme="white"] #timeDisplay,
+    :root[data-theme="white"] .footer-message {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+    }
+
+    :root[data-theme="white"] .sticky-header {
+        background: var(--secondary-color);
+    }
+
+    :root[data-theme="white"] .time-label {
+        color: var(--button-orange);
+    }
+
+    :root[data-theme="white"] .function-buttons button {
+        background-color: #ffffff;
+        color: #333333;
+        border-color: var(--button-orange);
+    }
+
+    :root[data-theme="white"] button {
+        background-color: #ffffff;
+        color: #555555;
+    }
+
+    :root[data-theme="white"] body {
+        background-color: #f5f5f5;
+    }
+
+    :root[data-theme="white"] h1 {
+        color: #333333;
+    }
+
+    :root[data-theme="white"] .toast-message {
+        background-color: rgba(51, 181, 229, 0.9);
+        color: white;
+    }
+
+    :root[data-theme="white"] .toast-error {
+        background-color: rgba(231, 76, 60, 0.9);
+        color: white;
+    }
+
+    :root[data-theme="white"] .readonly {
+        background-color: #f0f0f0;
+    }
+
+    :root[data-theme="white"] .warning-text {
+        color: #d9534f !important;
+    }
+
+    /* 調整模態框在白色主題下的樣式 */
+    :root[data-theme="white"] .modal-container,
+    :root[data-theme="white"] .modal-header,
+    :root[data-theme="white"] .modal-content,
+    :root[data-theme="white"] .modal-footer {
+        background-color: #ffffff;
+        color: #333333;
+    }
+
+    :root[data-theme="white"] .modal-btn-secondary {
+        background-color: #f0f0f0;
+        color: #333333;
+    }
+
+    /* 調整計算器在白色主題下的樣式 */
+    :root[data-theme="white"] .calculator-display-container {
+        background-color: #f9f9f9;
+        border: 1px solid #dddddd;
+    }
+
+    :root[data-theme="white"] .calculator-history {
+        color: #666666;
+        background: linear-gradient(to bottom, #f0f0f0, #f9f9f9);
+    }
+
+    :root[data-theme="white"] .calculator-display {
+        background-color: #ffffff;
+        color: #333333;
+    }
+
+    :root[data-theme="white"] .calculator-buttons button {
+        background-color: #f5f5f5;
+        color: #333333;
+        border: 1px solid #dddddd;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .number-btn .arabic-number {
+        color: #333333;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .operator {
+        background-color: var(--button-orange);
+        color: white;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .clear {
+        background-color: #d9534f;
+        color: white;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .equals {
+        background-color: var(--button-blue);
+        color: white;
+    }
+
+    /* 調整歷史記錄面板在白色主題下的樣式 */
+    :root[data-theme="white"] .history-panel {
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+
+    :root[data-theme="white"] .history-header {
+        background-color: #ffffff;
+        border-bottom: 2px solid var(--button-orange);
+    }
+
+    :root[data-theme="white"] .history-header h2 {
+        color: var(--button-orange);
+    }
+
+    :root[data-theme="white"] .history-item {
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    :root[data-theme="white"] .history-details {
+        background-color: #f9f9f9;
+    }
+
+    :root[data-theme="white"] .detail-label {
+        color: #666666;
+    }
+
+    :root[data-theme="white"] .detail-value {
+        color: #333333;
+    }
+
+    :root[data-theme="white"] .history-date {
+        color: var(--button-orange);
+    }
+
+    :root[data-theme="white"] .menu-container,
+    :root[data-theme="white"] .menu-content,
+    :root[data-theme="white"] .submenu-container,
+    :root[data-theme="white"] .submenu-content {
+        background-color: #ffffff;
+    }
+
+    :root[data-theme="white"] .menu-item,
+    :root[data-theme="white"] .submenu-item {
+        color: #333333;
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    :root[data-theme="white"] .menu-header h3,
+    :root[data-theme="white"] .submenu-header h3 {
+        color: var(--button-orange);
+    }
+
+    :root[data-theme="white"] .version-info {
+        color: #999999;
+        background-color: #f5f5f5;
     }
 
 </style>
@@ -4963,6 +5164,43 @@
             vibrate(); // 觸發震動
         }
 
+        // 添加主題切換功能
+        function switchTheme(themeName) {
+            // 先移除舊有任何主題數據
+            document.documentElement.removeAttribute('data-theme');
+            
+            // 如果選擇的不是預設主題，則設定新主題
+            if (themeName !== 'default') {
+                document.documentElement.setAttribute('data-theme', themeName);
+            }
+            
+            // 保存主題設置到localStorage
+            localStorage.setItem('selectedTheme', themeName);
+            
+            // 提供反饋
+            showToast('已套用「' + getThemeName(themeName) + '」主題');
+            
+            // 觸發震動反饋
+            vibrate();
+        }
+
+        // 根據主題代碼返回顯示名稱
+        function getThemeName(themeCode) {
+            switch(themeCode) {
+                case 'default': return '主題黑';
+                case 'white': return '白白';
+                default: return themeCode;
+            }
+        }
+
+        // 頁面加載時恢復保存的主題
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                switchTheme(savedTheme);
+            }
+        });
+
     </script>
 
     <!-- 報價卡片模板 -->
@@ -5086,8 +5324,8 @@
                 <h3>外觀</h3>
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="showDevelopingToast()">主題黑</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">白白</li>
+                <li class="submenu-item" onclick="switchTheme('default')">主題黑</li>
+                <li class="submenu-item" onclick="switchTheme('white')">白白</li> 
                 <li class="submenu-item" onclick="showDevelopingToast()">粉白</li>
                 <li class="submenu-item" onclick="showDevelopingToast()">黑紅</li>
                 <li class="submenu-item" onclick="showDevelopingToast()">藍紫</li>
