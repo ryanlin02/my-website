@@ -1553,60 +1553,6 @@
         background-color: rgba(231, 76, 60, 0.9);
     }
 
-    .toggle-view-btn {
-        position: absolute;
-        right: 10px;
-        top: 40%;            /* 從 50% 改為 40%，讓按鈕位置上移 */
-        transform: translateY(-50%);
-        background-color: rgba(74, 74, 74, 0.8);   /* 改為半透明深灰色，更低調 */
-        color: #cccccc;      /* 改為淺灰色，不使用橘色，更低調 */
-        border: 1px solid #555555;  /* 使用灰色邊框而非橘色 */
-        border-radius: 50%;
-        width: 22px;         /* 稍微縮小尺寸 */
-        height: 22px;        /* 稍微縮小尺寸 */
-        font-size: 10px;     /* 縮小圖標大小 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);  /* 減輕陰影效果 */
-        overflow: hidden;    /* 確保效果在按鈕內部 */
-        opacity: 0.7;        /* 增加透明度，使其更低調 */
-    }
-
-    .toggle-view-btn:hover {
-        background-color: rgba(100, 100, 100, 0.8);  /* 改為灰色調 */
-        transform: translateY(-50%) scale(1.05);     /* 縮小放大效果 */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 減輕陰影效果 */
-        opacity: 1;                                  /* 懸停時不透明 */
-        color: #ffffff;                              /* 懸停時文字變白 */
-    }
-
-    .toggle-view-btn:active {
-        transform: translateY(-50%) scale(0.95);
-    }
-
-    /* 添加按鈕波紋動畫效果 */
-    .toggle-view-btn::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle, rgba(200, 200, 200, 0.4) 0%, rgba(200, 200, 200, 0) 70%);  /* 改為灰色調 */
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0);
-        border-radius: 50%;
-        transition: transform 0.4s ease, opacity 0.4s ease;  /* 稍微加快動畫 */
-    }
-
-    .toggle-view-btn:hover::after {
-        opacity: 0.2;  /* 降低不透明度 */
-        transform: translate(-50%, -50%) scale(1.3);  /* 縮小效果範圍 */
-    }
-
     /* 添加箭頭旋轉動畫 */
     #toggleIcon {
         display: inline-block;
@@ -1654,6 +1600,93 @@
         transition: all 0.3s ease-in-out;
         overflow: hidden !important;
     }
+
+    /* 標題容器 */
+    .header-container {
+        text-align: center;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 0;
+    }
+
+    /* 統一的標題按鈕樣式 */
+    .header-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: transparent;
+        color: #888888;
+        border: none;
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        opacity: 0.7;
+        z-index: 100;
+        padding: 0;
+    }
+
+    .header-btn:hover {
+        color: var(--button-orange);
+        opacity: 1;
+    }
+
+    .header-btn:active {
+        transform: translateY(-50%) scale(0.9);
+    }
+
+    /* 左側按鈕位置 */
+    .header-btn-left {
+        left: 8px;
+    }
+
+    /* 右側按鈕位置 */
+    .header-btn-right {
+        right: 8px;
+    }
+
+    /* 調整標題樣式，確保與按鈕不重疊 */
+    h1 {
+        color: var(--text-color);
+        font-size: 22px;
+        margin: 0;
+        padding: 0 36px 5px;
+        border-bottom: 2px solid var(--button-orange);
+        position: relative;
+        transition: all 0.3s ease;
+        text-align: center;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+}
+
+/* 響應式調整 */
+@media screen and (min-width: 768px) {
+    .header-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+    }
+    
+    .header-btn-left {
+        left: 12px;
+    }
+    
+    .header-btn-right {
+        right: 12px;
+    }
+    
+    h1 {
+        padding: 0 42px 5px;
+    }
+}
 
     /* 添加縮放和淡入淡出效果 */
     @keyframes smoothFadeIn {
@@ -1897,41 +1930,6 @@
         }
     }
 
-    /* 選單按鈕樣式 */
-    .menu-btn {
-        position: absolute;
-        left: 8px;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: transparent; /* 移除背景 */
-        color: #888888; /* 更淡的顏色 */
-        border: none; /* 移除邊框 */
-        border-radius: 0; /* 移除圓角 */
-        width: 24px; /* 縮小按鈕大小 */
-        height: 24px; /* 縮小按鈕大小 */
-        font-size: 16px; /* 縮小圖標大小 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: none; /* 移除陰影 */
-        overflow: hidden;
-        opacity: 0.7;
-        z-index: 2000;
-        padding: 0; /* 移除內邊距 */
-    }
-
-    .menu-btn:hover {
-        color: var(--button-orange); /* 懸停時使用橙色 */
-        opacity: 1;
-        transform: translateY(-50%); /* 移除放大效果 */
-    }
-
-    .menu-btn:active {
-        transform: translateY(-50%) scale(0.9);
-    }
-
     /* 選單容器樣式 */
     .menu-container {
         position: fixed;
@@ -1948,20 +1946,37 @@
 
     .menu-content {
         background-color: var(--primary-color);
-        width: 75%; /* 手機上的預設寬度 */
-        max-width: 300px; /* 設置最大寬度，避免在大螢幕上過寬 */
-        height: 100%; /* 佔據整個高度 */
+        width: 75%;
+        max-width: 300px;
+        height: 100%;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         overflow: hidden;
-        animation: slideInMenu 0.3s ease-out;
-        transform-origin: top left;
+        animation: slideInMenuFromLeft 0.25s ease-out;
         display: flex;
-        flex-direction: column; /* 使用垂直方向的 flex 佈局 */
+        flex-direction: column;
+        transform-origin: left;
     }
 
-    @keyframes slideInMenu {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
+    @keyframes slideInMenuFromLeft {
+        from { 
+            transform: translateX(-100%); 
+            opacity: 0.5; 
+        }
+        to { 
+            transform: translateX(0); 
+            opacity: 1; 
+        }
+    }
+
+    @keyframes slideOutMenuToLeft {
+        from { 
+            transform: translateX(0); 
+            opacity: 1; 
+        }
+        to { 
+            transform: translateX(-100%); 
+            opacity: 0; 
+        }
     }
 
     .menu-header {
@@ -2057,15 +2072,23 @@
 
     .submenu-content {
         background-color: var(--primary-color);
-        width: 75%; /* 手機上的預設寬度 */
-        max-width: 300px; /* 設置最大寬度，避免在大螢幕上過寬 */
-        height: 100%; /* 佔據整個高度 */
+        width: 75%;
+        max-width: 300px;
+        height: 100%;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         overflow: hidden;
-        animation: slideInMenu 0.3s ease-out;
-        transform-origin: top left;
+        animation: slideInMenuFromLeft 0.25s ease-out;
         display: flex;
-        flex-direction: column; /* 使用垂直方向的 flex 佈局 */
+        flex-direction: column;
+        transform-origin: left;
+    }
+
+    .menu-closing {
+        animation: slideOutMenuToLeft 0.2s ease-out forwards;
+    }
+
+    .submenu-closing {
+        animation: slideOutMenuToLeft 0.2s ease-out forwards;
     }
 
     .submenu-header {
@@ -2181,12 +2204,12 @@
 </head>
 <body>
 
-	<div style="text-align: center; position: relative;">
-        <button id="menuBtn" class="menu-btn">
-            <span id="menuIcon">≡</span> <!-- 更改為更簡單的三條線圖標 -->
+	<div class="header-container">
+        <button id="menuBtn" class="header-btn header-btn-left">
+            <span id="menuIcon">≡</span>
         </button>
         <h1>小朋友專用計算機</h1>
-        <button id="toggleViewBtn" class="toggle-view-btn">
+        <button id="toggleViewBtn" class="header-btn header-btn-right">
             <span id="toggleIcon">▼</span>
         </button>
     </div>
@@ -4843,20 +4866,30 @@
         // 關閉主選單
         function closeMainMenu() {
             const mainMenuContainer = document.getElementById('mainMenuContainer');
-            mainMenuContainer.style.display = 'none';
+            const menuContent = mainMenuContainer.querySelector('.menu-content');
             
-            // 同時確保所有子選單也關閉
-            const submenus = document.querySelectorAll('.submenu-container');
-            submenus.forEach(function(submenu) {
-                submenu.style.display = 'none';
-            });
+            // 添加關閉動畫
+            menuContent.classList.add('menu-closing');
+            
+            // 動畫結束後隱藏選單
+            setTimeout(function() {
+                mainMenuContainer.style.display = 'none';
+                menuContent.classList.remove('menu-closing');
+                
+                // 同時確保所有子選單也關閉
+                const submenus = document.querySelectorAll('.submenu-container');
+                submenus.forEach(function(submenu) {
+                    submenu.style.display = 'none';
+                    submenu.querySelector('.submenu-content').classList.remove('submenu-closing');
+                });
+            }, 200); // 與動畫時長相匹配
             
             vibrate(); // 使用現有的震動函數
         }
-        
+
         // 打開子選單
         function openSubmenu(submenuId) {
-            // 先關閉主選單
+            // 先關閉主選單 (無動畫)
             document.getElementById('mainMenuContainer').style.display = 'none';
             
             // 打開指定的子選單
@@ -4865,21 +4898,40 @@
             
             vibrate(); // 使用現有的震動函數
         }
-        
+
         // 返回主選單
         function backToMainMenu(submenuId) {
             // 關閉當前子選單
-            document.getElementById(submenuId).style.display = 'none';
+            const submenu = document.getElementById(submenuId);
+            const submenuContent = submenu.querySelector('.submenu-content');
             
-            // 打開主選單
-            document.getElementById('mainMenuContainer').style.display = 'flex';
+            // 添加關閉動畫
+            submenuContent.classList.add('submenu-closing');
+            
+            // 動畫結束後隱藏子選單，顯示主選單
+            setTimeout(function() {
+                submenu.style.display = 'none';
+                submenuContent.classList.remove('submenu-closing');
+                document.getElementById('mainMenuContainer').style.display = 'flex';
+            }, 200); // 與動畫時長相匹配
             
             vibrate(); // 使用現有的震動函數
         }
-        
+
         // 關閉子選單
         function closeSubmenu(submenuId) {
-            document.getElementById(submenuId).style.display = 'none';
+            const submenu = document.getElementById(submenuId);
+            const submenuContent = submenu.querySelector('.submenu-content');
+            
+            // 添加關閉動畫
+            submenuContent.classList.add('submenu-closing');
+            
+            // 動畫結束後隱藏子選單
+            setTimeout(function() {
+                submenu.style.display = 'none';
+                submenuContent.classList.remove('submenu-closing');
+            }, 200); // 與動畫時長相匹配
+            
             vibrate(); // 使用現有的震動函數
         }
 
