@@ -2990,12 +2990,12 @@
                     
                     document.getElementById('shareModalOverlay').style.display = 'flex';
                     
-                    // 調整下載按鈕功能 - 在移動設備上提示用戶截屏
+                    // 調整下載按鈕功能 - 在移動設備上提示用戶截圖
                     const downloadBtn = document.getElementById('downloadBtn');
                     if (downloadBtn) {
-                        downloadBtn.textContent = '手動截屏';
+                        downloadBtn.textContent = '手動截圖';
                         downloadBtn.onclick = function() {
-                            showToast('請使用系統截屏功能保存圖片', false, 3000);
+                            showToast('請使用系統截圖功能保存圖片', false, 3000);
                         };
                     }
                     
@@ -3007,7 +3007,7 @@
                     
                     const shareStatus = document.getElementById('shareStatus');
                     if (shareStatus) {
-                        shareStatus.textContent = '請使用系統截屏功能保存此報價';
+                        shareStatus.textContent = '請使用系統截圖功能保存此報價';
                         shareStatus.style.color = '#ff9c33';
                     }
                     
@@ -3119,9 +3119,9 @@
         // 設置下載按鈕功能
         const downloadBtn = document.getElementById('downloadBtn');
         if (downloadBtn) {
-            downloadBtn.textContent = '手動截屏';
+            downloadBtn.textContent = '手動截圖';
             downloadBtn.onclick = function() {
-                showToast('請使用系統截屏功能保存圖片', false, 3000);
+                showToast('請使用系統截圖功能保存圖片', false, 3000);
             };
         }
         
@@ -3137,7 +3137,7 @@
         // 更新狀態訊息
         const shareStatus = document.getElementById('shareStatus');
         if (shareStatus) {
-            shareStatus.textContent = '請使用系統截屏功能保存此報價';
+            shareStatus.textContent = '請使用系統截圖功能保存此報價';
             shareStatus.style.color = '#ff9c33';
         }
     }
