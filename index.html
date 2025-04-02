@@ -1896,6 +1896,215 @@
         }
     }
 
+    /* 選單按鈕樣式 */
+    .menu-btn {
+        position: absolute;
+        left: 10px;
+        top: 40%;
+        transform: translateY(-50%);
+        background-color: rgba(74, 74, 74, 0.8);
+        color: #cccccc;
+        border: 1px solid #555555;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        opacity: 0.7;
+        z-index: 2000;
+    }
+
+    .menu-btn:hover {
+        background-color: rgba(100, 100, 100, 0.8);
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        opacity: 1;
+        color: #ffffff;
+    }
+
+    .menu-btn:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    /* 選單容器樣式 */
+    .menu-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 2500;
+        display: none;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .menu-content {
+        background-color: var(--primary-color);
+        width: 200px;
+        border-radius: 0 0 12px 0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        animation: slideInMenu 0.3s ease-out;
+        transform-origin: top left;
+    }
+
+    @keyframes slideInMenu {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .menu-header {
+        background-color: var(--secondary-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .menu-header h3 {
+        margin: 0;
+        color: var(--button-orange);
+        font-size: 18px;
+    }
+
+    .menu-close-btn {
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .menu-close-btn:hover {
+        color: var(--button-orange);
+        transform: scale(1.1);
+    }
+
+    .menu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .menu-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .menu-item:hover {
+        background-color: rgba(255, 156, 51, 0.1);
+    }
+
+    .menu-item:active {
+        background-color: rgba(255, 156, 51, 0.2);
+    }
+
+    .menu-item-arrow {
+        font-size: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    /* 子選單樣式 */
+    .submenu-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 2600;
+        display: none;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .submenu-content {
+        background-color: var(--primary-color);
+        width: 200px;
+        border-radius: 0 0 12px 0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        animation: slideInMenu 0.3s ease-out;
+        transform-origin: top left;
+    }
+
+    .submenu-header {
+        background-color: var(--secondary-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .submenu-header h3 {
+        margin: 0;
+        color: var(--button-orange);
+        font-size: 18px;
+    }
+
+    .submenu-back-btn {
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .submenu-back-btn:hover {
+        color: var(--button-orange);
+    }
+
+    .submenu-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .submenu-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .submenu-item:hover {
+        background-color: rgba(255, 156, 51, 0.1);
+    }
+
+    .submenu-item:active {
+        background-color: rgba(255, 156, 51, 0.2);
+    }
+
+    .version-info {
+        padding: 10px 15px;
+        font-size: 12px;
+        color: #666666;
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+        background-color: rgba(0, 0, 0, 0.1);
+    }
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1904,6 +2113,9 @@
 <body>
 
 	<div style="text-align: center; position: relative;">
+        <button id="menuBtn" class="menu-btn">
+            <span id="menuIcon">☰</span>
+        </button>
         <h1>小朋友專用計算機</h1>
         <button id="toggleViewBtn" class="toggle-view-btn">
             <span id="toggleIcon">▼</span>
@@ -4524,6 +4736,85 @@
         });
     </script>
 
+    <script>
+        // 選單功能控制
+        document.addEventListener('DOMContentLoaded', function() {
+            // 綁定選單按鈕事件
+            const menuBtn = document.getElementById('menuBtn');
+            menuBtn.addEventListener('click', function() {
+                openMainMenu();
+                vibrate(); // 使用現有的震動函數
+            });
+            
+            // 點擊背景關閉選單
+            const mainMenuContainer = document.getElementById('mainMenuContainer');
+            mainMenuContainer.addEventListener('click', function(event) {
+                if (event.target === this) {
+                    closeMainMenu();
+                }
+            });
+            
+            // 點擊背景關閉子選單
+            const submenus = document.querySelectorAll('.submenu-container');
+            submenus.forEach(function(submenu) {
+                submenu.addEventListener('click', function(event) {
+                    if (event.target === this) {
+                        closeSubmenu(this.id);
+                    }
+                });
+            });
+        });
+        
+        // 打開主選單
+        function openMainMenu() {
+            const mainMenuContainer = document.getElementById('mainMenuContainer');
+            mainMenuContainer.style.display = 'flex';
+        }
+        
+        // 關閉主選單
+        function closeMainMenu() {
+            const mainMenuContainer = document.getElementById('mainMenuContainer');
+            mainMenuContainer.style.display = 'none';
+            
+            // 同時確保所有子選單也關閉
+            const submenus = document.querySelectorAll('.submenu-container');
+            submenus.forEach(function(submenu) {
+                submenu.style.display = 'none';
+            });
+            
+            vibrate(); // 使用現有的震動函數
+        }
+        
+        // 打開子選單
+        function openSubmenu(submenuId) {
+            // 先關閉主選單
+            document.getElementById('mainMenuContainer').style.display = 'none';
+            
+            // 打開指定的子選單
+            const submenu = document.getElementById(submenuId);
+            submenu.style.display = 'flex';
+            
+            vibrate(); // 使用現有的震動函數
+        }
+        
+        // 返回主選單
+        function backToMainMenu(submenuId) {
+            // 關閉當前子選單
+            document.getElementById(submenuId).style.display = 'none';
+            
+            // 打開主選單
+            document.getElementById('mainMenuContainer').style.display = 'flex';
+            
+            vibrate(); // 使用現有的震動函數
+        }
+        
+        // 關閉子選單
+        function closeSubmenu(submenuId) {
+            document.getElementById(submenuId).style.display = 'none';
+            vibrate(); // 使用現有的震動函數
+        }
+    </script>
+
     <!-- 報價卡片模板 -->
     <div id="quoteCardTemplate" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background-color: #333333; padding: 20px; box-sizing: border-box;">
         <div id="quoteCard" style="width: 100%; max-width: 380px; margin: 0 auto; background-color: #333333; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: #ffffff; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); border: 2px solid #ff9c33;">
@@ -4595,6 +4886,83 @@
                     <div id="shareStatus" style="margin-top: 15px; color: #ff9c33; font-size: 14px;"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 主選單 -->
+    <div id="mainMenuContainer" class="menu-container">
+        <div class="menu-content">
+            <div class="menu-header">
+                <h3>主選單</h3>
+                <button class="menu-close-btn" onclick="closeMainMenu()">×</button>
+            </div>
+            <ul class="menu-list">
+                <li class="menu-item" onclick="openSubmenu('advancedSubmenu')">
+                    進階 <span class="menu-item-arrow">▶</span>
+                </li>
+                <li class="menu-item" onclick="openSubmenu('themeSubmenu')">
+                    外觀 <span class="menu-item-arrow">▶</span>
+                </li>
+                <li class="menu-item" onclick="openSubmenu('languageSubmenu')">
+                    語言 <span class="menu-item-arrow">▶</span>
+                </li>
+            </ul>
+            <div class="version-info">v2.14</div>
+        </div>
+    </div>
+
+    <!-- 進階子選單 -->
+    <div id="advancedSubmenu" class="submenu-container">
+        <div class="submenu-content">
+            <div class="submenu-header">
+                <button class="submenu-back-btn" onclick="backToMainMenu('advancedSubmenu')">
+                    ◀ 返回
+                </button>
+                <h3>進階</h3>
+            </div>
+            <ul class="submenu-list">
+                <li class="submenu-item">開發中</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 外觀子選單 -->
+    <div id="themeSubmenu" class="submenu-container">
+        <div class="submenu-content">
+            <div class="submenu-header">
+                <button class="submenu-back-btn" onclick="backToMainMenu('themeSubmenu')">
+                    ◀ 返回
+                </button>
+                <h3>外觀</h3>
+            </div>
+            <ul class="submenu-list">
+                <li class="submenu-item">主題黑</li>
+                <li class="submenu-item">白白</li>
+                <li class="submenu-item">粉白</li>
+                <li class="submenu-item">黑紅</li>
+                <li class="submenu-item">藍紫</li>
+                <li class="submenu-item">白綠</li>
+                <li class="submenu-item">藍白</li>
+                <li class="submenu-item">紫金</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 語言子選單 -->
+    <div id="languageSubmenu" class="submenu-container">
+        <div class="submenu-content">
+            <div class="submenu-header">
+                <button class="submenu-back-btn" onclick="backToMainMenu('languageSubmenu')">
+                    ◀ 返回
+                </button>
+                <h3>語言</h3>
+            </div>
+            <ul class="submenu-list">
+                <li class="submenu-item">中文</li>
+                <li class="submenu-item">英文</li>
+                <li class="submenu-item">菲律賓</li>
+                <li class="submenu-item">日文</li>
+            </ul>
         </div>
     </div>
 
