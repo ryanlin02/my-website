@@ -1896,6 +1896,46 @@
         }
     }
 
+    .sticky-title {
+        position: sticky;
+        top: 0;
+        background-color: #333333;
+        z-index: 1000;
+        padding: 5px 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    .title-container {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        background-color: #333333;
+        z-index: 1001;
+        padding: 10px 0 5px 0;
+        text-align: center;
+        width: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .title-container h1 {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .title-container.is-sticky {
+        background-color: rgba(51, 51, 51, 0.95);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        padding: 5px 0;
+    }
+
+    .title-container.is-sticky h1 {
+        font-size: 20px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+        transition: all 0.3s ease;
+    }
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1903,7 +1943,7 @@
 </head>
 <body>
 
-	<div style="text-align: center; position: relative;">
+	<div id="titleContainer" class="title-container">
         <h1>小朋友專用計算機</h1>
         <button id="toggleViewBtn" class="toggle-view-btn">
             <span id="toggleIcon">▼</span>
@@ -2493,7 +2533,7 @@
         try {
             // 限制極端值
             const safeRate = Math.min(Math.max(rate, 0.0001), 50); // 限制利率在合理範圍內
-            const safePeriod = Math.min(Math.max(period, 1), 600); // 限制期數不超過50年
+            const safePeriod = Math.min(Math.max(period, 1), 999); // 限制期數不超過999期
             
             const payment = PMT(safeRate, safePeriod, principal);
             
@@ -2549,6 +2589,61 @@
             totalInterestField.value = '';
         }
 
+        // 在此段代碼後添加以下內容
+        // 跨欄位關聯驗證：檢查期繳與本金的合理關係
+        if (hasAllRequiredValues) {
+            // 計算期繳占本金的百分比
+            const paymentToPrincipalRatio = (payment / principal) * 100;
+            
+            // 檢查期繳是否超過本金的10%（月付款過高警告）
+            if (paymentToPrincipalRatio > 10) {
+                const paymentInput = document.getElementById('payment');
+                paymentInput.classList.add('warning-text');
+                if (countFilledFields() >= 3) {
+                    showToast('警告：月付款金額偏高，占本金的' + paymentToPrincipalRatio.toFixed(2) + '%', true);
+                }
+            } else {
+                document.getElementById('payment').classList.remove('warning-text');
+            }
+            
+            // 檢查期繳是否過低（低於本金的0.1%可能不足以償還貸款）
+            if (paymentToPrincipalRatio < 0.1) {
+                const paymentInput = document.getElementById('payment');
+                paymentInput.classList.add('warning-text');
+                if (countFilledFields() >= 3) {
+                    showToast('警告：月付款金額偏低，可能無法在合理期間內償還貸款', true);
+                }
+            }
+        }
+
+        // 在剛才添加的代碼後繼續添加
+        // 跨欄位關聯驗證：檢查期數與利率的合理組合
+        if (hasAllRequiredValues) {
+            // 高利率短期貸款通常不合理
+            if (rate > 15 && period > 60) {
+                const periodInput = document.getElementById('period');
+                periodInput.classList.add('warning-text');
+                const rateInput = document.getElementById('rate');
+                rateInput.classList.add('warning-text');
+                
+                if (countFilledFields() >= 3) {
+                    showToast('警告：高利率(' + rate + '%)與長期貸款(' + period + '期)組合異常', true);
+                }
+            }
+            
+            // 極低利率長期貸款檢查
+            if (rate < 1 && period > 120) {
+                const periodInput = document.getElementById('period');
+                periodInput.classList.add('warning-text');
+                const rateInput = document.getElementById('rate');
+                rateInput.classList.add('warning-text');
+                
+                if (countFilledFields() >= 3) {
+                    showToast('警告：極低利率與超長期貸款組合不常見，請確認', true);
+                }
+            }
+        }
+
         // 計算稅金 - 同樣需要檢查總利息是否已計算
         const taxField = document.getElementById('tax');
         if (hasAllRequiredValues) {
@@ -2587,12 +2682,14 @@
         const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
         document.getElementById('commission').value = formatNumberWithCommas(Math.round(commission));
         
-        // 檢查佣金是否超過總利息的95%
+        // 檢查佣金是否超過總利息的45%
         const commissionInput = document.getElementById('commission');
         if (hasAllRequiredValues) {
             const totalInterest = (payment * period) - principal;
-            if (commission >= totalInterest * 0.95) {
+            if (commission >= totalInterest * 0.45) {
                 commissionInput.classList.add('warning-text');
+                // 新增警告提示
+                showToast('請注意推廣費與總利息比例！', true);
             } else {
                 commissionInput.classList.remove('warning-text');
             }
@@ -2814,9 +2911,15 @@
 
     function setRate(value) {
         vibrate();
+        
         // 檢查新利率是否超過20%
         if (value > 20) {
             showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
+        }
+        
+        // 檢查新利率是否過低
+        if (value < 0.5) {
+            showToast('注意：利率低於0.5%，請確認是否正確', true);
         }
         
         document.getElementById('rate').value = value;
@@ -4021,11 +4124,11 @@
                 // 期数不需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
-                    showToast('错误：期数不能为负数', true);
+                    showToast('錯誤：期數不能為負數', true);
                     return;
                 }
-                if (value > 99) {
-                    showToast('错误：期数不能超过2位数', true);
+                if (value > 999) {
+                    showToast('錯誤：期數不能超過3位數', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = value;
@@ -4034,7 +4137,7 @@
                 case 'rate':
                     // 利率不需要千位分隔符
                     if (value < 0) {
-                        showToast('错误：利率不能为负数', true);
+                        showToast('錯誤：利率不能為負數', true);
                         return;
                     }
                     if (value > 20) {
@@ -4048,11 +4151,11 @@
                 // 本金需要千位分隔符并且只能是正整数
                 value = Math.floor(value); // 确保是整数
                 if (value <= 0) {
-                    showToast('错误：本金必须是正整数', true);
+                    showToast('錯誤：本金必須是正整數', true);
                     return;
                 }
                 if (value > 999999999) {
-                    showToast('错误：本金不能超过9位数', true);
+                    showToast('錯誤：本金不能超過9位數', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
@@ -4062,7 +4165,7 @@
                 // 期繳必须是正整数
                 value = Math.max(1, Math.round(value)); // 改為取整數
                 if (value > 999999) {
-                    showToast('错误：期繳不能超过6位数', true);
+                    showToast('錯誤：期繳款金額不能超過6位數', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
@@ -4072,11 +4175,11 @@
                 // 推廣需要千位分隔符
                 value = Math.floor(value);
                 if (value < 0) {
-                    showToast('错误：推廣费不能为负数', true);
+                    showToast('錯誤：推廣費必須為正整數', true);
                     return;
                 }
                 if (value > 999999) {
-                    showToast('错误：推廣费不能超过6位数', true);
+                    showToast('錯誤：推廣費不能超過6位數', true);
                     return;
                 }
                 document.getElementById(currentInputField).value = formatNumberWithCommas(value);
@@ -4173,35 +4276,49 @@
 
     </script>
 	
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.body.classList.add('loaded');
-    });
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('loaded');
+        });
+    </script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const header = document.querySelector('.sticky-header');
-    const h1Element = document.querySelector('h1');
-    
-    if (!header || !h1Element) return; // 添加检查
-
-    window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        const headerRect = header.getBoundingClientRect();
-        const h1Rect = h1Element.getBoundingClientRect();
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const header = document.querySelector('.sticky-header');
+        const h1Element = document.querySelector('h1');
         
-        // 使用更精确的条件判断
-        if (scrollTop > header.offsetTop) {
-            header.classList.add('is-sticky');
-            if (h1Rect.bottom > 0) {
+        if (!header || !h1Element) return; // 添加检查
+
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const headerRect = header.getBoundingClientRect();
+            const h1Rect = h1Element.getBoundingClientRect();
+            
+            // 使用更精确的条件判断
+            if (scrollTop > header.offsetTop) {
+                header.classList.add('is-sticky');
+                if (h1Rect.bottom > 0) {
+                    header.classList.remove('is-sticky');
+                }
+            } else {
                 header.classList.remove('is-sticky');
             }
-        } else {
-            header.classList.remove('is-sticky');
-        }
-    });
-    });
+        });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleContainer = document.getElementById('titleContainer');
+            
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 10) {
+                    titleContainer.classList.add('is-sticky');
+                } else {
+                    titleContainer.classList.remove('is-sticky');
+                }
+            });
+        });
     </script>
 
     <script>
