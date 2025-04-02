@@ -64,14 +64,16 @@
         font-size: 22px;
         margin-bottom: 0px;
         border-bottom: 2px solid var(--button-orange);
-        padding-bottom: 5px;
-		position: relative;
-		transition: all 0.3s ease;
+        padding: 0 24px 5px; /* 添加左右內邊距，保留底部內邊距 */
+        position: relative;
+        transition: all 0.3s ease;
     }
+
     h1:hover {
         transform: translateY(-2px);
         text-shadow: 0 2px 4px rgba(255, 156, 51, 0.3);
     }
+
     h1::after {
         content: '';
         position: absolute;
@@ -89,7 +91,6 @@
         transform: scaleX(1);
         transform-origin: left;
     }
-		
 
     .row {
         margin: 4px 0;
@@ -1899,37 +1900,36 @@
     /* 選單按鈕樣式 */
     .menu-btn {
         position: absolute;
-        left: 10px;
-        top: 40%;
+        left: 8px;
+        top: 50%;
         transform: translateY(-50%);
-        background-color: rgba(74, 74, 74, 0.8);
-        color: #cccccc;
-        border: 1px solid #555555;
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        font-size: 16px;
+        background-color: transparent; /* 移除背景 */
+        color: #888888; /* 更淡的顏色 */
+        border: none; /* 移除邊框 */
+        border-radius: 0; /* 移除圓角 */
+        width: 24px; /* 縮小按鈕大小 */
+        height: 24px; /* 縮小按鈕大小 */
+        font-size: 16px; /* 縮小圖標大小 */
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+        box-shadow: none; /* 移除陰影 */
         overflow: hidden;
         opacity: 0.7;
         z-index: 2000;
+        padding: 0; /* 移除內邊距 */
     }
 
     .menu-btn:hover {
-        background-color: rgba(100, 100, 100, 0.8);
-        transform: translateY(-50%) scale(1.05);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        color: var(--button-orange); /* 懸停時使用橙色 */
         opacity: 1;
-        color: #ffffff;
+        transform: translateY(-50%); /* 移除放大效果 */
     }
 
     .menu-btn:active {
-        transform: translateY(-50%) scale(0.95);
+        transform: translateY(-50%) scale(0.9);
     }
 
     /* 選單容器樣式 */
@@ -1948,12 +1948,15 @@
 
     .menu-content {
         background-color: var(--primary-color);
-        width: 200px;
-        border-radius: 0 0 12px 0;
+        width: 75%; /* 手機上的預設寬度 */
+        max-width: 300px; /* 設置最大寬度，避免在大螢幕上過寬 */
+        height: 100%; /* 佔據整個高度 */
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         overflow: hidden;
         animation: slideInMenu 0.3s ease-out;
         transform-origin: top left;
+        display: flex;
+        flex-direction: column; /* 使用垂直方向的 flex 佈局 */
     }
 
     @keyframes slideInMenu {
@@ -1991,13 +1994,15 @@
     }
 
     .menu-list {
-        list-style: none;
-        padding: 0;
+        flex: 1;
+        overflow-y: auto;
         margin: 0;
+        padding: 0;
+        list-style: none;
     }
 
     .menu-item {
-        padding: 12px 15px;
+        padding: 16px 20px; /* 增加內邊距 */
         border-bottom: 1px solid var(--border-color);
         color: var(--text-color);
         cursor: pointer;
@@ -2005,6 +2010,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        font-size: 18px; /* 增加字體大小 */
     }
 
     .menu-item:hover {
@@ -2018,6 +2024,21 @@
     .menu-item-arrow {
         font-size: 12px;
         transition: transform 0.3s ease;
+    }
+
+    /* 添加分隔線效果 */
+    .menu-item, .submenu-item {
+        position: relative;
+    }
+
+    .menu-item:after, .submenu-item:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 15px;
+        right: 15px;
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--border-color), transparent);
     }
 
     /* 子選單樣式 */
@@ -2036,12 +2057,15 @@
 
     .submenu-content {
         background-color: var(--primary-color);
-        width: 200px;
-        border-radius: 0 0 12px 0;
+        width: 75%; /* 手機上的預設寬度 */
+        max-width: 300px; /* 設置最大寬度，避免在大螢幕上過寬 */
+        height: 100%; /* 佔據整個高度 */
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
         overflow: hidden;
         animation: slideInMenu 0.3s ease-out;
         transform-origin: top left;
+        display: flex;
+        flex-direction: column; /* 使用垂直方向的 flex 佈局 */
     }
 
     .submenu-header {
@@ -2056,7 +2080,15 @@
     .submenu-header h3 {
         margin: 0;
         color: var(--button-orange);
-        font-size: 18px;
+        font-size: 22px; /* 增加字體大小 */
+        font-weight: bold; /* 增加字體粗細 */
+    }
+
+    .menu-header h3 {
+        margin: 0;
+        color: var(--button-orange);
+        font-size: 22px; /* 增加字體大小 */
+        font-weight: bold; /* 增加字體粗細 */
     }
 
     .submenu-back-btn {
@@ -2075,17 +2107,20 @@
     }
 
     .submenu-list {
-        list-style: none;
-        padding: 0;
+        flex: 1;
+        overflow-y: auto;
         margin: 0;
+        padding: 0;
+        list-style: none;
     }
 
     .submenu-item {
-        padding: 12px 15px;
+        padding: 16px 20px; /* 增加內邊距 */
         border-bottom: 1px solid var(--border-color);
         color: var(--text-color);
         cursor: pointer;
         transition: all 0.3s ease;
+        font-size: 18px; /* 增加字體大小 */
     }
 
     .submenu-item:hover {
@@ -2097,12 +2132,46 @@
     }
 
     .version-info {
-        padding: 10px 15px;
-        font-size: 12px;
+        padding: 15px;
+        font-size: 14px;
         color: #666666;
         text-align: center;
         border-top: 1px solid var(--border-color);
         background-color: rgba(0, 0, 0, 0.1);
+        margin-top: auto; /* 將版本信息推到底部 */
+    }
+
+    /* 響應式設計 */
+    @media screen and (min-width: 768px) {
+        /* 平板及以上設備 */
+        .menu-content, .submenu-content {
+            width: 320px; /* 固定寬度 */
+        }
+    }
+
+    @media screen and (min-width: 1024px) {
+    /* 桌面設備 */
+        .menu-btn {
+            width: 24px; /* 保持一致的大小 */
+            height: 24px;
+            font-size: 18px; /* 稍微大一點的字體 */
+            left: 12px; /* 調整位置 */
+        }
+        
+        .menu-item, .submenu-item {
+            padding: 14px 18px; /* 調整內邊距 */
+        }
+        
+        .menu-header h3, .submenu-header h3 {
+            font-size: 20px; /* 調整標題大小 */
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        /* 小型手機 */
+        .menu-content, .submenu-content {
+            width: 85%; /* 更寬的比例 */
+        }
     }
 
 </style>
@@ -2114,7 +2183,7 @@
 
 	<div style="text-align: center; position: relative;">
         <button id="menuBtn" class="menu-btn">
-            <span id="menuIcon">☰</span>
+            <span id="menuIcon">≡</span> <!-- 更改為更簡單的三條線圖標 -->
         </button>
         <h1>小朋友專用計算機</h1>
         <button id="toggleViewBtn" class="toggle-view-btn">
@@ -4813,6 +4882,14 @@
             document.getElementById(submenuId).style.display = 'none';
             vibrate(); // 使用現有的震動函數
         }
+
+        // 顯示功能開發中提示
+        function showDevelopingToast() {
+            // 使用現有的 showToast 函數
+            showToast('功能開發中');
+            vibrate(); // 觸發震動
+        }
+
     </script>
 
     <!-- 報價卡片模板 -->
@@ -4896,7 +4973,7 @@
                 <h3>主選單</h3>
                 <button class="menu-close-btn" onclick="closeMainMenu()">×</button>
             </div>
-            <ul class="menu-list">
+            <ul class="menu-list" style="flex: 1; overflow-y: auto;">
                 <li class="menu-item" onclick="openSubmenu('advancedSubmenu')">
                     進階 <span class="menu-item-arrow">▶</span>
                 </li>
@@ -4907,7 +4984,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.14</div>
+            <div class="version-info">v2.19</div>
         </div>
     </div>
 
@@ -4920,8 +4997,8 @@
                 </button>
                 <h3>進階</h3>
             </div>
-            <ul class="submenu-list">
-                <li class="submenu-item">開發中</li>
+            <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
+                <li class="submenu-item" onclick="showDevelopingToast()">開發中</li>
             </ul>
         </div>
     </div>
@@ -4935,15 +5012,15 @@
                 </button>
                 <h3>外觀</h3>
             </div>
-            <ul class="submenu-list">
-                <li class="submenu-item">主題黑</li>
-                <li class="submenu-item">白白</li>
-                <li class="submenu-item">粉白</li>
-                <li class="submenu-item">黑紅</li>
-                <li class="submenu-item">藍紫</li>
-                <li class="submenu-item">白綠</li>
-                <li class="submenu-item">藍白</li>
-                <li class="submenu-item">紫金</li>
+            <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
+                <li class="submenu-item" onclick="showDevelopingToast()">主題黑</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">白白</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">粉白</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">黑紅</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">藍紫</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">白綠</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">藍白</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">紫金</li>
             </ul>
         </div>
     </div>
@@ -4957,11 +5034,11 @@
                 </button>
                 <h3>語言</h3>
             </div>
-            <ul class="submenu-list">
-                <li class="submenu-item">中文</li>
-                <li class="submenu-item">英文</li>
-                <li class="submenu-item">菲律賓</li>
-                <li class="submenu-item">日文</li>
+            <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
+                <li class="submenu-item" onclick="showDevelopingToast()">中文</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">英文</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">菲律賓</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">日文</li>
             </ul>
         </div>
     </div>
