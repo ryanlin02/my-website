@@ -1896,46 +1896,6 @@
         }
     }
 
-    .sticky-title {
-        position: sticky;
-        top: 0;
-        background-color: #333333;
-        z-index: 1000;
-        padding: 5px 0;
-        margin: 0;
-        width: 100%;
-    }
-
-    .title-container {
-        position: -webkit-sticky;
-        position: sticky;
-        top: 0;
-        background-color: #333333;
-        z-index: 1001;
-        padding: 10px 0 5px 0;
-        text-align: center;
-        width: 100%;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    .title-container h1 {
-        margin-top: 5px;
-        margin-bottom: 5px;
-    }
-
-    .title-container.is-sticky {
-        background-color: rgba(51, 51, 51, 0.95);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        padding: 5px 0;
-    }
-
-    .title-container.is-sticky h1 {
-        font-size: 20px;
-        margin-top: 2px;
-        margin-bottom: 2px;
-        transition: all 0.3s ease;
-    }
-
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1943,7 +1903,7 @@
 </head>
 <body>
 
-	<div id="titleContainer" class="title-container">
+	<div style="text-align: center; position: relative;">
         <h1>小朋友專用計算機</h1>
         <button id="toggleViewBtn" class="toggle-view-btn">
             <span id="toggleIcon">▼</span>
@@ -2589,61 +2549,6 @@
             totalInterestField.value = '';
         }
 
-        // 在此段代碼後添加以下內容
-        // 跨欄位關聯驗證：檢查期繳與本金的合理關係
-        if (hasAllRequiredValues) {
-            // 計算期繳占本金的百分比
-            const paymentToPrincipalRatio = (payment / principal) * 100;
-            
-            // 檢查期繳是否超過本金的10%（月付款過高警告）
-            if (paymentToPrincipalRatio > 10) {
-                const paymentInput = document.getElementById('payment');
-                paymentInput.classList.add('warning-text');
-                if (countFilledFields() >= 3) {
-                    showToast('警告：月付款金額偏高，占本金的' + paymentToPrincipalRatio.toFixed(2) + '%', true);
-                }
-            } else {
-                document.getElementById('payment').classList.remove('warning-text');
-            }
-            
-            // 檢查期繳是否過低（低於本金的0.1%可能不足以償還貸款）
-            if (paymentToPrincipalRatio < 0.1) {
-                const paymentInput = document.getElementById('payment');
-                paymentInput.classList.add('warning-text');
-                if (countFilledFields() >= 3) {
-                    showToast('警告：月付款金額偏低，可能無法在合理期間內償還貸款', true);
-                }
-            }
-        }
-
-        // 在剛才添加的代碼後繼續添加
-        // 跨欄位關聯驗證：檢查期數與利率的合理組合
-        if (hasAllRequiredValues) {
-            // 高利率短期貸款通常不合理
-            if (rate > 15 && period > 60) {
-                const periodInput = document.getElementById('period');
-                periodInput.classList.add('warning-text');
-                const rateInput = document.getElementById('rate');
-                rateInput.classList.add('warning-text');
-                
-                if (countFilledFields() >= 3) {
-                    showToast('警告：高利率(' + rate + '%)與長期貸款(' + period + '期)組合異常', true);
-                }
-            }
-            
-            // 極低利率長期貸款檢查
-            if (rate < 1 && period > 120) {
-                const periodInput = document.getElementById('period');
-                periodInput.classList.add('warning-text');
-                const rateInput = document.getElementById('rate');
-                rateInput.classList.add('warning-text');
-                
-                if (countFilledFields() >= 3) {
-                    showToast('警告：極低利率與超長期貸款組合不常見，請確認', true);
-                }
-            }
-        }
-
         // 計算稅金 - 同樣需要檢查總利息是否已計算
         const taxField = document.getElementById('tax');
         if (hasAllRequiredValues) {
@@ -2911,15 +2816,9 @@
 
     function setRate(value) {
         vibrate();
-        
         // 檢查新利率是否超過20%
         if (value > 20) {
             showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
-        }
-        
-        // 檢查新利率是否過低
-        if (value < 0.5) {
-            showToast('注意：利率低於0.5%，請確認是否正確', true);
         }
         
         document.getElementById('rate').value = value;
@@ -4276,49 +4175,35 @@
 
     </script>
 	
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.body.classList.add('loaded');
-        });
-    </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.classList.add('loaded');
+    });
+</script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        const header = document.querySelector('.sticky-header');
-        const h1Element = document.querySelector('h1');
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.sticky-header');
+    const h1Element = document.querySelector('h1');
+    
+    if (!header || !h1Element) return; // 添加检查
+
+    window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const headerRect = header.getBoundingClientRect();
+        const h1Rect = h1Element.getBoundingClientRect();
         
-        if (!header || !h1Element) return; // 添加检查
-
-        window.addEventListener('scroll', function() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const headerRect = header.getBoundingClientRect();
-            const h1Rect = h1Element.getBoundingClientRect();
-            
-            // 使用更精确的条件判断
-            if (scrollTop > header.offsetTop) {
-                header.classList.add('is-sticky');
-                if (h1Rect.bottom > 0) {
-                    header.classList.remove('is-sticky');
-                }
-            } else {
+        // 使用更精确的条件判断
+        if (scrollTop > header.offsetTop) {
+            header.classList.add('is-sticky');
+            if (h1Rect.bottom > 0) {
                 header.classList.remove('is-sticky');
             }
-        });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const titleContainer = document.getElementById('titleContainer');
-            
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 10) {
-                    titleContainer.classList.add('is-sticky');
-                } else {
-                    titleContainer.classList.remove('is-sticky');
-                }
-            });
-        });
+        } else {
+            header.classList.remove('is-sticky');
+        }
+    });
+    });
     </script>
 
     <script>
