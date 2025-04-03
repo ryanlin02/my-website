@@ -31,39 +31,318 @@
     <title>小朋友計算機</title>
     <style>
 
+    /* 默認主題：暗夜橘焰 */
     :root {
+        /* 基本色調 */
         --primary-color: #333333;
         --secondary-color: #4a4a4a;
         --text-color: #ffffff;
         --border-color: #555555;
         --hover-color: #666666;
         --shadow-color: rgba(0, 0, 0, 0.3);
+        
+        /* 強調色 */
+        --accent-color: #ff9c33;       /* 橙色重點色 */
+        --accent-color-light: rgba(255, 156, 51, 0.2); /* 淡橙色 */
+        --accent-color-dark: #e88a22;  /* 深橙色 */
+        
+        /* 功能色 */
+        --success-color: #33b5e5;      /* 藍色成功色 */
+        --warning-color: #ff9c33;      /* 橙色警告色 */
+        --error-color: #e74c3c;        /* 紅色錯誤色 */
+        --info-color: #3498db;         /* 藍色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #ff9c33;     /* 主按鈕顏色 */
+        --button-secondary: #4a4a4a;   /* 副按鈕顏色 */
+        --input-bg: #222222;           /* 輸入框背景色 */
+        --input-border: #555555;       /* 輸入框邊框 */
+        --input-focus-border: #ff9c33; /* 輸入框焦點邊框 */
+        --card-bg: #333333;            /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #ff9c33;     /* 文字強調色 */
+        --text-muted: #999999;         /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
         --button-orange: #ff9c33;
         --button-blue: #33b5e5;
-		--button-grey: #333333;
+        --button-grey: #333333;
     }
 
-    /* 
-    主題設計指南:
-    1. 在下方新增 :root[data-theme="你的主題名稱"] { ... } 區塊
-    2. 複製默認主題的變數，並根據需要修改顏色值
-    3. 在文件末尾的主題特定樣式部分，新增 :root[data-theme="你的主題名稱"] 開頭的樣式覆蓋
-    4. 在 getThemeName 函數中新增主題名稱的映射
-    */
-
-    /* 添加在現有的:root選擇器下方，約在第45行左右 */
     /* 極簡黑白主題 */
     :root[data-theme="white"] {
-        --primary-color: #fafafa;      /* 主色調：更接近純白 */
-        --secondary-color: #ffffff;     /* 次色調：純白 */
-        --text-color: #222222;          /* 文字色：更深的黑 */
-        --border-color: #cccccc;        /* 邊框色：中灰色 */
-        --hover-color: #f5f5f5;         /* 懸停色：淺灰 */
-        --shadow-color: rgba(0, 0, 0, 0.15); /* 陰影色：稍深的黑透明 */
-        --button-orange: #555555;       /* 改為深灰色而非橙色 */
-        --button-blue: #777777;         /* 改為中灰色而非藍色 */
-        --button-grey: #e0e0e0;         /* 調整灰色按鈕為淺灰色 */
+        /* 基本色調 */
+        --primary-color: #fafafa;
+        --secondary-color: #ffffff;
+        --text-color: #222222;
+        --border-color: #cccccc;
+        --hover-color: #f5f5f5;
+        --shadow-color: rgba(0, 0, 0, 0.15);
+        
+        /* 強調色 */
+        --accent-color: #555555;        /* 灰色重點色 */
+        --accent-color-light: rgba(85, 85, 85, 0.15); /* 淡灰色 */
+        --accent-color-dark: #333333;   /* 深灰色 */
+        
+        /* 功能色 */
+        --success-color: #777777;       /* 灰色成功色 */
+        --warning-color: #555555;       /* 灰色警告色 */
+        --error-color: #777777;         /* 灰色錯誤色 */
+        --info-color: #555555;          /* 灰色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #555555;      /* 主按鈕顏色 */
+        --button-secondary: #e0e0e0;    /* 副按鈕顏色 */
+        --input-bg: #ffffff;            /* 輸入框背景色 */
+        --input-border: #aaaaaa;        /* 輸入框邊框 */
+        --input-focus-border: #555555;  /* 輸入框焦點邊框 */
+        --card-bg: #ffffff;             /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #333333;      /* 文字強調色 */
+        --text-muted: #777777;          /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #555555;
+        --button-blue: #777777;
+        --button-grey: #e0e0e0;
+        
         background-color: #fafafa;
+    }
+
+    /* 櫻花雪主題 */
+    :root[data-theme="pink"] {
+        /* 基本色調 */
+        --primary-color: #fff0f5;       /* 粉色背景 */
+        --secondary-color: #ffffff;     /* 白色次背景 */
+        --text-color: #4a4a4a;          /* 深灰文字 */
+        --border-color: #ffb6c1;        /* 粉色邊框 */
+        --hover-color: #ffd1dc;         /* 淺粉色懸停 */
+        --shadow-color: rgba(255, 182, 193, 0.3); /* 粉色陰影 */
+        
+        /* 強調色 */
+        --accent-color: #ff80ab;        /* 粉紅重點色 */
+        --accent-color-light: rgba(255, 128, 171, 0.2); /* 淡粉紅 */
+        --accent-color-dark: #e6366e;   /* 深粉紅 */
+        
+        /* 功能色 */
+        --success-color: #81c784;       /* 綠色成功色 */
+        --warning-color: #ff9e80;       /* 橙色警告色 */
+        --error-color: #ff8a80;         /* 紅色錯誤色 */
+        --info-color: #80d8ff;          /* 藍色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #ff80ab;      /* 主按鈕顏色 */
+        --button-secondary: #fce4ec;    /* 副按鈕顏色 */
+        --input-bg: #ffffff;            /* 輸入框背景色 */
+        --input-border: #ffb6c1;        /* 輸入框邊框 */
+        --input-focus-border: #ff80ab;  /* 輸入框焦點邊框 */
+        --card-bg: #ffffff;             /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #ff4081;      /* 文字強調色 */
+        --text-muted: #9e9e9e;          /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #ff80ab;
+        --button-blue: #80d8ff;
+        --button-grey: #fce4ec;
+    }
+
+    /* 暗夜烈焰主題 */
+    :root[data-theme="red"] {
+        /* 基本色調 */
+        --primary-color: #1a1a1a;       /* 暗黑背景 */
+        --secondary-color: #2c2c2c;     /* 稍亮黑色次背景 */
+        --text-color: #ffffff;          /* 白色文字 */
+        --border-color: #c62828;        /* 深紅邊框 */
+        --hover-color: #3d2828;         /* 紅黑色懸停 */
+        --shadow-color: rgba(198, 40, 40, 0.3); /* 紅色陰影 */
+        
+        /* 強調色 */
+        --accent-color: #f44336;        /* 紅色重點色 */
+        --accent-color-light: rgba(244, 67, 54, 0.2); /* 淡紅色 */
+        --accent-color-dark: #c62828;   /* 深紅色 */
+        
+        /* 功能色 */
+        --success-color: #4caf50;       /* 綠色成功色 */
+        --warning-color: #ff9800;       /* 橙色警告色 */
+        --error-color: #f44336;         /* 紅色錯誤色 */
+        --info-color: #2196f3;          /* 藍色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #f44336;      /* 主按鈕顏色 */
+        --button-secondary: #424242;    /* 副按鈕顏色 */
+        --input-bg: #212121;            /* 輸入框背景色 */
+        --input-border: #424242;        /* 輸入框邊框 */
+        --input-focus-border: #f44336;  /* 輸入框焦點邊框 */
+        --card-bg: #2c2c2c;             /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #f44336;      /* 文字強調色 */
+        --text-muted: #9e9e9e;          /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #f44336;
+        --button-blue: #2196f3;
+        --button-grey: #424242;
+    }
+
+    /* 暮光星塵主題 */
+    :root[data-theme="blue-purple"] {
+        /* 基本色調 */
+        --primary-color: #1a1a2e;      /* 深藍紫背景 */
+        --secondary-color: #2f2f49;    /* 藍紫次背景 */
+        --text-color: #e6e6ff;         /* 淺藍紫文字 */
+        --border-color: #7b68ee;       /* 薰衣草邊框 */
+        --hover-color: #3f3f66;        /* 藍紫懸停 */
+        --shadow-color: rgba(123, 104, 238, 0.3); /* 紫色陰影 */
+        
+        /* 強調色 */
+        --accent-color: #9370db;       /* 紫色重點色 */
+        --accent-color-light: rgba(147, 112, 219, 0.2); /* 淡紫色 */
+        --accent-color-dark: #6a3ece;  /* 深紫色 */
+        
+        /* 功能色 */
+        --success-color: #00bfa5;      /* 松石綠成功色 */
+        --warning-color: #fed330;      /* 金黃警告色 */
+        --error-color: #ff4757;        /* 粉紅錯誤色 */
+        --info-color: #00cec9;         /* 藍綠資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #9370db;     /* 主按鈕顏色 */
+        --button-secondary: #3d3d64;   /* 副按鈕顏色 */
+        --input-bg: #232342;           /* 輸入框背景色 */
+        --input-border: #4b4b80;       /* 輸入框邊框 */
+        --input-focus-border: #9370db; /* 輸入框焦點邊框 */
+        --card-bg: #2f2f49;            /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #9370db;     /* 文字強調色 */
+        --text-muted: #a0a0c8;         /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #9370db;
+        --button-blue: #00cec9;
+        --button-grey: #3d3d64;
+    }
+
+    /* 翠玉清風主題 */
+    :root[data-theme="green"] {
+        /* 基本色調 */
+        --primary-color: #f1f8e9;      /* 淺綠背景 */
+        --secondary-color: #ffffff;    /* 白色次背景 */
+        --text-color: #2e7d32;         /* 綠色文字 */
+        --border-color: #81c784;       /* 綠色邊框 */
+        --hover-color: #e8f5e9;        /* 更淺綠懸停 */
+        --shadow-color: rgba(129, 199, 132, 0.3); /* 綠色陰影 */
+        
+        /* 強調色 */
+        --accent-color: #4caf50;       /* 綠色重點色 */
+        --accent-color-light: rgba(76, 175, 80, 0.2); /* 淡綠色 */
+        --accent-color-dark: #2e7d32;  /* 深綠色 */
+        
+        /* 功能色 */
+        --success-color: #4caf50;      /* 綠色成功色 */
+        --warning-color: #ff9800;      /* 橙色警告色 */
+        --error-color: #f44336;        /* 紅色錯誤色 */
+        --info-color: #2196f3;         /* 藍色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #4caf50;     /* 主按鈕顏色 */
+        --button-secondary: #e8f5e9;   /* 副按鈕顏色 */
+        --input-bg: #ffffff;           /* 輸入框背景色 */
+        --input-border: #81c784;       /* 輸入框邊框 */
+        --input-focus-border: #4caf50; /* 輸入框焦點邊框 */
+        --card-bg: #ffffff;            /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #2e7d32;     /* 文字強調色 */
+        --text-muted: #757575;         /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #4caf50;
+        --button-blue: #2196f3;
+        --button-grey: #e8f5e9;
+    }
+
+    /* 科技藍調主題 */
+    :root[data-theme="blue"] {
+        /* 基本色調 */
+        --primary-color: #1a2639;      /* 深藍背景 */
+        --secondary-color: #2e4059;    /* 中藍次背景 */
+        --text-color: #e5e5e5;         /* 淺灰文字 */
+        --border-color: #4d8cc4;       /* 藍色邊框 */
+        --hover-color: #395981;        /* 懸停色 */
+        --shadow-color: rgba(77, 140, 196, 0.3); /* 藍色陰影 */
+        
+        /* 強調色 */
+        --accent-color: #3498db;       /* 藍色重點色 */
+        --accent-color-light: rgba(52, 152, 219, 0.2); /* 淡藍色 */
+        --accent-color-dark: #2980b9;  /* 深藍色 */
+        
+        /* 功能色 */
+        --success-color: #2ecc71;      /* 綠色成功色 */
+        --warning-color: #f39c12;      /* 橙色警告色 */
+        --error-color: #e74c3c;        /* 紅色錯誤色 */
+        --info-color: #3498db;         /* 藍色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #3498db;     /* 主按鈕顏色 */
+        --button-secondary: #34495e;   /* 副按鈕顏色 */
+        --input-bg: #223347;           /* 輸入框背景色 */
+        --input-border: #4d8cc4;       /* 輸入框邊框 */
+        --input-focus-border: #3498db; /* 輸入框焦點邊框 */
+        --card-bg: #2e4059;            /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #3498db;     /* 文字強調色 */
+        --text-muted: #95a5a6;         /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #3498db;
+        --button-blue: #3498db;
+        --button-grey: #34495e;
+    }
+
+    /* 皇家紫韻主題 */
+    :root[data-theme="royal"] {
+        /* 基本色調 */
+        --primary-color: #2c003e;      /* 深紫背景 */
+        --secondary-color: #3e0054;    /* 中紫次背景 */
+        --text-color: #f2e6ff;         /* 淺紫文字 */
+        --border-color: #9c27b0;       /* 紫色邊框 */
+        --hover-color: #450063;        /* 懸停色 */
+        --shadow-color: rgba(156, 39, 176, 0.3); /* 紫色陰影 */
+        
+        /* 強調色 */
+        --accent-color: #9c27b0;       /* 紫色重點色 */
+        --accent-color-light: rgba(156, 39, 176, 0.2); /* 淡紫色 */
+        --accent-color-dark: #7b1fa2;  /* 深紫色 */
+        
+        /* 功能色 */
+        --success-color: #00c853;      /* 綠色成功色 */
+        --warning-color: #ffab00;      /* 橙色警告色 */
+        --error-color: #d50000;        /* 紅色錯誤色 */
+        --info-color: #2196f3;         /* 藍色資訊色 */
+        
+        /* 特殊元件顏色 */
+        --button-primary: #9c27b0;     /* 主按鈕顏色 */
+        --button-secondary: #4a0072;   /* 副按鈕顏色 */
+        --input-bg: #3e0054;           /* 輸入框背景色 */
+        --input-border: #9c27b0;       /* 輸入框邊框 */
+        --input-focus-border: #9c27b0; /* 輸入框焦點邊框 */
+        --card-bg: #3e0054;            /* 卡片背景色 */
+        
+        /* 文字強調色 */
+        --text-highlight: #ba68c8;     /* 文字強調色 */
+        --text-muted: #c9a0dc;         /* 文字淡色 */
+        
+        /* 與舊代碼兼容的變數 */
+        --button-orange: #9c27b0;
+        --button-blue: #2196f3;
+        --button-grey: #4a0072;
     }
 
     /* 修改現有的基礎樣式，添加動畫效果 */
@@ -5482,7 +5761,6 @@
             vibrate(); // 觸發震動
         }
 
-        // 添加主題切換功能
         function switchTheme(themeName) {
             // 先移除舊有任何主題數據
             document.documentElement.removeAttribute('data-theme');
@@ -5500,6 +5778,20 @@
             
             // 觸發震動反饋
             vibrate();
+        }
+
+        function getThemeName(themeCode) {
+            switch(themeCode) {
+                case 'default': return '暗夜橘焰';
+                case 'white': return '極簡黑白';
+                case 'pink': return '櫻花雪';
+                case 'red': return '暗夜烈焰';
+                case 'blue-purple': return '暮光星塵';
+                case 'green': return '翠玉清風';
+                case 'blue': return '科技藍調';
+                case 'royal': return '皇家紫韻';
+                default: return themeCode;
+            }
         }
 
         // 根據主題代碼返回顯示名稱
@@ -5619,7 +5911,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.35</div>
+            <div class="version-info">v2.36</div>
         </div>
     </div>
 
@@ -5650,12 +5942,12 @@
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
                 <li class="submenu-item" onclick="switchTheme('default')">暗夜橘焰</li>
                 <li class="submenu-item" onclick="switchTheme('white')">極簡黑白</li> 
-                <li class="submenu-item" onclick="showDevelopingToast()">櫻花雪</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">暗夜烈焰</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">暮光星塵</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">翠玉清風</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">科技藍調</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">皇家紫韻</li>
+                <li class="submenu-item" onclick="switchTheme('pink')">櫻花雪</li>
+                <li class="submenu-item" onclick="switchTheme('red')">暗夜烈焰</li>
+                <li class="submenu-item" onclick="switchTheme('blue-purple')">暮光星塵</li>
+                <li class="submenu-item" onclick="switchTheme('green')">翠玉清風</li>
+                <li class="submenu-item" onclick="switchTheme('blue')">科技藍調</li>
+                <li class="submenu-item" onclick="switchTheme('royal')">皇家紫韻</li>
             </ul>
         </div>
     </div>
