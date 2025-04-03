@@ -43,19 +43,27 @@
 		--button-grey: #333333;
     }
 
+    /* 
+    主題設計指南:
+    1. 在下方新增 :root[data-theme="你的主題名稱"] { ... } 區塊
+    2. 複製默認主題的變數，並根據需要修改顏色值
+    3. 在文件末尾的主題特定樣式部分，新增 :root[data-theme="你的主題名稱"] 開頭的樣式覆蓋
+    4. 在 getThemeName 函數中新增主題名稱的映射
+    */
+
     /* 添加在現有的:root選擇器下方，約在第45行左右 */
-    /* 白白主題 */
+    /* 極簡黑白主題 */
     :root[data-theme="white"] {
-        --primary-color: #f5f5f5;      /* 主色調：淺灰近白 */
+        --primary-color: #fafafa;      /* 主色調：更接近純白 */
         --secondary-color: #ffffff;     /* 次色調：純白 */
-        --text-color: #333333;          /* 文字色：深灰 */
-        --border-color: #dddddd;        /* 邊框色：淺灰 */
-        --hover-color: #eeeeee;         /* 懸停色：淺灰 */
-        --shadow-color: rgba(0, 0, 0, 0.1); /* 陰影色：淺黑透明 */
-        --button-orange: #ff9c33;       /* 保留橙色按鈕 */
-        --button-blue: #33b5e5;         /* 保留藍色按鈕 */
-        --button-grey: #f0f0f0;         /* 調整灰色按鈕為更淺的灰 */
-        background-color: #f5f5f5;
+        --text-color: #222222;          /* 文字色：更深的黑 */
+        --border-color: #cccccc;        /* 邊框色：中灰色 */
+        --hover-color: #f5f5f5;         /* 懸停色：淺灰 */
+        --shadow-color: rgba(0, 0, 0, 0.15); /* 陰影色：稍深的黑透明 */
+        --button-orange: #555555;       /* 改為深灰色而非橙色 */
+        --button-blue: #777777;         /* 改為中灰色而非藍色 */
+        --button-grey: #e0e0e0;         /* 調整灰色按鈕為淺灰色 */
+        background-color: #fafafa;
     }
 
     /* 修改現有的基礎樣式，添加動畫效果 */
@@ -2236,7 +2244,7 @@
 
     /* 添加在CSS的最後，在最後的樣式規則之後（約在1860行左右） */
 
-    /* 白色主題特定調整 */
+    /* 極簡黑白主題特定調整 */
     :root[data-theme="white"] .row {
         background: var(--secondary-color);
         box-shadow: 0 2px 5px var(--shadow-color);
@@ -2305,7 +2313,7 @@
         color: #d9534f !important;
     }
 
-    /* 調整模態框在白色主題下的樣式 */
+    /* 調整模態框在極簡黑白主題下的樣式 */
     :root[data-theme="white"] .modal-container,
     :root[data-theme="white"] .modal-header,
     :root[data-theme="white"] .modal-content,
@@ -2319,20 +2327,23 @@
         color: #333333;
     }
 
-    /* 調整計算器在白色主題下的樣式 */
+    /* 調整計算器在極簡黑白主題下的樣式 */
     :root[data-theme="white"] .calculator-display-container {
         background-color: #f9f9f9;
         border: 1px solid #dddddd;
     }
 
     :root[data-theme="white"] .calculator-history {
-        color: #666666;
-        background: linear-gradient(to bottom, #f0f0f0, #f9f9f9);
+        color: #333333; /* 更深的文字顏色 */
+        background: linear-gradient(to bottom, #ffffff, #f5f5f5); /* 更淺的背景 */
+        border-bottom: 1px solid #cccccc;
     }
 
     :root[data-theme="white"] .calculator-display {
-        background-color: #ffffff;
-        color: #333333;
+        background-color: #ffffff; /* 保持純白背景 */
+        color: #000000; /* 改為純黑色文字，增加對比度 */
+        border: 1px solid #cccccc;
+        font-weight: bold; /* 加粗文字增加可讀性 */
     }
 
     :root[data-theme="white"] .calculator-buttons button {
@@ -2360,7 +2371,7 @@
         color: white;
     }
 
-    /* 調整歷史記錄面板在白色主題下的樣式 */
+    /* 調整歷史記錄面板在極簡黑白主題下的樣式 */
     :root[data-theme="white"] .history-panel {
         background-color: rgba(255, 255, 255, 0.95);
     }
@@ -2416,6 +2427,313 @@
     :root[data-theme="white"] .version-info {
         color: #999999;
         background-color: #f5f5f5;
+    }
+
+    /* 極簡黑白主題特定調整 */
+    :root[data-theme="white"] .row {
+        background: var(--secondary-color);
+        box-shadow: 0 2px 5px var(--shadow-color);
+    }
+
+    :root[data-theme="white"] .input-button-group {
+        background: var(--secondary-color);
+        border: 1px solid var(--border-color);
+    }
+
+    :root[data-theme="white"] input {
+        background-color: #ffffff;
+        border: 1px solid #cccccc;
+        color: #222222;
+    }
+
+    :root[data-theme="white"] .time-display-wrapper,
+    :root[data-theme="white"] #timeDisplay,
+    :root[data-theme="white"] .footer-message {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+    }
+
+    :root[data-theme="white"] .sticky-header {
+        background: var(--secondary-color);
+    }
+
+    :root[data-theme="white"] .time-label {
+        color: #555555; /* 改為深灰而非橙色 */
+    }
+
+    :root[data-theme="white"] .function-buttons button {
+        background-color: #ffffff;
+        color: #222222;
+        border-color: #555555; /* 改為深灰而非橙色 */
+    }
+
+    :root[data-theme="white"] button {
+        background-color: #ffffff;
+        color: #444444;
+    }
+
+    :root[data-theme="white"] body {
+        background-color: #fafafa;
+    }
+
+    :root[data-theme="white"] h1 {
+        color: #222222;
+        border-bottom: 2px solid #555555; /* 改為深灰而非橙色 */
+    }
+
+    :root[data-theme="white"] h1::after {
+        background: #555555; /* 改為深灰而非橙色 */
+    }
+
+    :root[data-theme="white"] .toast-message {
+        background-color: rgba(85, 85, 85, 0.9); /* 改為深灰而非藍色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .toast-error {
+        background-color: rgba(85, 85, 85, 0.9); /* 改為深灰而非紅色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .readonly {
+        background-color: #f0f0f0;
+    }
+
+    :root[data-theme="white"] .warning-text {
+        color: #555555 !important; /* 改為深灰而非紅色 */
+        font-weight: bold !important;
+    }
+
+    /* 調整按鈕懸停效果 */
+    :root[data-theme="white"] .function-buttons button:hover,
+    :root[data-theme="white"] button:hover {
+        background-color: #e0e0e0;
+        border-color: #333333;
+        color: #111111;
+    }
+
+    /* 調整分隔線 */
+    :root[data-theme="white"] .divider-flow {
+        background: linear-gradient(90deg, 
+            var(--secondary-color) 0%,
+            #555555 50%, /* 改為深灰而非橙色 */
+            var(--secondary-color) 100%);
+    }
+
+    :root[data-theme="white"] .divider-flow::after {
+        background: linear-gradient(90deg,
+            transparent,
+            rgba(85, 85, 85, 0.8), /* 改為深灰而非橙色 */
+            transparent);
+    }
+
+    /* 調整模態框 */
+    :root[data-theme="white"] .modal-container,
+    :root[data-theme="white"] .modal-header,
+    :root[data-theme="white"] .modal-content,
+    :root[data-theme="white"] .modal-footer {
+        background-color: #ffffff;
+        color: #222222;
+        border-color: #cccccc;
+    }
+
+    :root[data-theme="white"] .modal-btn-primary {
+        background-color: #555555; /* 改為深灰而非橙色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .history-header h2,
+    :root[data-theme="white"] .history-date,
+    :root[data-theme="white"] .menu-header h3,
+    :root[data-theme="white"] .submenu-header h3 {
+        color: #555555; /* 改為深灰而非橙色 */
+    }
+
+    :root[data-theme="white"] .history-item {
+        border-left: 3px solid #555555; /* 改為深灰而非橙色 */
+    }
+
+    /* 調整歷史記錄標題 */
+    :root[data-theme="white"] .history-header-rate {
+        background-color: rgba(85, 85, 85, 0.2); /* 改為深灰色半透明背景 */
+    }
+
+    /* 極簡黑白主題下的計算器樣式 */
+    :root[data-theme="white"] .calculator-display-container {
+        background-color: #f5f5f5;
+        border: 1px solid #cccccc;
+    }
+
+    :root[data-theme="white"] .calculator-history {
+        color: #555555;
+        background: linear-gradient(to bottom, #f5f5f5, #eeeeee);
+        border-bottom: 1px solid #cccccc;
+    }
+
+    :root[data-theme="white"] .calculator-display {
+        background-color: #ffffff;
+        color: #222222;
+        border: 1px solid #cccccc;
+    }
+
+    :root[data-theme="white"] .calculator-buttons button {
+        background-color: #f5f5f5;
+        color: #333333;
+        border: 1px solid #cccccc;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .function {
+        background-color: #e0e0e0;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .operator {
+        background-color: #555555; /* 改為深灰而非橙色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .clear {
+        background-color: #777777; /* 改為中灰而非紅色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .equals {
+        background-color: #444444; /* 改為更深灰而非藍色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .calculator-buttons .submit {
+        background-color: #555555; /* 改為深灰而非橙色 */
+        color: white;
+    }
+
+    :root[data-theme="white"] .calculator-buttons button:hover {
+        background-color: #e0e0e0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    :root[data-theme="white"] .calculator-buttons .number-btn .financial-char {
+        color: #555555; /* 改為深灰而非橙色 */
+    }
+
+    /* 極簡黑白主題下的表單元素 */
+    :root[data-theme="white"] .label {
+        color: #333333;
+        font-weight: 600;
+    }
+
+    :root[data-theme="white"] input:focus {
+        outline: none;
+        border-color: #555555; /* 改為深灰而非橙色 */
+        box-shadow: 0 0 0 3px rgba(85, 85, 85, 0.2); /* 改為深灰半透明 */
+        transform: scale(1.05);
+    }
+
+    :root[data-theme="white"] .value-changed {
+        animation: valueChangeWhite 0.5s ease-out;
+    }
+
+    @keyframes valueChangeWhite {
+        0% { 
+            background-color: rgba(85, 85, 85, 0.2); /* 改為深灰半透明 */
+            transform: scale(1.02);
+        }
+        100% { 
+            background-color: transparent;
+            transform: scale(1);
+        }
+    }
+
+    :root[data-theme="white"] #afterCommissionRate {
+        font-weight: bold;
+        color: #222222;
+        background-color: rgba(85, 85, 85, 0.05); /* 改為深灰半透明 */
+        border: 1px solid rgba(85, 85, 85, 0.4); /* 改為深灰半透明 */
+        box-shadow: 0 0 4px rgba(85, 85, 85, 0.1); /* 微弱的發光效果 */
+    }
+
+    /* 極簡黑白主題下的強調行 */
+    :root[data-theme="white"] .emphasized-row {
+        border-left: 3px solid #555555; /* 改為深灰而非橙色 */
+        background: linear-gradient(90deg, rgba(85, 85, 85, 0.1), transparent); /* 改為深灰半透明漸變 */
+    }
+
+    :root[data-theme="white"] .emphasized-row .label {
+        color: #333333; /* 改為深灰而非橙色 */
+        font-weight: 700;
+    }
+
+    :root[data-theme="white"] .emphasized-row input {
+        font-weight: bold;
+        color: #222222;
+        border-color: #555555; /* 改為深灰而非橙色 */
+    }
+
+    /* 備註顯示區域樣式調整 */
+    :root[data-theme="white"] .history-note-container {
+        background-color: #f0f0f0; /* 稍微深一點的背景 */
+        border: 1px solid #dddddd; /* 添加邊框增加區分度 */
+    }
+
+    :root[data-theme="white"] .history-note-preview {
+        color: #222222; /* 更深的文字顏色 */
+        font-weight: normal; /* 正常粗細 */
+    }
+
+    :root[data-theme="white"] .history-note-preview:hover {
+        background-color: rgba(85, 85, 85, 0.15); /* 懸停時顯示深灰色背景 */
+        border-color: rgba(85, 85, 85, 0.3); /* 懸停時顯示深灰色邊框 */
+        color: #000000; /* 懸停時文字變為純黑 */
+    }
+
+    /* 備註編輯器樣式調整 */
+    :root[data-theme="white"] .note-editor-content {
+        background-color: #ffffff;
+        border: 1px solid #555555; /* 使用深灰色邊框 */
+    }
+
+    :root[data-theme="white"] .note-editor-input {
+        background-color: #ffffff;
+        color: #000000; /* 純黑文字 */
+        border: 1px solid #cccccc;
+    }
+
+    :root[data-theme="white"] .note-editor-input:focus {
+        border-color: #555555; /* 深灰色邊框 */
+        box-shadow: 0 0 0 2px rgba(85, 85, 85, 0.2); /* 深灰色陰影 */
+    }
+
+    /* 提高文字對比度的一般調整 */
+    :root[data-theme="white"] .row .label {
+        color: #000000; /* 標籤文字改為純黑 */
+        font-weight: 600; /* 加粗標籤文字 */
+    }
+
+    :root[data-theme="white"] input {
+        color: #000000; /* 輸入框文字改為純黑 */
+        background-color: #ffffff; /* 輸入框背景為純白 */
+        border: 1px solid #aaaaaa; /* 更明顯的邊框 */
+    }
+
+    :root[data-theme="white"] .detail-label {
+        color: #333333; /* 詳情標籤深色 */
+    }
+
+    :root[data-theme="white"] .detail-value {
+        color: #000000; /* 詳情值純黑 */
+        font-weight: bold; /* 加粗 */
+    }
+
+    /* 提升歷史記錄項目的可讀性 */
+    :root[data-theme="white"] .history-item {
+        background-color: #ffffff; /* 純白背景 */
+        border-left: 3px solid #555555; /* 保持深灰色邊框 */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* 稍微加強陰影 */
+    }
+
+    :root[data-theme="white"] .history-details {
+        background-color: #f5f5f5; /* 淺灰背景 */
+        border: 1px solid #dddddd; /* 加上邊框增加分隔 */
     }
 
 </style>
@@ -5187,8 +5505,14 @@
         // 根據主題代碼返回顯示名稱
         function getThemeName(themeCode) {
             switch(themeCode) {
-                case 'default': return '主題黑';
-                case 'white': return '白白';
+                case 'default': return '暗夜橘焰';
+                case 'white': return '極簡黑白';
+                case 'pink': return '櫻花雪';
+                case 'red': return '暗夜烈焰';
+                case 'blue-purple': return '暮光星塵';
+                case 'green': return '翠玉清風';
+                case 'blue': return '科技藍調';
+                case 'royal': return '皇家紫韻';
                 default: return themeCode;
             }
         }
@@ -5295,7 +5619,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.28</div>
+            <div class="version-info">v2.35</div>
         </div>
     </div>
 
@@ -5324,14 +5648,14 @@
                 <h3>外觀</h3>
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="switchTheme('default')">主題黑</li>
-                <li class="submenu-item" onclick="switchTheme('white')">白白</li> 
-                <li class="submenu-item" onclick="showDevelopingToast()">粉白</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">黑紅</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">藍紫</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">白綠</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">藍白</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">紫金</li>
+                <li class="submenu-item" onclick="switchTheme('default')">暗夜橘焰</li>
+                <li class="submenu-item" onclick="switchTheme('white')">極簡黑白</li> 
+                <li class="submenu-item" onclick="showDevelopingToast()">櫻花雪</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">暗夜烈焰</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">暮光星塵</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">翠玉清風</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">科技藍調</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">皇家紫韻</li>
             </ul>
         </div>
     </div>
