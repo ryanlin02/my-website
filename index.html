@@ -31,8 +31,45 @@
     <title>小朋友計算機</title>
     <style>
 
+    /* 基礎主題變數（共用基本框架） */
+    :root {
+        /* 基本尺寸變數 */
+        --border-radius-sm: 4px;
+        --border-radius-md: 8px;
+        --border-radius-lg: 12px;
+        --spacing-xs: 2px;
+        --spacing-sm: 4px;
+        --spacing-md: 8px;
+        --spacing-lg: 15px;
+        
+        /* 字型大小變數 */
+        --font-size-xs: 12px;
+        --font-size-sm: 14px;
+        --font-size-md: 16px;
+        --font-size-lg: 18px;
+        --font-size-xl: 22px;
+        
+        /* 動畫時間 */
+        --transition-fast: 0.2s;
+        --transition-normal: 0.3s;
+        --transition-slow: 0.5s;
+        
+        /* 陰影效果 */
+        --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+        --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+    }
+
     /* 默認主題：暗夜橘焰 */
     :root {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 51, 51, 51;
+        --secondary-color-rgb: 74, 74, 74;
+        --accent-color-rgb: 255, 156, 51;
+        --input-bg-rgb: 34, 34, 34;
+        --error-color-rgb: 231, 76, 60;
+        --info-color-rgb: 52, 152, 219;
+
         /* 基本色調 */
         --primary-color: #333333;
         --secondary-color: #4a4a4a;
@@ -72,6 +109,14 @@
 
     /* 極簡黑白主題 */
     :root[data-theme="white"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 250, 250, 250;
+        --secondary-color-rgb: 255, 255, 255;
+        --accent-color-rgb: 85, 85, 85;
+        --input-bg-rgb: 255, 255, 255;
+        --error-color-rgb: 85, 85, 85;
+        --info-color-rgb: 85, 85, 85;
+
         /* 基本色調 */
         --primary-color: #fafafa;
         --secondary-color: #ffffff;
@@ -113,6 +158,14 @@
 
     /* 櫻花雪主題 */
     :root[data-theme="pink"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 255, 240, 245;
+        --secondary-color-rgb: 255, 255, 255;
+        --accent-color-rgb: 255, 128, 171;
+        --input-bg-rgb: 255, 255, 255;
+        --error-color-rgb: 255, 138, 128;
+        --info-color-rgb: 128, 216, 255;
+
         /* 基本色調 */
         --primary-color: #fff0f5;       /* 粉色背景 */
         --secondary-color: #ffffff;     /* 白色次背景 */
@@ -152,6 +205,14 @@
 
     /* 暗夜烈焰主題 */
     :root[data-theme="red"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 26, 26, 26;
+        --secondary-color-rgb: 44, 44, 44;
+        --accent-color-rgb: 244, 67, 54;
+        --input-bg-rgb: 33, 33, 33;
+        --error-color-rgb: 244, 67, 54;
+        --info-color-rgb: 33, 150, 243;
+
         /* 基本色調 */
         --primary-color: #1a1a1a;       /* 暗黑背景 */
         --secondary-color: #2c2c2c;     /* 稍亮黑色次背景 */
@@ -191,6 +252,14 @@
 
     /* 暮光星塵主題 */
     :root[data-theme="blue-purple"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 26, 26, 46;
+        --secondary-color-rgb: 47, 47, 73;
+        --accent-color-rgb: 147, 112, 219;
+        --input-bg-rgb: 35, 35, 66;
+        --error-color-rgb: 255, 71, 87;
+        --info-color-rgb: 0, 206, 201;
+        
         /* 基本色調 */
         --primary-color: #1a1a2e;      /* 深藍紫背景 */
         --secondary-color: #2f2f49;    /* 藍紫次背景 */
@@ -230,6 +299,14 @@
 
     /* 翠玉清風主題 */
     :root[data-theme="green"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 241, 248, 233;
+        --secondary-color-rgb: 255, 255, 255;
+        --accent-color-rgb: 76, 175, 80;
+        --input-bg-rgb: 255, 255, 255;
+        --error-color-rgb: 244, 67, 54;
+        --info-color-rgb: 33, 150, 243;
+        
         /* 基本色調 */
         --primary-color: #f1f8e9;      /* 淺綠背景 */
         --secondary-color: #ffffff;    /* 白色次背景 */
@@ -269,6 +346,14 @@
 
     /* 科技藍調主題 */
     :root[data-theme="blue"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 26, 38, 57;
+        --secondary-color-rgb: 46, 64, 89;
+        --accent-color-rgb: 52, 152, 219;
+        --input-bg-rgb: 34, 51, 71;
+        --error-color-rgb: 231, 76, 60;
+        --info-color-rgb: 52, 152, 219;
+        
         /* 基本色調 */
         --primary-color: #1a2639;      /* 深藍背景 */
         --secondary-color: #2e4059;    /* 中藍次背景 */
@@ -308,41 +393,49 @@
 
     /* 皇家紫韻主題 */
     :root[data-theme="royal"] {
+        /* RGB版本的顏色（用於透明度控制） */
+        --primary-color-rgb: 49, 27, 77;
+        --secondary-color-rgb: 69, 39, 107;
+        --accent-color-rgb: 212, 175, 55;
+        --input-bg-rgb: 40, 23, 60;
+        --error-color-rgb: 179, 51, 51;
+        --info-color-rgb: 66, 133, 244;
+        
         /* 基本色調 */
-        --primary-color: #2c003e;      /* 深紫背景 */
-        --secondary-color: #3e0054;    /* 中紫次背景 */
-        --text-color: #f2e6ff;         /* 淺紫文字 */
-        --border-color: #9c27b0;       /* 紫色邊框 */
-        --hover-color: #450063;        /* 懸停色 */
-        --shadow-color: rgba(156, 39, 176, 0.3); /* 紫色陰影 */
+        --primary-color: #311b4d;      /* 深紫色背景 */
+        --secondary-color: #45276b;    /* 中紫色次背景 */
+        --text-color: #f8f0e3;         /* 淺金色文字 */
+        --border-color: #8a56ac;       /* 亮紫色邊框 */
+        --hover-color: #513082;        /* 紫羅蘭懸停色 */
+        --shadow-color: rgba(49, 27, 77, 0.5); /* 紫色陰影 */
         
         /* 強調色 */
-        --accent-color: #9c27b0;       /* 紫色重點色 */
-        --accent-color-light: rgba(156, 39, 176, 0.2); /* 淡紫色 */
-        --accent-color-dark: #7b1fa2;  /* 深紫色 */
+        --accent-color: #d4af37;       /* 金色重點色 */
+        --accent-color-light: rgba(212, 175, 55, 0.2); /* 淡金色 */
+        --accent-color-dark: #b8860b;  /* 深金色 */
         
         /* 功能色 */
-        --success-color: #00c853;      /* 綠色成功色 */
-        --warning-color: #ffab00;      /* 橙色警告色 */
-        --error-color: #d50000;        /* 紅色錯誤色 */
-        --info-color: #2196f3;         /* 藍色資訊色 */
+        --success-color: #4caf50;      /* 綠色成功色 */
+        --warning-color: #ff9800;      /* 橙色警告色 */
+        --error-color: #b33333;        /* 紅色錯誤色 */
+        --info-color: #4285f4;         /* 藍色資訊色 */
         
         /* 特殊元件顏色 */
-        --button-primary: #9c27b0;     /* 主按鈕顏色 */
-        --button-secondary: #4a0072;   /* 副按鈕顏色 */
-        --input-bg: #3e0054;           /* 輸入框背景色 */
-        --input-border: #9c27b0;       /* 輸入框邊框 */
-        --input-focus-border: #9c27b0; /* 輸入框焦點邊框 */
-        --card-bg: #3e0054;            /* 卡片背景色 */
+        --button-primary: #d4af37;     /* 金色主按鈕 */
+        --button-secondary: #513082;   /* 紫色副按鈕 */
+        --input-bg: #28173c;           /* 深紫色輸入框背景 */
+        --input-border: #8a56ac;       /* 亮紫色輸入框邊框 */
+        --input-focus-border: #d4af37; /* 金色輸入框焦點邊框 */
+        --card-bg: #45276b;            /* 中紫色卡片背景 */
         
         /* 文字強調色 */
-        --text-highlight: #ba68c8;     /* 文字強調色 */
-        --text-muted: #c9a0dc;         /* 文字淡色 */
+        --text-highlight: #dfc15e;     /* 金色文字強調 */
+        --text-muted: #c0a9e0;         /* 淺紫色淡色文字 */
         
         /* 與舊代碼兼容的變數 */
-        --button-orange: #9c27b0;
-        --button-blue: #2196f3;
-        --button-grey: #4a0072;
+        --button-orange: #d4af37;      /* 金色替代橙色 */
+        --button-blue: #4285f4;        /* 保留藍色 */
+        --button-grey: #513082;        /* 紫色替代灰色 */
     }
 
     /* 修改現有的基礎樣式，添加動畫效果 */
@@ -365,7 +458,7 @@
         color: var(--text-color);
         font-size: 22px;
         margin-bottom: 0px;
-        border-bottom: 2px solid var(--button-orange);
+        border-bottom: 2px solid var(--accent-color);
         padding: 0 24px 5px; /* 添加左右內邊距，保留底部內邊距 */
         position: relative;
         transition: all 0.3s ease;
@@ -383,7 +476,7 @@
         left: 0;
         width: 100%;
         height: 2px;
-        background: var(--button-orange);
+        background: var(--accent-color);
         transform: scaleX(0);
         transform-origin: right;
         transition: transform 0.6s ease-out;
@@ -504,7 +597,7 @@
 
     @keyframes valueChange {
         0% { 
-            background-color: rgba(255, 156, 51, 0.2);
+            background-color: var(--accent-color-light);
             transform: scale(1.02);
         }
         100% { 
@@ -669,7 +762,7 @@
     }
 
     .readonly {
-        background-color: #222222;
+        background-color: var(--input-bg);
         animation: breathe 4s ease-in-out infinite;
     }
 
@@ -735,7 +828,7 @@
 		left: -100%;
 		width: 100%;
 		height: 2px;
-		background: linear-gradient(90deg, transparent, var(--button-orange), transparent);
+		background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
 		animation: timelineSlide 3s linear infinite;
 	}
 	@keyframes timelineSlide {
@@ -746,7 +839,7 @@
     .time-label {
         font-weight: bold;
         margin-right: 10px;
-        color: var(--button-orange);
+        color: var(--accent-color);
     }
 
     @keyframes fadeIn {
@@ -1021,7 +1114,7 @@
         margin-top: 15px;
         border-radius: 4px;
         transform: scale(1.05);
-        text-shadow: 0 0 10px var(--button-orange);
+        text-shadow: 0 0 10px var(--accent-color);
         transition: all 0.3s ease;
         position: relative;
     }
@@ -1044,9 +1137,10 @@
 	}
 
 	@keyframes glowBorder {
-		0%, 100% { box-shadow: 0 0 5px var(--button-orange); }
-		50% { box-shadow: 0 0 15px var(--button-orange), 0 0 30px rgba(255, 156, 51, 0.3); }
+        0%, 100% { box-shadow: 0 0 5px var(--accent-color); }
+        50% { box-shadow: 0 0 15px var(--accent-color), 0 0 30px rgba(var(--accent-color-rgb), 0.3); }
     }
+
 	.warning-text {
 		color: #ff0000 !important;
 		font-weight: bold !important;
@@ -1088,9 +1182,9 @@
         }
 
         @keyframes flowLight {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(200%); }
-        }
+        0% { transform: translateX(0); }
+        100% { transform: translateX(200%); }
+    }
 
     /* 分隔線淡入動畫 */
     @keyframes dividerFadeIn {
@@ -1153,7 +1247,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.95); /* 深色背景增加对比度 */
+        background-color: rgba(var(--primary-color-rgb), 0.95); /* 使用變量 */
         z-index: 1000;
         overflow-y: auto;
         animation: fadeIn 0.3s ease-out;
@@ -1164,12 +1258,12 @@
         justify-content: space-between;
         align-items: center;
         padding: 15px;
-        background-color: var(--primary-color);
+        background-color: var(--primary-color); /* 使用變量 */
         position: sticky;
         top: 0;
         z-index: 1001;
-        border-bottom: 2px solid var(--button-orange);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        border-bottom: 2px solid var(--accent-color); /* 使用變量 */
+        box-shadow: 0 2px 10px var(--shadow-color); /* 使用變量 */
     }
 
     .header-left {
@@ -1182,15 +1276,15 @@
 
     .history-header h2 {
         margin: 0;
-        color: var(--button-orange);
+        color: var(--accent-color); /* 使用變量 */
         font-size: 20px;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 2px var(--shadow-color); /* 使用變量 */
     }
 
     .close-btn {
         background: none;
         border: none;
-        color: var(--text-color);
+        color: var(--text-color); /* 使用變量 */
         font-size: 24px;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -1201,13 +1295,13 @@
     }
 
     .close-btn:hover {
-        color: var(--button-orange);
+        color: var(--accent-color); /* 使用變量 */
         transform: scale(1.1);
         background-color: rgba(255, 255, 255, 0.2);
     }
 
     .history-content {
-        padding: 8px; /* 從 10px 減少到 8px */
+        padding: 8px;
         max-width: 400px;
         margin: 0 auto;
     }
@@ -1216,56 +1310,54 @@
     .history-list {
         display: flex;
         flex-direction: column;
-        gap: 10px; /* 從 12px 減少到 10px */
-        padding: 3px; /* 從 5px 減少到 3px */
-        margin-bottom: 10px; /* 增加底部間距 */
+        gap: 10px;
+        padding: 3px;
+        margin-bottom: 10px;
     }
 
-    /* 重新设计历史项目卡片 */
-    /* 位置: .history-item 樣式 (約在 CSS 第 1010 行附近) */
+    /* 历史记录项目样式 */
     .history-item {
-        background-color: var(--secondary-color);
-        padding: 8px; /* 從 12px 減少到 8px */
-        border-radius: 8px; /* 從 10px 減少到 8px */
+        background-color: var(--secondary-color); /* 使用變量 */
+        padding: 8px;
+        border-radius: 8px;
         position: relative;
         transition: all 0.3s ease;
-        border-left: 3px solid var(--button-orange);
+        border-left: 3px solid var(--accent-color); /* 使用變量 */
         display: flex;
         flex-direction: column;
-        gap: 6px; /* 從 8px 減少到 6px */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* 稍微降低陰影 */
-        margin-bottom: 10px; /* 增加卡片間的間距 */
+        gap: 6px;
+        box-shadow: 0 2px 4px var(--shadow-color); /* 使用變量 */
+        margin-bottom: 10px;
     }
 
     .history-item:hover {
         transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 5px 15px var(--shadow-color); /* 使用變量 */
     }
 
     /* 历史记录顶部区域 - 日期和按钮 */
-    /* 修改历史记录卡片头部布局样式 */
     .history-item-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         width: 100%;
-        padding-bottom: 2px; /* 增加底部一點間距 */
+        padding-bottom: 2px;
     }
 
     .history-date {
         font-weight: bold;
-        color: var(--button-orange);
-        font-size: 14px; /* 從 15px 減少到 14px */
-        padding: 2px 0; /* 從 3px 減少到 2px */
+        color: var(--accent-color); /* 使用變量 */
+        font-size: 14px;
+        padding: 2px 0;
     }
 
     /* 将税佣后利率移到头部右侧 */
     .history-header-rate {
         font-weight: bold;
-        color: #ffffff;
-        font-size: 16px; /* 從 16px 減少到 14px */
-        background-color: rgba(255, 156, 51, 0.2);
-        padding: 2px 6px; /* 從 3px 8px 改為 2px 6px */
+        color: var(--text-color); /* 使用變量 */
+        font-size: 16px;
+        background-color: var(--accent-color-light); /* 使用變量 */
+        padding: 2px 6px;
         border-radius: 4px;
     }
 
@@ -1274,29 +1366,28 @@
     .history-details {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 6px; /* 從 10px 減少到 6px */
-        background-color: rgba(0, 0, 0, 0.15);
-        padding: 6px; /* 從 10px 減少到 6px */
-        border-radius: 4px; /* 從 6px 減少到 4px */
+        gap: 6px;
+        background-color: rgba(var(--primary-color-rgb), 0.15); /* 使用變量 */
+        padding: 6px;
+        border-radius: 4px;
     }
 
     .history-detail-item {
         display: flex;
         flex-direction: column;
-        gap: 1px; /* 從 3px 減少到 1px */
+        gap: 1px;
     }
 
     .detail-label {
-        font-size: 12px; /* 從 13px 減少到 12px */
-        color: #aaaaaa;
+        font-size: 12px;
+        color: var(--text-muted); /* 使用變量 */
     }
 
-    /* 增大字体大小 */
     .detail-value {
-        font-size: 18px; /* 從 18px 減少到 16px */
+        font-size: 18px;
         font-weight: bold;
-        color: #ffffff;
-        line-height: 1.2; /* 添加行高控制 */
+        color: var(--text-color); /* 使用變量 */
+        line-height: 1.2;
     }
 
     /* 适配移动设备 */
@@ -1336,34 +1427,34 @@
     .history-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 8px; /* 從 10px 減少到 8px */
-        margin-top: 3px; /* 從 5px 減少到 3px */
+        gap: 8px;
+        margin-top: 3px;
     }
 
     .delete-btn, .detail-btn {
-        padding: 6px 12px; /* 從 8px 15px 改為 6px 12px */
-        border-radius: 4px; /* 從 6px 減少到 4px */
-        font-size: 13px; /* 從 14px 減少到 13px */
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 13px;
         font-weight: bold;
         transition: all 0.25s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         border: none;
-        min-width: 70px; /* 增加最小寬度確保可點擊區域 */
+        min-width: 70px;
     }
 
     .delete-btn {
-        background-color: rgba(231, 76, 60, 0.25); /* 增加背景不透明度 */
-        color: #ffffff; /* 改為白色文字 */
-        border: 1px solid rgba(231, 76, 60, 0.5); /* 增加邊框 */
+        background-color: rgba(var(--error-color-rgb), 0.25); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
+        border: 1px solid rgba(var(--error-color-rgb), 0.5); /* 使用變量 */
     }
 
     .delete-btn:hover {
-        background-color: #e74c3c;
+        background-color: var(--error-color); /* 使用變量 */
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 3px 5px rgba(231, 76, 60, 0.4);
+        box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4); /* 使用變量 */
     }
 
     .delete-btn:active {
@@ -1371,16 +1462,16 @@
     }
 
     .detail-btn {
-        background-color: rgba(51, 181, 229, 0.25); /* 增加背景不透明度 */
-        color: #ffffff; /* 改為白色文字 */
-        border: 1px solid rgba(51, 181, 229, 0.5); /* 增加邊框 */
+        background-color: rgba(var(--info-color-rgb), 0.25); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
+        border: 1px solid rgba(var(--info-color-rgb), 0.5); /* 使用變量 */
     }
 
     .detail-btn:hover {
-        background-color: var(--button-blue);
+        background-color: var(--info-color); /* 使用變量 */
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 3px 5px rgba(51, 181, 229, 0.4);
+        box-shadow: 0 3px 5px rgba(var(--info-color-rgb), 0.4); /* 使用變量 */
     }
 
     .detail-btn:active {
@@ -1389,7 +1480,7 @@
 
     .no-data {
         text-align: center;
-        color: #cccccc;
+        color: var(--text-muted); /* 使用變量 */
         font-style: italic;
         padding: 30px 0;
         font-size: 16px;
@@ -1397,9 +1488,9 @@
 
     /* 全部删除按钮改进 */
     .delete-all-btn {
-        background: rgba(231, 76, 60, 0.15);
-        border: 1px solid #e74c3c;
-        color: #e74c3c;
+        background: rgba(var(--error-color-rgb), 0.15); /* 使用變量 */
+        border: 1px solid var(--error-color); /* 使用變量 */
+        color: var(--error-color); /* 使用變量 */
         font-size: 14px;
         padding: 6px 14px;
         border-radius: 6px;
@@ -1409,10 +1500,10 @@
     }
 
     .delete-all-btn:hover {
-        background-color: #e74c3c;
+        background-color: var(--error-color); /* 使用變量 */
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 3px 5px rgba(231, 76, 60, 0.4);
+        box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4); /* 使用變量 */
     }
 
     .delete-all-btn:active {
@@ -1428,7 +1519,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(var(--primary-color-rgb), 0.7); /* 使用變量 */
         z-index: 2000;
         justify-content: center;
         align-items: center;
@@ -1436,11 +1527,11 @@
     }
 
     .modal-container {
-        background-color: var(--primary-color);
+        background-color: var(--primary-color); /* 使用變量 */
         border-radius: 10px;
         width: 90%;
         max-width: 350px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 25px rgba(var(--shadow-color)); /* 使用變量 */
         animation: modalSlideIn 0.3s ease-out;
         overflow: hidden;
     }
@@ -1455,19 +1546,19 @@
         justify-content: space-between;
         align-items: center;
         padding: 15px;
-        border-bottom: 1px solid var(--border-color);
-        background-color: var(--secondary-color);
+        border-bottom: 1px solid var(--border-color); /* 使用變量 */
+        background-color: var(--secondary-color); /* 使用變量 */
     }
 
     .modal-header h3 {
         margin: 0;
-        color: var(--button-orange);
+        color: var(--accent-color); /* 使用變量 */
         font-size: 18px;
     }
 
     .modal-content {
         padding: 20px 15px;
-        color: var(--text-color);
+        color: var(--text-color); /* 使用變量 */
         max-height: 70vh;
         overflow-y: auto;
     }
@@ -1477,8 +1568,8 @@
         display: flex;
         justify-content: flex-end;
         gap: 10px;
-        border-top: 1px solid var(--border-color);
-        background-color: var(--secondary-color);
+        border-top: 1px solid var(--border-color); /* 使用變量 */
+        background-color: var(--secondary-color); /* 使用變量 */
     }
 
     .modal-btn {
@@ -1491,23 +1582,23 @@
     }
 
     .modal-btn-primary {
-        background-color: var(--button-orange);
+        background-color: var(--accent-color); /* 使用變量 */
         color: white;
     }
 
     .modal-btn-primary:hover {
-        background-color: #e88a22;
+        background-color: var(--accent-color-dark); /* 使用變量 */
         transform: translateY(-2px);
     }
 
     .modal-btn-secondary {
-        background-color: var(--secondary-color);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
+        background-color: var(--secondary-color); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
+        border: 1px solid var(--border-color); /* 使用變量 */
     }
 
     .modal-btn-secondary:hover {
-        background-color: var(--hover-color);
+        background-color: var(--hover-color); /* 使用變量 */
         transform: translateY(-2px);
     }
 
@@ -1517,13 +1608,13 @@
         bottom: 60px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: rgba(51, 181, 229, 0.9);
+        background-color: rgba(var(--info-color-rgb), 0.9); /* 使用變量 */
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
         z-index: 9999;
         font-weight: bold;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 10px var(--shadow-color); /* 使用變量 */
         opacity: 1;
         transition: opacity 0.5s ease;
     }
@@ -1532,9 +1623,9 @@
     #afterCommissionRate {
         font-weight: bold;
         color: #ffffff;
-        background-color: rgba(255, 156, 51, 0.08); /* 更淡的橘色背景 */
-        border: 1px solid rgba(255, 156, 51, 0.6); /* 半透明橘色邊框 */
-        box-shadow: 0 0 4px rgba(255, 156, 51, 0.15); /* 微弱的發光效果 */
+        background-color: var(--accent-color-light);
+        border: 1px solid rgba(var(--accent-color-rgb), 0.6);
+        box-shadow: 0 0 4px rgba(var(--accent-color-rgb), 0.15);
     }
 
     #afterCommissionRate.value-changed {
@@ -1554,51 +1645,51 @@
 
     /* Number Input Modal */
     .number-input-modal {
-        background-color: var(--primary-color);
+        background-color: var(--primary-color); /* 使用變量 */
         border-radius: 12px;
         width: 95%;
         max-width: 350px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 25px var(--shadow-color); /* 使用變量 */
         overflow: hidden;
         animation: modalSlideIn 0.3s ease-out;
     }
 
     .calculator-display {
-        background-color: #222222;
-        color: var(--text-color);
+        background-color: var(--input-bg); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
         font-size: 32px;
         padding: 10px 15px;
         text-align: right;
         margin: 10px;
         border-radius: 6px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--border-color); /* 使用變量 */
         height: 46px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         overflow: hidden;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        box-shadow: inset 0 2px 4px var(--shadow-color); /* 使用變量 */
     }
 
     .calculator-display-container {
         display: flex;
         flex-direction: column;
-        background-color: #1a1a1a;
+        background-color: var(--input-bg); /* 使用變量 */
         margin: 10px;
         border-radius: 10px;
-        border: 1px solid #444444;
-        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--border-color); /* 使用變量 */
+        box-shadow: inset 0 2px 8px var(--shadow-color); /* 使用變量 */
         overflow: hidden;
-        height: 110px; /* 固定高度 */
+        height: 110px;
         position: relative;
     }
 
     .calculator-history {
-        color: #9e9e9e;
+        color: var(--text-muted); /* 使用變量 */
         font-size: 16px;
         padding: 8px 15px;
         text-align: right;
-        height: 40px; /* 固定高度 */
+        height: 40px;
         overflow-y: hidden;
         display: flex;
         flex-direction: column;
@@ -1607,7 +1698,9 @@
         word-break: break-all;
         font-family: 'Consolas', monospace;
         position: relative;
-        background: linear-gradient(to bottom, #1e1e1e, #2a2a2a);
+        background: linear-gradient(to bottom, 
+            rgba(var(--input-bg-rgb), 0.8), 
+            rgba(var(--secondary-color-rgb), 0.8)); /* 使用變量 */
     }
 
     .calculator-history::after {
@@ -1617,12 +1710,13 @@
         right: 0;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(to right, transparent, rgba(255, 156, 51, 0.4), transparent);
+        background: linear-gradient(to right, transparent, 
+            rgba(var(--accent-color-rgb), 0.4), transparent); /* 使用變量 */
     }
 
     .calculator-display {
-        background-color: #2a2a2a;
-        color: white;
+        background-color: var(--input-bg); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
         font-size: 36px;
         padding: 10px 15px;
         text-align: right;
@@ -1640,8 +1734,10 @@
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
         position: relative;
-        background: linear-gradient(to bottom, #2a2a2a, #222222);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        background: linear-gradient(to bottom, 
+            rgba(var(--input-bg-rgb), 0.9), 
+            rgba(var(--input-bg-rgb), 0.7)); /* 使用變量 */
+        text-shadow: 0 1px 2px var(--shadow-color); /* 使用變量 */
     }
 
     .calculator-scroll-indicator {
@@ -1650,22 +1746,18 @@
         right: 5px;
         width: 12px;
         height: 12px;
-        background-color: rgba(255, 156, 51, 0.7);
+        background-color: rgba(var(--accent-color-rgb), 0.7); /* 使用變量 */
         border-radius: 50%;
         opacity: 0;
         transition: opacity 0.3s ease;
         z-index: 10;
     }
 
-    .has-overflow .calculator-scroll-indicator {
-        opacity: 1;
-        animation: pulse 1.5s infinite;
-    }
-
     @keyframes pulse {
         0%, 100% { opacity: 0.7; transform: scale(1); }
         50% { opacity: 1; transform: scale(1.1); }
     }
+
 
     .calculator-buttons {
         display: grid;
@@ -1679,8 +1771,8 @@
         padding: 10px 0;
         font-size: 20px;
         border-radius: 10px;
-        background-color: #3a3a3a;
-        color: var(--text-color);
+        background-color: var(--secondary-color); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
         border: none;
         transition: all 0.2s ease;
         margin: 0;
@@ -1688,15 +1780,15 @@
         align-items: center;
         justify-content: center;
         height: 48px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 4px var(--shadow-color); /* 使用變量 */
         position: relative;
         overflow: hidden;
     }
 
     .calculator-buttons button:hover {
-        background-color: #464646;
+        background-color: var(--hover-color); /* 使用變量 */
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 8px var(--shadow-color); /* 使用變量 */
     }
 
     .calculator-buttons button:active {
@@ -1744,7 +1836,7 @@
     .calculator-buttons .number-btn .financial-char {
         right: 6px;
         font-size: 18px;
-        color: var(--button-orange);
+        color: var(--accent-color); /* 使用變量 */
         position: absolute;
         opacity: 0.9;
     }
@@ -1816,26 +1908,26 @@
 
     /* 運算符號樣式 */
     .calculator-buttons .operator {
-        background-color: rgba(255, 156, 51, 0.9);
-        color: white;
+        background-color: var(--accent-color);
+        color: white; 
         font-weight: bold;
-        box-shadow: 0 2px 6px rgba(255, 156, 51, 0.4);
+        box-shadow: 0 2px 6px rgba(var(--accent-color-rgb), 0.4);
     }
 
     /* 清除鍵樣式 */
     .calculator-buttons .clear {
-        background-color: rgba(231, 76, 60, 0.9);
+        background-color: var(--error-color);
         color: white;
         font-weight: bold;
-        box-shadow: 0 2px 6px rgba(231, 76, 60, 0.4);
+        box-shadow: 0 2px 6px rgba(var(--error-color-rgb), 0.4);
     }
 
     /* 等號鍵樣式 */
     .calculator-buttons .equals {
-        background-color: rgba(52, 152, 219, 0.9);
+        background-color: var(--info-color);
         color: white;
         font-weight: bold;
-        box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+        box-shadow: 0 2px 6px rgba(var(--info-color-rgb), 0.4);
     }
 
     /* 零鍵佔據兩欄 */
@@ -1847,14 +1939,14 @@
     /* 提交按鈕佔據兩欄 */
     .calculator-buttons .submit {
         grid-column: span 2;
-        background-color: var(--button-orange);
+        background-color: var(--accent-color);
         color: white;
         font-weight: bold;
-        box-shadow: 0 2px 6px rgba(255, 156, 51, 0.4);
+        box-shadow: 0 2px 6px rgba(var(--accent-color-rgb), 0.4);
     }
 
     .toast-error {
-        background-color: rgba(231, 76, 60, 0.9);
+        background-color: rgba(var(--error-color-rgb), 0.9); /* 使用變量 */
     }
 
     /* 添加箭頭旋轉動畫 */
@@ -2036,7 +2128,7 @@
     }
 
     .history-note-container {
-        background-color: rgba(0, 0, 0, 0.1);
+        background-color: rgba(var(--primary-color-rgb), 0.1);
         border-radius: 4px;
         margin: 6px 0;
         padding: 6px;
@@ -2070,10 +2162,11 @@
     }
 
     .history-note-preview:hover {
-        background-color: rgba(255, 156, 51, 0.1);
-        border-color: rgba(255, 156, 51, 0.3);
+        background-color: var(--accent-color-light);
+        border-color: rgba(var(--accent-color-rgb), 0.3);
     }
 
+    /* 備註編輯器樣式 */
     .note-editor-modal {
         display: none;
         position: fixed;
@@ -2081,23 +2174,23 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(var(--primary-color-rgb), 0.7); /* 使用變量 */
         z-index: 2000;
-        justify-content: center;  /* 水平置中 */
-        align-items: flex-start;  /* 垂直從頂部開始，但不是頂部對齊 */
-        padding-top: 160px;  /* 增加頂部間距，避免太貼近頂部 */
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 160px;
     }
 
     .note-editor-content {
-        background-color: var(--primary-color);
+        background-color: var(--primary-color); /* 使用變量 */
         border-radius: 12px;
-        width: 80%;  /* 改為80%寬度 */
-        max-width: 320px;  /* 減小最大寬度 */
+        width: 80%;
+        max-width: 320px;
         padding: 15px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        border: 1px solid var(--button-orange);
+        box-shadow: 0 10px 25px var(--shadow-color); /* 使用變量 */
+        border: 1px solid var(--accent-color); /* 使用變量 */
         animation: slideDown 0.3s ease-out;
-        margin: 0 auto;  /* 確保水平置中 */
+        margin: 0 auto;
     }
 
     @keyframes slideDown {
@@ -2106,40 +2199,40 @@
     }
 
     .note-editor-input {
-        width: calc(100% - 24px);  /* 減去padding寬度，避免溢出 */
+        width: calc(100% - 24px);
         padding: 12px;
         margin: 12px 0;
-        background-color: #222222;
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
+        background-color: var(--input-bg); /* 使用變量 */
+        color: var(--text-color); /* 使用變量 */
+        border: 1px solid var(--border-color); /* 使用變量 */
         border-radius: 8px;
         min-height: 100px;
         resize: none;
         font-size: 16px;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: inset 0 2px 4px var(--shadow-color); /* 使用變量 */
         transition: all 0.3s ease;
-        box-sizing: border-box;  /* 確保寬度計算包含padding */
+        box-sizing: border-box;
     }
 
     .note-editor-input:focus {
-        border-color: var(--button-orange);
-        box-shadow: 0 0 0 2px rgba(255, 156, 51, 0.2);
+        border-color: var(--accent-color); /* 使用變量 */
+        box-shadow: 0 0 0 2px var(--accent-color-light); /* 使用變量 */
         outline: none;
     }
 
     .note-editor-buttons {
         display: flex;
-        justify-content: flex-end;  /* 按鈕靠右對齊 */
-        gap: 8px;  /* 減少按鈕間隙 */
+        justify-content: flex-end;
+        gap: 8px;
         margin-top: 8px;
     }
 
     .note-editor-content h3 {
-        color: var(--button-orange);
+        color: var(--accent-color); /* 使用變量 */
         font-size: 18px;
         margin: 0 0 8px 0;
         padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 156, 51, 0.3);
+        border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.3); /* 使用變量 */
     }
 
     /* 新增截圖加載提示樣式 */
@@ -2150,7 +2243,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(var(--primary-color-rgb), 0.7); /* 使用變量 */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2158,13 +2251,13 @@
     }
 
     .loading-content {
-        background-color: rgba(51, 181, 229, 0.9);
+        background-color: rgba(var(--info-color-rgb), 0.9); /* 使用變量 */
         color: white;
         padding: 15px 25px;
         font-size: 16px;
         font-weight: bold;
         border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 12px var(--shadow-color); /* 使用變量 */
         animation: pulseLoading 1.5s infinite;
     }
 
@@ -2178,13 +2271,13 @@
         width: 95%;
         max-width: 370px;
         padding-bottom: 15px;
-        background-color: #333333;
+        background-color: var(--primary-color); /* 使用變量 */
     }
 
     #shareQuoteCard {
         border-radius: 12px;
         overflow: hidden;
-        background-color: #333333;
+        background-color: var(--primary-color); /* 使用變量 */
         margin: 10px auto;
         max-width: 340px;
     }
@@ -2198,12 +2291,13 @@
 
     #shareOptions button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 5px 15px var(--shadow-color); /* 使用變量 */
     }
 
     #shareStatus {
         height: 20px;
         font-style: italic;
+        color: var(--accent-color); /* 使用變量 */
     }
 
     /* 報價卡片圖片樣式 */
@@ -2261,7 +2355,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: var(--primary-color);
         z-index: 2500;
         display: none;
         justify-content: flex-start;
@@ -2353,7 +2447,7 @@
     }
 
     .menu-item:hover {
-        background-color: rgba(255, 156, 51, 0.1);
+        background-color: var(--accent-color-light);
     }
 
     .menu-item:active {
@@ -2387,7 +2481,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: var(--primary-color);
         z-index: 2600;
         display: none;
         justify-content: flex-start;
@@ -2426,14 +2520,14 @@
 
     .submenu-header h3 {
         margin: 0;
-        color: var(--button-orange);
+        color: var(--accent-color);
         font-size: 22px; /* 增加字體大小 */
         font-weight: bold; /* 增加字體粗細 */
     }
 
     .menu-header h3 {
         margin: 0;
-        color: var(--button-orange);
+        color: var(--accent-color);
         font-size: 22px; /* 增加字體大小 */
         font-weight: bold; /* 增加字體粗細 */
     }
@@ -2471,7 +2565,7 @@
     }
 
     .submenu-item:hover {
-        background-color: rgba(255, 156, 51, 0.1);
+        background-color: var(--accent-color-light);
     }
 
     .submenu-item:active {
@@ -2481,10 +2575,10 @@
     .version-info {
         padding: 15px;
         font-size: 14px;
-        color: #666666;
+        color: var(--text-muted);
         text-align: center;
         border-top: 1px solid var(--border-color);
-        background-color: rgba(0, 0, 0, 0.1);
+        background-color: rgba(var(--primary-color-rgb), 0.1);
         margin-top: auto; /* 將版本信息推到底部 */
     }
 
@@ -2522,497 +2616,111 @@
     }
 
     /* 添加在CSS的最後，在最後的樣式規則之後（約在1860行左右） */
-
-    /* 極簡黑白主題特定調整 */
-    :root[data-theme="white"] .row {
-        background: var(--secondary-color);
-        box-shadow: 0 2px 5px var(--shadow-color);
-    }
-
-    :root[data-theme="white"] .input-button-group {
-        background: var(--secondary-color);
-        border: 1px solid var(--border-color);
-    }
-
-    :root[data-theme="white"] input {
-        background-color: #ffffff;
-        border: 1px solid #dddddd;
-        color: #333333;
-    }
-
-    :root[data-theme="white"] .time-display-wrapper,
-    :root[data-theme="white"] #timeDisplay,
-    :root[data-theme="white"] .footer-message {
+    /* 主題相關元素樣式調整 */
+    .row {
         background-color: var(--secondary-color);
+        border-left: 3px solid transparent;
+        transition: all var(--transition-normal) ease;
+    }
+
+    .row:hover {
+        transform: translateX(5px);
+        box-shadow: 0 6px 12px var(--shadow-color);
+    }
+
+    .row:hover::before {
+        background: var(--accent-color);
+    }
+
+    .row .label {
         color: var(--text-color);
     }
 
-    :root[data-theme="white"] .sticky-header {
-        background: var(--secondary-color);
+    .emphasized-row {
+        border-left: 3px solid var(--accent-color);
+        background: linear-gradient(90deg, var(--accent-color-light), transparent);
     }
 
-    :root[data-theme="white"] .time-label {
-        color: var(--button-orange);
+    .emphasized-row .label {
+        color: var(--accent-color);
     }
 
-    :root[data-theme="white"] .function-buttons button {
-        background-color: #ffffff;
-        color: #333333;
-        border-color: var(--button-orange);
+    .emphasized-row input {
+        border-color: var(--accent-color);
     }
 
-    :root[data-theme="white"] button {
-        background-color: #ffffff;
-        color: #555555;
+    input {
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        border: 1px solid var(--input-border);
     }
 
-    :root[data-theme="white"] body {
-        background-color: #f5f5f5;
+    input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px var(--accent-color-light);
     }
 
-    :root[data-theme="white"] h1 {
-        color: #333333;
-    }
-
-    :root[data-theme="white"] .toast-message {
-        background-color: rgba(51, 181, 229, 0.9);
-        color: white;
-    }
-
-    :root[data-theme="white"] .toast-error {
-        background-color: rgba(231, 76, 60, 0.9);
-        color: white;
-    }
-
-    :root[data-theme="white"] .readonly {
-        background-color: #f0f0f0;
-    }
-
-    :root[data-theme="white"] .warning-text {
-        color: #d9534f !important;
-    }
-
-    /* 調整模態框在極簡黑白主題下的樣式 */
-    :root[data-theme="white"] .modal-container,
-    :root[data-theme="white"] .modal-header,
-    :root[data-theme="white"] .modal-content,
-    :root[data-theme="white"] .modal-footer {
-        background-color: #ffffff;
-        color: #333333;
-    }
-
-    :root[data-theme="white"] .modal-btn-secondary {
-        background-color: #f0f0f0;
-        color: #333333;
-    }
-
-    /* 調整計算器在極簡黑白主題下的樣式 */
-    :root[data-theme="white"] .calculator-display-container {
-        background-color: #f9f9f9;
-        border: 1px solid #dddddd;
-    }
-
-    :root[data-theme="white"] .calculator-history {
-        color: #333333; /* 更深的文字顏色 */
-        background: linear-gradient(to bottom, #ffffff, #f5f5f5); /* 更淺的背景 */
-        border-bottom: 1px solid #cccccc;
-    }
-
-    :root[data-theme="white"] .calculator-display {
-        background-color: #ffffff; /* 保持純白背景 */
-        color: #000000; /* 改為純黑色文字，增加對比度 */
-        border: 1px solid #cccccc;
-        font-weight: bold; /* 加粗文字增加可讀性 */
-    }
-
-    :root[data-theme="white"] .calculator-buttons button {
-        background-color: #f5f5f5;
-        color: #333333;
-        border: 1px solid #dddddd;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .number-btn .arabic-number {
-        color: #333333;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .operator {
-        background-color: var(--button-orange);
-        color: white;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .clear {
-        background-color: #d9534f;
-        color: white;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .equals {
-        background-color: var(--button-blue);
-        color: white;
-    }
-
-    /* 調整歷史記錄面板在極簡黑白主題下的樣式 */
-    :root[data-theme="white"] .history-panel {
-        background-color: rgba(255, 255, 255, 0.95);
-    }
-
-    :root[data-theme="white"] .history-header {
-        background-color: #ffffff;
-        border-bottom: 2px solid var(--button-orange);
-    }
-
-    :root[data-theme="white"] .history-header h2 {
-        color: var(--button-orange);
-    }
-
-    :root[data-theme="white"] .history-item {
-        background-color: #ffffff;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    :root[data-theme="white"] .history-details {
-        background-color: #f9f9f9;
-    }
-
-    :root[data-theme="white"] .detail-label {
-        color: #666666;
-    }
-
-    :root[data-theme="white"] .detail-value {
-        color: #333333;
-    }
-
-    :root[data-theme="white"] .history-date {
-        color: var(--button-orange);
-    }
-
-    :root[data-theme="white"] .menu-container,
-    :root[data-theme="white"] .menu-content,
-    :root[data-theme="white"] .submenu-container,
-    :root[data-theme="white"] .submenu-content {
-        background-color: #ffffff;
-    }
-
-    :root[data-theme="white"] .menu-item,
-    :root[data-theme="white"] .submenu-item {
-        color: #333333;
-        border-bottom: 1px solid #eeeeee;
-    }
-
-    :root[data-theme="white"] .menu-header h3,
-    :root[data-theme="white"] .submenu-header h3 {
-        color: var(--button-orange);
-    }
-
-    :root[data-theme="white"] .version-info {
-        color: #999999;
-        background-color: #f5f5f5;
-    }
-
-    /* 極簡黑白主題特定調整 */
-    :root[data-theme="white"] .row {
-        background: var(--secondary-color);
-        box-shadow: 0 2px 5px var(--shadow-color);
-    }
-
-    :root[data-theme="white"] .input-button-group {
-        background: var(--secondary-color);
+    button {
+        background-color: var(--secondary-color);
+        color: var(--text-color);
         border: 1px solid var(--border-color);
     }
 
-    :root[data-theme="white"] input {
-        background-color: #ffffff;
-        border: 1px solid #cccccc;
-        color: #222222;
+    button:hover {
+        background-color: var(--hover-color);
     }
 
-    :root[data-theme="white"] .time-display-wrapper,
-    :root[data-theme="white"] #timeDisplay,
-    :root[data-theme="white"] .footer-message {
+    .function-buttons button {
         background-color: var(--secondary-color);
         color: var(--text-color);
+        border: 1px solid var(--accent-color);
     }
 
-    :root[data-theme="white"] .sticky-header {
-        background: var(--secondary-color);
+    .function-buttons button:hover {
+        background-color: var(--accent-color);
     }
 
-    :root[data-theme="white"] .time-label {
-        color: #555555; /* 改為深灰而非橙色 */
-    }
-
-    :root[data-theme="white"] .function-buttons button {
-        background-color: #ffffff;
-        color: #222222;
-        border-color: #555555; /* 改為深灰而非橙色 */
-    }
-
-    :root[data-theme="white"] button {
-        background-color: #ffffff;
-        color: #444444;
-    }
-
-    :root[data-theme="white"] body {
-        background-color: #fafafa;
-    }
-
-    :root[data-theme="white"] h1 {
-        color: #222222;
-        border-bottom: 2px solid #555555; /* 改為深灰而非橙色 */
-    }
-
-    :root[data-theme="white"] h1::after {
-        background: #555555; /* 改為深灰而非橙色 */
-    }
-
-    :root[data-theme="white"] .toast-message {
-        background-color: rgba(85, 85, 85, 0.9); /* 改為深灰而非藍色 */
-        color: white;
-    }
-
-    :root[data-theme="white"] .toast-error {
-        background-color: rgba(85, 85, 85, 0.9); /* 改為深灰而非紅色 */
-        color: white;
-    }
-
-    :root[data-theme="white"] .readonly {
-        background-color: #f0f0f0;
-    }
-
-    :root[data-theme="white"] .warning-text {
-        color: #555555 !important; /* 改為深灰而非紅色 */
-        font-weight: bold !important;
-    }
-
-    /* 調整按鈕懸停效果 */
-    :root[data-theme="white"] .function-buttons button:hover,
-    :root[data-theme="white"] button:hover {
-        background-color: #e0e0e0;
-        border-color: #333333;
-        color: #111111;
-    }
-
-    /* 調整分隔線 */
-    :root[data-theme="white"] .divider-flow {
+    .divider-flow {
         background: linear-gradient(90deg, 
             var(--secondary-color) 0%,
-            #555555 50%, /* 改為深灰而非橙色 */
+            var(--accent-color) 50%,
             var(--secondary-color) 100%);
     }
 
-    :root[data-theme="white"] .divider-flow::after {
+    .divider-flow::after {
         background: linear-gradient(90deg,
             transparent,
-            rgba(85, 85, 85, 0.8), /* 改為深灰而非橙色 */
+            var(--accent-color),
             transparent);
     }
 
-    /* 調整模態框 */
-    :root[data-theme="white"] .modal-container,
-    :root[data-theme="white"] .modal-header,
-    :root[data-theme="white"] .modal-content,
-    :root[data-theme="white"] .modal-footer {
-        background-color: #ffffff;
-        color: #222222;
-        border-color: #cccccc;
+    .toast-message {
+        background-color: var(--info-color);
     }
 
-    :root[data-theme="white"] .modal-btn-primary {
-        background-color: #555555; /* 改為深灰而非橙色 */
-        color: white;
+    .toast-error {
+        background-color: var(--error-color);
     }
 
-    :root[data-theme="white"] .history-header h2,
-    :root[data-theme="white"] .history-date,
-    :root[data-theme="white"] .menu-header h3,
-    :root[data-theme="white"] .submenu-header h3 {
-        color: #555555; /* 改為深灰而非橙色 */
+    .warning-text {
+        color: var(--error-color) !important;
     }
 
-    :root[data-theme="white"] .history-item {
-        border-left: 3px solid #555555; /* 改為深灰而非橙色 */
+    .history-item {
+        border-left: 3px solid var(--accent-color);
     }
 
-    /* 調整歷史記錄標題 */
-    :root[data-theme="white"] .history-header-rate {
-        background-color: rgba(85, 85, 85, 0.2); /* 改為深灰色半透明背景 */
+    .history-date {
+        color: var(--accent-color);
     }
 
-    /* 極簡黑白主題下的計算器樣式 */
-    :root[data-theme="white"] .calculator-display-container {
-        background-color: #f5f5f5;
-        border: 1px solid #cccccc;
-    }
-
-    :root[data-theme="white"] .calculator-history {
-        color: #555555;
-        background: linear-gradient(to bottom, #f5f5f5, #eeeeee);
-        border-bottom: 1px solid #cccccc;
-    }
-
-    :root[data-theme="white"] .calculator-display {
-        background-color: #ffffff;
-        color: #222222;
-        border: 1px solid #cccccc;
-    }
-
-    :root[data-theme="white"] .calculator-buttons button {
-        background-color: #f5f5f5;
-        color: #333333;
-        border: 1px solid #cccccc;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .function {
-        background-color: #e0e0e0;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .operator {
-        background-color: #555555; /* 改為深灰而非橙色 */
-        color: white;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .clear {
-        background-color: #777777; /* 改為中灰而非紅色 */
-        color: white;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .equals {
-        background-color: #444444; /* 改為更深灰而非藍色 */
-        color: white;
-    }
-
-    :root[data-theme="white"] .calculator-buttons .submit {
-        background-color: #555555; /* 改為深灰而非橙色 */
-        color: white;
-    }
-
-    :root[data-theme="white"] .calculator-buttons button:hover {
-        background-color: #e0e0e0;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    :root[data-theme="white"] .calculator-buttons .number-btn .financial-char {
-        color: #555555; /* 改為深灰而非橙色 */
-    }
-
-    /* 極簡黑白主題下的表單元素 */
-    :root[data-theme="white"] .label {
-        color: #333333;
-        font-weight: 600;
-    }
-
-    :root[data-theme="white"] input:focus {
-        outline: none;
-        border-color: #555555; /* 改為深灰而非橙色 */
-        box-shadow: 0 0 0 3px rgba(85, 85, 85, 0.2); /* 改為深灰半透明 */
-        transform: scale(1.05);
-    }
-
-    :root[data-theme="white"] .value-changed {
-        animation: valueChangeWhite 0.5s ease-out;
-    }
-
-    @keyframes valueChangeWhite {
-        0% { 
-            background-color: rgba(85, 85, 85, 0.2); /* 改為深灰半透明 */
-            transform: scale(1.02);
-        }
-        100% { 
-            background-color: transparent;
-            transform: scale(1);
-        }
-    }
-
-    :root[data-theme="white"] #afterCommissionRate {
-        font-weight: bold;
-        color: #222222;
-        background-color: rgba(85, 85, 85, 0.05); /* 改為深灰半透明 */
-        border: 1px solid rgba(85, 85, 85, 0.4); /* 改為深灰半透明 */
-        box-shadow: 0 0 4px rgba(85, 85, 85, 0.1); /* 微弱的發光效果 */
-    }
-
-    /* 極簡黑白主題下的強調行 */
-    :root[data-theme="white"] .emphasized-row {
-        border-left: 3px solid #555555; /* 改為深灰而非橙色 */
-        background: linear-gradient(90deg, rgba(85, 85, 85, 0.1), transparent); /* 改為深灰半透明漸變 */
-    }
-
-    :root[data-theme="white"] .emphasized-row .label {
-        color: #333333; /* 改為深灰而非橙色 */
-        font-weight: 700;
-    }
-
-    :root[data-theme="white"] .emphasized-row input {
-        font-weight: bold;
-        color: #222222;
-        border-color: #555555; /* 改為深灰而非橙色 */
-    }
-
-    /* 備註顯示區域樣式調整 */
-    :root[data-theme="white"] .history-note-container {
-        background-color: #f0f0f0; /* 稍微深一點的背景 */
-        border: 1px solid #dddddd; /* 添加邊框增加區分度 */
-    }
-
-    :root[data-theme="white"] .history-note-preview {
-        color: #222222; /* 更深的文字顏色 */
-        font-weight: normal; /* 正常粗細 */
-    }
-
-    :root[data-theme="white"] .history-note-preview:hover {
-        background-color: rgba(85, 85, 85, 0.15); /* 懸停時顯示深灰色背景 */
-        border-color: rgba(85, 85, 85, 0.3); /* 懸停時顯示深灰色邊框 */
-        color: #000000; /* 懸停時文字變為純黑 */
-    }
-
-    /* 備註編輯器樣式調整 */
-    :root[data-theme="white"] .note-editor-content {
-        background-color: #ffffff;
-        border: 1px solid #555555; /* 使用深灰色邊框 */
-    }
-
-    :root[data-theme="white"] .note-editor-input {
-        background-color: #ffffff;
-        color: #000000; /* 純黑文字 */
-        border: 1px solid #cccccc;
-    }
-
-    :root[data-theme="white"] .note-editor-input:focus {
-        border-color: #555555; /* 深灰色邊框 */
-        box-shadow: 0 0 0 2px rgba(85, 85, 85, 0.2); /* 深灰色陰影 */
-    }
-
-    /* 提高文字對比度的一般調整 */
-    :root[data-theme="white"] .row .label {
-        color: #000000; /* 標籤文字改為純黑 */
-        font-weight: 600; /* 加粗標籤文字 */
-    }
-
-    :root[data-theme="white"] input {
-        color: #000000; /* 輸入框文字改為純黑 */
-        background-color: #ffffff; /* 輸入框背景為純白 */
-        border: 1px solid #aaaaaa; /* 更明顯的邊框 */
-    }
-
-    :root[data-theme="white"] .detail-label {
-        color: #333333; /* 詳情標籤深色 */
-    }
-
-    :root[data-theme="white"] .detail-value {
-        color: #000000; /* 詳情值純黑 */
-        font-weight: bold; /* 加粗 */
-    }
-
-    /* 提升歷史記錄項目的可讀性 */
-    :root[data-theme="white"] .history-item {
-        background-color: #ffffff; /* 純白背景 */
-        border-left: 3px solid #555555; /* 保持深灰色邊框 */
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* 稍微加強陰影 */
-    }
-
-    :root[data-theme="white"] .history-details {
-        background-color: #f5f5f5; /* 淺灰背景 */
-        border: 1px solid #dddddd; /* 加上邊框增加分隔 */
+    /* 簡化所有主題特定調整 */
+    :root[data-theme="white"] input,
+    :root[data-theme="white"] .row,
+    :root[data-theme="white"] #timeDisplay,
+    :root[data-theme="white"] .sticky-header,
+    :root[data-theme="white"] .modal-container {
+        background-color: var(--secondary-color);
     }
 
 </style>
@@ -4282,51 +3990,59 @@
         // 是否顯示推廣費用
         const showCommission = commission && commission !== "0";
         
+        // 獲取當前主題的 CSS 變量
+        const style = getComputedStyle(document.documentElement);
+        const primaryColor = style.getPropertyValue('--primary-color').trim();
+        const textColor = style.getPropertyValue('--text-color').trim();
+        const accentColor = style.getPropertyValue('--accent-color').trim();
+        const borderColor = style.getPropertyValue('--border-color').trim();
+        const textMuted = style.getPropertyValue('--text-muted').trim();
+        
         return `
-            <div style="width: 90%; max-width: 340px; margin: 0 auto; background-color: #333333; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: #ffffff; border: 2px solid #ff9c33; box-sizing: border-box;">
-                <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #ff9c33; padding-bottom: 10px;">
-                    <div style="margin: 0; font-size: 22px; color: #ff9c33; font-weight: bold;">貸款計算報價單</div>
+            <div style="width: 90%; max-width: 340px; margin: 0 auto; background-color: ${primaryColor}; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: ${textColor}; border: 2px solid ${accentColor}; box-sizing: border-box;">
+                <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid ${accentColor}; padding-bottom: 10px;">
+                    <div style="margin: 0; font-size: 22px; color: ${accentColor}; font-weight: bold;">貸款計算報價單</div>
                     <div style="font-size: 14px; margin-top: 8px;">${currentTime}</div>
                 </div>
                 
                 <table style="width: 100%; border-collapse: separate; border-spacing: 0 10px; font-size: 16px;">
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">期數:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">期數:</td>
                         <td style="text-align: left; font-weight: bold;">${period} 期</td>
                     </tr>
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅前利率:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">稅前利率:</td>
                         <td style="text-align: left; font-weight: bold;">${rate}%</td>
                     </tr>
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">本金:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">本金:</td>
                         <td style="text-align: left; font-weight: bold;">${principal} 元</td>
                     </tr>
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">期繳:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">期繳:</td>
                         <td style="text-align: left; font-weight: bold;">${payment} 元/期</td>
                     </tr>
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">總利息:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">總利息:</td>
                         <td style="text-align: left; font-weight: bold;">${totalInterest} 元</td>
                     </tr>
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅後利率:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">稅後利率:</td>
                         <td style="text-align: left; font-weight: bold;">${afterTaxRate}%</td>
                     </tr>
                     ${showCommission ? `
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">推廣:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">推廣:</td>
                         <td style="text-align: left; font-weight: bold;">${commission} 元</td>
                     </tr>
                     ` : ''}
                     <tr>
-                        <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅佣後利率:</td>
+                        <td style="width: 40%; text-align: right; padding-right: 15px; color: ${accentColor}; font-weight: bold;">稅佣後利率:</td>
                         <td style="text-align: left; font-weight: bold;">${afterCommissionRate}%</td>
                     </tr>
                 </table>
                 
-                <div style="text-align: center; margin-top: 15px; font-size: 14px; color: #cccccc; border-top: 1px dashed #555555; padding-top: 12px;">
+                <div style="text-align: center; margin-top: 15px; font-size: 14px; color: ${textMuted}; border-top: 1px dashed ${borderColor}; padding-top: 12px;">
                     報價後記得吃碗火雞肉飯唷！
                 </div>
             </div>
@@ -5773,6 +5489,16 @@
             // 保存主題設置到localStorage
             localStorage.setItem('selectedTheme', themeName);
             
+            // 如果有可見的報價卡片，根據新主題更新它
+            const shareQuoteCard = document.getElementById('shareQuoteCard');
+            if (shareQuoteCard && shareQuoteCard.innerHTML.trim() !== '') {
+                // 延遲一點時間以確保CSS變量已更新
+                setTimeout(() => {
+                    const updatedQuoteHtml = generateQuoteCardHtml();
+                    shareQuoteCard.innerHTML = updatedQuoteHtml;
+                }, 100);
+            }
+            
             // 提供反饋
             showToast('已套用「' + getThemeName(themeName) + '」主題');
             
@@ -5820,49 +5546,49 @@
     </script>
 
     <!-- 報價卡片模板 -->
-    <div id="quoteCardTemplate" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background-color: #333333; padding: 20px; box-sizing: border-box;">
-        <div id="quoteCard" style="width: 100%; max-width: 380px; margin: 0 auto; background-color: #333333; padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: #ffffff; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); border: 2px solid #ff9c33;">
-            <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid #ff9c33; padding-bottom: 10px;">
-                <h2 style="margin: 0; font-size: 20px; color: #ff9c33;">貸款計算報價單</h2>
+    <div id="quoteCardTemplate" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; background-color: var(--primary-color); padding: 20px; box-sizing: border-box;">
+        <div id="quoteCard" style="width: 100%; max-width: 380px; margin: 0 auto; background-color: var(--primary-color); padding: 20px; border-radius: 15px; font-family: 'Microsoft JhengHei', Arial, sans-serif; color: var(--text-color); box-shadow: 0 10px 25px var(--shadow-color); border: 2px solid var(--accent-color);">
+            <div style="text-align: center; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px;">
+                <h2 style="margin: 0; font-size: 20px; color: var(--accent-color);">貸款計算報價單</h2>
                 <div style="font-size: 14px; margin-top: 5px;" id="quoteDate"></div>
             </div>
             
             <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">期數:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">期數:</td>
                     <td style="text-align: left; font-weight: bold;" id="quotePeriod"></td>
                 </tr>
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅前利率:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">稅前利率:</td>
                     <td style="text-align: left; font-weight: bold;" id="quoteRate"></td>
                 </tr>
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">本金:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">本金:</td>
                     <td style="text-align: left; font-weight: bold;" id="quotePrincipal"></td>
                 </tr>
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">期繳:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">期繳:</td>
                     <td style="text-align: left; font-weight: bold;" id="quotePayment"></td>
                 </tr>
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">總利息:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">總利息:</td>
                     <td style="text-align: left; font-weight: bold;" id="quoteTotalInterest"></td>
                 </tr>
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅後利率:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">稅後利率:</td>
                     <td style="text-align: left; font-weight: bold;" id="quoteAfterTaxRate"></td>
                 </tr>
                 <tr id="quoteCommissionRow">
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">推廣:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">推廣:</td>
                     <td style="text-align: left; font-weight: bold;" id="quoteCommission"></td>
                 </tr>
                 <tr>
-                    <td style="width: 40%; text-align: right; padding-right: 15px; color: #ff9c33; font-weight: bold;">稅佣後利率:</td>
+                    <td style="width: 40%; text-align: right; padding-right: 15px; color: var(--accent-color); font-weight: bold;">稅佣後利率:</td>
                     <td style="text-align: left; font-weight: bold;" id="quoteAfterCommissionRate"></td>
                 </tr>
             </table>
             
-            <div style="text-align: center; margin-top: 15px; font-size: 14px; color: #cccccc; border-top: 1px dashed #555555; padding-top: 10px;">
+            <div style="text-align: center; margin-top: 15px; font-size: 14px; color: var(--text-muted); border-top: 1px dashed var(--border-color); padding-top: 10px;">
                 報價後記得吃碗火雞肉飯唷！
             </div>
         </div>
@@ -5911,7 +5637,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.36</div>
+            <div class="version-info">v2.41</div>
         </div>
     </div>
 
