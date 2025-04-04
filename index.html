@@ -5574,6 +5574,235 @@
         }
     }
 
+    // 本息攤還表
+    function showAmortizationSchedule() {
+        closeSubmenu('advancedSubmenu');
+        
+        // 獲取貸款數據
+        const period = parseInt(document.getElementById('period').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
+        
+        // 檢查是否有足夠的數據
+        if (isNaN(period) || isNaN(rate) || isNaN(principal) || isNaN(payment) || 
+            period <= 0 || rate <= 0 || principal <= 0 || payment <= 0) {
+            showToast('請先完成基本貸款計算', true);
+            return;
+        }
+        
+        // 計算每期的攤還詳情
+        const monthlyRate = rate / 100 / 12;
+        let remainingPrincipal = principal;
+        const schedule = [];
+        
+        for (let i = 1; i <= period; i++) {
+            const interestPayment = remainingPrincipal * monthlyRate;
+            const principalPayment = payment - interestPayment;
+            
+            remainingPrincipal -= principalPayment;
+            // 最後一期需要處理可能的四捨五入誤差
+            if (i === period) {
+                remainingPrincipal = 0;
+            }
+            
+            schedule.push({
+                period: i,
+                payment: payment,
+                principalPayment: principalPayment,
+                interestPayment: interestPayment,
+                remainingPrincipal: remainingPrincipal
+            });
+        }
+        
+        // 創建表格HTML，但只顯示前5期，後5期，以及中間部分的摘要
+        let tableHTML = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+            <tr style="background-color: var(--secondary-color);">
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">期數</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">還款金額</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">本金</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">利息</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">剩餘本金</th>
+            </tr>
+        `;
+        
+        const displayFirstN = 5;
+        const displayLastN = 5;
+        
+        schedule.forEach((item, index) => {
+            // 只顯示前 displayFirstN 期和最後 displayLastN 期
+            if (index < displayFirstN || index >= period - displayLastN) {
+                tableHTML += `
+                <tr style="background-color: ${index % 2 === 0 ? 'var(--secondary-color)' : 'var(--primary-color)'};">
+                    <td style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">${item.period}</td>
+                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.payment))}</td>
+                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.principalPayment))}</td>
+                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.interestPayment))}</td>
+                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.remainingPrincipal))}</td>
+                </tr>
+                `;
+            } else if (index === displayFirstN) {
+                // 添加省略行
+                tableHTML += `
+                <tr style="background-color: var(--secondary-color);">
+                    <td colspan="5" style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">...</td>
+                </tr>
+                `;
+            }
+        });
+        
+        tableHTML += `</table>`;
+        
+        // 計算摘要信息
+        const totalPayment = payment * period;
+        const totalInterest = totalPayment - principal;
+        
+        // 創建模態框
+        const modalHTML = `
+        <div class="modal-header">
+            <h3>貸款本息攤還表</h3>
+            <button class="close-btn" onclick="closeCustomModal('amortizationModal')">×</button>
+        </div>
+        <div class="modal-content">
+            <div style="margin-bottom: 15px;">
+                <p>本金: ${formatNumberWithCommas(principal)} 元</p>
+                <p>利率: ${rate}% | 期數: ${period}期 | 每期還款: ${formatNumberWithCommas(Math.round(payment))} 元</p>
+                <p>總還款: ${formatNumberWithCommas(Math.round(totalPayment))} 元 | 總利息: ${formatNumberWithCommas(Math.round(totalInterest))} 元</p>
+            </div>
+            ${tableHTML}
+            <div style="margin-top: 15px; text-align: center; font-style: italic; color: var(--text-muted);">
+                顯示首尾各5期，完整攤還表請點擊下方按鈕
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-secondary" onclick="showFullAmortizationSchedule()">完整攤還表</button>
+            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('amortizationModal')">關閉</button>
+        </div>
+        `;
+        
+        // 創建並顯示模態框
+        showCustomModal('amortizationModal', modalHTML);
+    }
+
+    // 顯示完整的本息攤還表
+    function showFullAmortizationSchedule() {
+        // 先關閉摘要攤還表
+        closeCustomModal('amortizationModal');
+        
+        // 獲取貸款數據
+        const period = parseInt(document.getElementById('period').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
+        
+        // 計算每期的攤還詳情
+        const monthlyRate = rate / 100 / 12;
+        let remainingPrincipal = principal;
+        const schedule = [];
+        
+        for (let i = 1; i <= period; i++) {
+            const interestPayment = remainingPrincipal * monthlyRate;
+            const principalPayment = payment - interestPayment;
+            
+            remainingPrincipal -= principalPayment;
+            if (i === period) {
+                remainingPrincipal = 0;
+            }
+            
+            schedule.push({
+                period: i,
+                payment: payment,
+                principalPayment: principalPayment,
+                interestPayment: interestPayment,
+                remainingPrincipal: remainingPrincipal
+            });
+        }
+        
+        // 創建完整表格HTML
+        let tableHTML = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+            <tr style="background-color: var(--secondary-color); position: sticky; top: 0; z-index: 10;">
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">期數</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">期繳款</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">本金</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">利息</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">本金餘額</th>
+            </tr>
+        `;
+        
+        schedule.forEach((item, index) => {
+            tableHTML += `
+            <tr style="background-color: ${index % 2 === 0 ? 'var(--secondary-color)' : 'var(--primary-color)'};">
+                <td style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">${item.period}</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.payment))}</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.principalPayment))}</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.interestPayment))}</td>
+                <td style="padding: 8px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(item.remainingPrincipal))}</td>
+            </tr>
+            `;
+        });
+        
+        tableHTML += `</table>`;
+        
+        // 計算摘要信息
+        const totalPayment = payment * period;
+        const totalInterest = totalPayment - principal;
+        
+        // 創建模態框
+        const modalHTML = `
+        <div class="modal-header">
+            <h3>完整貸款本息攤還表</h3>
+            <button class="close-btn" onclick="closeCustomModal('fullAmortizationModal')">×</button>
+        </div>
+        <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
+            <div style="margin-bottom: 15px;">
+                <p>本金: ${formatNumberWithCommas(principal)} 元</p>
+                <p>利率: ${rate}% | 期數: ${period}期 | 每期還款: ${formatNumberWithCommas(Math.round(payment))} 元</p>
+                <p>總還款: ${formatNumberWithCommas(Math.round(totalPayment))} 元 | 總利息: ${formatNumberWithCommas(Math.round(totalInterest))} 元</p>
+            </div>
+            ${tableHTML}
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('fullAmortizationModal')">關閉</button>
+        </div>
+        `;
+        
+        // 創建並顯示模態框
+        showCustomModal('fullAmortizationModal', modalHTML);
+    }
+
+    // 通用的模態框顯示函數
+    function showCustomModal(id, html) {
+        // 創建模態框
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'modal-overlay';
+        modalOverlay.id = id;
+        modalOverlay.style.display = 'flex';
+        modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
+        
+        // 添加到網頁
+        document.body.appendChild(modalOverlay);
+        
+        // 點擊背景關閉
+        modalOverlay.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeCustomModal(id);
+            }
+        });
+        
+        vibrate();
+    }
+
+    // 通用的模態框關閉函數
+    function closeCustomModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            document.body.removeChild(modal);
+        }
+        vibrate();
+    }
+
 </script>
 	
 <script>
@@ -6197,7 +6426,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.41</div>
+            <div class="version-info">v2.51</div>
         </div>
     </div>
 
@@ -6212,6 +6441,7 @@
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
                 <li class="submenu-item" onclick="showPaymentComparison()">期數方案對比</li>
+                <li class="submenu-item" onclick="showAmortizationSchedule()">本息攤還表</li>
             </ul>
         </div>
     </div>
