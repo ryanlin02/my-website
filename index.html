@@ -2903,6 +2903,57 @@
             background-color: var(--secondary-color);        /* 使用次要背景色 */
         }
 
+        /* 期數方案對比表格樣式 */
+        .period-comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .period-comparison-table th, 
+        .period-comparison-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .period-comparison-table th {
+            background-color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .period-comparison-table tr:nth-child(even) {
+            background-color: var(--secondary-color);
+        }
+
+        .period-comparison-table tr:nth-child(odd) {
+            background-color: var(--primary-color);
+        }
+
+        .period-comparison-table tr:hover {
+            background-color: var(--hover-color);
+        }
+
+        .select-plan-btn {
+            padding: 5px 8px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select-plan-btn:hover {
+            background-color: var(--accent-color-dark);
+            transform: translateY(-2px);
+        }
+
+        .select-plan-btn:active {
+            transform: translateY(0);
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -5364,7 +5415,166 @@
         return count;
     }
 
-    </script>
+    // 期數方案對比
+    function showPaymentComparison() {
+        // 關閉進階選單
+        closeSubmenu('advancedSubmenu');
+        
+        // 獲取當前的利率和本金
+        const rate = parseFloat(document.getElementById('rate').value);
+        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        
+        // 檢查是否有足夠的數據
+        if (isNaN(rate) || isNaN(principal) || rate <= 0 || principal <= 0) {
+            showToast('請先輸入有效的利率和本金', true);
+            return;
+        }
+        
+        // 生成不同期數的還款方案
+        const periods = [12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 120]; // 常見期數選項
+        const plans = [];
+        
+        // 移除 interestRatio 相關計算
+        for (const period of periods) {
+            const payment = PMT(rate, period, principal);
+            const totalPayment = payment * period;
+            const totalInterest = totalPayment - principal;
+            
+            plans.push({
+                period: period,
+                payment: payment,
+                totalPayment: totalPayment,
+                totalInterest: totalInterest
+            });
+        }
+        
+        // 創建表格HTML
+        let tableHTML = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr style="background-color: var(--secondary-color);">
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期款</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總還款</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總利息</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">操作</th>
+            </tr>
+        `;
+        
+        // 移除「利息比例」列的數據
+        plans.forEach((plan, index) => {
+            tableHTML += `
+            <tr style="background-color: ${index % 2 === 0 ? 'var(--secondary-color)' : 'var(--primary-color)'};">
+                <td style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">${plan.period}</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(plan.payment))}</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(plan.totalPayment))}</td>
+                <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(plan.totalInterest))}</td>
+                <td style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <button onclick="selectPlan(${plan.period}, ${rate}, ${principal}, ${plan.payment})" 
+                            style="padding: 5px 8px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        選
+                    </button>
+                </td>
+            </tr>
+            `;
+        });
+        
+        tableHTML += `</table>`;
+        
+        // 創建模態框
+        const modalHTML = `
+        <div class="modal-header">
+            <h3>不同期數方案對比</h3>
+            <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')">×</button>
+        </div>
+        <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
+            <div style="margin-bottom: 15px;">
+                <p>本金: ${formatNumberWithCommas(principal)} 元</p>
+                <p>利率: ${rate}%</p>
+                <p>以下是不同期數的還款方案對比，您可以點擊「選」套用到小朋友專用計算機</p>
+            </div>
+            ${tableHTML}
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('paymentComparisonModal')">關閉</button>
+        </div>
+        `;
+        
+        // 創建並顯示模態框
+        showCustomModal('paymentComparisonModal', modalHTML);
+    }
+
+    // 選擇特定方案
+    function selectPlan(period, rate, principal, payment) {
+        // 更新計算器中的值
+        document.getElementById('period').value = period;
+        document.getElementById('rate').value = rate;
+        document.getElementById('principal').value = formatNumberWithCommas(principal);
+        document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
+        
+        // 更新所有相關計算
+        updateAllFields();
+        
+        // 關閉模態框
+        closeCustomModal('paymentComparisonModal');
+        
+        // 顯示提示
+        showToast(`已選擇 ${period} 期方案`);
+        
+        // 觸發震動反饋
+        vibrate();
+    }
+
+    // 通用的模態框顯示函數
+    function showCustomModal(id, html) {
+        // 創建模態框
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'modal-overlay';
+        modalOverlay.id = id;
+        modalOverlay.style.display = 'flex';
+        modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
+        
+        // 添加到網頁
+        document.body.appendChild(modalOverlay);
+        
+        // 點擊背景關閉
+        modalOverlay.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeCustomModal(id);
+            }
+        });
+        
+        vibrate();
+    }
+
+    // 通用的模態框關閉函數
+    function closeCustomModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            document.body.removeChild(modal);
+        }
+        vibrate();
+    }
+
+    // 關閉子選單
+    function closeSubmenu(submenuId) {
+        const submenu = document.getElementById(submenuId);
+        if (submenu) {
+            const submenuContent = submenu.querySelector('.submenu-content');
+            
+            // 添加關閉動畫
+            submenuContent.classList.add('submenu-closing');
+            
+            // 動畫結束後隱藏子選單
+            setTimeout(function() {
+                submenu.style.display = 'none';
+                submenuContent.classList.remove('submenu-closing');
+            }, 200); // 與動畫時長相匹配
+            
+            vibrate(); // 使用現有的震動函數
+        }
+    }
+
+</script>
 	
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -5395,9 +5605,9 @@
         }
     });
     });
-    </script>
+</script>
 
-    <script>
+<script>
         if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./service-worker.js')
@@ -6001,7 +6211,7 @@
                 <h3>進階</h3>
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="showDevelopingToast()">開發中</li>
+                <li class="submenu-item" onclick="showPaymentComparison()">期數方案對比</li>
             </ul>
         </div>
     </div>
