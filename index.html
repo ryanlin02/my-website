@@ -4467,24 +4467,17 @@
         
         // 如果沒有已保存的比較數據，則保存當前數據
         if (!compareLoanData) {
-            // 創建詢問方案名稱的模態框
-            const modalHTML = `
-            <div class="modal-header">
-                <h3>保存方案</h3>
-                <button class="close-btn" onclick="closeCustomModal('savePlanModal')">×</button>
-            </div>
-            <div class="modal-content">
-                <p>請為此貸款方案輸入一個名稱（可選）：</p>
-                <input type="text" id="planName" placeholder="例如：原始方案" style="width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--input-bg); color: var(--text-color);">
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-secondary" onclick="closeCustomModal('savePlanModal')">取消</button>
-                <button class="modal-btn modal-btn-primary" onclick="saveLoanPlan()">保存</button>
-            </div>
-            `;
-            
-            // 創建並顯示模態框
-            showCustomModal('savePlanModal', modalHTML);
+            compareLoanData = {
+                period: period,
+                rate: rate,
+                principal: principal,
+                payment: payment,
+                afterTaxRate: document.getElementById('afterTaxRate').value,
+                commission: document.getElementById('commission').value.replace(/,/g, '') || '0',
+                afterCommissionRate: document.getElementById('afterCommissionRate').value,
+                totalInterest: document.getElementById('totalInterest').value.replace(/,/g, '')
+            };
+            showToast('貸款方案已保存，請修改參數以進行比較');
             
             // 添加震動反饋
             vibrate();
@@ -4493,7 +4486,6 @@
         
         // 如果有已保存的比較數據，則顯示比較結果
         const currentLoan = {
-            name: '當前方案',
             period: period,
             rate: rate,
             principal: principal,
@@ -4508,50 +4500,6 @@
         showLoanComparisonModal(compareLoanData, currentLoan);
     }
 
-    // 保存貸款方案
-    function saveLoanPlan() {
-        const planName = document.getElementById('planName').value.trim() || '方案1';
-        
-        compareLoanData = {
-            name: planName,
-            period: document.getElementById('period').value,
-            rate: document.getElementById('rate').value,
-            principal: document.getElementById('principal').value.replace(/,/g, ''),
-            payment: document.getElementById('payment').value.replace(/,/g, ''),
-            afterTaxRate: document.getElementById('afterTaxRate').value,
-            commission: document.getElementById('commission').value.replace(/,/g, '') || '0',
-            afterCommissionRate: document.getElementById('afterCommissionRate').value,
-            totalInterest: document.getElementById('totalInterest').value.replace(/,/g, '')
-        };
-        
-        // 關閉模態框
-        closeCustomModal('savePlanModal');
-        
-        // 顯示成功訊息
-        showToast(`貸款方案 "${planName}" 已保存，請修改參數以進行比較`);
-        
-        // 添加震動反饋
-        vibrate();
-    }
-
-    // 顯示/隱藏歷史記錄面板
-    function toggleHistoryPanel() {
-        const panel = document.getElementById('historyPanel');
-        if (panel.style.display === 'block') {
-            panel.style.display = 'none';
-        } else {
-            panel.style.display = 'block';
-            loadHistoryData();
-            
-            // 添加一次性背景点击关闭事件
-            panel.onclick = function(event) {
-                if (event.target === this) {
-                    this.style.display = 'none';
-                }
-            };
-        }
-    }
-
     // 顯示貸款比較模態框
     function showLoanComparisonModal(loan1, loan2) {
         // 創建比較模態框的HTML
@@ -4561,16 +4509,11 @@
             <button class="close-btn" onclick="closeLoanComparisonModal()">×</button>
         </div>
         <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <div style="padding: 8px 12px; background-color: var(--accent-color-light); border-radius: 4px; color: var(--accent-color); font-weight: bold;">${loan1.name || '方案1'}</div>
-                <div style="padding: 8px 12px; background-color: var(--accent-color-light); border-radius: 4px; color: var(--accent-color); font-weight: bold;">${loan2.name || '方案2'}</div>
-            </div>
-            
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">項目</th>
-                    <th style="text-align: right; padding: 8px; border-bottom: 1px solid var(--border-color);">${loan1.name || '方案1'}</th>
-                    <th style="text-align: right; padding: 8px; border-bottom: 1px solid var(--border-color);">${loan2.name || '方案2'}</th>
+                    <th style="text-align: right; padding: 8px; border-bottom: 1px solid var(--border-color);">方案1</th>
+                    <th style="text-align: right; padding: 8px; border-bottom: 1px solid var(--border-color);">方案2</th>
                     <th style="text-align: right; padding: 8px; border-bottom: 1px solid var(--border-color);">差異</th>
                 </tr>
                 <tr>
@@ -4631,7 +4574,6 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="modal-btn modal-btn-secondary" onclick="switchToCurrentPlan()">使用當前方案</button>
             <button class="modal-btn modal-btn-secondary" onclick="clearComparisonData()">清除比較</button>
             <button class="modal-btn modal-btn-primary" onclick="closeLoanComparisonModal()">關閉</button>
         </div>
@@ -4658,40 +4600,6 @@
         vibrate();
     }
 
-    // 通用的模態框顯示函數
-    function showCustomModal(id, html) {
-        // 創建模態框
-        const modalOverlay = document.createElement('div');
-        modalOverlay.className = 'modal-overlay';
-        modalOverlay.id = id;
-        modalOverlay.style.display = 'flex';
-        modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
-        
-        // 添加到網頁
-        document.body.appendChild(modalOverlay);
-        
-        // 點擊背景關閉
-        modalOverlay.addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeCustomModal(id);
-            }
-        });
-        
-        // 添加震動反饋
-        vibrate();
-    }
-
-    // 通用的模態框關閉函數
-    function closeCustomModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            document.body.removeChild(modal);
-        }
-        
-        // 添加震動反饋
-        vibrate();
-    }
-
     // 關閉貸款比較模態框
     function closeLoanComparisonModal() {
         const modal = document.getElementById('loanComparisonModal');
@@ -4713,43 +4621,22 @@
         vibrate();
     }
 
-    // 切換到當前方案
-    function switchToCurrentPlan() {
-        // 保存當前方案的數據
-        const currentLoan = {
-            name: '當前方案',
-            period: document.getElementById('period').value,
-            rate: document.getElementById('rate').value,
-            principal: document.getElementById('principal').value.replace(/,/g, ''),
-            payment: document.getElementById('payment').value.replace(/,/g, ''),
-            afterTaxRate: document.getElementById('afterTaxRate').value,
-            commission: document.getElementById('commission').value.replace(/,/g, '') || '0',
-            afterCommissionRate: document.getElementById('afterCommissionRate').value,
-            totalInterest: document.getElementById('totalInterest').value.replace(/,/g, '')
-        };
-        
-        // 將當前的比較數據賦值給表單
-        document.getElementById('period').value = compareLoanData.period;
-        document.getElementById('rate').value = compareLoanData.rate;
-        document.getElementById('principal').value = formatNumberWithCommas(compareLoanData.principal);
-        document.getElementById('payment').value = formatNumberWithCommas(compareLoanData.payment);
-        document.getElementById('commission').value = formatNumberWithCommas(compareLoanData.commission);
-        
-        // 更新所有相關計算
-        calculatePayment();
-        updateAllFields();
-        
-        // 將當前方案設為比較數據
-        compareLoanData = currentLoan;
-        
-        // 關閉模態框
-        closeLoanComparisonModal();
-        
-        // 顯示成功訊息
-        showToast('已切換到保存的方案，原方案已保存為比較數據');
-        
-        // 添加震動反饋
-        vibrate();
+    // 顯示/隱藏歷史記錄面板
+    function toggleHistoryPanel() {
+        const panel = document.getElementById('historyPanel');
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+        } else {
+            panel.style.display = 'block';
+            loadHistoryData();
+            
+            // 添加一次性背景点击关闭事件
+            panel.onclick = function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                }
+            };
+        }
     }
 
     // 載入歷史記錄
@@ -5508,7 +5395,7 @@
         }
     });
     });
-</script>
+    </script>
 
     <script>
         if ('serviceWorker' in navigator) {
