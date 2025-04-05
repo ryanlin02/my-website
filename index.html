@@ -1608,6 +1608,7 @@
             color: var(--accent-color);                         /* 強調色文字 */
             font-size: 14px;                                    /* 文字大小 */
             padding: 2px 0;                                     /* 上下內部間距 */
+            margin-left: 5px;                                   /* 添加左側間距，進一步分隔勾選框和日期 */
         }
 
         /* 稅佣後利率樣式 - 在歷史記錄頭部顯示的利率 */
@@ -2954,6 +2955,65 @@
             transform: translateY(0);
         }
 
+        /* 添加到样式表的.history-item相关部分之后 */
+        .checkbox-date-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-item-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .history-item-checkbox:checked {
+            accent-color: var(--accent-color);
+        }
+
+        .history-item-checkbox:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .compare-selected-btn {
+            background: rgba(var(--accent-color-rgb), 0.15);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .compare-selected-btn:hover:not(:disabled) {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(var(--accent-color-rgb), 0.4);
+        }
+
+        .compare-selected-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(150, 150, 150, 0.15);
+            border: 1px solid #999;
+            color: #999;
+        }
+
+        .comparison-highlight {
+            border-left: 3px solid #33b5e5 !important;
+            background: linear-gradient(90deg, rgba(51, 181, 229, 0.1), transparent) !important;
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -3181,6 +3241,7 @@
                 <h2>貸款計算歷史記錄</h2>
             </div>
             <div class="header-right">
+                <button id="compareSelectedBtn" class="compare-selected-btn" onclick="compareSelectedLoans()" disabled>比較已選項目</button>
                 <button class="delete-all-btn" onclick="confirmDeleteAll()">全部刪除</button>
             </div>
             <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
@@ -4516,27 +4577,9 @@
             return;
         }
         
-        // 如果沒有已保存的比較數據，則保存當前數據
-        if (!compareLoanData) {
-            compareLoanData = {
-                period: period,
-                rate: rate,
-                principal: principal,
-                payment: payment,
-                afterTaxRate: document.getElementById('afterTaxRate').value,
-                commission: document.getElementById('commission').value.replace(/,/g, '') || '0',
-                afterCommissionRate: document.getElementById('afterCommissionRate').value,
-                totalInterest: document.getElementById('totalInterest').value.replace(/,/g, '')
-            };
-            showToast('貸款方案已保存，請修改參數以進行比較');
-            
-            // 添加震動反饋
-            vibrate();
-            return;
-        }
-        
-        // 如果有已保存的比較數據，則顯示比較結果
+        // 獲取當前貸款數據
         const currentLoan = {
+            id: 'current',
             period: period,
             rate: rate,
             principal: principal,
@@ -4544,12 +4587,546 @@
             afterTaxRate: document.getElementById('afterTaxRate').value,
             commission: document.getElementById('commission').value.replace(/,/g, '') || '0',
             afterCommissionRate: document.getElementById('afterCommissionRate').value,
-            totalInterest: document.getElementById('totalInterest').value.replace(/,/g, '')
+            totalInterest: document.getElementById('totalInterest').value.replace(/,/g, ''),
+            date: '目前計算'
         };
         
-        // 顯示比較模態框
-        showLoanComparisonModal(compareLoanData, currentLoan);
+        // 獲取歷史記錄
+        const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        
+        if (loanHistory.length === 0) {
+            showToast('尚無歷史記錄可比較，請先保存當前計算');
+            return;
+        }
+        
+        // 顯示貸款選擇對話框
+        showLoanSelectionModal(currentLoan, loanHistory);
+        
+        // 觸發震動反饋
+        vibrate();
     }
+
+    // 顯示貸款選擇對話框
+    function showLoanSelectionModal(currentLoan, loanHistory) {
+        // 按日期排序，最新的在前面
+        loanHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // 生成歷史記錄列表
+        let historyItemsHtml = '';
+        loanHistory.forEach(loan => {
+            historyItemsHtml += `
+                <div class="comparison-history-item" onclick="selectLoanForComparison(${loan.id})">
+                    <div class="comparison-history-header">
+                        <span>${formatDate(loan.date)}</span>
+                        <span>稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</span>
+                    </div>
+                    <div class="comparison-history-details">
+                        <div>期數: ${loan.period}</div>
+                        <div>本金: ${formatNumberWithCommas(loan.principal)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // 創建模態框
+        const modalHTML = `
+        <div class="modal-header">
+            <h3>選擇要比較的貸款方案</h3>
+            <button class="close-btn" onclick="closeCustomModal('loanSelectionModal')">×</button>
+        </div>
+        <div class="modal-content">
+            <div style="margin-bottom: 15px;">
+                <p>目前的計算結果：</p>
+                <div class="current-loan-summary">
+                    <div>期數: ${currentLoan.period} | 利率: ${currentLoan.rate}%</div>
+                    <div>本金: ${formatNumberWithCommas(currentLoan.principal)} | 期繳: ${formatNumberWithCommas(currentLoan.payment)}</div>
+                </div>
+                <p style="margin-top: 15px;">請選擇要比較的歷史方案：</p>
+            </div>
+            <div class="comparison-history-list">
+                ${historyItemsHtml}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-secondary" onclick="closeCustomModal('loanSelectionModal')">取消</button>
+        </div>
+        `;
+        
+        // 將當前貸款數據保存在 localStorage 中，以便後續使用
+        localStorage.setItem('currentLoanForComparison', JSON.stringify(currentLoan));
+        
+        // 創建並顯示模態框
+        showCustomModal('loanSelectionModal', modalHTML);
+        
+        // 添加樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            .current-loan-summary {
+                background-color: var(--secondary-color);
+                padding: 12px;
+                border-radius: 8px;
+                margin-top: 5px;
+            }
+            
+            .comparison-history-list {
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+            
+            .comparison-history-item {
+                background-color: var(--secondary-color);
+                margin: 8px 0;
+                padding: 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            
+            .comparison-history-item:hover {
+                transform: translateX(5px);
+                box-shadow: 0 2px 8px var(--shadow-color);
+            }
+            
+            .comparison-history-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
+            
+            .comparison-history-details {
+                display: flex;
+                justify-content: space-between;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 選擇貸款進行比較
+    function selectLoanForComparison(loanId) {
+        // 獲取當前貸款數據
+        const currentLoan = JSON.parse(localStorage.getItem('currentLoanForComparison'));
+        
+        // 獲取選中的歷史貸款數據
+        const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        const selectedLoan = loanHistory.find(loan => loan.id === loanId);
+        
+        if (!selectedLoan) {
+            showToast('找不到選中的貸款記錄');
+            return;
+        }
+        
+        // 關閉選擇對話框
+        closeCustomModal('loanSelectionModal');
+        
+        // 顯示比較視圖
+        showMultiLoanComparison([currentLoan, selectedLoan]);
+    }
+
+    // 顯示多貸款比較視圖
+    function showMultiLoanComparison(loans) {
+        vibrate();
+        
+        // 確保至少有2個貸款方案
+        if (loans.length < 2) {
+            showToast('至少需要2個貸款方案進行比較');
+            return;
+        }
+        
+        // 關閉歷史記錄面板
+        document.getElementById('historyPanel').style.display = 'none';
+        
+        // 計算比較結果
+        const comparisonReport = generateComparisonReport(loans);
+        
+        // 生成表格HTML
+        let tableHTML = `
+        <div class="comparison-tabs">
+            <button class="tab-btn active" onclick="switchComparisonTab('table')">表格比較</button>
+            <button class="tab-btn" onclick="switchComparisonTab('chart')">圖表比較</button>
+            <button class="tab-btn" onclick="switchComparisonTab('report')">分析報告</button>
+        </div>
+        
+        <div id="table-tab" class="comparison-tab-content">
+            <table class="comparison-table">
+                <tr>
+                    <th>項目</th>
+                    ${loans.map((loan, index) => `<th>${loan.id === 'current' ? '目前計算' : '方案 ' + (index + 1)}</th>`).join('')}
+                </tr>
+                <tr>
+                    <td>日期</td>
+                    ${loans.map(loan => `<td>${loan.id === 'current' ? '目前計算' : formatDate(loan.date)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>期數</td>
+                    ${loans.map(loan => `<td>${loan.period}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>稅前利率</td>
+                    ${loans.map(loan => `<td>${loan.rate}%</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>本金</td>
+                    ${loans.map(loan => `<td>${formatNumberWithCommas(loan.principal)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>期繳</td>
+                    ${loans.map(loan => `<td>${formatNumberWithCommas(loan.payment)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>總利息</td>
+                    ${loans.map(loan => `<td>${formatNumberWithCommas(loan.totalInterest)}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>稅後利率</td>
+                    ${loans.map(loan => `<td>${loan.afterTaxRate}%</td>`).join('')}
+                </tr>
+                <tr>
+                    <td>推廣費</td>
+                    ${loans.map(loan => `<td>${formatNumberWithCommas(loan.commission)}</td>`).join('')}
+                </tr>
+                <tr class="highlight-row">
+                    <td>稅佣後利率</td>
+                    ${loans.map(loan => `<td>${loan.afterCommissionRate}%</td>`).join('')}
+                </tr>
+                <tr class="highlight-row">
+                    <td>總還款</td>
+                    ${loans.map(loan => {
+                        const totalPayment = parseFloat(loan.payment) * parseFloat(loan.period);
+                        return `<td>${formatNumberWithCommas(totalPayment.toFixed(2))}</td>`;
+                    }).join('')}
+                </tr>
+            </table>
+        </div>
+        
+        <div id="chart-tab" class="comparison-tab-content" style="display: none;">
+            <div class="chart-container">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+        
+        <div id="report-tab" class="comparison-tab-content" style="display: none;">
+            <div class="comparison-report">
+                <h4>方案比較分析報告</h4>
+                ${comparisonReport.map(item => `
+                    <div class="report-item">
+                        <div class="report-title">${item.title}</div>
+                        <div class="report-content">${item.content}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        `;
+        
+        // 創建模態框
+        const modalHTML = `
+        <div class="modal-header">
+            <h3>貸款方案比較</h3>
+            <button class="close-btn" onclick="closeCustomModal('multiLoanComparisonModal')">×</button>
+        </div>
+        <div class="modal-content" style="padding: 10px;">
+            ${tableHTML}
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('multiLoanComparisonModal')">關閉</button>
+        </div>
+        `;
+        
+        // 創建並顯示模態框
+        showCustomModal('multiLoanComparisonModal', modalHTML);
+        
+        // 添加樣式
+        const style = document.createElement('style');
+        style.textContent = `
+            .comparison-tabs {
+                display: flex;
+                border-bottom: 1px solid var(--border-color);
+                margin-bottom: 15px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .tab-btn {
+                background: none;
+                border: none;
+                padding: 10px 15px;
+                color: var(--text-color);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                white-space: nowrap;
+                border-bottom: 2px solid transparent;
+            }
+            
+            .tab-btn.active {
+                color: var(--accent-color);
+                border-bottom: 2px solid var(--accent-color);
+            }
+            
+            .comparison-tab-content {
+                padding: 10px 0;
+            }
+            
+            .comparison-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+            
+            .comparison-table th, 
+            .comparison-table td {
+                padding: 8px;
+                text-align: center;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .comparison-table th {
+                background-color: var(--secondary-color);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            
+            .comparison-table td:first-child {
+                text-align: left;
+                font-weight: bold;
+                color: var(--accent-color);
+            }
+            
+            .comparison-table tr:hover {
+                background-color: var(--hover-color);
+            }
+            
+            .highlight-row {
+                background-color: var(--accent-color-light);
+            }
+            
+            .chart-container {
+                height: 300px;
+                margin: 15px 0;
+            }
+            
+            .comparison-report {
+                padding: 10px;
+            }
+            
+            .report-item {
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px dashed var(--border-color);
+            }
+            
+            .report-title {
+                font-weight: bold;
+                color: var(--accent-color);
+                margin-bottom: 5px;
+            }
+            
+            .report-content {
+                line-height: 1.5;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 延遲一下再初始化圖表，確保DOM元素已經完全加載
+        setTimeout(() => {
+            initComparisonChart(loans);
+        }, 300);
+    }
+
+    // 切換比較標籤頁
+    function switchComparisonTab(tabName) {
+        vibrate();
+        
+        // 隱藏所有標籤內容
+        const tabContents = document.querySelectorAll('.comparison-tab-content');
+        tabContents.forEach(tab => {
+            tab.style.display = 'none';
+        });
+        
+        // 移除所有標籤按鈕的活動狀態
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // 顯示選中的標籤內容並激活對應按鈕
+        document.getElementById(`${tabName}-tab`).style.display = 'block';
+        document.querySelector(`.tab-btn[onclick="switchComparisonTab('${tabName}')"]`).classList.add('active');
+    }
+
+    // 初始化比較圖表
+    function initComparisonChart(loans) {
+        try {
+            const canvas = document.getElementById('comparisonChart');
+            if (!canvas) return;
+            
+            // 獲取關鍵對比數據
+            const labels = loans.map(loan => loan.id === 'current' ? '目前計算' : `方案 ${loans.indexOf(loan) + 1}`);
+            const rates = loans.map(loan => parseFloat(loan.afterCommissionRate));
+            const payments = loans.map(loan => parseFloat(loan.payment));
+            const totalInterests = loans.map(loan => parseFloat(loan.totalInterest));
+            
+            // 載入Chart.js
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
+            script.onload = () => {
+                // Chart.js 已載入，創建圖表
+                const ctx = canvas.getContext('2d');
+                
+                // 使用Chart.js創建分組條形圖
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: '稅佣後利率 (%)',
+                                data: rates,
+                                backgroundColor: 'rgba(255, 156, 51, 0.7)',
+                                borderColor: 'rgba(255, 156, 51, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y-axis-1'
+                            },
+                            {
+                                label: '期繳 (千元)',
+                                data: payments.map(p => p / 1000),
+                                backgroundColor: 'rgba(51, 181, 229, 0.7)',
+                                borderColor: 'rgba(51, 181, 229, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y-axis-2'
+                            },
+                            {
+                                label: '總利息 (萬元)',
+                                data: totalInterests.map(t => t / 10000),
+                                backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                                borderColor: 'rgba(76, 175, 80, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y-axis-2'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            'y-axis-1': {
+                                type: 'linear',
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: '利率 (%)'
+                                }
+                            },
+                            'y-axis-2': {
+                                type: 'linear',
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: '金額 (千/萬元)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            document.head.appendChild(script);
+        } catch (error) {
+            console.error('圖表初始化錯誤:', error);
+            // 如果圖表初始化失敗，顯示錯誤信息
+            if (document.getElementById('chart-tab')) {
+                document.getElementById('chart-tab').innerHTML = '<div class="chart-error">圖表載入失敗，請稍後再試</div>';
+            }
+        }
+    }
+
+    function generateComparisonReport(loans) {
+        // 初始化報告項目
+        const report = [];
+        
+        // 1. 最低稅佣後利率
+        const minRateIndex = loans.reduce((minIdx, loan, idx, arr) => 
+            parseFloat(loan.afterCommissionRate) < parseFloat(arr[minIdx].afterCommissionRate) ? idx : minIdx, 0);
+        
+        report.push({
+            title: '最低實際利率',
+            content: `方案 ${loans[minRateIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minRateIndex]) + 1)} 的稅佣後利率為 ${loans[minRateIndex].afterCommissionRate}%，是所有方案中最低的。`
+        });
+        
+        // 2. 最低月付款
+        const minPaymentIndex = loans.reduce((minIdx, loan, idx, arr) => 
+            parseFloat(loan.payment) < parseFloat(arr[minIdx].payment) ? idx : minIdx, 0);
+        
+        report.push({
+            title: '最低期繳金額',
+            content: `方案 ${loans[minPaymentIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minPaymentIndex]) + 1)} 的期繳金額為 ${formatNumberWithCommas(loans[minPaymentIndex].payment)} 元，是所有方案中最低的。`
+        });
+        
+        // 3. 總利息比較
+        const minInterestIndex = loans.reduce((minIdx, loan, idx, arr) => 
+            parseFloat(loan.totalInterest) < parseFloat(arr[minIdx].totalInterest) ? idx : minIdx, 0);
+        
+        report.push({
+            title: '最低總利息',
+            content: `方案 ${loans[minInterestIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minInterestIndex]) + 1)} 的總利息為 ${formatNumberWithCommas(loans[minInterestIndex].totalInterest)} 元，是所有方案中最低的。`
+        });
+        
+        // 4. 總還款比較
+        const totalPayments = loans.map(loan => parseFloat(loan.payment) * parseFloat(loan.period));
+        const minTotalPaymentIndex = totalPayments.reduce((minIdx, total, idx, arr) => 
+            total < arr[minIdx] ? idx : minIdx, 0);
+        
+        report.push({
+            title: '最低總還款',
+            content: `方案 ${loans[minTotalPaymentIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minTotalPaymentIndex]) + 1)} 的總還款金額為 ${formatNumberWithCommas(totalPayments[minTotalPaymentIndex].toFixed(2))} 元，是所有方案中最低的。`
+        });
+        
+        // 5. 本金差異
+        if (loans.length === 2) {
+            const principalDiff = Math.abs(parseFloat(loans[0].principal) - parseFloat(loans[1].principal));
+            const principalPctDiff = (principalDiff / parseFloat(loans[0].principal) * 100).toFixed(2);
+            
+            report.push({
+                title: '本金差異',
+                content: `兩個方案的本金相差 ${formatNumberWithCommas(principalDiff)} 元（${principalPctDiff}%）。`
+            });
+        }
+        
+        // 6. 期數差異
+        const periodRange = loans.map(loan => parseInt(loan.period));
+        const minPeriod = Math.min(...periodRange);
+        const maxPeriod = Math.max(...periodRange);
+        
+        if (minPeriod !== maxPeriod) {
+            report.push({
+                title: '期數差異',
+                content: `方案中的期數從 ${minPeriod} 期到 ${maxPeriod} 期不等，差異為 ${maxPeriod - minPeriod} 期。`
+            });
+        }
+        
+        // 7. 綜合建議
+        let recommendationText = '';
+        
+        // 基於利率、期繳、總利息綜合考量
+        if (minRateIndex === minTotalPaymentIndex) {
+            recommendationText = `方案 ${loans[minRateIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minRateIndex]) + 1)} 同時具有最低的實際利率和最低的總還款金額，綜合來看是最優選擇。`;
+        } else if (minRateIndex === minInterestIndex) {
+            recommendationText = `方案 ${loans[minRateIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minRateIndex]) + 1)} 具有最低的實際利率和最低的總利息，從長期成本考量是較佳選擇。`;
+        } else if (minPaymentIndex === minTotalPaymentIndex) {
+            recommendationText = `方案 ${loans[minPaymentIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minPaymentIndex]) + 1)} 同時具有最低的期繳金額和最低的總還款金額，對於現金流敏感的情況是較佳選擇。`;
+        } else {
+            recommendationText = `各方案各有優劣：方案 ${loans[minRateIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minRateIndex]) + 1)} 利率最低；方案 ${loans[minPaymentIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minPaymentIndex]) + 1)} 期繳最低；方案 ${loans[minInterestIndex].id === 'current' ? '目前計算' : (loans.indexOf(loans[minInterestIndex]) + 1)} 總利息最低。建議根據個人財務狀況選擇最適合的方案。`;
+        }
+        
+        report.push({
+            title: '綜合建議',
+            content: recommendationText
+        });
+        
+        return report;
+    }
+
 
     // 顯示貸款比較模態框
     function showLoanComparisonModal(loan1, loan2) {
@@ -4712,9 +5289,12 @@
             const commissionDisplay = formatNumber(loan.commission);
             
             html += `
-                <div class="history-item">
+                <div class="history-item" data-loan-id="${loan.id}">
                     <div class="history-item-header">
-                        <div class="history-date">${formatDate(loan.date)}</div>
+                        <div class="checkbox-date-container">
+                            <input type="checkbox" class="history-item-checkbox" data-loan-id="${loan.id}" onchange="updateCompareButton()">
+                            <div class="history-date">${formatDate(loan.date)}</div>
+                        </div>
                         <div class="history-header-rate">稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</div>
                     </div>
                     
@@ -4754,6 +5334,40 @@
         html += '</div>';
         
         historyContent.innerHTML = html;
+    }
+
+    // 更新比較按鈕狀態
+    function updateCompareButton() {
+        const checkboxes = document.querySelectorAll('.history-item-checkbox:checked');
+        const compareButton = document.getElementById('compareSelectedBtn');
+        
+        // 如果有2個或以上選中的項目，啟用比較按鈕
+        if (checkboxes.length >= 2) {
+            compareButton.disabled = false;
+        } else {
+            compareButton.disabled = true;
+        }
+    }
+
+    // 比較選中的貸款
+    function compareSelectedLoans() {
+        const checkboxes = document.querySelectorAll('.history-item-checkbox:checked');
+        if (checkboxes.length < 2) {
+            showToast('請至少選擇2個貸款方案進行比較');
+            return;
+        }
+        
+        // 獲取所有選中的貸款ID
+        const selectedIds = Array.from(checkboxes).map(checkbox => 
+            parseInt(checkbox.getAttribute('data-loan-id'))
+        );
+        
+        // 從歷史記錄中獲取選中的貸款數據
+        const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        const selectedLoans = loanHistory.filter(loan => selectedIds.includes(loan.id));
+        
+        // 顯示比較視圖
+        showMultiLoanComparison(selectedLoans);
     }
 
     function openNoteEditor(loanId, existingNote = '') {
@@ -6426,7 +7040,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.51</div>
+            <div class="version-info">v2.61</div>
         </div>
     </div>
 
