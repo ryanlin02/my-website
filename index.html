@@ -571,6 +571,16 @@
             box-shadow: none !important;           /* 禁止陰影 */
         }
 
+        /* 增加按鈕的可點擊區域 */
+        .header-btn::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            bottom: -15px;
+            left: -15px;
+            right: -15px;
+        }
+
         /* 標題按鈕懸停效果 */
         .header-btn:hover {
             color: #999999;                       /* 懸停時改變顏色 */
@@ -592,6 +602,15 @@
 
         .header-btn-right {
             right: 5px;                          /* 右邊按鈕位置 */
+        }
+
+        /* 增加左右按鈕的可點擊區域不同程度 */
+        .header-btn-left::before {
+            left: -20px;                         /* 左側更大的可點擊區域 */
+        }
+
+        .header-btn-right::before {
+            right: -20px;                       /* 右側更大的可點擊區域 */
         }
 
         /* 清除可能影響按鈕的其他樣式規則 */
@@ -7040,7 +7059,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.63</div>
+            <div class="version-info">v2.64</div>
         </div>
     </div>
 
