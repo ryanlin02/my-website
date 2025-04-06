@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chicken-rice-v1.97';
+const CACHE_NAME = 'chicken-rice-v2.66';
 const filesToCache = [
   './',
   './index.html',
@@ -48,7 +48,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('google-analytics.com')) {
     return;
   }
-
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
@@ -89,4 +88,10 @@ self.addEventListener('message', (event) => {
   if (event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
+});
+
+// 監聽 install 事件，可以用來追蹤 PWA 的安裝
+self.addEventListener('appinstalled', (event) => {
+  // 當 PWA 被安裝時，在 service worker 中記錄
+  console.log('PWA 應用已被使用者安裝');
 });
