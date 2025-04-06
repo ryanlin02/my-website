@@ -3033,9 +3033,151 @@
             background: linear-gradient(90deg, rgba(51, 181, 229, 0.1), transparent) !important;
         }
 
+        /* 提示視窗的背景遮罩 */
+        .install-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        /* 提示視窗 */
+        .install-modal {
+            width: 90%;
+            max-width: 350px;
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            border: 3px solid #ff0000; /* 紅色外框 */
+        }
+
+        /* 提示視窗標題 */
+        .install-modal-title {
+            background-color: #ff0000; /* 紅色背景 */
+            color: white;
+            padding: 12px 15px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0;
+        }
+
+        /* 提示視窗內容 */
+        .install-modal-content {
+            padding: 15px;
+            color: var(--text-color);
+            font-size: 13px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* 提示視窗按鈕區域 */
+        .install-modal-buttons {
+            display: flex;
+            padding: 10px 15px 15px;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* 提示視窗按鈕 */
+        .install-modal-btn {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* 確認按鈕 */
+        .install-btn-confirm {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* 取消按鈕 */
+        .install-btn-cancel {
+            background-color: #666;
+            color: white;
+        }
+
+        /* 安裝提示區域 */
+        .install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--secondary-color);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9998;
+        }
+
+        /* 安裝提示文字 */
+        .install-banner-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        /* 安裝按鈕 */
+        .install-banner-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        /* 關閉安裝提示按鈕 */
+        .install-banner-close {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 20px;
+            line-height: 1;
+            padding: 5px;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        // 檢測是否為獨立安裝的PWA應用
+        function isInstalledPWA() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone === true;
+        }
+    
+        // 頁面加載時檢查
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!isInstalledPWA()) {
+                // 如果不是已安裝的PWA，顯示提示視窗
+                showInstallPrompt();
+            }
+            // 如果是已安裝的PWA，不做任何事，直接顯示計算機
+        });
+    </script>
 
 </head>
 <body>
@@ -4761,7 +4903,6 @@
         let tableHTML = `
         <div class="comparison-tabs">
             <button class="tab-btn active" onclick="switchComparisonTab('table')">表格比較</button>
-            <button class="tab-btn" onclick="switchComparisonTab('chart')">圖表比較</button>
             <button class="tab-btn" onclick="switchComparisonTab('report')">分析報告</button>
         </div>
         
@@ -4815,12 +4956,6 @@
                     }).join('')}
                 </tr>
             </table>
-        </div>
-        
-        <div id="chart-tab" class="comparison-tab-content" style="display: none;">
-            <div class="chart-container">
-                <canvas id="comparisonChart"></canvas>
-            </div>
         </div>
         
         <div id="report-tab" class="comparison-tab-content" style="display: none;">
@@ -4917,12 +5052,7 @@
             .highlight-row {
                 background-color: var(--accent-color-light);
             }
-            
-            .chart-container {
-                height: 300px;
-                margin: 15px 0;
-            }
-            
+    
             .comparison-report {
                 padding: 10px;
             }
@@ -4944,11 +5074,6 @@
             }
         `;
         document.head.appendChild(style);
-        
-        // 延遲一下再初始化圖表，確保DOM元素已經完全加載
-        setTimeout(() => {
-            initComparisonChart(loans);
-        }, 300);
     }
 
     // 切換比較標籤頁
@@ -4970,94 +5095,6 @@
         // 顯示選中的標籤內容並激活對應按鈕
         document.getElementById(`${tabName}-tab`).style.display = 'block';
         document.querySelector(`.tab-btn[onclick="switchComparisonTab('${tabName}')"]`).classList.add('active');
-    }
-
-    // 初始化比較圖表
-    function initComparisonChart(loans) {
-        try {
-            const canvas = document.getElementById('comparisonChart');
-            if (!canvas) return;
-            
-            // 獲取關鍵對比數據
-            const labels = loans.map(loan => loan.id === 'current' ? '目前計算' : `方案 ${loans.indexOf(loan) + 1}`);
-            const rates = loans.map(loan => parseFloat(loan.afterCommissionRate));
-            const payments = loans.map(loan => parseFloat(loan.payment));
-            const totalInterests = loans.map(loan => parseFloat(loan.totalInterest));
-            
-            // 載入Chart.js
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js';
-            script.onload = () => {
-                // Chart.js 已載入，創建圖表
-                const ctx = canvas.getContext('2d');
-                
-                // 使用Chart.js創建分組條形圖
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: '稅佣後利率 (%)',
-                                data: rates,
-                                backgroundColor: 'rgba(255, 156, 51, 0.7)',
-                                borderColor: 'rgba(255, 156, 51, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y-axis-1'
-                            },
-                            {
-                                label: '期繳 (千元)',
-                                data: payments.map(p => p / 1000),
-                                backgroundColor: 'rgba(51, 181, 229, 0.7)',
-                                borderColor: 'rgba(51, 181, 229, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y-axis-2'
-                            },
-                            {
-                                label: '總利息 (萬元)',
-                                data: totalInterests.map(t => t / 10000),
-                                backgroundColor: 'rgba(76, 175, 80, 0.7)',
-                                borderColor: 'rgba(76, 175, 80, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y-axis-2'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            'y-axis-1': {
-                                type: 'linear',
-                                position: 'left',
-                                title: {
-                                    display: true,
-                                    text: '利率 (%)'
-                                }
-                            },
-                            'y-axis-2': {
-                                type: 'linear',
-                                position: 'right',
-                                title: {
-                                    display: true,
-                                    text: '金額 (千/萬元)'
-                                },
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            }
-                        }
-                    }
-                });
-            };
-            document.head.appendChild(script);
-        } catch (error) {
-            console.error('圖表初始化錯誤:', error);
-            // 如果圖表初始化失敗，顯示錯誤信息
-            if (document.getElementById('chart-tab')) {
-                document.getElementById('chart-tab').innerHTML = '<div class="chart-error">圖表載入失敗，請稍後再試</div>';
-            }
-        }
     }
 
     function generateComparisonReport(loans) {
@@ -7059,7 +7096,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.64</div>
+            <div class="version-info">v2.66</div>
         </div>
     </div>
 
@@ -7118,6 +7155,96 @@
             </ul>
         </div>
     </div>
+
+    <!-- 年齡提示視窗 -->
+    <div id="ageModal" class="install-modal-overlay" style="display: none;">
+        <div class="install-modal">
+            <h2 class="install-modal-title">18+ **Warning!**</h2>
+            <div class="install-modal-content">
+                This is a specialized calculator meticulously engineered for children who exhibit difficulties with mathematics and demonstrate notably sluggish computational speed. Should you be an adult possessing proficient arithmetic capabilities, it is strongly advised that you refrain from accessing this website without necessity. However, if you, too, are an enthusiast of turkey rice, your utilization of this platform's features is most heartily welcomed.
+            </div>
+            <div class="install-modal-buttons">
+                <button id="notAdultBtn" class="install-modal-btn install-btn-cancel">Not 18 yet</button>
+                <button id="adultBtn" class="install-modal-btn install-btn-confirm">Already 18+</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 安裝橫幅提示 -->
+    <div id="installBanner" class="install-banner" style="display: none;">
+        <div class="install-banner-text">將小朋友專用計算機安裝到桌面</div>
+        <button id="installBtn" class="install-banner-btn">安裝</button>
+        <button id="closeBannerBtn" class="install-banner-close">×</button>
+    </div>
+
+    <script>
+        let deferredPrompt;
+    
+        // 顯示年齡提示視窗和安裝提示
+        function showInstallPrompt() {
+            document.getElementById('ageModal').style.display = 'flex';
+            
+            // 當用戶點擊「Not 18 yet」按鈕時
+            document.getElementById('notAdultBtn').addEventListener('click', function() {
+                document.getElementById('ageModal').style.display = 'none';
+                
+                // 顯示安裝提示，如果可用
+                checkInstallAvailable();
+            });
+            
+            // 當用戶點擊「Already 18+」按鈕時
+            document.getElementById('adultBtn').addEventListener('click', function() {
+                // 跳轉到Rick Roll視頻
+                window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
+            });
+        }
+    
+        // 檢查是否可以安裝PWA
+        function checkInstallAvailable() {
+            const installBanner = document.getElementById('installBanner');
+            const installBtn = document.getElementById('installBtn');
+            const closeBannerBtn = document.getElementById('closeBannerBtn');
+            
+            // 監聽beforeinstallprompt事件
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // 阻止Chrome 67及更早版本自動顯示的安裝提示
+                e.preventDefault();
+                // 保存事件，以便稍後觸發
+                deferredPrompt = e;
+                // 顯示安裝橫幅
+                installBanner.style.display = 'flex';
+            });
+            
+            // 安裝按鈕點擊事件
+            installBtn.addEventListener('click', () => {
+                if (deferredPrompt) {
+                    // 顯示安裝提示
+                    deferredPrompt.prompt();
+                    // 等待用戶回應提示
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('用戶接受安裝');
+                            // 隱藏安裝橫幅
+                            installBanner.style.display = 'none';
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            });
+            
+            // 關閉按鈕點擊事件
+            closeBannerBtn.addEventListener('click', () => {
+                installBanner.style.display = 'none';
+            });
+            
+            // 監聽appinstalled事件
+            window.addEventListener('appinstalled', (evt) => {
+                console.log('應用已安裝');
+                // 隱藏安裝橫幅
+                installBanner.style.display = 'none';
+            });
+        }
+    </script>
 
 </body>
 </html>
