@@ -3826,8 +3826,8 @@
         if (hasAllRequiredValues) {
             // 計算總利息
             const totalInterest = (payment * period) - principal;
-            // 總利息格式化帶千位分隔符
-            totalInterestField.value = formatNumberWithCommas(totalInterest.toFixed(2));
+            // 總利息格式化為整數帶千位分隔符
+            totalInterestField.value = formatNumberWithCommas(Math.round(totalInterest));
         } else {
             // 如果缺少任何必要值，清空總利息輸入框
             totalInterestField.value = '';
@@ -7096,7 +7096,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.66</div>
+            <div class="version-info">v2.68</div>
         </div>
     </div>
 
