@@ -3276,6 +3276,11 @@
         </div>
     </div>
 
+    <div class="row">
+        <span class="label">總繳款</span>
+        <input type="text" id="totalPayment" class="readonly" readonly>
+    </div>
+
 	<div class="row">
         <span class="label">總利息</span>
         <input type="text" id="totalInterest" class="readonly" readonly>
@@ -3820,6 +3825,18 @@
         // 檢查四個基本輸入框是否都有值
         const hasAllRequiredValues = period && rate && principal && payment && 
                                     !isNaN(period) && !isNaN(rate) && !isNaN(principal) && !isNaN(payment);
+
+        // 計算並顯示總繳款
+        const totalPaymentField = document.getElementById('totalPayment');
+        if (hasAllRequiredValues) {
+            // 計算總繳款
+            const totalPaymentValue = payment * period;
+            // 總繳款格式化為整數帶千位分隔符
+            totalPaymentField.value = formatNumberWithCommas(Math.round(totalPaymentValue));
+        } else {
+            // 如果缺少任何必要值，清空總繳款輸入框
+            totalPaymentField.value = '';
+        }
 
         // 計算並顯示總利息
         const totalInterestField = document.getElementById('totalInterest');
@@ -5693,7 +5710,7 @@
         // 要清空的欄位ID列表
         const fieldsToReset = [
             'period', 'rate', 'principal', 'payment', 
-            'totalInterest', 'tax', 'afterTaxRate', 
+            'totalPayment', 'totalInterest', 'tax', 'afterTaxRate', 
             'commission', 'commissionRatio', 'afterCommissionRate',
             'annualMillionInterest', 'monthlyMillionInterest',
             'annualTenThousandInterest', 'monthlyTenThousandInterest',
