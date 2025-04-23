@@ -6770,6 +6770,8 @@
             // 需要隱藏的整行元素
             const hideRows = [
                 document.querySelector('.row:has(#tax)'), // 稅金欄位
+                document.querySelector('.row:has(#totalPayment)'), // 總繳款欄位
+                document.querySelector('.row:has(#yearlyInterest)'), // 每年利息欄位
             ];
             
             // 需要隱藏的區段（百萬每年利息到NPV）
@@ -7166,7 +7168,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.79</div>
+            <div class="version-info">v2.80</div>
         </div>
     </div>
 
