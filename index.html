@@ -952,7 +952,7 @@
         /* 輸入框基本樣式 */
         input {
             width: 95px;                           /* 固定寬度 */
-            padding: 5px 12px;                     /* 內邊距 */
+            padding: 5px 12px;                     /* 內部間距 */
             margin-right: 10px;                    /* 右側邊距 */
             background-color: var(--input-bg);     /* 使用主題輸入框背景色 */
             color: var(--text-color);              /* 使用主題文字色 */
@@ -960,6 +960,9 @@
             border-radius: 4px;                    /* 圓角 */
             font-size: 16px;                       /* 字體大小 */
             transition: all 0.3s ease;             /* 過渡效果 */
+            text-align: right;                     /* 文字右對齊 */
+            font-family: 'Consolas', monospace;    /* 使用等寬字體 */
+            letter-spacing: 0;                     /* 字符間距 */
         }
 
         /* 輸入框聚焦效果 */
@@ -974,6 +977,25 @@
         .readonly {
             background-color: var(--input-bg);     /* 使用主題輸入框背景色 */
             animation: breathe 4s ease-in-out infinite; /* 呼吸動畫 */
+            text-align: right;                     /* 文字右對齊 */
+            font-family: 'Consolas', monospace;    /* 使用等寬字體 */
+            letter-spacing: 0;                     /* 字符間距 */
+            padding-right: 8px;                    /* 右側內邊距略微減少 */
+        }
+
+        /* 數字輸入框對齊樣式 */
+        #principal, #payment, #totalPayment, #totalInterest, #yearlyInterest, 
+        #tax, #commission, #annualMillionInterest, #monthlyMillionInterest, 
+        #annualTenThousandInterest, #monthlyTenThousandInterest, #fundingCost {
+            text-align: right;                   /* 文字右對齊 */
+            font-family: 'Consolas', monospace;  /* 使用等寬字體 */
+            width: 110px;                        /* 稍微增加寬度確保有足夠空間 */
+            padding-right: 8px;                  /* 調整右側內邊距 */
+        }
+
+        /* 特別處理稅金欄位，確保小數點對齊 */
+        #tax {
+            letter-spacing: 0;                   /* 確保字符間距一致 */
         }
 
         /* 呼吸動畫 - 透明度變化 */
