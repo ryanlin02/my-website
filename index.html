@@ -3292,6 +3292,13 @@
     </div>
 
     <div class="row">
+        <span class="label">每月利息</span>
+        <input type="text" id="monthlyInterest" class="readonly" readonly>
+    </div>
+
+    <div class="divider-flow"></div>
+
+    <div class="row">
         <span class="label">稅金</span>
         <input type="text" id="tax" class="readonly" readonly>
     </div>
@@ -3871,6 +3878,20 @@
         } else {
             // 如果缺少任何必要值，清空每年利息輸入框
             yearlyInterestField.value = '';
+        }
+
+        // 計算並顯示每月利息
+        const monthlyInterestField = document.getElementById('monthlyInterest');
+        if (hasAllRequiredValues) {
+            // 計算每月利息 = 每年利息 ÷ 12
+            const totalInterest = (payment * period) - principal;
+            const yearlyInterest = (totalInterest / period) * 12;
+            const monthlyInterest = yearlyInterest / 12;
+            // 每月利息格式化為整數帶千位分隔符
+            monthlyInterestField.value = formatNumberWithCommas(Math.round(monthlyInterest));
+        } else {
+            // 如果缺少任何必要值，清空每月利息輸入框
+            monthlyInterestField.value = '';
         }
 
         // 計算稅金 - 同樣需要檢查總利息是否已計算
@@ -5767,7 +5788,7 @@
             'commission', 'commissionRatio', 'afterCommissionRate',
             'annualMillionInterest', 'monthlyMillionInterest',
             'annualTenThousandInterest', 'monthlyTenThousandInterest',
-            'spread', 'fundingCost'
+            'spread', 'fundingCost', 'monthlyInterest'
         ];
         
         // 清空每個欄位
@@ -6772,6 +6793,7 @@
                 document.querySelector('.row:has(#tax)'), // 稅金欄位
                 document.querySelector('.row:has(#totalPayment)'), // 總繳款欄位
                 document.querySelector('.row:has(#yearlyInterest)'), // 每年利息欄位
+                document.querySelector('.row:has(#monthlyInterest)'), // 每月利息欄位
             ];
             
             // 需要隱藏的區段（百萬每年利息到NPV）
@@ -7168,7 +7190,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.80</div>
+            <div class="version-info">v2.81</div>
         </div>
     </div>
 
