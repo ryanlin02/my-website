@@ -3287,6 +3287,11 @@
     </div>
 
     <div class="row">
+        <span class="label">每年利息</span>
+        <input type="text" id="yearlyInterest" class="readonly" readonly>
+    </div>
+
+    <div class="row">
         <span class="label">稅金</span>
         <input type="text" id="tax" class="readonly" readonly>
     </div>
@@ -3848,6 +3853,19 @@
         } else {
             // 如果缺少任何必要值，清空總利息輸入框
             totalInterestField.value = '';
+        }
+
+        // 計算並顯示每年利息
+        const yearlyInterestField = document.getElementById('yearlyInterest');
+        if (hasAllRequiredValues) {
+            // 計算每年利息 = 總利息 ÷ 期數 × 12
+            const totalInterest = (payment * period) - principal;
+            const yearlyInterest = (totalInterest / period) * 12;
+            // 每年利息格式化為整數帶千位分隔符
+            yearlyInterestField.value = formatNumberWithCommas(Math.round(yearlyInterest));
+        } else {
+            // 如果缺少任何必要值，清空每年利息輸入框
+            yearlyInterestField.value = '';
         }
 
         // 計算稅金 - 同樣需要檢查總利息是否已計算
