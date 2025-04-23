@@ -3335,6 +3335,12 @@
     </div>
 
     <div class="row">
+        <span class="label">佣後利率</span>
+        <input type="text" id="afterCommissionOnlyRate" class="readonly" readonly>
+        <span class="label">貸款型</span>
+    </div>
+
+    <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="text" id="afterCommissionRate" class="readonly" readonly>
     </div>
@@ -3936,6 +3942,36 @@
         } else {
             commissionRatioInput.value = '';
             commissionRatioInput.classList.remove('warning-text');
+        }
+
+        // 計算佣後利率
+        const afterCommissionOnlyRateInput = document.getElementById('afterCommissionOnlyRate');
+        if (hasAllRequiredValues) {
+            try {
+                // 計算佣後利率（只考慮佣金，不考慮稅金）
+                const afterCommissionOnlyRate = RATE(period, payment, principal + commission);
+                
+                // 檢查結果是否有效
+                if (isNaN(afterCommissionOnlyRate) || !isFinite(afterCommissionOnlyRate)) {
+                    afterCommissionOnlyRateInput.value = "計算錯誤";
+                    afterCommissionOnlyRateInput.classList.add('warning-text');
+                } else {
+                    // 佣後利率不需要千位分隔符
+                    afterCommissionOnlyRateInput.value = afterCommissionOnlyRate.toFixed(4);
+                    if (afterCommissionOnlyRate <= 2.5) {
+                        afterCommissionOnlyRateInput.classList.add('warning-text');
+                    } else {
+                        afterCommissionOnlyRateInput.classList.remove('warning-text');
+                    }
+                }
+            } catch (error) {
+                console.error('佣後利率計算錯誤:', error);
+                afterCommissionOnlyRateInput.value = "計算錯誤";
+                afterCommissionOnlyRateInput.classList.add('warning-text');
+            }
+        } else {
+            afterCommissionOnlyRateInput.value = '';
+            afterCommissionOnlyRateInput.classList.remove('warning-text');
         }
 
         // 計算稅佣後利率
@@ -7131,7 +7167,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.68</div>
+            <div class="version-info">v2.71</div>
         </div>
     </div>
 
