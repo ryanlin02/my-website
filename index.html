@@ -166,45 +166,45 @@
             /* RGB版本的顏色（用於透明度控制） */
             --primary-color-rgb: 255, 240, 245;   /* 主背景色RGB值 */
             --secondary-color-rgb: 255, 255, 255; /* 次背景色RGB值 */
-            --accent-color-rgb: 255, 128, 171;    /* 強調色RGB值 */
-            --input-bg-rgb: 255, 255, 255;        /* 輸入框背景RGB值 */
-            --error-color-rgb: 255, 138, 128;     /* 錯誤色RGB值 */
-            --info-color-rgb: 128, 216, 255;      /* 信息色RGB值 */
+            --accent-color-rgb: 219, 56, 108;    /* 強調色RGB值 - 更深的粉紅色 */
+            --input-bg-rgb: 252, 228, 236;        /* 輸入框背景RGB值 - 淡粉色 */
+            --error-color-rgb: 220, 53, 69;     /* 錯誤色RGB值 */
+            --info-color-rgb: 23, 162, 184;      /* 信息色RGB值 */
 
             /* 基本色調 */
             --primary-color: #fff0f5;             /* 主背景色 */
             --secondary-color: #ffffff;           /* 次背景色 */
-            --text-color: #4a4a4a;                /* 文字色 */
+            --text-color: #4a4a4a;                /* 文字色 - 保持深灰色 */
             --border-color: #ffb6c1;              /* 邊框色 */
             --hover-color: #ffd1dc;               /* 懸停色 */
             --shadow-color: rgba(255, 182, 193, 0.3); /* 陰影色 */
             
             /* 強調色 */
-            --accent-color: #ff80ab;              /* 粉紅重點色 */
-            --accent-color-light: rgba(255, 128, 171, 0.2); /* 淡粉紅 */
-            --accent-color-dark: #e6366e;         /* 深粉紅 */
+            --accent-color: #db386c;              /* 深粉紅重點色 */
+            --accent-color-light: rgba(219, 56, 108, 0.1); /* 淡粉紅 */
+            --accent-color-dark: #b92d59;         /* 更深粉紅 */
             
             /* 功能色 */
-            --success-color: #81c784;             /* 綠色成功色 */
+            --success-color: #28a745;             /* 綠色成功色 */
             --warning-color: #ff9e80;             /* 橙色警告色 */
-            --error-color: #ff8a80;               /* 紅色錯誤色 */
-            --info-color: #80d8ff;                /* 藍色資訊色 */
+            --error-color: #dc3545;               /* 紅色錯誤色 */
+            --info-color: #17a2b8;                /* 藍色資訊色 */
             
             /* 特殊元件顏色 */
-            --button-primary: #ff80ab;            /* 主按鈕顏色 */
+            --button-primary: #db386c;            /* 主按鈕顏色 */
             --button-secondary: #fce4ec;          /* 副按鈕顏色 */
-            --input-bg: #ffffff;                  /* 輸入框背景色 */
+            --input-bg: #fcfcfc;                  /* 輸入框背景色 - 改為近白色 */
             --input-border: #ffb6c1;              /* 輸入框邊框 */
-            --input-focus-border: #ff80ab;        /* 輸入框焦點邊框 */
+            --input-focus-border: #db386c;        /* 輸入框焦點邊框 */
             --card-bg: #ffffff;                   /* 卡片背景色 */
             
             /* 文字強調色 */
-            --text-highlight: #ff4081;            /* 文字強調色 */
-            --text-muted: #9e9e9e;                /* 文字淡色 */
+            --text-highlight: #db386c;            /* 文字強調色 */
+            --text-muted: #757575;                /* 文字淡色 - 加深以增加可讀性 */
             
             /* 與舊代碼兼容的變數 */
-            --button-orange: #ff80ab;             /* 兼容橙色按鈕 */
-            --button-blue: #80d8ff;               /* 兼容藍色按鈕 */
+            --button-orange: #db386c;             /* 兼容橙色按鈕 */
+            --button-blue: #17a2b8;               /* 兼容藍色按鈕 */
             --button-grey: #fce4ec;               /* 兼容灰色按鈕 */
         }
 
@@ -3156,6 +3156,26 @@
             padding: 5px;
             margin-right: 5px;
             cursor: pointer;
+        }
+
+        /* 櫻花雪主題的輸入框樣式優化 */
+        :root[data-theme="pink"] input {
+            color: #333333 !important;            /* 強制使用深色文字 */
+            background-color: #fcfcfc !important; /* 強制使用近白色背景 */
+            border: 1px solid #ffb6c1 !important; /* 粉色邊框 */
+        }
+
+        /* 櫻花雪主題的輸入框聚焦效果優化 */
+        :root[data-theme="pink"] input:focus {
+            border-color: #db386c !important;      /* 深粉色邊框 */
+            box-shadow: 0 0 0 3px rgba(219, 56, 108, 0.2) !important; /* 深粉色陰影 */
+        }
+
+        /* 櫻花雪主題下特殊輸入框優化 */
+        :root[data-theme="pink"] #afterCommissionRate {
+            color: #333333 !important;             /* 強制使用深色文字 */
+            background-color: rgba(219, 56, 108, 0.08) !important; /* 非常淡的粉色背景 */
+            border: 1px solid rgba(219, 56, 108, 0.4) !important;  /* 半透明粉色邊框 */
         }
 
     </style>
@@ -7192,7 +7212,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.81</div>
+            <div class="version-info">v2.82</div>
         </div>
     </div>
 
