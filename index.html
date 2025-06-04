@@ -3569,8 +3569,8 @@
                 commission = parseFloat(commissionElement.value.replace(/,/g, '')) || 0;
             }
             
-            // 計算最終NPV：貸款現值 - 稅金 - 推廣費
-            const npv = presentValue - tax - commission;
+            // 計算最終NPV：貸款現值 - 稅金 - 推廣費 - 本金
+            const npv = presentValue - tax - commission - principal;
             
             // 檢查計算結果是否有效
             if (!isFinite(npv) || isNaN(npv)) {
@@ -7224,7 +7224,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.84</div>
+            <div class="version-info">v2.85</div>
         </div>
     </div>
 
