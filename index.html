@@ -3410,7 +3410,7 @@
     <div class="row">
         <span class="label">NPV</span>
         <input type="text" id="fundingCost" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">修正中</span>
+        <span style="margin-left: 0px; color: var(--text-color);">稅佣後預估</span>
     </div>
 
 	<!-- 按鈕區域重新組織 -->
@@ -3546,27 +3546,39 @@
             // 處理利率接近0的情況
             if (Math.abs(monthlyRate) < 1e-10) {
                 // 如果利率接近0，使用簡化公式計算現值
-                const expectedPresentValue = payment * period;
-                return Math.round(expectedPresentValue - principal);
+                return payment * period - principal;
             }
             
-            // 處理極端的負期數
-            if (period < -1000) {
-                console.warn('NPV計算: 極端負期數可能導致計算不準確');
-                return 0;
+            // 計算貸款現值 (PV) - 使用本息平均攤還公式
+            // PV = PMT × [(1 - (1 + r)^(-n)) / r]
+            const presentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+            
+            // 獲取稅金和推廣費
+            const taxElement = document.getElementById('tax');
+            const commissionElement = document.getElementById('commission');
+            
+            // 解析稅金值（移除千位分隔符）
+            let tax = 0;
+            if (taxElement && taxElement.value) {
+                tax = parseFloat(taxElement.value.replace(/,/g, '')) || 0;
             }
             
-            // 標準NPV計算
-            const expectedPresentValue = payment * (1 - Math.pow(1 + monthlyRate, -period)) / monthlyRate;
+            // 解析推廣費值（移除千位分隔符）
+            let commission = 0;
+            if (commissionElement && commissionElement.value) {
+                commission = parseFloat(commissionElement.value.replace(/,/g, '')) || 0;
+            }
+            
+            // 計算最終NPV：貸款現值 - 稅金 - 推廣費
+            const npv = presentValue - tax - commission;
             
             // 檢查計算結果是否有效
-            if (!isFinite(expectedPresentValue) || isNaN(expectedPresentValue)) {
+            if (!isFinite(npv) || isNaN(npv)) {
                 console.error('NPV計算結果無效');
                 return 0;
             }
             
-            // 計算與實際本金的差額
-            return Math.round(expectedPresentValue - principal);
+            return Math.round(npv);
         } catch (error) {
             console.error('NPV 計算錯誤:', error);
             return 0;
@@ -7212,7 +7224,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.83</div>
+            <div class="version-info">v2.84</div>
         </div>
     </div>
 
