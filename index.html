@@ -900,14 +900,6 @@
             box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25); /* 增強陰影 */
         }
 
-        /* 為所有可能被隱藏的元素添加過渡效果 */
-        .row, .divider-flow, div[id$="Buttons"] {
-            transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease;
-            will-change: opacity, transform;
-        }
-
-        /* 優化隱藏元素的初始狀態 */
-
         /* 隱藏元素 */
         .hidden-element {
             display: none !important;             /* 強制隱藏 */
@@ -2290,6 +2282,27 @@
                 opacity: 0;                                 /* 最終透明 */
                 transform: scaleY(0.8);                     /* 最終縮小 */
             }
+        }
+
+        /* 模式切換動畫類別 */
+        .mode-transition {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .mode-hidden {
+            opacity: 0 !important;
+            transform: translateY(-10px) !important;
+            max-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .mode-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            max-height: 1000px !important;
         }
 
         /* 歷史記錄備註容器 - 包含備註的區域 */
@@ -6851,249 +6864,111 @@
             
             let viewMode = 0; // 0: 完整顯示, 1: 自行計算, 2: 精簡顯示
 
-            // 動畫輔助函數 - 創建流暢的漸進式動畫
-            function animateElements(elements, show, baseDelay = 0) {
-                elements.forEach((element, index) => {
-                    if (!element) return;
-                    
-                    const delay = baseDelay + (index * 30); // 每個元素延遲30ms
-                    
-                    if (show) {
-                        // 顯示動畫
-                        element.classList.remove('hidden-element');
-                        element.style.opacity = '0';
-                        element.style.transform = 'translateY(10px)';
-                        
-                        setTimeout(() => {
-                            element.animate([
-                                { 
-                                    opacity: 0, 
-                                    transform: 'translateY(10px)',
-                                    filter: 'blur(2px)'
-                                },
-                                { 
-                                    opacity: 1, 
-                                    transform: 'translateY(0)',
-                                    filter: 'blur(0px)'
-                                }
-                            ], {
-                                duration: 350,
-                                easing: 'cubic-bezier(0.0, 0, 0.2, 1)',
-                                fill: 'forwards'
-                            });
-                        }, delay);
-                    } else {
-                        // 隱藏動畫
-                        element.animate([
-                            { 
-                                opacity: 1, 
-                                transform: 'translateY(0)',
-                                filter: 'blur(0px)'
-                            },
-                            { 
-                                opacity: 0, 
-                                transform: 'translateY(-10px)',
-                                filter: 'blur(2px)'
-                            }
-                        ], {
-                            duration: 200,
-                            easing: 'cubic-bezier(0.4, 0, 1, 1)',
-                            fill: 'forwards',
-                            delay: delay
-                        }).onfinish = () => {
-                            element.classList.add('hidden-element');
-                        };
-                    }
-                });
-            }
-
-            // 處理分隔線動畫
-            function animateDividers(dividers, show, excludeElements = []) {
-                dividers.forEach((divider, index) => {
-                    if (!divider || excludeElements.includes(divider)) return;
-                    
-                    const delay = index * 20;
-                    
-                    if (show) {
-                        divider.classList.remove('hidden-element');
-                        divider.animate([
-                            { 
-                                opacity: 0, 
-                                transform: 'scaleX(0)',
-                                transformOrigin: 'left center'
-                            },
-                            { 
-                                opacity: 1, 
-                                transform: 'scaleX(1)',
-                                transformOrigin: 'left center'
-                            }
-                        ], {
-                            duration: 400,
-                            easing: 'cubic-bezier(0.0, 0, 0.2, 1)',
-                            fill: 'forwards',
-                            delay: delay + 100
-                        });
-                    } else {
-                        divider.animate([
-                            { 
-                                opacity: 1, 
-                                transform: 'scaleX(1)',
-                                transformOrigin: 'right center'
-                            },
-                            { 
-                                opacity: 0, 
-                                transform: 'scaleX(0)',
-                                transformOrigin: 'right center'
-                            }
-                        ], {
-                            duration: 300,
-                            easing: 'cubic-bezier(0.4, 0, 1, 1)',
-                            fill: 'forwards',
-                            delay: delay
-                        }).onfinish = () => {
-                            divider.classList.add('hidden-element');
-                        };
-                    }
-                });
-            }
+            // 預先為所有可切換元素添加過渡類
+            document.querySelectorAll('.row, [id$="Buttons"], .divider-flow').forEach(el => {
+                el.classList.add('mode-transition', 'mode-visible');
+            });
             
             toggleBtn.addEventListener('click', function() {
-                // 循環切換模式：0 -> 1 -> 2 -> 0
+                // 循環切換模式
                 viewMode = (viewMode + 1) % 3;
                 
-                // 更新圖標 - 添加淡入淡出效果
-                toggleIcon.style.transition = 'opacity 0.15s ease';
-                toggleIcon.style.opacity = '0';
-
-                setTimeout(() => {
-                    if (viewMode === 0) {
-                        // 完整顯示：向下箭頭
-                        toggleIcon.classList.remove('icon-rotate-up');
-                        toggleIcon.textContent = '▼';
-                    } else if (viewMode === 1) {
-                        // 自行計算：橫線
-                        toggleIcon.classList.remove('icon-rotate-up');
-                        toggleIcon.textContent = '━';
-                    } else {
-                        // 精簡顯示：向上箭頭
-                        toggleIcon.classList.add('icon-rotate-up');
-                        toggleIcon.textContent = '▼';
-                    }
-                    toggleIcon.style.opacity = '1';
-                }, 150);
+                // 更新圖標
+                toggleIcon.textContent = ['▼', '━', '▲'][viewMode];
                 
-                // 定義更流暢的動畫效果
-                const animationOptions = {
-                    duration: 400,
-                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                    fill: 'forwards'
-                };
-
-                // 定義淡出動畫
-                const fadeOutAnimation = {
-                    duration: 200,
-                    easing: 'cubic-bezier(0.4, 0, 0.6, 1)',
-                    fill: 'forwards'
-                };
-
-                // 定義淡入動畫
-                const fadeInAnimation = {
-                    duration: 300,
-                    easing: 'cubic-bezier(0.0, 0, 0.2, 1)',
-                    fill: 'forwards',
-                    delay: 150  // 延遲開始，創造更流暢的過渡
-                };
-                
-                // 需要在"自行計算"模式中隱藏的特定欄位
-                const autoCalcHideRows = [
-                    document.querySelector('.row:has(#totalPayment)'),     // 總繳款
-                    document.querySelector('.row:has(#yearlyInterest)'),   // 每年利息
-                    document.querySelector('.row:has(#monthlyInterest)'),  // 每月利息
-                    document.querySelector('.row:has(#annualMillionInterest)'),    // 百萬每年利息
-                    document.querySelector('.row:has(#monthlyMillionInterest)'),   // 百萬每月利息
-                    document.querySelector('.row:has(#annualTenThousandInterest)'), // 一萬每年利息
-                    document.querySelector('.row:has(#monthlyTenThousandInterest)') // 一萬每月利息
-                ];
-                
-                // 獲取一萬每月利息下方的分隔線
-                const tenThousandRow = document.querySelector('.row:has(#monthlyTenThousandInterest)');
-                let dividerAfterTenThousand = null;
-                if (tenThousandRow && tenThousandRow.nextElementSibling && 
-                    tenThousandRow.nextElementSibling.classList.contains('divider-flow')) {
-                    dividerAfterTenThousand = tenThousandRow.nextElementSibling;
-                }
-                
-                // 根據不同模式處理顯示/隱藏
-                if (viewMode === 0) {
-                    // 完整顯示模式：顯示所有內容
-                    
-                    // 先整理所有需要顯示的元素
-                    const allButtonElements = buttonGroups.map(id => document.getElementById(id)).filter(el => el);
-                    const allRowElements = [...hideRows, ...autoCalcHideRows, ...hideSection].filter(el => el);
-                    const allDividers = Array.from(document.querySelectorAll('.divider-flow'));
-                    
-                    // 使用漸進式動畫顯示所有元素
-                    animateElements(allButtonElements, true, 0);
-                    animateElements(allRowElements, true, 50);
-                    animateDividers(allDividers, true);
-                    
-                } else if (viewMode === 1) {
-                    // 自行計算模式：隱藏特定欄位
-                    
-                    // 整理元素
-                    const allButtonElements = buttonGroups.map(id => document.getElementById(id)).filter(el => el);
-                    const elementsToHide = autoCalcHideRows.filter(el => el);
-                    const elementsToShow = [...hideRows, ...hideSection.filter(row => !autoCalcHideRows.includes(row))].filter(el => el);
-                    const allDividers = Array.from(document.querySelectorAll('.divider-flow'));
-                    
-                    // 執行動畫
-                    animateElements(allButtonElements, true, 0);
-                    animateElements(elementsToHide, false, 0);
-                    animateElements(elementsToShow, true, 100);
-                    
-                    // 處理分隔線
-                    if (dividerAfterTenThousand) {
-                        animateDividers([dividerAfterTenThousand], false);
-                        animateDividers(allDividers.filter(d => d !== dividerAfterTenThousand), true);
-                    } else {
-                        animateDividers(allDividers, true);
-                    }
-                    
-                } else {
-                    // 精簡顯示模式（viewMode === 2）：保持原有邏輯
-                    
-                    // 整理需要隱藏的元素
-                    const allButtonElements = buttonGroups.map(id => document.getElementById(id)).filter(el => el);
-                    const elementsToHide = [...hideRows, ...hideSection].filter(el => el);
-                    const allDividers = Array.from(document.querySelectorAll('.divider-flow'));
-                    
-                    // 執行動畫 - 錯開時間創造流暢感
-                    animateElements(allButtonElements, false, 0);
-                    animateElements(elementsToHide, false, 30);
-                    
-                    // 特殊處理分隔線
-                    if (allDividers.length >= 3) {
-                        // 隱藏除了最後一個以外的所有分隔線
-                        const dividersToHide = allDividers.slice(0, -1);
-                        const lastDivider = allDividers[allDividers.length - 1];
-                        
-                        animateDividers(dividersToHide, false);
-                        
-                        // 最後一個分隔線保持顯示
-                        setTimeout(() => {
-                            lastDivider.classList.remove('hidden-element');
-                            lastDivider.style.opacity = '1';
-                        }, 200);
-                    }
-                }
-                
-                // 觸發震動效果
+                // 震動反饋
                 vibrate();
-
-                // 顯示當前模式提示
+                
+                // 顯示模式名稱
                 const modeName = ['完整顯示', '自行計算', '精簡顯示'][viewMode];
-                showToast(`切換至${modeName}模式`);
-
+                showToast(modeName);
+                
+                // 定義各模式需要隱藏的元素
+                const elements = {
+                    // 自行計算模式隱藏的元素
+                    autoCalc: [
+                        '#totalPayment',
+                        '#yearlyInterest', 
+                        '#monthlyInterest',
+                        '#annualMillionInterest',
+                        '#monthlyMillionInterest',
+                        '#annualTenThousandInterest',
+                        '#monthlyTenThousandInterest'
+                    ],
+                    // 精簡模式隱藏的元素
+                    simple: [
+                        '#periodButtons',
+                        '#rateButtons',
+                        '#principalButtons',
+                        '#PaymentduringButtons',
+                        '#commissionButtons',
+                        '#commissionPercentButtons',
+                        '#tax',
+                        '#totalPayment',
+                        '#yearlyInterest',
+                        '#monthlyInterest',
+                        '#annualMillionInterest',
+                        '#monthlyMillionInterest',
+                        '#annualTenThousandInterest',
+                        '#monthlyTenThousandInterest',
+                        '#monthlyCost',
+                        '#spread',
+                        '#fundingCost'
+                    ]
+                };
+                
+                // 先給所有可能被隱藏的元素添加過渡類
+                document.querySelectorAll('.row, [id$="Buttons"], .divider-flow').forEach(el => {
+                    el.classList.add('mode-transition');
+                });
+                
+                // 批量處理元素顯示/隱藏
+                setTimeout(() => {
+                    // 先顯示所有元素
+                    document.querySelectorAll('.mode-hidden').forEach(el => {
+                        el.classList.remove('mode-hidden');
+                        el.classList.add('mode-visible');
+                    });
+                    
+                    // 根據模式隱藏特定元素
+                    if (viewMode === 1) {
+                        // 自行計算模式
+                        elements.autoCalc.forEach(selector => {
+                            const el = document.getElementById(selector.substring(1));
+                            if (el && el.parentElement) {
+                                el.parentElement.classList.remove('mode-visible');
+                                el.parentElement.classList.add('mode-hidden');
+                            }
+                        });
+                        
+                        // 隱藏特定分隔線
+                        const tenThousandRow = document.querySelector('.row:has(#monthlyTenThousandInterest)');
+                        if (tenThousandRow && tenThousandRow.nextElementSibling?.classList.contains('divider-flow')) {
+                            tenThousandRow.nextElementSibling.classList.add('mode-hidden');
+                        }
+                        
+                    } else if (viewMode === 2) {
+                        // 精簡模式
+                        elements.simple.forEach(selector => {
+                            const el = document.getElementById(selector.substring(1));
+                            if (el) {
+                                if (el.classList.contains('row') || el.parentElement.classList.contains('row')) {
+                                    (el.classList.contains('row') ? el : el.parentElement).classList.add('mode-hidden');
+                                } else {
+                                    el.classList.add('mode-hidden');
+                                }
+                            }
+                        });
+                        
+                        // 隱藏多餘的分隔線
+                        const dividers = document.querySelectorAll('.divider-flow');
+                        dividers.forEach((divider, index) => {
+                            if (index < dividers.length - 1) {
+                                divider.classList.add('mode-hidden');
+                            }
+                        });
+                    }
+                }, 10);
             });
         });
     </script>
@@ -7379,7 +7254,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.90</div>
+            <div class="version-info">v2.91</div>
         </div>
     </div>
 
