@@ -900,6 +900,14 @@
             box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25); /* 增強陰影 */
         }
 
+        /* 為所有可能被隱藏的元素添加過渡效果 */
+        .row, .divider-flow, div[id$="Buttons"] {
+            transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease;
+            will-change: opacity, transform;
+        }
+
+        /* 優化隱藏元素的初始狀態 */
+
         /* 隱藏元素 */
         .hidden-element {
             display: none !important;             /* 強制隱藏 */
@@ -6842,30 +6850,158 @@
             const hideSection = document.querySelectorAll('.row:has(#annualMillionInterest), .row:has(#monthlyMillionInterest), .row:has(#annualTenThousandInterest), .row:has(#monthlyTenThousandInterest), .row:has(#monthlyCost), .row:has(#spread), .row:has(#fundingCost)');
             
             let viewMode = 0; // 0: 完整顯示, 1: 自行計算, 2: 精簡顯示
+
+            // 動畫輔助函數 - 創建流暢的漸進式動畫
+            function animateElements(elements, show, baseDelay = 0) {
+                elements.forEach((element, index) => {
+                    if (!element) return;
+                    
+                    const delay = baseDelay + (index * 30); // 每個元素延遲30ms
+                    
+                    if (show) {
+                        // 顯示動畫
+                        element.classList.remove('hidden-element');
+                        element.style.opacity = '0';
+                        element.style.transform = 'translateY(10px)';
+                        
+                        setTimeout(() => {
+                            element.animate([
+                                { 
+                                    opacity: 0, 
+                                    transform: 'translateY(10px)',
+                                    filter: 'blur(2px)'
+                                },
+                                { 
+                                    opacity: 1, 
+                                    transform: 'translateY(0)',
+                                    filter: 'blur(0px)'
+                                }
+                            ], {
+                                duration: 350,
+                                easing: 'cubic-bezier(0.0, 0, 0.2, 1)',
+                                fill: 'forwards'
+                            });
+                        }, delay);
+                    } else {
+                        // 隱藏動畫
+                        element.animate([
+                            { 
+                                opacity: 1, 
+                                transform: 'translateY(0)',
+                                filter: 'blur(0px)'
+                            },
+                            { 
+                                opacity: 0, 
+                                transform: 'translateY(-10px)',
+                                filter: 'blur(2px)'
+                            }
+                        ], {
+                            duration: 200,
+                            easing: 'cubic-bezier(0.4, 0, 1, 1)',
+                            fill: 'forwards',
+                            delay: delay
+                        }).onfinish = () => {
+                            element.classList.add('hidden-element');
+                        };
+                    }
+                });
+            }
+
+            // 處理分隔線動畫
+            function animateDividers(dividers, show, excludeElements = []) {
+                dividers.forEach((divider, index) => {
+                    if (!divider || excludeElements.includes(divider)) return;
+                    
+                    const delay = index * 20;
+                    
+                    if (show) {
+                        divider.classList.remove('hidden-element');
+                        divider.animate([
+                            { 
+                                opacity: 0, 
+                                transform: 'scaleX(0)',
+                                transformOrigin: 'left center'
+                            },
+                            { 
+                                opacity: 1, 
+                                transform: 'scaleX(1)',
+                                transformOrigin: 'left center'
+                            }
+                        ], {
+                            duration: 400,
+                            easing: 'cubic-bezier(0.0, 0, 0.2, 1)',
+                            fill: 'forwards',
+                            delay: delay + 100
+                        });
+                    } else {
+                        divider.animate([
+                            { 
+                                opacity: 1, 
+                                transform: 'scaleX(1)',
+                                transformOrigin: 'right center'
+                            },
+                            { 
+                                opacity: 0, 
+                                transform: 'scaleX(0)',
+                                transformOrigin: 'right center'
+                            }
+                        ], {
+                            duration: 300,
+                            easing: 'cubic-bezier(0.4, 0, 1, 1)',
+                            fill: 'forwards',
+                            delay: delay
+                        }).onfinish = () => {
+                            divider.classList.add('hidden-element');
+                        };
+                    }
+                });
+            }
             
             toggleBtn.addEventListener('click', function() {
                 // 循環切換模式：0 -> 1 -> 2 -> 0
                 viewMode = (viewMode + 1) % 3;
                 
-                // 更新圖標
-                if (viewMode === 0) {
-                    // 完整顯示：向下箭頭
-                    toggleIcon.classList.remove('icon-rotate-up');
-                    toggleIcon.textContent = '▼';
-                } else if (viewMode === 1) {
-                    // 自行計算：橫線
-                    toggleIcon.classList.remove('icon-rotate-up');
-                    toggleIcon.textContent = '━';
-                } else {
-                    // 精簡顯示：向上箭頭
-                    toggleIcon.classList.add('icon-rotate-up');
-                    toggleIcon.textContent = '▼';
-                }
+                // 更新圖標 - 添加淡入淡出效果
+                toggleIcon.style.transition = 'opacity 0.15s ease';
+                toggleIcon.style.opacity = '0';
+
+                setTimeout(() => {
+                    if (viewMode === 0) {
+                        // 完整顯示：向下箭頭
+                        toggleIcon.classList.remove('icon-rotate-up');
+                        toggleIcon.textContent = '▼';
+                    } else if (viewMode === 1) {
+                        // 自行計算：橫線
+                        toggleIcon.classList.remove('icon-rotate-up');
+                        toggleIcon.textContent = '━';
+                    } else {
+                        // 精簡顯示：向上箭頭
+                        toggleIcon.classList.add('icon-rotate-up');
+                        toggleIcon.textContent = '▼';
+                    }
+                    toggleIcon.style.opacity = '1';
+                }, 150);
                 
-                // 定義統一的動畫效果
+                // 定義更流暢的動畫效果
                 const animationOptions = {
+                    duration: 400,
+                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+                    fill: 'forwards'
+                };
+
+                // 定義淡出動畫
+                const fadeOutAnimation = {
+                    duration: 200,
+                    easing: 'cubic-bezier(0.4, 0, 0.6, 1)',
+                    fill: 'forwards'
+                };
+
+                // 定義淡入動畫
+                const fadeInAnimation = {
                     duration: 300,
-                    easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+                    easing: 'cubic-bezier(0.0, 0, 0.2, 1)',
+                    fill: 'forwards',
+                    delay: 150  // 延遲開始，創造更流暢的過渡
                 };
                 
                 // 需要在"自行計算"模式中隱藏的特定欄位
@@ -6891,157 +7027,63 @@
                 if (viewMode === 0) {
                     // 完整顯示模式：顯示所有內容
                     
-                    // 顯示所有按鈕組
-                    buttonGroups.forEach(id => {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.classList.remove('hidden-element');
-                            element.animate([
-                                { opacity: 0, transform: 'scaleY(0.8)' },
-                                { opacity: 1, transform: 'scaleY(1)' }
-                            ], animationOptions);
-                        }
-                    });
+                    // 先整理所有需要顯示的元素
+                    const allButtonElements = buttonGroups.map(id => document.getElementById(id)).filter(el => el);
+                    const allRowElements = [...hideRows, ...autoCalcHideRows, ...hideSection].filter(el => el);
+                    const allDividers = Array.from(document.querySelectorAll('.divider-flow'));
                     
-                    // 顯示所有行
-                    [...hideRows, ...autoCalcHideRows, ...hideSection].forEach(row => {
-                        if (row) {
-                            row.classList.remove('hidden-element');
-                            row.animate([
-                                { opacity: 0, transform: 'scaleY(0.8)' },
-                                { opacity: 1, transform: 'scaleY(1)' }
-                            ], animationOptions);
-                        }
-                    });
-                    
-                    // 顯示所有分隔線
-                    const dividers = document.querySelectorAll('.divider-flow');
-                    dividers.forEach(divider => {
-                        divider.classList.remove('hidden-element');
-                        divider.animate([
-                            { opacity: 0, transform: 'scaleX(0.8)' },
-                            { opacity: 1, transform: 'scaleX(1)' }
-                        ], animationOptions);
-                    });
+                    // 使用漸進式動畫顯示所有元素
+                    animateElements(allButtonElements, true, 0);
+                    animateElements(allRowElements, true, 50);
+                    animateDividers(allDividers, true);
                     
                 } else if (viewMode === 1) {
                     // 自行計算模式：隱藏特定欄位
                     
-                    // 顯示所有按鈕組
-                    buttonGroups.forEach(id => {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.classList.remove('hidden-element');
-                            element.animate([
-                                { opacity: 0, transform: 'scaleY(0.8)' },
-                                { opacity: 1, transform: 'scaleY(1)' }
-                            ], animationOptions);
-                        }
-                    });
+                    // 整理元素
+                    const allButtonElements = buttonGroups.map(id => document.getElementById(id)).filter(el => el);
+                    const elementsToHide = autoCalcHideRows.filter(el => el);
+                    const elementsToShow = [...hideRows, ...hideSection.filter(row => !autoCalcHideRows.includes(row))].filter(el => el);
+                    const allDividers = Array.from(document.querySelectorAll('.divider-flow'));
                     
-                    // 隱藏自行計算模式特定的欄位
-                    autoCalcHideRows.forEach(row => {
-                        if (row) {
-                            row.animate([
-                                { opacity: 1, transform: 'scaleY(1)' },
-                                { opacity: 0, transform: 'scaleY(0.8)' }
-                            ], animationOptions).onfinish = () => {
-                                row.classList.add('hidden-element');
-                            };
-                        }
-                    });
+                    // 執行動畫
+                    animateElements(allButtonElements, true, 0);
+                    animateElements(elementsToHide, false, 0);
+                    animateElements(elementsToShow, true, 100);
                     
-                    // 隱藏一萬每月利息下方的分隔線
+                    // 處理分隔線
                     if (dividerAfterTenThousand) {
-                        dividerAfterTenThousand.animate([
-                            { opacity: 1, transform: 'scaleX(1)' },
-                            { opacity: 0, transform: 'scaleX(0.8)' }
-                        ], animationOptions).onfinish = () => {
-                            dividerAfterTenThousand.classList.add('hidden-element');
-                        };
+                        animateDividers([dividerAfterTenThousand], false);
+                        animateDividers(allDividers.filter(d => d !== dividerAfterTenThousand), true);
+                    } else {
+                        animateDividers(allDividers, true);
                     }
-                    
-                    // 顯示其他所有內容
-                    hideRows.forEach(row => {
-                        if (row) {
-                            row.classList.remove('hidden-element');
-                        }
-                    });
-                    
-                    hideSection.forEach(row => {
-                        if (row && !autoCalcHideRows.includes(row)) {
-                            row.classList.remove('hidden-element');
-                        }
-                    });
-                    
-                    // 顯示除了特定分隔線外的其他分隔線
-                    const dividers = document.querySelectorAll('.divider-flow');
-                    dividers.forEach(divider => {
-                        if (divider !== dividerAfterTenThousand) {
-                            divider.classList.remove('hidden-element');
-                        }
-                    });
                     
                 } else {
                     // 精簡顯示模式（viewMode === 2）：保持原有邏輯
                     
-                    // 隱藏按鈕組
-                    buttonGroups.forEach(id => {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.animate([
-                                { opacity: 1, transform: 'scaleY(1)' },
-                                { opacity: 0, transform: 'scaleY(0.8)' }
-                            ], animationOptions).onfinish = () => {
-                                element.classList.add('hidden-element');
-                            };
-                        }
-                    });
+                    // 整理需要隱藏的元素
+                    const allButtonElements = buttonGroups.map(id => document.getElementById(id)).filter(el => el);
+                    const elementsToHide = [...hideRows, ...hideSection].filter(el => el);
+                    const allDividers = Array.from(document.querySelectorAll('.divider-flow'));
                     
-                    // 隱藏指定的行
-                    hideRows.forEach(row => {
-                        if (row) {
-                            row.animate([
-                                { opacity: 1, transform: 'scaleY(1)' },
-                                { opacity: 0, transform: 'scaleY(0.8)' }
-                            ], animationOptions).onfinish = () => {
-                                row.classList.add('hidden-element');
-                            };
-                        }
-                    });
+                    // 執行動畫 - 錯開時間創造流暢感
+                    animateElements(allButtonElements, false, 0);
+                    animateElements(elementsToHide, false, 30);
                     
-                    // 隱藏百萬每年利息到NPV區段
-                    hideSection.forEach(row => {
-                        if (row) {
-                            row.animate([
-                                { opacity: 1, transform: 'scaleY(1)' },
-                                { opacity: 0, transform: 'scaleY(0.8)' }
-                            ], animationOptions).onfinish = () => {
-                                row.classList.add('hidden-element');
-                            };
-                        }
-                    });
-                    
-                    // 處理分隔線
-                    const dividers = document.querySelectorAll('.divider-flow');
-                    if (dividers.length >= 3) {
-                        dividers[0].animate([
-                            { opacity: 1, transform: 'scaleX(1)' },
-                            { opacity: 0, transform: 'scaleX(0.8)' }
-                        ], animationOptions).onfinish = () => {
-                            dividers[0].classList.add('hidden-element');
-                        };
+                    // 特殊處理分隔線
+                    if (allDividers.length >= 3) {
+                        // 隱藏除了最後一個以外的所有分隔線
+                        const dividersToHide = allDividers.slice(0, -1);
+                        const lastDivider = allDividers[allDividers.length - 1];
                         
-                        for (let i = 1; i < dividers.length - 1; i++) {
-                            dividers[i].animate([
-                                { opacity: 1, transform: 'scaleX(1)' },
-                                { opacity: 0, transform: 'scaleX(0.8)' }
-                            ], animationOptions).onfinish = () => {
-                                dividers[i].classList.add('hidden-element');
-                            };
-                        }
+                        animateDividers(dividersToHide, false);
                         
-                        dividers[dividers.length - 1].classList.remove('hidden-element');
+                        // 最後一個分隔線保持顯示
+                        setTimeout(() => {
+                            lastDivider.classList.remove('hidden-element');
+                            lastDivider.style.opacity = '1';
+                        }, 200);
                     }
                 }
                 
@@ -7337,7 +7379,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.89</div>
+            <div class="version-info">v2.90</div>
         </div>
     </div>
 
