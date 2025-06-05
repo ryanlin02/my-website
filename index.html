@@ -902,7 +902,13 @@
 
         /* 隱藏元素 */
         .hidden-element {
-            display: none !important;
+            display: none !important;             /* 強制隱藏 */
+            max-height: 0 !important;             /* 高度為0 */
+            opacity: 0 !important;                /* 完全透明 */
+            padding: 0 !important;                /* 移除內邊距 */
+            margin: 0 !important;                 /* 移除邊距 */
+            transition: all 0.3s ease-in-out;     /* 過渡效果 */
+            overflow: hidden !important;          /* 隱藏溢出內容 */
         }
 
         /* 頁腳訊息 */
@@ -6857,6 +6863,27 @@
                     toggleIcon.textContent = '▼';
                 }
                 
+                // 需要切換顯示的元素
+                const buttonGroups = [
+                    'periodButtons',
+                    'rateButtons',
+                    'principalButtons',
+                    'PaymentduringButtons',
+                    'commissionButtons',
+                    'commissionPercentButtons'
+                ];
+
+                // 需要隱藏的整行元素
+                const hideRows = [
+                    document.querySelector('.row:has(#tax)'), // 稅金欄位
+                    document.querySelector('.row:has(#totalPayment)'), // 總繳款欄位
+                    document.querySelector('.row:has(#yearlyInterest)'), // 每年利息欄位
+                    document.querySelector('.row:has(#monthlyInterest)'), // 每月利息欄位
+                ];
+
+                // 需要隱藏的區段（百萬每年利息到NPV）
+                const hideSection = document.querySelectorAll('.row:has(#annualMillionInterest), .row:has(#monthlyMillionInterest), .row:has(#annualTenThousandInterest), .row:has(#monthlyTenThousandInterest), .row:has(#monthlyCost), .row:has(#spread), .row:has(#fundingCost)');
+
                 // 需要在"自行計算"模式中隱藏的特定欄位
                 const autoCalcHideRows = [
                     document.querySelector('.row:has(#totalPayment)'),     // 總繳款
@@ -7135,6 +7162,20 @@
             vibrate();
         }
 
+        function getThemeName(themeCode) {
+            switch(themeCode) {
+                case 'default': return '暗夜橘焰';
+                case 'white': return '極簡黑白';
+                case 'pink': return '櫻花雪';
+                case 'red': return '暗夜烈焰';
+                case 'blue-purple': return '暮光星塵';
+                case 'green': return '翠玉清風';
+                case 'blue': return '科技藍調';
+                case 'royal': return '皇家紫韻';
+                default: return themeCode;
+            }
+        }
+
         // 根據主題代碼返回顯示名稱
         function getThemeName(themeCode) {
             switch(themeCode) {
@@ -7261,7 +7302,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.95</div>
+            <div class="version-info">v2.97</div>
         </div>
     </div>
 
