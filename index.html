@@ -6863,27 +6863,6 @@
                     toggleIcon.textContent = '▼';
                 }
                 
-                // 需要切換顯示的元素
-                const buttonGroups = [
-                    'periodButtons',
-                    'rateButtons',
-                    'principalButtons',
-                    'PaymentduringButtons',
-                    'commissionButtons',
-                    'commissionPercentButtons'
-                ];
-
-                // 需要隱藏的整行元素
-                const hideRows = [
-                    document.querySelector('.row:has(#tax)'), // 稅金欄位
-                    document.querySelector('.row:has(#totalPayment)'), // 總繳款欄位
-                    document.querySelector('.row:has(#yearlyInterest)'), // 每年利息欄位
-                    document.querySelector('.row:has(#monthlyInterest)'), // 每月利息欄位
-                ];
-
-                // 需要隱藏的區段（百萬每年利息到NPV）
-                const hideSection = document.querySelectorAll('.row:has(#annualMillionInterest), .row:has(#monthlyMillionInterest), .row:has(#annualTenThousandInterest), .row:has(#monthlyTenThousandInterest), .row:has(#monthlyCost), .row:has(#spread), .row:has(#fundingCost)');
-
                 // 需要在"自行計算"模式中隱藏的特定欄位
                 const autoCalcHideRows = [
                     document.querySelector('.row:has(#totalPayment)'),     // 總繳款
@@ -6894,7 +6873,7 @@
                     document.querySelector('.row:has(#annualTenThousandInterest)'), // 一萬每年利息
                     document.querySelector('.row:has(#monthlyTenThousandInterest)') // 一萬每月利息
                 ];
-
+                
                 // 獲取一萬每月利息下方的分隔線
                 const tenThousandRow = document.querySelector('.row:has(#monthlyTenThousandInterest)');
                 let dividerAfterTenThousand = null;
@@ -6902,7 +6881,7 @@
                     tenThousandRow.nextElementSibling.classList.contains('divider-flow')) {
                     dividerAfterTenThousand = tenThousandRow.nextElementSibling;
                 }
-
+                
                 // 根據不同模式處理顯示/隱藏
                 if (viewMode === 0) {
                     // 完整顯示模式：顯示所有內容
@@ -7016,7 +6995,6 @@
                 // 顯示當前模式提示
                 const modeName = ['完整顯示', '自行計算', '精簡顯示'][viewMode];
                 showToast(`切換至${modeName}模式`);
-
             });
         });
     </script>
@@ -7302,7 +7280,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.97</div>
+            <div class="version-info">v2.98</div>
         </div>
     </div>
 
