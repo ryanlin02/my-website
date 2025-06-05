@@ -165,16 +165,16 @@
         :root[data-theme="pink"] {
             /* RGB版本的顏色（用於透明度控制） */
             --primary-color-rgb: 255, 240, 245;   /* 主背景色RGB值 */
-            --secondary-color-rgb: 255, 255, 255; /* 次背景色RGB值 */
+            --secondary-color-rgb: 255, 248, 252; /* 次背景色RGB值 */
             --accent-color-rgb: 219, 56, 108;    /* 強調色RGB值 - 更深的粉紅色 */
-            --input-bg-rgb: 252, 228, 236;        /* 輸入框背景RGB值 - 淡粉色 */
-            --error-color-rgb: 220, 53, 69;     /* 錯誤色RGB值 */
-            --info-color-rgb: 23, 162, 184;      /* 信息色RGB值 */
+            --input-bg-rgb: 255, 250, 252;        /* 輸入框背景RGB值 - 極淡粉色 */
+            --error-color-rgb: 220, 53, 69;      /* 錯誤色RGB值 */
+            --info-color-rgb: 255, 182, 193;     /* 信息色RGB值 - 改為淺粉色 */
 
             /* 基本色調 */
             --primary-color: #fff0f5;             /* 主背景色 */
-            --secondary-color: #ffffff;           /* 次背景色 */
-            --text-color: #4a4a4a;                /* 文字色 - 保持深灰色 */
+            --secondary-color: #fff8fc;           /* 次背景色 - 極淡粉色 */
+            --text-color: #b8306a;                /* 文字色 - 深櫻花色 */
             --border-color: #ffb6c1;              /* 邊框色 */
             --hover-color: #ffd1dc;               /* 懸停色 */
             --shadow-color: rgba(255, 182, 193, 0.3); /* 陰影色 */
@@ -185,26 +185,26 @@
             --accent-color-dark: #b92d59;         /* 更深粉紅 */
             
             /* 功能色 */
-            --success-color: #28a745;             /* 綠色成功色 */
+            --success-color: #ff69b4;             /* 粉色成功色 */
             --warning-color: #ff9e80;             /* 橙色警告色 */
             --error-color: #dc3545;               /* 紅色錯誤色 */
-            --info-color: #17a2b8;                /* 藍色資訊色 */
+            --info-color: #ffb6c1;                /* 淺粉色資訊色 */
             
             /* 特殊元件顏色 */
             --button-primary: #db386c;            /* 主按鈕顏色 */
             --button-secondary: #fce4ec;          /* 副按鈕顏色 */
-            --input-bg: #fcfcfc;                  /* 輸入框背景色 - 改為近白色 */
+            --input-bg: #fffafc;                  /* 輸入框背景色 - 極淡粉色 */
             --input-border: #ffb6c1;              /* 輸入框邊框 */
             --input-focus-border: #db386c;        /* 輸入框焦點邊框 */
-            --card-bg: #ffffff;                   /* 卡片背景色 */
+            --card-bg: #fff8fc;                   /* 卡片背景色 - 極淡粉色 */
             
             /* 文字強調色 */
             --text-highlight: #db386c;            /* 文字強調色 */
-            --text-muted: #757575;                /* 文字淡色 - 加深以增加可讀性 */
+            --text-muted: #d68fa3;                /* 文字淡色 - 改為中等粉色 */
             
             /* 與舊代碼兼容的變數 */
             --button-orange: #db386c;             /* 兼容橙色按鈕 */
-            --button-blue: #17a2b8;               /* 兼容藍色按鈕 */
+            --button-blue: #ff69b4;               /* 兼容藍色按鈕 - 改為粉色 */
             --button-grey: #fce4ec;               /* 兼容灰色按鈕 */
         }
 
@@ -3136,8 +3136,8 @@
 
         /* 櫻花雪主題的輸入框樣式優化 */
         :root[data-theme="pink"] input {
-            color: #333333 !important;            /* 強制使用深色文字 */
-            background-color: #fcfcfc !important; /* 強制使用近白色背景 */
+            color: #b8306a !important;            /* 使用深櫻花色文字 */
+            background-color: #fffafc !important; /* 使用極淡粉色背景 */
             border: 1px solid #ffb6c1 !important; /* 粉色邊框 */
         }
 
@@ -3149,9 +3149,34 @@
 
         /* 櫻花雪主題下特殊輸入框優化 */
         :root[data-theme="pink"] #afterCommissionRate {
-            color: #333333 !important;             /* 強制使用深色文字 */
+            color: #b8306a !important;             /* 使用深櫻花色文字 */
             background-color: rgba(219, 56, 108, 0.08) !important; /* 非常淡的粉色背景 */
             border: 1px solid rgba(219, 56, 108, 0.4) !important;  /* 半透明粉色邊框 */
+        }
+
+        /* 櫻花雪主題的按鈕樣式優化 */
+        :root[data-theme="pink"] button {
+            background-color: #fce4ec !important;  /* 淡粉色背景 */
+            color: #b8306a !important;             /* 深櫻花色文字 */
+            border: 1px solid #ffb6c1 !important;  /* 粉色邊框 */
+        }
+
+        :root[data-theme="pink"] button:hover {
+            background-color: #ffd1dc !important;  /* 懸停時稍深的粉色 */
+        }
+
+        /* 櫻花雪主題的唯讀欄位 */
+        :root[data-theme="pink"] .readonly {
+            background-color: #fffafc !important;  /* 極淡粉色背景 */
+            color: #b8306a !important;             /* 深櫻花色文字 */
+        }
+
+        /* 櫻花雪主題的分隔線 */
+        :root[data-theme="pink"] .divider-flow {
+            background: linear-gradient(90deg, 
+                #fce4ec 0%,
+                #ffb6c1 50%,
+                #fce4ec 100%);                     /* 粉色漸變 */
         }
 
     </style>
@@ -7313,7 +7338,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.93</div>
+            <div class="version-info">v2.94</div>
         </div>
     </div>
 
