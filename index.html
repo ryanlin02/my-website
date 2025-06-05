@@ -2260,30 +2260,6 @@
             opacity: 1;                                     /* 完全不透明 */
         }
 
-        /* 平滑淡入動畫 - 定義元素出現的效果 */
-        @keyframes smoothFadeIn {
-            from {
-                opacity: 0;                                 /* 初始透明 */
-                transform: scaleY(0.8);                     /* 初始縮小 */
-            }
-            to {
-                opacity: 1;                                 /* 最終不透明 */
-                transform: scaleY(1);                       /* 最終正常大小 */
-            }
-        }
-
-        /* 平滑淡出動畫 - 定義元素消失的效果 */
-        @keyframes smoothFadeOut {
-            from {
-                opacity: 1;                                 /* 初始不透明 */
-                transform: scaleY(1);                       /* 初始正常大小 */
-            }
-            to {
-                opacity: 0;                                 /* 最終透明 */
-                transform: scaleY(0.8);                     /* 最終縮小 */
-            }
-        }
-
         /* 歷史記錄備註容器 - 包含備註的區域 */
         .history-note-container {
             background-color: rgba(var(--primary-color-rgb), 0.1); /* 半透明背景 */
@@ -7337,7 +7313,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.89</div>
+            <div class="version-info">v2.93</div>
         </div>
     </div>
 
