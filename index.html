@@ -3200,8 +3200,8 @@
     </script>
 
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 </head>
 <body>
@@ -7220,12 +7220,13 @@
                 <button class="menu-close-btn" onclick="closeMainMenu()">×</button>
             </div>
 
-            <li class="menu-item" id="authMenuItem" onclick="signInWithGoogle()">
-                Google 登入 <span class="menu-item-arrow">▶</span>
-            </li>
-            <li id="userInfoItem" style="display: none; background-color: var(--secondary-color); border-radius: 8px; margin: 5px;">
-                <!-- 使用者資訊會顯示在這裡 -->
-            </li>
+            <ul class="menu-list" style="flex: 1; overflow-y: auto;">
+                <li class="menu-item" id="authMenuItem">
+                    Google 登入 <span class="menu-item-arrow">▶</span>
+                </li>
+                <li id="userInfoItem" style="display: none; background-color: var(--secondary-color); border-radius: 8px; margin: 5px;">
+                    <!-- 使用者資訊會顯示在這裡 -->
+                </li>
 
             <ul class="menu-list" style="flex: 1; overflow-y: auto;">
                 <li class="menu-item" onclick="openSubmenu('advancedSubmenu')">
@@ -7238,7 +7239,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.86</div>
+            <div class="version-info">v2.87</div>
         </div>
     </div>
 
@@ -7388,18 +7389,16 @@
         }
     </script>
 
-<script>
-    // 等待 DOM 完全載入後再初始化 Firebase
-    document.addEventListener('DOMContentLoaded', function() {
+    <script>
         // Firebase 設定
         const firebaseConfig = {
-          apiKey: "AIzaSyBvaz4vcGzVFSQU52abK5YLk2Ii1sEOoM8",
-          authDomain: "loan-calculator-app-76a7d.firebaseapp.com",
-          projectId: "loan-calculator-app-76a7d",
-          storageBucket: "loan-calculator-app-76a7d.firebasestorage.app",
-          messagingSenderId: "939791472492",
-          appId: "1:939791472492:web:0685760b3eb4faaac68549",
-          measurementId: "G-3N3S9DKLPN"
+            apiKey: "AIzaSyBvaz4vcGzVFSQU52abK5YLk2Ii1sEOoM8",
+            authDomain: "loan-calculator-app-76a7d.firebaseapp.com",
+            projectId: "loan-calculator-app-76a7d",
+            storageBucket: "loan-calculator-app-76a7d.firebasestorage.app",
+            messagingSenderId: "939791472492",
+            appId: "1:939791472492:web:0685760b3eb4faaac68549",
+            measurementId: "G-3N3S9DKLPN"
         };
 
         // 初始化 Firebase
@@ -7412,14 +7411,8 @@
         // 全域變數儲存使用者資訊
         window.currentUser = null;
 
-        // 監聽使用者登入狀態
-        auth.onAuthStateChanged((user) => {
-            window.currentUser = user;
-            updateUIForAuth(user);
-        });
-
         // 登入函數
-        window.signInWithGoogle = function() {
+        function signInWithGoogle() {
             console.log('開始 Google 登入...');
             const provider = new firebase.auth.GoogleAuthProvider();
             
@@ -7427,18 +7420,26 @@
                 .then((result) => {
                     console.log('登入成功:', result.user);
                     showToast('登入成功！歡迎 ' + result.user.displayName);
+                    vibrate();
                 })
                 .catch((error) => {
                     console.error('登入錯誤:', error);
-                    showToast('登入失敗：' + error.message, true);
+                    if (error.code === 'auth/popup-blocked') {
+                        showToast('請允許彈出視窗以完成登入', true);
+                    } else if (error.code === 'auth/cancelled-popup-request') {
+                        showToast('登入已取消', true);
+                    } else {
+                        showToast('登入失敗：' + error.message, true);
+                    }
                 });
         }
 
         // 登出函數
-        window.signOut = function() {
+        function signOut() {
             auth.signOut()
                 .then(() => {
                     showToast('已成功登出');
+                    vibrate();
                 })
                 .catch((error) => {
                     console.error('登出錯誤:', error);
@@ -7447,7 +7448,7 @@
         }
 
         // 更新介面以反映登入狀態
-        window.updateUIForAuth = function(user) {
+        function updateUIForAuth(user) {
             const authMenuItem = document.getElementById('authMenuItem');
             const userInfoItem = document.getElementById('userInfoItem');
             
@@ -7460,8 +7461,13 @@
                 if (userInfoItem) {
                     userInfoItem.style.display = 'block';
                     userInfoItem.innerHTML = `<div style="padding: 10px; font-size: 14px;">
-                        <div>${user.displayName || '使用者'}</div>
-                        <div style="color: var(--text-muted); font-size: 12px;">${user.email}</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${user.photoURL ? `<img src="${user.photoURL}" style="width: 32px; height: 32px; border-radius: 50%;">` : ''}
+                            <div>
+                                <div>${user.displayName || '使用者'}</div>
+                                <div style="color: var(--text-muted); font-size: 12px;">${user.email}</div>
+                            </div>
+                        </div>
                     </div>`;
                 }
             } else {
@@ -7476,19 +7482,35 @@
             }
         }
 
-        // 同步使用者資料
-        window.syncUserData = function(user) {
-            const userInfo = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                lastLogin: new Date().toISOString()
-            };
-            
-            localStorage.setItem('userInfo', JSON.stringify(userInfo));
-        }
-    });
+        // 等待 DOM 載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 監聽使用者登入狀態
+            auth.onAuthStateChanged((user) => {
+                window.currentUser = user;
+                updateUIForAuth(user);
+                
+                if (user) {
+                    // 儲存使用者資訊到 localStorage
+                    const userInfo = {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        lastLogin: new Date().toISOString()
+                    };
+                    localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                } else {
+                    // 清除本地儲存的使用者資訊
+                    localStorage.removeItem('userInfo');
+                }
+            });
+
+            // 初始設定登入按鈕
+            const authMenuItem = document.getElementById('authMenuItem');
+            if (authMenuItem) {
+                authMenuItem.onclick = signInWithGoogle;
+            }
+        });
     </script>
 
 </body>
