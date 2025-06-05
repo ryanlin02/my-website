@@ -2414,7 +2414,7 @@
         /* 分享模態框容器樣式 - 調整分享界面的容器 */
         #shareModalOverlay .modal-container {
             width: 95%;                                     /* 容器寬度 */
-            max-width: 370px;                               /* 最大寬度 */
+            max-width: 370px;                                /* 最大寬度 */
             padding-bottom: 15px;                           /* 底部內部間距 */
             background-color: var(--primary-color);         /* 主背景色 */
         }
@@ -6930,10 +6930,10 @@
                         dividerAfterTenThousand.classList.add('hidden-element');
                     }
                     
-                    // 顯示其他所有內容
+                    // 隱藏hideRows中的欄位
                     hideRows.forEach(row => {
                         if (row) {
-                            row.classList.remove('hidden-element');
+                            row.classList.add('hidden-element');
                         }
                     });
                     
@@ -7280,7 +7280,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.98</div>
+            <div class="version-info">v2.99</div>
         </div>
     </div>
 
