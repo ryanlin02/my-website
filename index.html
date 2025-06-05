@@ -2260,51 +2260,6 @@
             opacity: 1;                                     /* 完全不透明 */
         }
 
-        /* 平滑淡入動畫 - 定義元素出現的效果 */
-        @keyframes smoothFadeIn {
-            from {
-                opacity: 0;                                 /* 初始透明 */
-                transform: scaleY(0.8);                     /* 初始縮小 */
-            }
-            to {
-                opacity: 1;                                 /* 最終不透明 */
-                transform: scaleY(1);                       /* 最終正常大小 */
-            }
-        }
-
-        /* 平滑淡出動畫 - 定義元素消失的效果 */
-        @keyframes smoothFadeOut {
-            from {
-                opacity: 1;                                 /* 初始不透明 */
-                transform: scaleY(1);                       /* 初始正常大小 */
-            }
-            to {
-                opacity: 0;                                 /* 最終透明 */
-                transform: scaleY(0.8);                     /* 最終縮小 */
-            }
-        }
-
-        /* 模式切換動畫類別 */
-        .mode-transition {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-
-        .mode-hidden {
-            opacity: 0 !important;
-            transform: translateY(-10px) !important;
-            max-height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-            pointer-events: none !important;
-        }
-
-        .mode-visible {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-            max-height: 1000px !important;
-        }
-
         /* 歷史記錄備註容器 - 包含備註的區域 */
         .history-note-container {
             background-color: rgba(var(--primary-color-rgb), 0.1); /* 半透明背景 */
@@ -6863,112 +6818,161 @@
             const hideSection = document.querySelectorAll('.row:has(#annualMillionInterest), .row:has(#monthlyMillionInterest), .row:has(#annualTenThousandInterest), .row:has(#monthlyTenThousandInterest), .row:has(#monthlyCost), .row:has(#spread), .row:has(#fundingCost)');
             
             let viewMode = 0; // 0: 完整顯示, 1: 自行計算, 2: 精簡顯示
-
-            // 預先為所有可切換元素添加過渡類
-            document.querySelectorAll('.row, [id$="Buttons"], .divider-flow').forEach(el => {
-                el.classList.add('mode-transition', 'mode-visible');
-            });
             
             toggleBtn.addEventListener('click', function() {
-                // 循環切換模式
+                // 循環切換模式：0 -> 1 -> 2 -> 0
                 viewMode = (viewMode + 1) % 3;
                 
                 // 更新圖標
-                toggleIcon.textContent = ['▼', '━', '▲'][viewMode];
+                if (viewMode === 0) {
+                    // 完整顯示：向下箭頭
+                    toggleIcon.classList.remove('icon-rotate-up');
+                    toggleIcon.textContent = '▼';
+                } else if (viewMode === 1) {
+                    // 自行計算：橫線
+                    toggleIcon.classList.remove('icon-rotate-up');
+                    toggleIcon.textContent = '━';
+                } else {
+                    // 精簡顯示：向上箭頭
+                    toggleIcon.classList.add('icon-rotate-up');
+                    toggleIcon.textContent = '▼';
+                }
                 
-                // 震動反饋
-                vibrate();
+                // 需要在"自行計算"模式中隱藏的特定欄位
+                const autoCalcHideRows = [
+                    document.querySelector('.row:has(#totalPayment)'),     // 總繳款
+                    document.querySelector('.row:has(#yearlyInterest)'),   // 每年利息
+                    document.querySelector('.row:has(#monthlyInterest)'),  // 每月利息
+                    document.querySelector('.row:has(#annualMillionInterest)'),    // 百萬每年利息
+                    document.querySelector('.row:has(#monthlyMillionInterest)'),   // 百萬每月利息
+                    document.querySelector('.row:has(#annualTenThousandInterest)'), // 一萬每年利息
+                    document.querySelector('.row:has(#monthlyTenThousandInterest)') // 一萬每月利息
+                ];
                 
-                // 顯示模式名稱
-                const modeName = ['完整顯示', '自行計算', '精簡顯示'][viewMode];
-                showToast(modeName);
+                // 獲取一萬每月利息下方的分隔線
+                const tenThousandRow = document.querySelector('.row:has(#monthlyTenThousandInterest)');
+                let dividerAfterTenThousand = null;
+                if (tenThousandRow && tenThousandRow.nextElementSibling && 
+                    tenThousandRow.nextElementSibling.classList.contains('divider-flow')) {
+                    dividerAfterTenThousand = tenThousandRow.nextElementSibling;
+                }
                 
-                // 定義各模式需要隱藏的元素
-                const elements = {
-                    // 自行計算模式隱藏的元素
-                    autoCalc: [
-                        '#totalPayment',
-                        '#yearlyInterest', 
-                        '#monthlyInterest',
-                        '#annualMillionInterest',
-                        '#monthlyMillionInterest',
-                        '#annualTenThousandInterest',
-                        '#monthlyTenThousandInterest'
-                    ],
-                    // 精簡模式隱藏的元素
-                    simple: [
-                        '#periodButtons',
-                        '#rateButtons',
-                        '#principalButtons',
-                        '#PaymentduringButtons',
-                        '#commissionButtons',
-                        '#commissionPercentButtons',
-                        '#tax',
-                        '#totalPayment',
-                        '#yearlyInterest',
-                        '#monthlyInterest',
-                        '#annualMillionInterest',
-                        '#monthlyMillionInterest',
-                        '#annualTenThousandInterest',
-                        '#monthlyTenThousandInterest',
-                        '#monthlyCost',
-                        '#spread',
-                        '#fundingCost'
-                    ]
-                };
+                // 獲取所有分隔線
+                const dividers = document.querySelectorAll('.divider-flow');
                 
-                // 先給所有可能被隱藏的元素添加過渡類
-                document.querySelectorAll('.row, [id$="Buttons"], .divider-flow').forEach(el => {
-                    el.classList.add('mode-transition');
-                });
-                
-                // 批量處理元素顯示/隱藏
-                setTimeout(() => {
-                    // 先顯示所有元素
-                    document.querySelectorAll('.mode-hidden').forEach(el => {
-                        el.classList.remove('mode-hidden');
-                        el.classList.add('mode-visible');
+                // 根據不同模式處理顯示/隱藏（無動畫版本）
+                if (viewMode === 0) {
+                    // 完整顯示模式：顯示所有內容
+                    
+                    // 顯示所有按鈕組
+                    buttonGroups.forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.classList.remove('hidden-element');
+                        }
                     });
                     
-                    // 根據模式隱藏特定元素
-                    if (viewMode === 1) {
-                        // 自行計算模式
-                        elements.autoCalc.forEach(selector => {
-                            const el = document.getElementById(selector.substring(1));
-                            if (el && el.parentElement) {
-                                el.parentElement.classList.remove('mode-visible');
-                                el.parentElement.classList.add('mode-hidden');
-                            }
-                        });
+                    // 顯示所有行
+                    [...hideRows, ...autoCalcHideRows, ...hideSection].forEach(row => {
+                        if (row) {
+                            row.classList.remove('hidden-element');
+                        }
+                    });
+                    
+                    // 顯示所有分隔線
+                    dividers.forEach(divider => {
+                        divider.classList.remove('hidden-element');
+                    });
+                    
+                } else if (viewMode === 1) {
+                    // 自行計算模式：隱藏特定欄位
+                    
+                    // 顯示所有按鈕組
+                    buttonGroups.forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.classList.remove('hidden-element');
+                        }
+                    });
+                    
+                    // 隱藏自行計算模式特定的欄位
+                    autoCalcHideRows.forEach(row => {
+                        if (row) {
+                            row.classList.add('hidden-element');
+                        }
+                    });
+                    
+                    // 隱藏一萬每月利息下方的分隔線
+                    if (dividerAfterTenThousand) {
+                        dividerAfterTenThousand.classList.add('hidden-element');
+                    }
+                    
+                    // 顯示其他所有內容
+                    hideRows.forEach(row => {
+                        if (row) {
+                            row.classList.remove('hidden-element');
+                        }
+                    });
+                    
+                    hideSection.forEach(row => {
+                        if (row && !autoCalcHideRows.includes(row)) {
+                            row.classList.remove('hidden-element');
+                        }
+                    });
+                    
+                    // 顯示除了特定分隔線外的其他分隔線
+                    dividers.forEach(divider => {
+                        if (divider !== dividerAfterTenThousand) {
+                            divider.classList.remove('hidden-element');
+                        }
+                    });
+                    
+                } else {
+                    // 精簡顯示模式（viewMode === 2）
+                    
+                    // 隱藏按鈕組
+                    buttonGroups.forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.classList.add('hidden-element');
+                        }
+                    });
+                    
+                    // 隱藏指定的行
+                    hideRows.forEach(row => {
+                        if (row) {
+                            row.classList.add('hidden-element');
+                        }
+                    });
+                    
+                    // 隱藏百萬每年利息到NPV區段
+                    hideSection.forEach(row => {
+                        if (row) {
+                            row.classList.add('hidden-element');
+                        }
+                    });
+                    
+                    // 處理分隔線
+                    if (dividers.length >= 3) {
+                        // 隱藏第一個分隔線
+                        dividers[0].classList.add('hidden-element');
                         
-                        // 隱藏特定分隔線
-                        const tenThousandRow = document.querySelector('.row:has(#monthlyTenThousandInterest)');
-                        if (tenThousandRow && tenThousandRow.nextElementSibling?.classList.contains('divider-flow')) {
-                            tenThousandRow.nextElementSibling.classList.add('mode-hidden');
+                        // 隱藏中間的分隔線
+                        for (let i = 1; i < dividers.length - 1; i++) {
+                            dividers[i].classList.add('hidden-element');
                         }
                         
-                    } else if (viewMode === 2) {
-                        // 精簡模式
-                        elements.simple.forEach(selector => {
-                            const el = document.getElementById(selector.substring(1));
-                            if (el) {
-                                if (el.classList.contains('row') || el.parentElement.classList.contains('row')) {
-                                    (el.classList.contains('row') ? el : el.parentElement).classList.add('mode-hidden');
-                                } else {
-                                    el.classList.add('mode-hidden');
-                                }
-                            }
-                        });
-                        
-                        // 隱藏多餘的分隔線
-                        const dividers = document.querySelectorAll('.divider-flow');
-                        dividers.forEach((divider, index) => {
-                            if (index < dividers.length - 1) {
-                                divider.classList.add('mode-hidden');
-                            }
-                        });
+                        // 顯示最後一個分隔線
+                        dividers[dividers.length - 1].classList.remove('hidden-element');
                     }
-                }, 10);
+                }
+                
+                // 觸發震動效果
+                vibrate();
+                
+                // 顯示當前模式提示（選擇性，如果不需要可以刪除這兩行）
+                const modeName = ['完整顯示', '自行計算', '精簡顯示'][viewMode];
+                showToast(`切換至${modeName}模式`);
             });
         });
     </script>
@@ -7254,7 +7258,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.91</div>
+            <div class="version-info">v2.92</div>
         </div>
     </div>
 
