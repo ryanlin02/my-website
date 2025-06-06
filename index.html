@@ -5828,16 +5828,23 @@
             'period', 'rate', 'principal', 'payment', 
             'totalPayment', 'totalInterest', 'tax', 'afterTaxRate', 
             'commission', 'commissionRatio', 'afterCommissionRate',
+            'afterCommissionOnlyRate',     // 佣後利率
             'annualMillionInterest', 'monthlyMillionInterest',
             'annualTenThousandInterest', 'monthlyTenThousandInterest',
-            'spread', 'fundingCost', 'monthlyInterest'
+            'spread', 'fundingCost', 'monthlyInterest', 'yearlyInterest',
+            'customerInvoice',             // 客戶發票
+            'businessTax',                 // 營業稅
+            'untaxedAmount'                // 未稅金額
         ];
         
         // 清空每個欄位
         fieldsToReset.forEach(fieldId => {
-            document.getElementById(fieldId).value = '';
-            // 移除任何警告樣式
-            document.getElementById(fieldId).classList.remove('warning-text');
+            const element = document.getElementById(fieldId);
+            if (element) {  // 檢查元素是否存在，避免錯誤
+                element.value = '';
+                // 移除任何警告樣式
+                element.classList.remove('warning-text');
+            }
         });
         
         // 顯示提示訊息
@@ -6816,11 +6823,12 @@
     </div>
 
     <script>
+        
         document.addEventListener('DOMContentLoaded', function() {
             const toggleBtn = document.getElementById('toggleViewBtn');
             const toggleIcon = document.getElementById('toggleIcon');
             
-            // 需要切換顯示的元素
+            // 需要切換顯示的按鈕組
             const buttonGroups = [
                 'periodButtons',
                 'rateButtons',
@@ -6830,21 +6838,107 @@
                 'commissionPercentButtons'
             ];
             
-            // 需要隱藏的整行元素
-            const hideRows = [
-                document.querySelector('.row:has(#tax)'), // 稅金欄位
-                document.querySelector('.row:has(#totalPayment)'), // 總繳款欄位
-                document.querySelector('.row:has(#yearlyInterest)'), // 每年利息欄位
-                document.querySelector('.row:has(#monthlyInterest)'), // 每月利息欄位
-                document.querySelector('.row:has(#customerInvoice)'), // 客戶發票欄位
-                document.querySelector('.row:has(#businessTax)'), // 營業稅欄位
-                document.querySelector('.row:has(#untaxedAmount)'), // 未稅金額欄位
+            // 在"自行計算"模式中需要隱藏的欄位（根據您的新需求）
+            const autoCalcHideFields = [
+                'totalPayment',           // 總繳款
+                'yearlyInterest',         // 每年利息
+                'monthlyInterest',        // 每月利息
+                'afterTaxRate',           // 稅後利率
+                'annualMillionInterest',  // 百萬每年利息
+                'monthlyMillionInterest', // 百萬每月利息
+                'annualTenThousandInterest', // 一萬每年利息
+                'monthlyTenThousandInterest', // 一萬每月利息
+                'customerInvoice',        // 客戶發票
+                'businessTax',            // 營業稅
+                'untaxedAmount'           // 未稅金額
             ];
             
-            // 需要隱藏的區段（百萬每年利息到NPV）
-            const hideSection = document.querySelectorAll('.row:has(#annualMillionInterest), .row:has(#monthlyMillionInterest), .row:has(#annualTenThousandInterest), .row:has(#monthlyTenThousandInterest), .row:has(#monthlyCost), .row:has(#spread), .row:has(#fundingCost)');
+            // 在"精簡顯示"模式中需要隱藏的欄位
+            const simpleHideFields = [
+                'totalInterest',          // 總利息
+                'yearlyInterest',         // 每年利息
+                'monthlyInterest',        // 每月利息
+                'tax',                    // 稅金
+                'afterTaxRate',           // 稅後利率
+                'annualMillionInterest',  // 百萬每年利息
+                'monthlyMillionInterest', // 百萬每月利息
+                'annualTenThousandInterest', // 一萬每年利息
+                'monthlyTenThousandInterest', // 一萬每月利息
+                'monthlyCost',            // 本月資金成本
+                'spread',                 // Spread
+                'fundingCost',            // NPV
+                'customerInvoice',        // 客戶發票
+                'businessTax',            // 營業稅
+                'untaxedAmount'           // 未稅金額
+            ];
             
             let viewMode = 0; // 0: 完整顯示, 1: 自行計算, 2: 精簡顯示
+            
+            // 根據欄位ID找到對應的行容器
+            function getRowByFieldId(fieldId) {
+                const field = document.getElementById(fieldId);
+                if (!field) return null;
+                return field.closest('.row');
+            }
+            
+            // 找到"一萬每月利息"欄位下方的分隔線
+            function getTenThousandMonthlyDivider() {
+                const tenThousandRow = getRowByFieldId('monthlyTenThousandInterest');
+                if (!tenThousandRow) return null;
+                
+                // 找到這個行的下一個兄弟元素
+                let nextElement = tenThousandRow.nextElementSibling;
+                
+                // 檢查下一個元素是否是分隔線
+                if (nextElement && nextElement.classList.contains('divider-flow')) {
+                    return nextElement;
+                }
+                
+                return null;
+            }
+            
+            // 隱藏指定欄位的行
+            function hideFieldRows(fieldIds) {
+                fieldIds.forEach(fieldId => {
+                    const row = getRowByFieldId(fieldId);
+                    if (row) {
+                        row.classList.add('hidden-element');
+                    }
+                });
+            }
+            
+            // 顯示指定欄位的行
+            function showFieldRows(fieldIds) {
+                fieldIds.forEach(fieldId => {
+                    const row = getRowByFieldId(fieldId);
+                    if (row) {
+                        row.classList.remove('hidden-element');
+                    }
+                });
+            }
+            
+            // 顯示所有欄位
+            function showAllFields() {
+                const allFields = [...autoCalcHideFields, ...simpleHideFields];
+                const uniqueFields = [...new Set(allFields)]; // 去除重複
+                showFieldRows(uniqueFields);
+            }
+            
+            // 隱藏"一萬每月利息"下方的分隔線
+            function hideTenThousandDivider() {
+                const divider = getTenThousandMonthlyDivider();
+                if (divider) {
+                    divider.classList.add('hidden-element');
+                }
+            }
+            
+            // 顯示"一萬每月利息"下方的分隔線
+            function showTenThousandDivider() {
+                const divider = getTenThousandMonthlyDivider();
+                if (divider) {
+                    divider.classList.remove('hidden-element');
+                }
+            }
             
             toggleBtn.addEventListener('click', function() {
                 // 循環切換模式：0 -> 1 -> 2 -> 0
@@ -6865,36 +6959,6 @@
                     toggleIcon.textContent = '▼';
                 }
                 
-                // 需要在"自行計算"模式中隱藏的特定欄位
-                const autoCalcHideRows = [
-                    document.querySelector('.row:has(#totalPayment)'),     // 總繳款
-                    document.querySelector('.row:has(#yearlyInterest)'),   // 每年利息
-                    document.querySelector('.row:has(#monthlyInterest)'),  // 每月利息
-                    document.querySelector('.row:has(#afterTaxRate)'),     // 稅後利率
-                    document.querySelector('.row:has(#annualMillionInterest)'), // 百萬每年利息
-                    document.querySelector('.row:has(#monthlyMillionInterest)'), // 百萬每月利息
-                    document.querySelector('.row:has(#annualTenThousandInterest)'), // 一萬每年利息
-                    document.querySelector('.row:has(#monthlyTenThousandInterest)'), // 一萬每月利息
-                    document.querySelector('.row:has(#customerInvoice)'),  // 客戶發票
-                    document.querySelector('.row:has(#businessTax)'),      // 營業稅
-                    document.querySelector('.row:has(#untaxedAmount)')     // 未稅金額
-                ].filter(row => row !== null); // 過濾掉null值
-                
-                // 需要在"精簡顯示"模式中隱藏的特定欄位
-                const simpleHideRows = [
-                    document.querySelector('.row:has(#customerInvoice)'),   // 客戶發票
-                    document.querySelector('.row:has(#businessTax)'),      // 營業稅
-                    document.querySelector('.row:has(#untaxedAmount)'),    // 未稅金額
-                ];
-                
-                // 獲取一萬每月利息下方的分隔線
-                const tenThousandRow = document.querySelector('.row:has(#monthlyTenThousandInterest)');
-                let dividerAfterTenThousand = null;
-                if (tenThousandRow && tenThousandRow.nextElementSibling && 
-                    tenThousandRow.nextElementSibling.classList.contains('divider-flow')) {
-                    dividerAfterTenThousand = tenThousandRow.nextElementSibling;
-                }
-                
                 // 根據不同模式處理顯示/隱藏
                 if (viewMode === 0) {
                     // 完整顯示模式：顯示所有內容
@@ -6907,12 +6971,11 @@
                         }
                     });
                     
-                    // 顯示所有行
-                    [...hideRows, ...autoCalcHideRows, ...hideSection].forEach(row => {
-                        if (row) {
-                            row.classList.remove('hidden-element');
-                        }
-                    });
+                    // 顯示所有欄位
+                    showAllFields();
+                    
+                    // 顯示"一萬每月利息"下方的分隔線
+                    showTenThousandDivider();
                     
                     // 顯示所有分隔線
                     const dividers = document.querySelectorAll('.divider-flow');
@@ -6921,7 +6984,7 @@
                     });
                     
                 } else if (viewMode === 1) {
-                    // 自行計算模式：隱藏特定欄位
+                    // 自行計算模式：隱藏特定欄位和分隔線
                     
                     // 顯示所有按鈕組
                     buttonGroups.forEach(id => {
@@ -6931,29 +6994,21 @@
                         }
                     });
                     
-                    // 隱藏自行計算模式特定的欄位
-                    autoCalcHideRows.forEach(row => {
-                        row.classList.add('hidden-element');
-                    });
-                    
-                    // 顯示其他所有內容
-                    hideRows.forEach(row => {
-                        if (row) {
-                            row.classList.remove('hidden-element');
-                        }
-                    });
-                    
-                    hideSection.forEach(row => {
-                        if (row) {
-                            row.classList.remove('hidden-element');
-                        }
-                    });
+                    // 先顯示所有欄位和分隔線
+                    showAllFields();
+                    showTenThousandDivider();
                     
                     // 顯示所有分隔線
                     const dividers = document.querySelectorAll('.divider-flow');
                     dividers.forEach(divider => {
                         divider.classList.remove('hidden-element');
                     });
+                    
+                    // 然後隱藏自行計算模式特定的欄位
+                    hideFieldRows(autoCalcHideFields);
+                    
+                    // 隱藏"一萬每月利息"下方的分隔線
+                    hideTenThousandDivider();
                     
                 } else {
                     // 精簡顯示模式（viewMode === 2）
@@ -6966,26 +7021,12 @@
                         }
                     });
                     
-                    // 隱藏指定的行
-                    hideRows.forEach(row => {
-                        if (row) {
-                            row.classList.add('hidden-element');
-                        }
-                    });
+                    // 先顯示所有欄位和分隔線
+                    showAllFields();
+                    showTenThousandDivider();
                     
-                    // 隱藏精簡顯示模式特定的欄位
-                    simpleHideRows.forEach(row => {
-                        if (row) {
-                            row.classList.add('hidden-element');
-                        }
-                    });
-                    
-                    // 隱藏百萬每年利息到NPV區段
-                    hideSection.forEach(row => {
-                        if (row) {
-                            row.classList.add('hidden-element');
-                        }
-                    });
+                    // 然後隱藏精簡顯示模式特定的欄位
+                    hideFieldRows(simpleHideFields);
                     
                     // 處理分隔線
                     const dividers = document.querySelectorAll('.divider-flow');
@@ -7290,7 +7331,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.01</div>
+            <div class="version-info">v3.04</div>
         </div>
     </div>
 
