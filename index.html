@@ -1302,7 +1302,7 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 陰影效果 */
             text-align: center;                     /* 文字居中 */
             position: relative;                     /* 相對定位 */
-            overflow: hidden;                       /* 隱藏溢出內容 */
+            overflow: hidden;                      /* 隱藏溢出內容 */
             flex: 1;                                /* 平均分配空間 */
             min-width: 0;                           /* 允許按鈕變窄 */
             margin: 0;                              /* 移除外部間距 */
@@ -2275,7 +2275,7 @@
             gap: 8px;                                       /* 項目間距 */
         }
 
-        /* 歷史備註預覽 - 顯示備註內容的預覽 */
+        /* 歷史記錄備註預覽 - 顯示備註內容的預覽 */
         .history-note-preview {
             color: #bcbcbc;                                 /* 淺灰色文字 */
             font-size: 14px;                                /* 文字大小 */
@@ -2298,7 +2298,7 @@
             margin-left: auto;                              /* 推到右側 */
         }
 
-        /* 歷史備註預覽懸停效果 - 鼠標懸停時的視覺變化 */
+        /* 歷史記錄備註預覽懸停效果 - 鼠標懸停時的視覺變化 */
         .history-note-preview:hover {
             background-color: var(--accent-color-light);    /* 淡色強調背景 */
             border-color: rgba(var(--accent-color-rgb), 0.3); /* 半透明強調色邊框 */
@@ -2414,7 +2414,7 @@
         /* 分享模態框容器樣式 - 調整分享界面的容器 */
         #shareModalOverlay .modal-container {
             width: 95%;                                     /* 容器寬度 */
-            max-width: 370px;                                /* 最大寬度 */
+            max-width: 370px;                               /* 最大寬度 */
             padding-bottom: 15px;                           /* 底部內部間距 */
             background-color: var(--primary-color);         /* 主背景色 */
         }
@@ -3420,7 +3420,24 @@
         <span style="margin-left: 0px; color: var(--text-color);">稅佣後預估</span>
     </div>
 
-	<!-- 按鈕區域重新組織 -->
+    <div class="divider-flow"></div>
+
+    <!-- 新增：客戶發票、營業稅、未稅金額欄位 -->
+    <div class="row">
+        <span class="label">客戶發票</span>
+        <input type="text" id="customerInvoice" class="readonly" readonly>
+    </div>
+    <div class="row">
+        <span class="label">營業稅</span>
+        <input type="text" id="businessTax" class="readonly" readonly>
+    </div>
+    <div class="row">
+        <span class="label">未稅金額</span>
+        <input type="text" id="untaxedAmount" class="readonly" readonly>
+    </div>
+    
+
+    <!-- 按鈕區域重新組織 -->
     <div class="divider-flow"></div>
 
     <div class="function-buttons top-buttons">
@@ -4151,6 +4168,26 @@
             fundingCostInput.classList.remove('warning-text');
         }
 
+        // 新增：自動更新三個新欄位
+        const principalValue = principal;
+        const customerInvoiceField = document.getElementById('customerInvoice');
+        const businessTaxField = document.getElementById('businessTax');
+        const untaxedAmountField = document.getElementById('untaxedAmount');
+        if (principalValue > 0) {
+            // 客戶發票 = 本金
+            customerInvoiceField.value = formatNumberWithCommas(Math.round(principalValue));
+            // 營業稅 = 客戶發票 / 21，四捨五入至整數
+            const businessTax = Math.round(principalValue / 21);
+            businessTaxField.value = formatNumberWithCommas(businessTax);
+            // 未稅金額 = 客戶發票 - 營業稅，顯示正整數
+            const untaxedAmount = Math.max(0, Math.round(principalValue - businessTax));
+            untaxedAmountField.value = formatNumberWithCommas(untaxedAmount);
+        } else {
+            customerInvoiceField.value = '';
+            businessTaxField.value = '';
+            untaxedAmountField.value = '';
+        }
+
         // 在更新值之前保存舊值
         const oldValues = {};
         const fieldsToTrack = ['totalInterest', 'afterTaxRate', 'spread'];
@@ -4704,44 +4741,6 @@
         }
     }
 
-    function shareQuoteImageAsFile(imageDataUrl, statusElement) {
-        try {
-            // 創建一個 Blob 對象
-            fetch(imageDataUrl)
-                .then(res => res.blob())
-                .then(blob => {
-                    // 創建文件對象
-                    const dateTime = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-                    const fileName = `貸款計算報價_${dateTime}.png`;
-                    const file = new File([blob], fileName, { type: 'image/png' });
-                    
-                    // 使用 Web Share API 分享文件
-                    navigator.share({
-                        title: '貸款計算報價',
-                        files: [file]
-                    })
-                    .then(() => {
-                        statusElement.textContent = '分享圖片成功！';
-                        setTimeout(() => {
-                            statusElement.textContent = '';
-                        }, 2000);
-                    })
-                    .catch(err => {
-                        console.error('分享圖片失敗:', err);
-                        statusElement.textContent = '分享圖片失敗，請使用下載選項。';
-                    });
-                })
-                .catch(err => {
-                    console.error('處理圖片失敗:', err);
-                    statusElement.textContent = '處理圖片時出錯，請使用下載選項。';
-                });
-        } catch (error) {
-            console.error('分享圖片出錯:', error);
-            statusElement.textContent = '分享圖片失敗，請使用下載選項。';
-        }
-    }
-
-    // 嘗試將圖片作為文件分享
     function shareQuoteImageAsFile(imageDataUrl, statusElement) {
         try {
             // 創建一個 Blob 對象
@@ -6151,15 +6150,15 @@
         vibrate();
     }
 
-    // 顯示提示訊息（可重用現有的 showToast 函數，如果沒有的話添加這個）
+    // 显示提示信息（可重用现有的 showToast 函数，如果没有的话添加这个）
     function showToast(message, isError = false) {
-        // 檢查是否已有 toast
+        // 检查是否已有 toast
         const existingToast = document.querySelector('.toast-message');
         if (existingToast) {
             document.body.removeChild(existingToast);
         }
         
-        // 創建新的 toast
+        // 创建新的 toast
         const toast = document.createElement('div');
         toast.className = 'toast-message';
         if (isError) {
@@ -6168,7 +6167,7 @@
         toast.textContent = message;
         document.body.appendChild(toast);
         
-        // 2秒後自動消失
+        // 2秒后自动消失
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => {
@@ -6179,21 +6178,21 @@
         }, 2000);
     }
 
-    // 格式化數字 - 添加千位分隔符
+    // 格式化数字 - 添加千位分隔符
     function formatNumberWithCommas(num) {
         if (!num && num !== 0) return '';
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
-    // 更新計算歷史顯示，並檢查是否需要顯示滾動指示器
+    // 更新计算历史显示，并检查是否需要显示滚动指示器
     function updateCalculatorHistory() {
         const historyElement = document.getElementById('calculatorHistory');
         const indicatorElement = document.getElementById('historyScrollIndicator');
         
-        // 更新歷史內容
+        // 更新历史内容
         historyElement.textContent = calculatorHistory;
         
-        // 檢查是否內容溢出需要顯示滾動指示器
+        // 检查是否内容溢出需要显示滚动指示器
         const isOverflowing = historyElement.scrollWidth > historyElement.clientWidth || 
                             historyElement.scrollHeight > historyElement.clientHeight;
         
@@ -6219,26 +6218,26 @@
         return count;
     }
 
-    // 期數方案對比
+    // 期数方案对比
     function showPaymentComparison() {
-        // 關閉進階選單
+        // 关闭进阶选单
         closeSubmenu('advancedSubmenu');
         
-        // 獲取當前的利率和本金
+        // 获取当前的利率和本金
         const rate = parseFloat(document.getElementById('rate').value);
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
         
-        // 檢查是否有足夠的數據
+        // 检查是否有足够的数据
         if (isNaN(rate) || isNaN(principal) || rate <= 0 || principal <= 0) {
-            showToast('請先輸入有效的利率和本金', true);
+            showToast('请先输入有效的利率和本金', true);
             return;
         }
         
-        // 生成不同期數的還款方案
-        const periods = [12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 120]; // 常見期數選項
+        // 生成不同期数的还款方案
+        const periods = [12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 120]; // 常见期数选项
         const plans = [];
         
-        // 移除 interestRatio 相關計算
+        // 移除 interestRatio 相关计算
         for (const period of periods) {
             const payment = PMT(rate, period, principal);
             const totalPayment = payment * period;
@@ -6252,19 +6251,19 @@
             });
         }
         
-        // 創建表格HTML
+        // 创建表格HTML
         let tableHTML = `
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <tr style="background-color: var(--secondary-color);">
                 <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期</th>
                 <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期款</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總還款</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總利息</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">总还款</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">总利息</th>
                 <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">操作</th>
             </tr>
         `;
         
-        // 移除「利息比例」列的數據
+        // 移除「利息比例」列的数据
         plans.forEach((plan, index) => {
             tableHTML += `
             <tr style="background-color: ${index % 2 === 0 ? 'var(--secondary-color)' : 'var(--primary-color)'};">
@@ -6275,7 +6274,7 @@
                 <td style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">
                     <button onclick="selectPlan(${plan.period}, ${rate}, ${principal}, ${plan.payment})" 
                             style="padding: 5px 8px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        選
+                        选
                     </button>
                 </td>
             </tr>
@@ -6284,63 +6283,63 @@
         
         tableHTML += `</table>`;
         
-        // 創建模態框
+        // 创建模态框
         const modalHTML = `
         <div class="modal-header">
-            <h3>不同期數方案對比</h3>
+            <h3>不同期数方案对比</h3>
             <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')">×</button>
         </div>
         <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
             <div style="margin-bottom: 15px;">
                 <p>本金: ${formatNumberWithCommas(principal)} 元</p>
                 <p>利率: ${rate}%</p>
-                <p>以下是不同期數的還款方案對比，您可以點擊「選」套用到小朋友專用計算機</p>
+                <p>以下是不同期数的还款方案对比，您可以点击「选」套用到小朋友专用计算机</p>
             </div>
             ${tableHTML}
         </div>
         <div class="modal-footer">
-            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('paymentComparisonModal')">關閉</button>
+            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('paymentComparisonModal')">关闭</button>
         </div>
         `;
         
-        // 創建並顯示模態框
+        // 创建并显示模态框
         showCustomModal('paymentComparisonModal', modalHTML);
     }
 
-    // 選擇特定方案
+    // 选择特定方案
     function selectPlan(period, rate, principal, payment) {
-        // 更新計算器中的值
+        // 更新计算器中的值
         document.getElementById('period').value = period;
         document.getElementById('rate').value = rate;
         document.getElementById('principal').value = formatNumberWithCommas(principal);
         document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
         
-        // 更新所有相關計算
+        // 更新所有相关计算
         updateAllFields();
         
-        // 關閉模態框
+        // 关闭模态框
         closeCustomModal('paymentComparisonModal');
         
-        // 顯示提示
-        showToast(`已選擇 ${period} 期方案`);
+        // 显示提示
+        showToast(`已选择 ${period} 期方案`);
         
-        // 觸發震動反饋
+        // 触发震动反馈
         vibrate();
     }
 
-    // 通用的模態框顯示函數
+    // 通用的模态框显示函数
     function showCustomModal(id, html) {
-        // 創建模態框
+        // 创建模态框
         const modalOverlay = document.createElement('div');
         modalOverlay.className = 'modal-overlay';
         modalOverlay.id = id;
         modalOverlay.style.display = 'flex';
         modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
         
-        // 添加到網頁
+        // 添加到网页
         document.body.appendChild(modalOverlay);
         
-        // 點擊背景關閉
+        // 点击背景关闭
         modalOverlay.addEventListener('click', function(event) {
             if (event.target === this) {
                 closeCustomModal(id);
@@ -6350,7 +6349,7 @@
         vibrate();
     }
 
-    // 通用的模態框關閉函數
+    // 通用的模态框关闭函数
     function closeCustomModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
@@ -6359,43 +6358,43 @@
         vibrate();
     }
 
-    // 關閉子選單
+    // 关闭子选单
     function closeSubmenu(submenuId) {
         const submenu = document.getElementById(submenuId);
         if (submenu) {
             const submenuContent = submenu.querySelector('.submenu-content');
             
-            // 添加關閉動畫
+            // 添加关闭动画
             submenuContent.classList.add('submenu-closing');
             
-            // 動畫結束後隱藏子選單
+            // 动画结束后隐藏子选单
             setTimeout(function() {
                 submenu.style.display = 'none';
                 submenuContent.classList.remove('submenu-closing');
-            }, 200); // 與動畫時長相匹配
+            }, 200); // 与动画时长相匹配
             
-            vibrate(); // 使用現有的震動函數
+            vibrate(); // 使用现有的震动函数
         }
     }
 
-    // 本息攤還表
+    // 本息摊还表
     function showAmortizationSchedule() {
         closeSubmenu('advancedSubmenu');
         
-        // 獲取貸款數據
+        // 获取贷款数据
         const period = parseInt(document.getElementById('period').value);
         const rate = parseFloat(document.getElementById('rate').value);
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
         const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
         
-        // 檢查是否有足夠的數據
+        // 检查是否有足够的数据
         if (isNaN(period) || isNaN(rate) || isNaN(principal) || isNaN(payment) || 
             period <= 0 || rate <= 0 || principal <= 0 || payment <= 0) {
-            showToast('請先完成基本貸款計算', true);
+            showToast('请先完成基本贷款计算', true);
             return;
         }
         
-        // 計算每期的攤還詳情
+        // 计算每期的摊还详情
         const monthlyRate = rate / 100 / 12;
         let remainingPrincipal = principal;
         const schedule = [];
@@ -6405,7 +6404,7 @@
             const principalPayment = payment - interestPayment;
             
             remainingPrincipal -= principalPayment;
-            // 最後一期需要處理可能的四捨五入誤差
+            // 最后一期需要处理可能的四舍五入误差
             if (i === period) {
                 remainingPrincipal = 0;
             }
@@ -6419,15 +6418,15 @@
             });
         }
         
-        // 創建表格HTML，但只顯示前5期，後5期，以及中間部分的摘要
+        // 创建表格HTML，但只显示前5期，后5期，以及中间部分的摘要
         let tableHTML = `
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
             <tr style="background-color: var(--secondary-color);">
-                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">期數</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">還款金額</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">期数</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">还款金额</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">本金</th>
                 <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">利息</th>
-                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">剩餘本金</th>
+                <th style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color);">剩余本金</th>
             </tr>
         `;
         
@@ -6435,7 +6434,7 @@
         const displayLastN = 5;
         
         schedule.forEach((item, index) => {
-            // 只顯示前 displayFirstN 期和最後 displayLastN 期
+            // 只显示前 displayFirstN 期和最后 displayLastN 期
             if (index < displayFirstN || index >= period - displayLastN) {
                 tableHTML += `
                 <tr style="background-color: ${index % 2 === 0 ? 'var(--secondary-color)' : 'var(--primary-color)'};">
@@ -6458,25 +6457,25 @@
         
         tableHTML += `</table>`;
         
-        // 計算摘要信息
+        // 计算摘要信息
         const totalPayment = payment * period;
         const totalInterest = totalPayment - principal;
         
-        // 創建模態框
+        // 创建模态框
         const modalHTML = `
         <div class="modal-header">
-            <h3>貸款本息攤還表</h3>
+            <h3>贷款本息摊还表</h3>
             <button class="close-btn" onclick="closeCustomModal('amortizationModal')">×</button>
         </div>
         <div class="modal-content">
             <div style="margin-bottom: 15px;">
                 <p>本金: ${formatNumberWithCommas(principal)} 元</p>
-                <p>利率: ${rate}% | 期數: ${period}期 | 每期還款: ${formatNumberWithCommas(Math.round(payment))} 元</p>
-                <p>總還款: ${formatNumberWithCommas(Math.round(totalPayment))} 元 | 總利息: ${formatNumberWithCommas(Math.round(totalInterest))} 元</p>
+                <p>利率: ${rate}% | 期数: ${period}期 | 每期还款: ${formatNumberWithCommas(Math.round(payment))} 元</p>
+                <p>总还款: ${formatNumberWithCommas(Math.round(totalPayment))} 元 | 总利息: ${formatNumberWithCommas(Math.round(totalInterest))} 元</p>
             </div>
             ${tableHTML}
             <div style="margin-top: 15px; text-align: center; font-style: italic; color: var(--text-muted);">
-                顯示首尾各5期，完整攤還表請點擊下方按鈕
+                显示首尾各5期，完整摊还表请点击下方按钮
             </div>
         </div>
         <div class="modal-footer">
@@ -6837,6 +6836,9 @@
                 document.querySelector('.row:has(#totalPayment)'), // 總繳款欄位
                 document.querySelector('.row:has(#yearlyInterest)'), // 每年利息欄位
                 document.querySelector('.row:has(#monthlyInterest)'), // 每月利息欄位
+                document.querySelector('.row:has(#customerInvoice)'), // 客戶發票欄位
+                document.querySelector('.row:has(#businessTax)'), // 營業稅欄位
+                document.querySelector('.row:has(#untaxedAmount)'), // 未稅金額欄位
             ];
             
             // 需要隱藏的區段（百萬每年利息到NPV）
@@ -6868,10 +6870,21 @@
                     document.querySelector('.row:has(#totalPayment)'),     // 總繳款
                     document.querySelector('.row:has(#yearlyInterest)'),   // 每年利息
                     document.querySelector('.row:has(#monthlyInterest)'),  // 每月利息
-                    document.querySelector('.row:has(#annualMillionInterest)'),    // 百萬每年利息
-                    document.querySelector('.row:has(#monthlyMillionInterest)'),   // 百萬每月利息
+                    document.querySelector('.row:has(#afterTaxRate)'),     // 稅後利率
+                    document.querySelector('.row:has(#annualMillionInterest)'), // 百萬每年利息
+                    document.querySelector('.row:has(#monthlyMillionInterest)'), // 百萬每月利息
                     document.querySelector('.row:has(#annualTenThousandInterest)'), // 一萬每年利息
-                    document.querySelector('.row:has(#monthlyTenThousandInterest)') // 一萬每月利息
+                    document.querySelector('.row:has(#monthlyTenThousandInterest)'), // 一萬每月利息
+                    document.querySelector('.row:has(#customerInvoice)'),  // 客戶發票
+                    document.querySelector('.row:has(#businessTax)'),      // 營業稅
+                    document.querySelector('.row:has(#untaxedAmount)')     // 未稅金額
+                ].filter(row => row !== null); // 過濾掉null值
+                
+                // 需要在"精簡顯示"模式中隱藏的特定欄位
+                const simpleHideRows = [
+                    document.querySelector('.row:has(#customerInvoice)'),   // 客戶發票
+                    document.querySelector('.row:has(#businessTax)'),      // 營業稅
+                    document.querySelector('.row:has(#untaxedAmount)'),    // 未稅金額
                 ];
                 
                 // 獲取一萬每月利息下方的分隔線
@@ -6920,35 +6933,26 @@
                     
                     // 隱藏自行計算模式特定的欄位
                     autoCalcHideRows.forEach(row => {
-                        if (row) {
-                            row.classList.add('hidden-element');
-                        }
+                        row.classList.add('hidden-element');
                     });
                     
-                    // 隱藏一萬每月利息下方的分隔線
-                    if (dividerAfterTenThousand) {
-                        dividerAfterTenThousand.classList.add('hidden-element');
-                    }
-                    
-                    // 隱藏hideRows中的欄位
+                    // 顯示其他所有內容
                     hideRows.forEach(row => {
                         if (row) {
-                            row.classList.add('hidden-element');
-                        }
-                    });
-                    
-                    hideSection.forEach(row => {
-                        if (row && !autoCalcHideRows.includes(row)) {
                             row.classList.remove('hidden-element');
                         }
                     });
                     
-                    // 顯示除了特定分隔線外的其他分隔線
+                    hideSection.forEach(row => {
+                        if (row) {
+                            row.classList.remove('hidden-element');
+                        }
+                    });
+                    
+                    // 顯示所有分隔線
                     const dividers = document.querySelectorAll('.divider-flow');
                     dividers.forEach(divider => {
-                        if (divider !== dividerAfterTenThousand) {
-                            divider.classList.remove('hidden-element');
-                        }
+                        divider.classList.remove('hidden-element');
                     });
                     
                 } else {
@@ -6964,6 +6968,13 @@
                     
                     // 隱藏指定的行
                     hideRows.forEach(row => {
+                        if (row) {
+                            row.classList.add('hidden-element');
+                        }
+                    });
+                    
+                    // 隱藏精簡顯示模式特定的欄位
+                    simpleHideRows.forEach(row => {
                         if (row) {
                             row.classList.add('hidden-element');
                         }
@@ -7229,7 +7240,6 @@
     </div>
 
     <!-- 分享模態框 -->
-    <!-- 分享模態框 -->
     <div id="shareModalOverlay" class="modal-overlay">
         <div class="modal-container" style="max-width: 400px;">
             <div class="modal-header">
@@ -7280,7 +7290,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v2.99</div>
+            <div class="version-info">v3.01</div>
         </div>
     </div>
 
