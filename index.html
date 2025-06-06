@@ -3179,6 +3179,128 @@
                 #fce4ec 100%);                     /* 粉色漸變 */
         }
 
+        /* 中文國字大寫欄位樣式 */
+        .chinese-amount-row {
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            background: var(--secondary-color);
+            padding: 3px;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            transform-origin: left;
+            will-change: transform;
+        }
+
+        .chinese-amount-result {
+            width: 100%;
+            padding: 6px 8px;
+            margin-bottom: 0;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 18px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            min-height: 42px;
+            max-height: 76px;
+            overflow-y: auto;
+            overflow-x: auto;
+            white-space: normal;
+            word-wrap: break-word;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            display: block;
+            text-align: right;
+            line-height: 1.2;
+            margin-left: 15px;
+        }
+
+        .chinese-amount-result::after {
+            content: attr(data-placeholder);
+            opacity: 0.5;
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            color: #888888;
+            font-size: 16px;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .chinese-amount-result:not(:empty)::after {
+            display: none;
+        }
+
+        /* 專門為中文國字大寫添加的樣式 */
+        .financial-digit {
+            color: #FFBE7A;
+            display: inline;
+        }
+
+        /* 總繳款中文國字大寫欄位樣式 */
+        .total-payment-chinese-row {
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            background: var(--secondary-color);
+            padding: 3px;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            transform-origin: left;
+            will-change: transform;
+        }
+
+        .total-payment-chinese-result {
+            width: 100%;
+            padding: 6px 8px;
+            margin-bottom: 0;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 18px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+            min-height: 42px;
+            max-height: 76px;
+            overflow-y: auto;
+            overflow-x: auto;
+            white-space: normal;
+            word-wrap: break-word;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            display: block;
+            text-align: right;
+            line-height: 1.2;
+            margin-left: 15px;
+        }
+
+        .total-payment-chinese-result::after {
+            content: attr(data-placeholder);
+            opacity: 0.5;
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            color: #888888;
+            font-size: 16px;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .total-payment-chinese-result:not(:empty)::after {
+            display: none;
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -3434,6 +3556,16 @@
     <div class="row">
         <span class="label">未稅金額</span>
         <input type="text" id="untaxedAmount" class="readonly" readonly>
+    </div>
+
+    <div class="row chinese-amount-row">
+        <span class="label">發票</span>
+        <div class="result chinese-amount-result" id="chineseAmount" data-placeholder="客戶發票的中文國字大寫"></div>
+    </div>
+
+    <div class="row total-payment-chinese-row">
+        <span class="label">總繳</span>
+        <div class="result total-payment-chinese-result" id="totalPaymentChinese" data-placeholder="總繳款的中文國字大寫"></div>
     </div>
     
 
@@ -4186,6 +4318,40 @@
             customerInvoiceField.value = '';
             businessTaxField.value = '';
             untaxedAmountField.value = '';
+        }
+
+        // 新增：更新中文國字大寫欄位
+        const chineseAmountField = document.getElementById('chineseAmount');
+        if (principalValue > 0) {
+            try {
+                // 轉換客戶發票金額為中文國字大寫
+                const chineseAmount = arabicToChineseNumber(principalValue, 'financial') + ' 圓整';
+                chineseAmountField.innerHTML = chineseAmount; // 使用 innerHTML 以支持HTML標籤
+            } catch (error) {
+                console.error('中文轉換錯誤:', error);
+                chineseAmountField.textContent = '轉換錯誤';
+            }
+        } else {
+            chineseAmountField.innerHTML = ''; // 清空顯示
+        }
+
+        // 新增：更新總繳款中文國字大寫欄位
+        const totalPaymentChineseField = document.getElementById('totalPaymentChinese');
+        if (hasAllRequiredValues) {
+            try {
+                // 計算總繳款
+                const totalPaymentValue = payment * period;
+                const roundedTotalPayment = Math.round(totalPaymentValue);
+                
+                // 轉換總繳款為中文國字大寫
+                const totalPaymentChinese = arabicToChineseNumber(roundedTotalPayment, 'financial') + ' 圓整';
+                totalPaymentChineseField.innerHTML = totalPaymentChinese; // 使用 innerHTML 以支持HTML標籤
+            } catch (error) {
+                console.error('總繳款中文轉換錯誤:', error);
+                totalPaymentChineseField.textContent = '轉換錯誤';
+            }
+        } else {
+            totalPaymentChineseField.innerHTML = ''; // 清空顯示
         }
 
         // 在更新值之前保存舊值
@@ -5834,7 +6000,10 @@
             'spread', 'fundingCost', 'monthlyInterest', 'yearlyInterest',
             'customerInvoice',             // 客戶發票
             'businessTax',                 // 營業稅
-            'untaxedAmount'                // 未稅金額
+            'untaxedAmount',               // 未稅金額
+            'chineseAmount',               // 中文國字大寫
+            'totalPaymentChinese'          // 總繳大寫 
+
         ];
         
         // 清空每個欄位
@@ -6613,6 +6782,103 @@
         vibrate();
     }
 
+    // 阿拉伯數字轉中文國字大寫函數
+    function arabicToChineseNumber(num, format) {
+        if (!num || num === '0' || num === 0) {
+            return format === 'financial' ? '<span class="financial-digit">零</span>' : '零';
+        }
+        
+        // 分割整數和小數部分
+        const parts = num.toString().split('.');
+        const integerPart = parts[0];
+        const decimalPart = parts.length > 1 ? parts[1] : '';
+        
+        // 根據格式選擇對應的字符
+        let digits, units;
+        if (format === 'traditional') {
+            digits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+            units = ['', '十', '百', '千', '萬', '十', '百', '千', '億', '十', '百', '千', '兆'];
+        } else if (format === 'financial') {
+            digits = ['零', '壹', '貳', '參', '肆', '伍', '陸', '柒', '捌', '玖'];
+            units = ['', '拾', '佰', '仟', '萬', '拾', '佰', '仟', '億', '拾', '佰', '仟', '兆'];
+        }
+        
+        // 處理整數部分
+        let intResult = '';
+        if (integerPart === '0') {
+            intResult = format === 'financial' ? '<span class="financial-digit">零</span>' : digits[0];
+        } else {
+            const len = integerPart.length;
+            
+            // 特殊處理10-19的數字
+            if (format !== 'financial' && len === 2 && integerPart.charAt(0) === '1') {
+                intResult = units[1];
+                if (integerPart.charAt(1) !== '0') {
+                    intResult += digits[parseInt(integerPart.charAt(1))];
+                }
+            } else {
+                // 新增變量來追蹤上一個處理過的字符是否為零，以及是否已經添加了單位
+                let lastWasZero = false;
+                let hasAddedUnit = false;
+                
+                for (let i = 0; i < len; i++) {
+                    const digit = parseInt(integerPart.charAt(i));
+                    const pos = len - i - 1;
+                    
+                    if (digit !== 0) {
+                        // 非零數字直接轉換並加上單位
+                        lastWasZero = false;
+                        hasAddedUnit = false;
+                        
+                        // 在 financial 格式中為數字添加特殊標籤
+                        if (format === 'financial') {
+                            intResult += `<span class="financial-digit">${digits[digit]}</span>${units[pos]}`;
+                        } else {
+                            intResult += digits[digit] + units[pos];
+                        }
+                    } else {
+                        // 處理零的特殊規則
+                        if (pos === 4 || pos === 8) {
+                            // 萬位或億位的零，需要加上對應的單位，但不需要加上"零"字
+                            if (intResult.length > 0) {
+                                // 確保沒有連續加入同一單位
+                                if (!intResult.endsWith(units[4]) && !intResult.endsWith(units[8])) {
+                                    intResult += units[pos];
+                                    hasAddedUnit = true;
+                                }
+                            }
+                        } else if (i < len - 1 && integerPart.charAt(i + 1) !== '0' && !lastWasZero) {
+                            // 當前數字是0，下一個不是0，且上一個不是0，加上零
+                            if (format === 'financial') {
+                                intResult += `<span class="financial-digit">${digits[0]}</span>`;
+                            } else {
+                                intResult += digits[0];
+                            }
+                            lastWasZero = true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 處理小數部分
+        let decResult = '';
+        if (decimalPart) {
+            decResult = '點';
+            for (let i = 0; i < decimalPart.length; i++) {
+                if (format === 'financial') {
+                    decResult += `<span class="financial-digit">${digits[parseInt(decimalPart.charAt(i))]}</span>`;
+                } else {
+                    decResult += digits[parseInt(decimalPart.charAt(i))];
+                }
+            }
+        }
+        
+        // 組合結果
+        return intResult + decResult;
+    }
+
+
 </script>
 	
 <script>
@@ -6869,7 +7135,9 @@
                 'fundingCost',            // NPV
                 'customerInvoice',        // 客戶發票
                 'businessTax',            // 營業稅
-                'untaxedAmount'           // 未稅金額
+                'untaxedAmount',          // 未稅金額
+                'chineseAmount',          // 中文大寫
+                'totalPaymentChinese'     // 總繳大寫
             ];
             
             let viewMode = 0; // 0: 完整顯示, 1: 自行計算, 2: 精簡顯示
@@ -7331,7 +7599,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.04</div>
+            <div class="version-info">v3.07</div>
         </div>
     </div>
 
