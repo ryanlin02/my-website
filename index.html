@@ -1527,9 +1527,10 @@
             width: 100%;                                         /* 寬度100% */
             height: 100%;                                        /* 高度100% */
             background-color: rgba(var(--primary-color-rgb), 0.95); /* 半透明背景 */
-            z-index: 1000;                                       /* 層級 */
+            z-index: 1200;                                       /* 提高層級，高於header */
             overflow-y: auto;                                    /* 垂直滾動 */
             animation: fadeIn 0.3s ease-out;                     /* 淡入動畫 */
+            padding-top: 0;                                      /* 移除頂部內邊距 */
         }
 
         /* 歷史記錄面板頭部樣式 - 包含標題和按鈕的頂部區域 */
@@ -1541,9 +1542,10 @@
             background-color: var(--primary-color);              /* 主背景色 */
             position: sticky;                                    /* 粘性定位 */
             top: 0;                                             /* 貼齊頂部 */
-            z-index: 1001;                                      /* 層級 */
+            z-index: 1201;                                      /* 提高層級 */
             border-bottom: 2px solid var(--accent-color);        /* 底部邊框 */
-            box-shadow: 0 2px 10px var(--shadow-color);          /* 陰影效果 */
+            box-shadow: 0 2px 10px var(--shadow_color);          /* 陰影效果 */
+            margin-top: 0;                                       /* 確保貼齊頂部 */
         }
 
         /* 歷史記錄面板頭部左側區域 - 用於標題 */
@@ -1590,6 +1592,7 @@
             padding: 8px;                                       /* 內部間距 */
             max-width: 400px;                                   /* 最大寬度 */
             margin: 0 auto;                                     /* 水平居中 */
+            padding-top: 20px;                                  /* 增加頂部間距 */
         }
 
         /* 歷史記錄列表樣式 - 所有歷史記錄項目的容器 */
@@ -7953,7 +7956,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.25</div>
+            <div class="version-info">v3.27</div>
         </div>
     </div>
 
