@@ -460,6 +460,9 @@
             color: var(--text-color);             /* 使用主題文字色 */
             font-family: "Microsoft JhengHei", Arial, sans-serif; /* 設定字體 */
             box-sizing: border-box;               /* 盒模型計算包含邊框和內邊距 */
+
+            padding-top: 26px;                       /* 為固定header預留空間 */
+
         }
 
         /* 頁面標題樣式 */
@@ -503,9 +506,15 @@
         /* 標題容器樣式 */
         .header-container {
             text-align: center;                   /* 文字居中 */
-            position: relative;                   /* 相對定位 */
+            position: fixed;                      /* 固定定位 */
+            top: 0;                              /* 貼齊頂部 */
+            left: 0;                             /* 貼齊左側 */
+            right: 0;                            /* 貼齊右側 */
             margin-bottom: 0px;                   /* 移除底部邊距 */
-            z-index: 5;                           /* 設置層級 */
+            z-index: 1100;                       /* 設置更高層級 */
+            background-color: var(--primary-color); /* 添加背景色 */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 添加陰影 */
+            padding: 3px 0;                      /* 添加上下內邊距 */
         }
 
         /* 標題樣式 - 確保懸停效果不會影響按鈕 */
@@ -747,6 +756,7 @@
             height: auto;                          /* 自動高度 */
             margin: 3px 0;                         /* 上下邊距 */
             z-index: 1000;                         /* 層級 */
+            margin-top: 10px;                      /* 增加頂部邊距 */
         }
 
         /* 固定頂部的時間顯示 */
@@ -7966,7 +7976,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.23</div>
+            <div class="version-info">v3.24</div>
         </div>
     </div>
 
