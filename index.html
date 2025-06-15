@@ -3301,258 +3301,43 @@
             display: none;
         }
 
-        /* 加油卡計算器樣式 - 使用主題變量 */
-        .gas-card-container {
-            width: 100%;
-            max-width: 380px;
-            margin: 0 auto;
+        /* 期數方案對比全螢幕樣式 */
+        #paymentComparisonModal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            background-color: var(--primary-color) !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
-        /* 加油卡行容器樣式 */
-        .gas-card-row {
-            margin: 4px 0;
-            display: flex;
-            align-items: center;
-            background: var(--secondary-color);
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-sm);
-            transition: all var(--transition-normal) ease;
-            position: relative;
+        #paymentComparisonModal .modal-container {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
 
-        .gas-card-row:hover {
-            transform: translateX(5px);
-            box-shadow: var(--shadow-md);
-        }
-
-        /* 加油卡標籤樣式 */
-        .gas-card-label {
-            width: 80px;
-            margin-right: 12px;
-            text-align: right;
-            font-weight: 600;
-            color: var(--text-color);
-            font-size: var(--font-size-label);
-        }
-
-        /* 加油卡輸入框容器 */
-        .gas-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            flex: 1;
-        }
-
-        /* 加油卡輸入框樣式 */
-        .gas-card-input {
-            width: 120px;
-            background-color: var(--input-bg);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            font-size: var(--font-size-input);
-            text-align: right;
-            outline: none;
-            transition: all var(--transition-normal) ease;
-            color: var(--text-color);
-        }
-
-        .gas-card-input:focus {
-            border-color: var(--accent-color);
-            background-color: var(--surface-color);
-            box-shadow: 0 0 0 2px var(--accent-color-light);
-        }
-
-        .gas-card-input:disabled {
-            background-color: var(--input-bg);
-            color: var(--text-secondary);
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        /* 加油卡單位樣式 */
-        .gas-input-unit {
-            font-size: var(--font-size-unit);
-            color: var(--text-secondary);
+        #paymentComparisonModal .modal-header {
             flex-shrink: 0;
-            min-width: 50px;
         }
 
-        /* 加油卡結果行樣式 */
-        .gas-result-row {
-            background: linear-gradient(135deg, var(--accent-color-light) 0%, rgba(var(--accent-color-rgb), 0.05) 100%);
-            border: 2px solid var(--accent-color);
-        }
-
-        .gas-result-row .gas-card-input {
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        /* 加油卡清除按鈕樣式 */
-        .gas-clear-button {
-            width: 100%;
-            padding: var(--spacing-md);
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: var(--font-size-button);
-            font-weight: bold;
-            cursor: pointer;
-            transition: all var(--transition-normal) ease;
-            box-shadow: var(--shadow-md);
-            margin-top: var(--spacing-md);
-        }
-
-        .gas-clear-button:hover {
-            background-color: var(--accent-color-dark);
-        }
-
-        .gas-clear-button:active {
-            transform: scale(0.95);
-            box-shadow: var(--shadow-sm);
-        }
-
-        /* 加油卡計算機彈出視窗樣式 */
-        .gas-calculator-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 2100;
-            animation: fadeIn var(--transition-normal) ease;
-        }
-
-        .gas-calculator-modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* 加油卡計算機容器樣式 */
-        .gas-calculator-container {
-            background-color: var(--surface-color);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            width: 90%;
-            max-width: 450px;
-            animation: fadeInScale var(--transition-normal) ease;
-            max-height: 80vh;
+        #paymentComparisonModal .modal-content {
+            flex: 1;
             overflow-y: auto;
-            border: 2px solid var(--accent-color);
-            box-shadow: var(--shadow-lg);
-        }
-
-        /* 加油卡計算機顯示螢幕樣式 */
-        .gas-calculator-display {
-            background-color: var(--input-bg);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
-            font-size: 24px;
-            text-align: right;
-            margin-bottom: var(--spacing-md);
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            word-break: break-all;
-            color: var(--text-color);
-            font-weight: 300;
-        }
-
-        /* 加油卡計算機按鈕網格樣式 */
-        .gas-calculator-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: var(--spacing-sm);
-        }
-
-        /* 加油卡計算機按鈕樣式 */
-        .gas-calc-button {
-            padding: var(--spacing-md);
-            font-size: var(--font-size-calculator);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            min-height: 50px;
-        }
-
-        /* 數字按鈕樣式 */
-        .gas-calc-button.number {
             background-color: var(--primary-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
         }
 
-        .gas-calc-button.number:hover {
-            background-color: var(--hover-color);
-        }
-
-        .gas-calc-button.number:active {
-            background-color: var(--border-color);
-            transform: scale(0.95);
-        }
-
-        /* 運算符按鈕樣式 */
-        .gas-calc-button.operator {
-            background-color: var(--accent-color);
-            color: white;
-            font-weight: bold;
-        }
-
-        .gas-calc-button.operator:hover {
-            background-color: var(--accent-color-dark);
-        }
-
-        .gas-calc-button.operator:active {
-            background-color: var(--accent-color-dark);
-            transform: scale(0.95);
-        }
-
-        /* 確認按鈕樣式 */
-        .gas-calc-button.confirm {
-            background-color: var(--success-color);
-            color: white;
-            grid-column: span 2;
-            font-weight: bold;
-        }
-
-        .gas-calc-button.confirm:hover {
-            background-color: var(--success-color);
-        }
-
-        .gas-calc-button.confirm:active {
-            background-color: var(--success-color);
-            transform: scale(0.95);
-        }
-
-        /* 取消按鈕樣式 */
-        .gas-calc-button.cancel {
-            background-color: #606060;
-            color: white;
-            grid-column: span 2;
-        }
-
-        .gas-calc-button.cancel:hover {
-            background-color: #505050;
-        }
-
-        .gas-calc-button.cancel:active {
-            background-color: #404040;
-            transform: scale(0.95);
-        }
-
-        /* 零按鈕佔據兩欄 */
-        .gas-calc-button.zero {
-            grid-column: span 2;
+        #paymentComparisonModal .modal-footer {
+            flex-shrink: 0;
         }
 
     </style>
@@ -6658,7 +6443,7 @@
         
         // 检查是否有足够的数据
         if (isNaN(rate) || isNaN(principal) || rate <= 0 || principal <= 0) {
-            showToast('请先输入有效的利率和本金', true);
+            showToast('請先輸入有效的利率和本金', true);
             return;
         }
         
@@ -6684,10 +6469,10 @@
         let tableHTML = `
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <tr style="background-color: var(--secondary-color);">
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期款</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">总还款</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">总利息</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期數</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期繳</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總還款</th>
+                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總利息</th>
                 <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">操作</th>
             </tr>
         `;
@@ -6703,7 +6488,7 @@
                 <td style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">
                     <button onclick="selectPlan(${plan.period}, ${rate}, ${principal}, ${plan.payment})" 
                             style="padding: 5px 8px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        选
+                        選擇
                     </button>
                 </td>
             </tr>
@@ -6715,19 +6500,19 @@
         // 创建模态框
         const modalHTML = `
         <div class="modal-header">
-            <h3>不同期数方案对比</h3>
+            <h3>不同期數方案對比</h3>
             <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')">×</button>
         </div>
         <div class="modal-content" style="max-height: 70vh; overflow-y: auto;">
             <div style="margin-bottom: 15px;">
                 <p>本金: ${formatNumberWithCommas(principal)} 元</p>
                 <p>利率: ${rate}%</p>
-                <p>以下是不同期数的还款方案对比，您可以点击「选」套用到小朋友专用计算机</p>
+                <p>以下是不同期數的還款方案對比，您可以點擊「選擇」套用到小朋友專用計算機</p>
             </div>
             ${tableHTML}
         </div>
         <div class="modal-footer">
-            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('paymentComparisonModal')">关闭</button>
+            <button class="modal-btn modal-btn-primary" onclick="closeCustomModal('paymentComparisonModal')">關閉</button>
         </div>
         `;
         
@@ -6750,20 +6535,34 @@
         closeCustomModal('paymentComparisonModal');
         
         // 显示提示
-        showToast(`已选择 ${period} 期方案`);
+        showToast(`已選擇 ${period} 期方案`);
         
         // 触发震动反馈
         vibrate();
     }
 
-    // 通用的模态框显示函数
+    // 通用的模態框顯示函數
     function showCustomModal(id, html) {
-        // 创建模态框
+        // 創建模態框
         const modalOverlay = document.createElement('div');
         modalOverlay.className = 'modal-overlay';
         modalOverlay.id = id;
         modalOverlay.style.display = 'flex';
-        modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
+        
+        // 如果是期數方案對比，使用全螢幕樣式
+        if (id === 'paymentComparisonModal') {
+            modalOverlay.style.position = 'fixed';
+            modalOverlay.style.top = '0';
+            modalOverlay.style.left = '0';
+            modalOverlay.style.width = '100%';
+            modalOverlay.style.height = '100%';
+            modalOverlay.style.backgroundColor = 'var(--primary-color)';
+            modalOverlay.style.zIndex = '9999';
+            modalOverlay.style.overflow = 'auto';
+            modalOverlay.innerHTML = `<div class="modal-container" style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; margin: 0; border-radius: 0;">${html}</div>`;
+        } else {
+            modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
+        }
         
         // 添加到网页
         document.body.appendChild(modalOverlay);
@@ -6778,7 +6577,7 @@
         vibrate();
     }
 
-    // 通用的模态框关闭函数
+    // 通用的模態框關閉函數
     function closeCustomModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
@@ -6962,143 +6761,167 @@
     // 生成加油卡計算器 HTML（使用主題變量）
     function generateGasCardHTML() {
         return `
-            <div class="gas-card-container">
+            <div style="width: 100%; max-width: 380px; margin: 0 auto;">
                 <!-- 超級柴油價格輸入欄位 -->
-                <div class="gas-card-row">
-                    <label class="gas-card-label">超級柴油</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="dieselPrice" 
-                            class="gas-card-input" 
-                            placeholder="0.0"
-                            readonly>
-                        <span class="gas-input-unit">元/公升</span>
-                    </div>
+                <div class="row">
+                    <span class="label">超級柴油</span>
+                    <input type="text" 
+                        id="dieselPrice" 
+                        placeholder="0.0"
+                        value="26.0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">元/公升</span>
                 </div>
                 
                 <!-- 每月油錢輸入欄位 -->
-                <div class="gas-card-row">
-                    <label class="gas-card-label">每月油錢</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="monthlyExpense" 
-                            class="gas-card-input" 
-                            placeholder="0"
-                            readonly>
-                        <span class="gas-input-unit">元</span>
-                    </div>
+                <div class="row">
+                    <span class="label">每月油錢</span>
+                    <input type="text" 
+                        id="monthlyExpense" 
+                        placeholder="0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 每月油量輸入欄位 -->
-                <div class="gas-card-row">
-                    <label class="gas-card-label">每月油量</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="monthlyVolume" 
-                            class="gas-card-input" 
-                            placeholder="0"
-                            readonly>
-                        <span class="gas-input-unit">公升</span>
-                    </div>
+                <div class="row">
+                    <span class="label">每月油量</span>
+                    <input type="text" 
+                        id="monthlyVolume" 
+                        placeholder="0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">公升</span>
                 </div>
                 
                 <!-- 折扣金額輸入欄位 -->
-                <div class="gas-card-row">
-                    <label class="gas-card-label">折扣金額</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="discountAmount" 
-                            class="gas-card-input" 
-                            placeholder="0.0"
-                            readonly>
-                        <span class="gas-input-unit">元/公升</span>
-                    </div>
+                <div class="row">
+                    <span class="label">折扣金額</span>
+                    <input type="text" 
+                        id="discountAmount" 
+                        placeholder="0.0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">元/公升</span>
                 </div>
                 
                 <!-- 折後油錢顯示欄位 -->
-                <div class="gas-card-row gas-result-row">
-                    <label class="gas-card-label">折後油錢</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="discountedExpense" 
-                            class="gas-card-input" 
-                            placeholder="0"
-                            disabled>
-                        <span class="gas-input-unit">元</span>
-                    </div>
+                <div class="row emphasized-row">
+                    <span class="label">折後油錢</span>
+                    <input type="text" 
+                        id="discountedExpense" 
+                        class="readonly"
+                        placeholder="0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 每月節省顯示欄位 -->
-                <div class="gas-card-row gas-result-row">
-                    <label class="gas-card-label">每月節省</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="monthlySaving" 
-                            class="gas-card-input" 
-                            placeholder="0"
-                            disabled>
-                        <span class="gas-input-unit">元</span>
-                    </div>
+                <div class="row emphasized-row">
+                    <span class="label">每月節省</span>
+                    <input type="text" 
+                        id="monthlySaving" 
+                        class="readonly"
+                        placeholder="0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 每年節省顯示欄位 -->
-                <div class="gas-card-row gas-result-row">
-                    <label class="gas-card-label">每年節省</label>
-                    <div class="gas-input-wrapper">
-                        <input type="text" 
-                            id="yearlySaving" 
-                            class="gas-card-input" 
-                            placeholder="0"
-                            disabled>
-                        <span class="gas-input-unit">元</span>
-                    </div>
+                <div class="row emphasized-row">
+                    <span class="label">每年節省</span>
+                    <input type="text" 
+                        id="yearlySaving" 
+                        class="readonly"
+                        placeholder="0"
+                        readonly
+                        style="width: 95px; text-align: right;">
+                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 清除按鈕 -->
-                <button class="gas-clear-button" onclick="clearGasCalculation()">清除</button>
+                <div class="function-buttons" style="margin-top: 10px;">
+                    <div class="button-row">
+                        <button onclick="clearGasCalculation()" class="main-action-btn">清除</button>
+                    </div>
+                </div>
             </div>
             
             <!-- 加油卡計算機彈出視窗 -->
-            <div id="gasCalculatorModal" class="gas-calculator-modal">
-                <div class="gas-calculator-container">
-                    <!-- 計算機顯示螢幕 -->
-                    <div class="gas-calculator-display" id="gasCalcDisplay">0</div>
-                    
-                    <!-- 計算機按鈕網格 -->
-                    <div class="gas-calculator-buttons">
-                        <!-- 第一排按鈕 -->
-                        <button class="gas-calc-button operator" onclick="gasCalcClear()">C</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcBackspace()">←</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcInput('/')">÷</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcInput('*')">×</button>
+            <div id="gasCalculatorModal" class="modal-overlay">
+                <div class="number-input-modal">
+                    <div class="modal-header">
+                        <h3 id="gasInputModalTitle">數字輸入器</h3>
+                        <button class="close-btn" onclick="closeGasCalculator()">×</button>
+                    </div>
+
+                    <div class="calculator-display-container">
+                        <div class="calculator-display" id="gasCalcDisplay">0</div>
+                    </div>
+
+                    <div class="calculator-buttons">
+                        <!-- 第一行：功能鍵 -->
+                        <button onclick="gasCalcClear()" class="clear">C</button>
+                        <button onclick="gasCalcBackspace()" class="function">⌫</button>
+                        <button onclick="gasCalcOperation('/')" class="operator">÷</button>
+                        <button onclick="gasCalcOperation('*')" class="operator">×</button>
                         
-                        <!-- 第二排按鈕 -->
-                        <button class="gas-calc-button number" onclick="gasCalcInput('7')">7</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('8')">8</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('9')">9</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcInput('-')">−</button>
+                        <!-- 第二行：數字和減號 -->
+                        <button onclick="gasCalcInput(7)" class="number-btn">
+                            <div class="arabic-number">7</div>
+                            <div class="financial-char">柒</div>
+                        </button>
+                        <button onclick="gasCalcInput(8)" class="number-btn">
+                            <div class="arabic-number">8</div>
+                            <div class="financial-char">捌</div>
+                        </button>
+                        <button onclick="gasCalcInput(9)" class="number-btn">
+                            <div class="arabic-number">9</div>
+                            <div class="financial-char">玖</div>
+                        </button>
+                        <button onclick="gasCalcOperation('-')" class="operator">−</button>
                         
-                        <!-- 第三排按鈕 -->
-                        <button class="gas-calc-button number" onclick="gasCalcInput('4')">4</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('5')">5</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('6')">6</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcInput('+')">+</button>
+                        <!-- 第三行：數字和加號 -->
+                        <button onclick="gasCalcInput(4)" class="number-btn">
+                            <div class="arabic-number">4</div>
+                            <div class="financial-char">肆</div>
+                        </button>
+                        <button onclick="gasCalcInput(5)" class="number-btn">
+                            <div class="arabic-number">5</div>
+                            <div class="financial-char">伍</div>
+                        </button>
+                        <button onclick="gasCalcInput(6)" class="number-btn">
+                            <div class="arabic-number">6</div>
+                            <div class="financial-char">陸</div>
+                        </button>
+                        <button onclick="gasCalcOperation('+')" class="operator">+</button>
                         
-                        <!-- 第四排按鈕 -->
-                        <button class="gas-calc-button number" onclick="gasCalcInput('1')">1</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('2')">2</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('3')">3</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcEquals()">=</button>
+                        <!-- 第四行：底部數字和等號 -->
+                        <button onclick="gasCalcInput(1)" class="number-btn">
+                            <div class="arabic-number">1</div>
+                            <div class="financial-char">壹</div>
+                        </button>
+                        <button onclick="gasCalcInput(2)" class="number-btn">
+                            <div class="arabic-number">2</div>
+                            <div class="financial-char">貳</div>
+                        </button>
+                        <button onclick="gasCalcInput(3)" class="number-btn">
+                            <div class="arabic-number">3</div>
+                            <div class="financial-char">參</div>
+                        </button>
+                        <button onclick="gasCalcEquals()" class="equals">=</button>
                         
-                        <!-- 第五排按鈕 -->
-                        <button class="gas-calc-button number zero" onclick="gasCalcInput('0')">0</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('00')">00</button>
-                        <button class="gas-calc-button number" onclick="gasCalcInput('.')">.</button>
-                        <button class="gas-calc-button operator" onclick="gasCalcBackspace()">⌫</button>
-                        
-                        <!-- 確認與取消按鈕 -->
-                        <button class="gas-calc-button confirm" onclick="confirmGasCalculation()">確認</button>
-                        <button class="gas-calc-button cancel" onclick="closeGasCalculator()">取消</button>
+                        <!-- 第五行：零、小數點和確認鍵 -->
+                        <button onclick="gasCalcInput(0)" class="number-btn">
+                            <div class="arabic-number">0</div>
+                            <div class="financial-char">零</div>
+                        </button>
+                        <button onclick="gasCalcDecimal()" class="function">.</button>
+                        <button onclick="confirmGasCalculation()" class="submit">確認輸入</button>
                     </div>
                 </div>
             </div>
@@ -7107,6 +6930,11 @@
 
     // 初始化加油卡計算器
     function initializeGasCardCalculator() {
+        // 設定超級柴油的預設值
+        const dieselPriceField = document.getElementById('dieselPrice');
+        if (dieselPriceField && !dieselPriceField.value) {
+            dieselPriceField.value = '26.0';
+        }
         // 為可編輯的輸入框添加點擊事件
         const editableFields = ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'];
         editableFields.forEach(fieldId => {
@@ -7134,11 +6962,24 @@
     let gasCalcExpression = '';
     let gasLastResult = '0';
     let gasLastModifiedField = '';
+    let gasFirstValue = null;
+    let gasOperator = null;
+    let gasWaitingForSecondValue = false;
 
     // 開啟加油卡計算機
     function openGasCalculator(inputId) {
         vibrate();
         gasCurrentInput = inputId;
+        
+        // 設定標題
+        const titles = {
+            'dieselPrice': '請輸入【超級柴油價格】',
+            'monthlyExpense': '請輸入【每月油錢】',
+            'monthlyVolume': '請輸入【每月油量】',
+            'discountAmount': '請輸入【折扣金額】'
+        };
+        document.getElementById('gasInputModalTitle').textContent = titles[inputId] || '數字輸入器';
+        
         const modal = document.getElementById('gasCalculatorModal');
         const display = document.getElementById('gasCalcDisplay');
         
@@ -7156,44 +6997,63 @@
         }
         
         display.textContent = gasCalcExpression;
-        modal.classList.add('active');
+        gasOperator = null;
+        gasFirstValue = null;
+        gasWaitingForSecondValue = false;
+        
+        modal.style.display = 'flex';
     }
 
     // 關閉加油卡計算機
     function closeGasCalculator() {
         vibrate();
         const modal = document.getElementById('gasCalculatorModal');
-        modal.classList.remove('active');
+        modal.style.display = 'none';
         gasCalcExpression = '';
         gasCurrentInput = '';
+    }
+
+    // 加油卡計算機運算符
+    function gasCalcOperation(op) {
+        vibrate();
+        
+        // 如果已經有運算符在等待，先進行計算
+        if (gasFirstValue !== null && gasOperator !== null) {
+            gasCalcEquals();
+        }
+        
+        gasFirstValue = parseFloat(gasCalcExpression);
+        gasOperator = op;
+        gasWaitingForSecondValue = true;
+        
+        document.getElementById('gasCalcDisplay').textContent = gasCalcExpression;
     }
 
     // 加油卡計算機輸入
     function gasCalcInput(value) {
         vibrate();
         
-        if (gasCalcExpression === '0' && value !== '.') {
-            gasCalcExpression = value;
+        if (gasWaitingForSecondValue) {
+            gasCalcExpression = value.toString();
+            gasWaitingForSecondValue = false;
         } else {
-            const lastChar = gasCalcExpression.slice(-1);
-            const operators = ['+', '-', '*', '/'];
-            
-            if (operators.includes(value) && operators.includes(lastChar)) {
-                return;
-            }
-            
-            if (value === '.') {
-                const parts = gasCalcExpression.split(/[\+\-\*\/]/);
-                const currentPart = parts[parts.length - 1];
-                if (currentPart.includes('.')) {
-                    return;
-                }
-                if (currentPart === '' || operators.includes(lastChar)) {
-                    gasCalcExpression += '0';
-                }
-            }
-            
-            gasCalcExpression += value;
+            gasCalcExpression = gasCalcExpression === '0' ? value.toString() : gasCalcExpression + value.toString();
+        }
+        
+        document.getElementById('gasCalcDisplay').textContent = gasCalcExpression;
+    }
+
+    // 加油卡計算機小數點輸入
+    function gasCalcDecimal() {
+        vibrate();
+        
+        if (gasWaitingForSecondValue) {
+            gasCalcExpression = '0';
+            gasWaitingForSecondValue = false;
+        }
+        
+        if (!gasCalcExpression.includes('.')) {
+            gasCalcExpression += '.';
         }
         
         document.getElementById('gasCalcDisplay').textContent = gasCalcExpression;
@@ -7203,6 +7063,9 @@
     function gasCalcClear() {
         vibrate();
         gasCalcExpression = '0';
+        gasOperator = null;
+        gasFirstValue = null;
+        gasWaitingForSecondValue = false;
         document.getElementById('gasCalcDisplay').textContent = '0';
     }
 
@@ -7220,15 +7083,40 @@
     // 加油卡計算機等號
     function gasCalcEquals() {
         vibrate();
-        try {
-            const result = new Function('return ' + gasCalcExpression)();
-            gasLastResult = result.toString();
-            gasCalcExpression = gasLastResult;
-            document.getElementById('gasCalcDisplay').textContent = gasLastResult;
-        } catch (e) {
-            document.getElementById('gasCalcDisplay').textContent = '錯誤';
-            gasCalcExpression = '0';
+        
+        if (gasFirstValue === null || gasOperator === null) return;
+        
+        const secondValue = parseFloat(gasCalcExpression);
+        let result;
+        
+        switch (gasOperator) {
+            case '+':
+                result = gasFirstValue + secondValue;
+                break;
+            case '-':
+                result = gasFirstValue - secondValue;
+                break;
+            case '*':
+                result = gasFirstValue * secondValue;
+                break;
+            case '/':
+                if (secondValue === 0) {
+                    showToast('錯誤：不能除以零', true);
+                    gasCalcClear();
+                    return;
+                }
+                result = gasFirstValue / secondValue;
+                break;
+            default:
+                return;
         }
+        
+        gasCalcExpression = result.toString();
+        document.getElementById('gasCalcDisplay').textContent = gasCalcExpression;
+        
+        gasOperator = null;
+        gasFirstValue = parseFloat(gasCalcExpression);
+        gasWaitingForSecondValue = true;
     }
 
     // 確認加油卡計算結果
@@ -8042,7 +7930,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.17</div>
+            <div class="version-info">v3.22</div>
         </div>
     </div>
 
@@ -8108,13 +7996,13 @@
     </div>
 
     <!-- 加油卡優惠計算模態框 -->
-    <div id="gasCardModal" class="modal-overlay" style="display: none;">
-        <div class="modal-container" style="width: 95%; max-width: 400px; height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3>加油卡優惠計算</h3>
-                <button class="close-btn" onclick="closeGasCardCalculator()">×</button>
+    <div id="gasCardModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--primary-color); z-index: 2000;">
+        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; background-color: var(--primary-color);">
+            <div class="modal-header" style="background-color: var(--secondary-color); border-bottom: 2px solid var(--accent-color); padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: var(--accent-color); font-size: 20px;">加油卡優惠計算</h3>
+                <button class="close-btn" onclick="closeGasCardCalculator()" style="background: none; border: none; color: var(--text-color); font-size: 24px; cursor: pointer; padding: 5px 10px;">×</button>
             </div>
-            <div class="modal-content" style="flex: 1; overflow-y: auto; padding: 10px;">
+            <div style="flex: 1; overflow-y: auto; padding: 10px; background-color: var(--primary-color);">
                 <div id="gasCardContent">
                     <!-- 加油卡計算器內容將動態插入這裡 -->
                 </div>
