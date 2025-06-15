@@ -1578,27 +1578,6 @@
             background-color: rgba(255, 255, 255, 0.1);         /* 半透明背景 */
         }
 
-        /* 期數方案對比的關閉按鈕特殊樣式 */
-        #paymentComparisonModal .close-btn {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(var(--error-color-rgb), 0.2);
-            border: 2px solid var(--error-color);
-        }
-
-        #paymentComparisonModal .close-btn:hover {
-            background-color: var(--error-color);
-            color: white;
-            transform: scale(1.1);
-        }
-
-        #paymentComparisonModal .close-btn:active {
-            transform: scale(0.95);
-        }
-
         /* 關閉按鈕懸停效果 - 鼠標懸停時的視覺變化 */
         .close-btn:hover {
             color: var(--accent-color);                         /* 強調色文字 */
@@ -1885,7 +1864,7 @@
         .modal-content {
             padding: 20px 15px;                              /* 內部間距 */
             color: var(--text-color);                        /* 文字顏色 */
-            max-height: 70vh;                                /* 最大高度 */
+            max-height: 100vh;                                /* 最大高度 */
             overflow-y: auto;                                /* 垂直滾動 */
         }
 
@@ -6548,9 +6527,7 @@
         const modalHTML = `
         <div class="modal-header">
             <h3>不同期數方案對比</h3>
-            <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')" title="關閉">
-                <span style="font-size: 28px; line-height: 1;">×</span>
-            </button>
+            <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')">×</button>
         </div>
         <div class="modal-content" style="flex: 1; overflow-y: auto;">
             <div style="margin-bottom: 15px;">
@@ -7976,7 +7953,7 @@
                     語言 <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.24</div>
+            <div class="version-info">v3.25</div>
         </div>
     </div>
 
