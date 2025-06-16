@@ -1571,20 +1571,19 @@
             background: none;                                   /* 無背景 */
             border: none;                                       /* 無邊框 */
             color: var(--text-color);                           /* 文字顏色 */
-            font-size: 24px;                                    /* 文字大小 */
+            font-size: 28px;                                    /* 文字大小 */
             cursor: pointer;                                    /* 滑鼠指標變為手型 */
-            transition: all 0.3s ease;                          /* 過渡效果 */
-            padding: 5px 10px;                                  /* 內部間距 */
-            border-radius: 50%;                                 /* 圓形效果 */
+            transition: color 0.3s ease;                        /* 只過渡顏色 */
+            padding: 0;                                         /* 移除內部間距 */
             margin-left: 10px;                                  /* 左側外部間距 */
-            background-color: rgba(255, 255, 255, 0.1);         /* 半透明背景 */
+            line-height: 1;                                     /* 行高設為1 */
+            width: auto;                                        /* 自動寬度 */
+            height: auto;                                       /* 自動高度 */
         }
 
         /* 關閉按鈕懸停效果 - 鼠標懸停時的視覺變化 */
         .close-btn:hover {
             color: var(--accent-color);                         /* 強調色文字 */
-            transform: scale(1.1);                              /* 放大效果 */
-            background-color: rgba(255, 255, 255, 0.2);         /* 較亮的背景 */
         }
 
         /* 歷史記錄內容區域 - 顯示歷史記錄列表的容器 */
@@ -2517,66 +2516,59 @@
             left: 0;                                         /* 貼齊左側 */
             width: 100%;                                     /* 寬度100% */
             height: 100%;                                    /* 高度100% */
-            background-color: var(--primary-color);          /* 主背景色 */
+            background-color: rgba(0, 0, 0, 0.7);            /* 深色半透明背景 */
+            backdrop-filter: blur(10px);                     /* 背景模糊效果 */
+            -webkit-backdrop-filter: blur(10px);             /* Safari支持 */
             z-index: 2500;                                   /* 層級 */
             display: none;                                   /* 初始隱藏 */
             justify-content: flex-start;                     /* 左對齊 */
             align-items: flex-start;                         /* 頂部對齊 */
+            opacity: 0;                                      /* 初始透明 */
+            transition: opacity 0.3s ease;                   /* 透明度過渡 */
+        }
+
+        .menu-container.show {
+            opacity: 1;                                      /* 顯示時不透明 */
         }
 
         /* 選單內容樣式 - 側邊欄的主要內容區域 */
         .menu-content {
-            background-color: var(--primary-color);          /* 主背景色 */
-            width: 75%;                                      /* 容器寬度 */
-            max-width: 300px;                                /* 最大寬度 */
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            width: 85%;                                      /* 容器寬度 */
+            max-width: 320px;                                /* 最大寬度 */
             height: 100%;                                    /* 高度100% */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);       /* 陰影效果 */
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.4);      /* 更深的陰影 */
             overflow: hidden;                                /* 隱藏溢出內容 */
-            animation: slideInMenuFromLeft 0.25s ease-out;   /* 滑入動畫 */
             display: flex;                                   /* 彈性布局 */
             flex-direction: column;                          /* 垂直排列 */
             transform-origin: left;                          /* 變形原點 */
+            transform: translateX(-100%);                    /* 初始位置在左側外 */
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 平滑動畫 */
         }
 
-        /* 從左側滑入選單動畫 - 定義選單進入畫面的效果 */
-        @keyframes slideInMenuFromLeft {
-            from { 
-                transform: translateX(-100%);                /* 初始在左側外 */
-                opacity: 0.5;                                /* 半透明 */
-            }
-            to { 
-                transform: translateX(0);                    /* 最終在正常位置 */
-                opacity: 1;                                  /* 完全不透明 */
-            }
-        }
-
-        /* 向左側滑出選單動畫 - 定義選單離開畫面的效果 */
-        @keyframes slideOutMenuToLeft {
-            from { 
-                transform: translateX(0);                    /* 初始在正常位置 */
-                opacity: 1;                                  /* 完全不透明 */
-            }
-            to { 
-                transform: translateX(-100%);                /* 最終在左側外 */
-                opacity: 0;                                  /* 完全透明 */
-            }
+        .menu-container.show .menu-content {
+            transform: translateX(0);                        /* 顯示時移到正常位置 */
         }
 
         /* 選單頭部樣式 - 包含標題和關閉按鈕的頂部區域 */
         .menu-header {
-            background-color: var(--secondary-color);        /* 次要背景色 */
-            border-bottom: 1px solid var(--border-color);    /* 底部邊框 */
-            padding: 15px;                                   /* 內部間距 */
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            border-bottom: none;                             /* 移除邊框 */
+            padding: 20px;                                   /* 內部間距 */
             display: flex;                                   /* 彈性布局 */
             justify-content: space-between;                  /* 兩端對齊 */
             align-items: center;                             /* 垂直居中 */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);      /* 陰影效果 */
         }
 
         /* 選單標題樣式 - 頂部標題文字 */
         .menu-header h3 {
             margin: 0;                                       /* 移除外部間距 */
-            color: var(--button-orange);                     /* 橙色文字 */
-            font-size: 18px;                                 /* 文字大小 */
+            color: white;                                    /* 白色文字 */
+            font-size: 24px;                                 /* 文字大小 */
+            font-weight: 300;                                /* 較細字體 */
+            letter-spacing: 1px;                             /* 字母間距 */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);      /* 文字陰影 */
         }
 
         /* 選單關閉按鈕樣式 - 用於關閉側邊選單 */
@@ -2584,15 +2576,16 @@
             background: none;                                /* 無背景 */
             border: none;                                    /* 無邊框 */
             color: var(--text-color);                        /* 文字顏色 */
-            font-size: 20px;                                 /* 文字大小 */
+            font-size: 24px;                                 /* 文字大小 */
             cursor: pointer;                                 /* 滑鼠指標變為手型 */
-            transition: all 0.3s ease;                       /* 過渡效果 */
+            transition: color 0.3s ease;                     /* 只過渡顏色 */
+            padding: 0;                                      /* 移除內部間距 */
+            line-height: 1;                                  /* 行高設為1 */
         }
 
         /* 選單關閉按鈕懸停效果 - 鼠標懸停時的視覺變化 */
         .menu-close-btn:hover {
             color: var(--button-orange);                     /* 橙色文字 */
-            transform: scale(1.1);                           /* 放大效果 */
         }
 
         /* 選單列表樣式 - 選單項目的列表容器 */
@@ -2606,20 +2599,41 @@
 
         /* 選單項目樣式 - 單個選單選項的樣式 */
         .menu-item {
-            padding: 16px 20px;                              /* 內部間距 */
-            border-bottom: 1px solid var(--border-color);    /* 底部邊框 */
+            padding: 18px 24px;                              /* 內部間距 */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 細微邊框 */
             color: var(--text-color);                        /* 文字顏色 */
             cursor: pointer;                                 /* 滑鼠指標變為手型 */
             transition: all 0.3s ease;                       /* 過渡效果 */
             display: flex;                                   /* 彈性布局 */
             justify-content: space-between;                  /* 兩端對齊 */
             align-items: center;                             /* 垂直居中 */
-            font-size: 18px;                                 /* 文字大小 */
+            font-size: 16px;                                 /* 文字大小 */
+            font-weight: 400;                                /* 正常字重 */
+            position: relative;                              /* 相對定位 */
+            overflow: hidden;                                /* 隱藏溢出 */
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background-color: var(--accent-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
         }
 
         /* 選單項目懸停效果 - 鼠標懸停時的背景變化 */
         .menu-item:hover {
-            background-color: var(--accent-color-light);     /* 淡色強調背景 */
+            background-color: rgba(255, 255, 255, 0.05);     /* 微透明白色背景 */
+            padding-left: 32px;                              /* 增加左內距 */
+            color: var(--accent-color);                      /* 強調色文字 */
+        }
+
+        .menu-item:hover::before {
+            transform: translateX(0);                        /* 顯示左側條 */
         }
 
         /* 選單項目點擊效果 - 點擊時的背景變化 */
@@ -2656,53 +2670,75 @@
             left: 0;                                         /* 貼齊左側 */
             width: 100%;                                     /* 寬度100% */
             height: 100%;                                    /* 高度100% */
-            background-color: var(--primary-color);          /* 主背景色 */
+            background-color: rgba(0, 0, 0, 0.7);            /* 深色半透明背景 */
+            backdrop-filter: blur(10px);                     /* 背景模糊效果 */
+            -webkit-backdrop-filter: blur(10px);             /* Safari支持 */
             z-index: 2600;                                   /* 層級 */
             display: none;                                   /* 初始隱藏 */
             justify-content: flex-start;                     /* 左對齊 */
             align-items: flex-start;                         /* 頂部對齊 */
+            opacity: 0;                                      /* 初始透明 */
+            transition: opacity 0.3s ease;                   /* 透明度過渡 */
+        }
+
+        .submenu-container.show {
+            opacity: 1;                                      /* 顯示時不透明 */
         }
 
         /* 子選單內容樣式 - 與主選單類似的側邊欄 */
         .submenu-content {
-            background-color: var(--primary-color);          /* 主背景色 */
-            width: 75%;                                      /* 容器寬度 */
-            max-width: 300px;                                /* 最大寬度 */
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            width: 85%;                                      /* 容器寬度 */
+            max-width: 320px;                                /* 最大寬度 */
             height: 100%;                                    /* 高度100% */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);       /* 陰影效果 */
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.4);      /* 更深的陰影 */
             overflow: hidden;                                /* 隱藏溢出內容 */
-            animation: slideInMenuFromLeft 0.25s ease-out;   /* 滑入動畫 */
             display: flex;                                   /* 彈性布局 */
             flex-direction: column;                          /* 垂直排列 */
             transform-origin: left;                          /* 變形原點 */
+            transform: translateX(-100%);                    /* 初始位置在左側外 */
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 平滑動畫 */
         }
 
-        /* 選單關閉動畫 - 應用於關閉的選單 */
-        .menu-closing {
-            animation: slideOutMenuToLeft 0.2s ease-out forwards; /* 滑出動畫 */
-        }
-
-        /* 子選單關閉動畫 - 應用於關閉的子選單 */
-        .submenu-closing {
-            animation: slideOutMenuToLeft 0.2s ease-out forwards; /* 滑出動畫 */
+        .submenu-container.show .submenu-content {
+            transform: translateX(0);                        /* 顯示時移到正常位置 */
         }
 
         /* 子選單頭部樣式 - 包含標題和返回按鈕的頂部區域 */
         .submenu-header {
-            background-color: var(--secondary-color);        /* 次要背景色 */
-            border-bottom: 1px solid var(--border-color);    /* 底部邊框 */
-            padding: 15px;                                   /* 內部間距 */
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            border-bottom: none;                             /* 移除邊框 */
+            padding: 20px;                                   /* 內部間距 */
             display: flex;                                   /* 彈性布局 */
             justify-content: space-between;                  /* 兩端對齊 */
             align-items: center;                             /* 垂直居中 */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);      /* 陰影效果 */
         }
 
         /* 子選單標題樣式 - 頂部標題文字 */
         .submenu-header h3 {
             margin: 0;                                       /* 移除外部間距 */
-            color: var(--accent-color);                      /* 強調色文字 */
-            font-size: 22px;                                 /* 文字大小 */
-            font-weight: bold;                               /* 文字粗細 */
+            color: white;                                    /* 白色文字 */
+            font-size: 24px;                                 /* 文字大小 */
+            font-weight: 300;                                /* 較細字體 */
+            letter-spacing: 1px;                             /* 字母間距 */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);      /* 文字陰影 */
+        }
+
+        /* 子選單標題底部橘色線條 */
+        .submenu-header h3::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--accent-color);
+            margin-top: 8px;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .submenu-header:hover h3::after {
+            width: 80px;
         }
 
         /* 選單標題樣式 - 頂部標題文字 */
@@ -2717,17 +2753,20 @@
         .submenu-back-btn {
             background: none;                                /* 無背景 */
             border: none;                                    /* 無邊框 */
-            color: var(--text-color);                        /* 文字顏色 */
-            font-size: 16px;                                 /* 文字大小 */
+            color: rgba(255, 255, 255, 0.8);                /* 半透明白色 */
+            font-size: 18px;                                 /* 文字大小 */
             cursor: pointer;                                 /* 滑鼠指標變為手型 */
             transition: all 0.3s ease;                       /* 過渡效果 */
             display: flex;                                   /* 彈性布局 */
             align-items: center;                             /* 垂直居中 */
+            gap: 8px;                                        /* 間距 */
+            padding: 0;                                      /* 移除內邊距 */
         }
 
         /* 子選單返回按鈕懸停效果 - 鼠標懸停時的視覺變化 */
         .submenu-back-btn:hover {
             color: var(--button-orange);                     /* 橙色文字 */
+            transform: translateX(-3px);                     /* 輕微左移 */
         }
 
         /* 子選單列表樣式 - 子選單項目的列表容器 */
@@ -2741,17 +2780,38 @@
 
         /* 子選單項目樣式 - 單個子選單選項的樣式 */
         .submenu-item {
-            padding: 16px 20px;                              /* 內部間距 */
-            border-bottom: 1px solid var(--border-color);    /* 底部邊框 */
+            padding: 18px 24px;                              /* 內部間距 */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 細微邊框 */
             color: var(--text-color);                        /* 文字顏色 */
             cursor: pointer;                                 /* 滑鼠指標變為手型 */
             transition: all 0.3s ease;                       /* 過渡效果 */
-            font-size: 18px;                                 /* 文字大小 */
+            font-size: 16px;                                 /* 文字大小 */
+            font-weight: 400;                                /* 正常字重 */
+            position: relative;                              /* 相對定位 */
+            overflow: hidden;                                /* 隱藏溢出 */
+        }
+
+        .submenu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background-color: var(--accent-color);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
         }
 
         /* 子選單項目懸停效果 - 鼠標懸停時的背景變化 */
         .submenu-item:hover {
-            background-color: var(--accent-color-light);     /* 淡色強調背景 */
+            background-color: rgba(255, 255, 255, 0.05);     /* 微透明白色背景 */
+            padding-left: 32px;                              /* 增加左內距 */
+            color: var(--accent-color);                      /* 強調色文字 */
+        }
+
+        .submenu-item:hover::before {
+            transform: translateX(0);                        /* 顯示左側條 */
         }
 
         /* 子選單項目點擊效果 - 點擊時的背景變化 */
@@ -2761,13 +2821,14 @@
 
         /* 版本信息樣式 - 顯示在選單底部的版本號 */
         .version-info {
-            padding: 15px;                                   /* 內部間距 */
-            font-size: 14px;                                 /* 文字大小 */
-            color: var(--text-muted);                        /* 淡色文字 */
+            padding: 20px;                                   /* 內部間距 */
+            font-size: 12px;                                 /* 文字大小 */
+            color: rgba(255, 255, 255, 0.5);                /* 半透明白色文字 */
             text-align: center;                              /* 文字居中 */
-            border-top: 1px solid var(--border-color);       /* 頂部邊框 */
-            background-color: rgba(var(--primary-color-rgb), 0.1); /* 半透明背景 */
+            border-top: 1px solid rgba(255, 255, 255, 0.1); /* 頂部邊框 */
+            background-color: rgba(0, 0, 0, 0.2);            /* 深色背景 */
             margin-top: auto;                                /* 推到底部 */
+            font-weight: 300;                                /* 細字體 */
         }
 
         /* 響應式設計 - 平板及以上設備的適配 */
@@ -3140,11 +3201,12 @@
             background: none;
             border: none;
             color: var(--text-color);
-            font-size: 20px;
+            font-size: 24px;
             line-height: 1;
-            padding: 5px;
+            padding: 0;
             margin-right: 5px;
             cursor: pointer;
+            transition: color 0.3s ease;
         }
 
         /* 櫻花雪主題的輸入框樣式優化 */
@@ -7804,40 +7866,49 @@
         function openMainMenu() {
             const mainMenuContainer = document.getElementById('mainMenuContainer');
             mainMenuContainer.style.display = 'flex';
+            // 添加延遲以觸發動畫
+            setTimeout(() => {
+                mainMenuContainer.classList.add('show');
+            }, 10);
         }
         
         // 關閉主選單
         function closeMainMenu() {
             const mainMenuContainer = document.getElementById('mainMenuContainer');
-            const menuContent = mainMenuContainer.querySelector('.menu-content');
+            mainMenuContainer.classList.remove('show');
             
-            // 添加關閉動畫
-            menuContent.classList.add('menu-closing');
-            
-            // 動畫結束後隱藏選單
+            // 等待動畫結束後隱藏
             setTimeout(function() {
                 mainMenuContainer.style.display = 'none';
-                menuContent.classList.remove('menu-closing');
                 
                 // 同時確保所有子選單也關閉
                 const submenus = document.querySelectorAll('.submenu-container');
                 submenus.forEach(function(submenu) {
                     submenu.style.display = 'none';
-                    submenu.querySelector('.submenu-content').classList.remove('submenu-closing');
                 });
-            }, 200); // 與動畫時長相匹配
+            }, 400); // 與CSS過渡時間相匹配
             
             vibrate(); // 使用現有的震動函數
         }
 
         // 打開子選單
         function openSubmenu(submenuId) {
-            // 先關閉主選單 (無動畫)
-            document.getElementById('mainMenuContainer').style.display = 'none';
+            // 先關閉主選單
+            const mainMenuContainer = document.getElementById('mainMenuContainer');
+            mainMenuContainer.classList.remove('show');
             
-            // 打開指定的子選單
-            const submenu = document.getElementById(submenuId);
-            submenu.style.display = 'flex';
+            setTimeout(() => {
+                mainMenuContainer.style.display = 'none';
+                
+                // 打開指定的子選單
+                const submenu = document.getElementById(submenuId);
+                submenu.style.display = 'flex';
+                
+                // 添加延遲以觸發動畫
+                setTimeout(() => {
+                    submenu.classList.add('show');
+                }, 10);
+            }, 300);
             
             vibrate(); // 使用現有的震動函數
         }
@@ -7846,17 +7917,20 @@
         function backToMainMenu(submenuId) {
             // 關閉當前子選單
             const submenu = document.getElementById(submenuId);
-            const submenuContent = submenu.querySelector('.submenu-content');
+            submenu.classList.remove('show');
             
-            // 添加關閉動畫
-            submenuContent.classList.add('submenu-closing');
-            
-            // 動畫結束後隱藏子選單，顯示主選單
+            // 等待動畫結束
             setTimeout(function() {
                 submenu.style.display = 'none';
-                submenuContent.classList.remove('submenu-closing');
-                document.getElementById('mainMenuContainer').style.display = 'flex';
-            }, 200); // 與動畫時長相匹配
+                
+                // 顯示主選單
+                const mainMenuContainer = document.getElementById('mainMenuContainer');
+                mainMenuContainer.style.display = 'flex';
+                
+                setTimeout(() => {
+                    mainMenuContainer.classList.add('show');
+                }, 10);
+            }, 300);
             
             vibrate(); // 使用現有的震動函數
         }
@@ -8033,21 +8107,25 @@
 
             <ul class="menu-list" style="flex: 1; overflow-y: auto;">
                 <li class="menu-item" id="authMenuItem">
-                    Google 登入 <span class="menu-item-arrow">▶</span>
+                    <span>🔐 Google 登入</span> <span class="menu-item-arrow">▶</span>
                 </li>
-                <li id="userInfoItem" style="display: none; background-color: var(--secondary-color); border-radius: 8px; margin: 5px;">
+                <li id="userInfoItem" style="display: none; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; margin: 5px;">
                     <!-- 使用者資訊會顯示在這裡 -->
                 </li>
-                <li class="menu-item" onclick="showPaymentComparison(); closeMainMenu();">期數方案對比</li>
-                <li class="menu-item" onclick="showGasCardCalculator(); closeMainMenu();">加油卡優惠計算</li>
+                <li class="menu-item" onclick="showPaymentComparison(); closeMainMenu();">
+                    <span>📊 期數方案對比</span>
+                </li>
+                <li class="menu-item" onclick="showGasCardCalculator(); closeMainMenu();">
+                    <span>⛽ 加油卡優惠計算</span>
+                </li>
                 <li class="menu-item" onclick="openSubmenu('themeSubmenu')">
-                    外觀 <span class="menu-item-arrow">▶</span>
+                    <span>🎨 外觀</span> <span class="menu-item-arrow">▶</span>
                 </li>
                 <li class="menu-item" onclick="openSubmenu('languageSubmenu')">
-                    語言 <span class="menu-item-arrow">▶</span>
+                    <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.29</div>
+            <div class="version-info">v3.33</div>
         </div>
     </div>
 
@@ -8061,14 +8139,14 @@
                 <h3>外觀</h3>
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="switchTheme('default')">暗夜橘焰</li>
-                <li class="submenu-item" onclick="switchTheme('white')">極簡黑白</li> 
-                <li class="submenu-item" onclick="switchTheme('pink')">櫻花雪</li>
-                <li class="submenu-item" onclick="switchTheme('red')">暗夜烈焰</li>
-                <li class="submenu-item" onclick="switchTheme('blue-purple')">暮光星塵</li>
-                <li class="submenu-item" onclick="switchTheme('green')">翠玉清風</li>
-                <li class="submenu-item" onclick="switchTheme('blue')">科技藍調</li>
-                <li class="submenu-item" onclick="switchTheme('royal')">皇家紫韻</li>
+                <li class="submenu-item" onclick="switchTheme('default')">🔥 暗夜橘焰</li>
+                <li class="submenu-item" onclick="switchTheme('white')">⚪ 極簡黑白</li> 
+                <li class="submenu-item" onclick="switchTheme('pink')">🌸 櫻花雪</li>
+                <li class="submenu-item" onclick="switchTheme('red')">🔴 暗夜烈焰</li>
+                <li class="submenu-item" onclick="switchTheme('blue-purple')">🌌 暮光星塵</li>
+                <li class="submenu-item" onclick="switchTheme('green')">🍃 翠玉清風</li>
+                <li class="submenu-item" onclick="switchTheme('blue')">💙 科技藍調</li>
+                <li class="submenu-item" onclick="switchTheme('royal')">👑 皇家紫韻</li>
             </ul>
         </div>
     </div>
@@ -8083,10 +8161,10 @@
                 <h3>語言</h3>
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="showDevelopingToast()">中文</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">英文</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">菲律賓</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">日文</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">🇹🇼 中文</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">🇺🇸 英文</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">🇵🇭 菲律賓</li>
+                <li class="submenu-item" onclick="showDevelopingToast()">🇯🇵 日文</li>
             </ul>
         </div>
     </div>
