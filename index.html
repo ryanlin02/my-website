@@ -8402,14 +8402,16 @@
 
     <script>
         // Firebase 設定
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
-            apiKey: "AIzaSyBvaz4vcGzVFSQU52abK5YLk2Ii1sEOoM8",
-            authDomain: "loan-calculator-app-76a7d.firebaseapp.com",
-            projectId: "loan-calculator-app-76a7d",
-            storageBucket: "loan-calculator-app-76a7d.firebasestorage.app",
-            messagingSenderId: "939791472492",
-            appId: "1:939791472492:web:0685760b3eb4faaac68549",
-            measurementId: "G-3N3S9DKLPN"
+        apiKey: "AIzaSyBvaz4vcGzVFSQU52abK5YLk2Ii1sEOoM8",
+        authDomain: "loan-calculator-app-76a7d.firebaseapp.com",
+        projectId: "loan-calculator-app-76a7d",
+        storageBucket: "loan-calculator-app-76a7d.firebasestorage.app",
+        messagingSenderId: "939791472492",
+        appId: "1:939791472492:web:0685760b3eb4faaac68549",
+        measurementId: "G-3N3S9DKLPN"
         };
 
         // 初始化 Firebase
@@ -8427,25 +8429,47 @@
 
         // 登入函數
         function signInWithGoogle() {
+            console.log('signInWithGoogle 函數被呼叫');
+            console.log('Firebase Auth 物件:', auth);
             console.log('開始 Google 登入...');
-            const provider = new firebase.auth.GoogleAuthProvider();
             
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    console.log('登入成功:', result.user);
-                    showToast('登入成功！歡迎 ' + result.user.displayName);
-                    vibrate();
-                })
-                .catch((error) => {
-                    console.error('登入錯誤:', error);
-                    if (error.code === 'auth/popup-blocked') {
-                        showToast('請允許彈出視窗以完成登入', true);
-                    } else if (error.code === 'auth/cancelled-popup-request') {
-                        showToast('登入已取消', true);
-                    } else {
-                        showToast('登入失敗：' + error.message, true);
-                    }
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                console.log('Google Provider 已建立:', provider);
+                
+                // 新增這行來強制使用彈出視窗
+                provider.setCustomParameters({
+                    prompt: 'select_account'
                 });
+                
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        console.log('登入成功:', result.user);
+                        showToast('登入成功！歡迎 ' + result.user.displayName);
+                        vibrate();
+                    })
+                    .catch((error) => {
+                        console.error('登入錯誤詳細資訊:', {
+                            code: error.code,
+                            message: error.message,
+                            email: error.email,
+                            credential: error.credential
+                        });
+                        
+                        if (error.code === 'auth/popup-blocked') {
+                            showToast('請允許彈出視窗以完成登入', true);
+                        } else if (error.code === 'auth/cancelled-popup-request') {
+                            showToast('登入已取消', true);
+                        } else if (error.code === 'auth/unauthorized-domain') {
+                            showToast('網域未授權，請檢查 Firebase 設定', true);
+                        } else {
+                            showToast('登入失敗：' + error.message, true);
+                        }
+                    });
+            } catch (error) {
+                console.error('建立登入時發生錯誤:', error);
+                showToast('無法啟動登入程序', true);
+            }
         }
 
         // 登出函數
@@ -8602,10 +8626,29 @@
                 }
             });
 
-            // 初始設定登入按鈕
-            const authMenuItem = document.getElementById('authMenuItem');
-            if (authMenuItem) {
-                authMenuItem.onclick = signInWithGoogle;
+            // 確保初始化時綁定登入按鈕
+            setTimeout(() => {
+                const authMenuItem = document.getElementById('authMenuItem');
+                if (authMenuItem && !window.currentUser) {
+                    authMenuItem.onclick = signInWithGoogle;
+                    console.log('登入按鈕已綁定');
+                }
+            }, 500);
+        
+        });
+    </script>
+
+    <script>
+        // 檢查 Firebase 是否正確載入
+        window.addEventListener('load', function() {
+            console.log('檢查 Firebase 載入狀態...');
+            console.log('Firebase 物件:', typeof firebase !== 'undefined' ? '已載入' : '未載入');
+            console.log('Firebase Auth:', typeof firebase !== 'undefined' && firebase.auth ? '已載入' : '未載入');
+            console.log('Firebase Firestore:', typeof firebase !== 'undefined' && firebase.firestore ? '已載入' : '未載入');
+            
+            if (typeof firebase === 'undefined') {
+                console.error('Firebase SDK 未載入！');
+                showToast('Firebase 載入失敗，請重新整理頁面', true);
             }
         });
     </script>
