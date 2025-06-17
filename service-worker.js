@@ -1,11 +1,11 @@
-const CACHE_NAME = 'chicken-rice-v2.66';
+const CACHE_NAME = 'chicken-rice-v3.35';
 const filesToCache = [
   './',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
-  './icons/icon-512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+  './icons/icon-512.png'
+  // 移除 html2canvas 的預載入，改為動態載入
 ];
 
 // 安裝 Service Worker
@@ -44,36 +44,51 @@ self.addEventListener('activate', (event) => {
 
 // 處理資源請求
 self.addEventListener('fetch', (event) => {
-  // 排除 Google Analytics 請求
-  if (event.request.url.includes('google-analytics.com')) {
+  // 排除 Google Analytics 和 Firebase 請求
+  if (event.request.url.includes('google-analytics.com') || 
+      event.request.url.includes('firebasejs') ||
+      event.request.url.includes('googleapis.com') ||
+      event.request.url.includes('gstatic.com')) {
     return;
   }
+  
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // 檢查是否得到了有效的回應
-        if (networkResponse && networkResponse.status === 200) {
-          // 複製響應以供快取使用
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          return networkResponse;
+    caches.match(event.request)
+      .then((response) => {
+        // 如果快取中有，先返回快取
+        if (response) {
+          // 同時更新快取
+          fetch(event.request).then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, networkResponse.clone());
+              });
+            }
+          });
+          return response;
         }
-        throw new Error('Network response was not ok');
-      })
-      .catch(() => {
-        // 網路請求失敗時使用快取
-        return caches.match(event.request)
-          .then((response) => {
-            if (response) {
-              return response;
+        
+        // 如果快取中沒有，從網路取得
+        return fetch(event.request)
+          .then((networkResponse) => {
+            // 檢查是否得到了有效的回應
+            if (networkResponse && networkResponse.status === 200) {
+              // 複製響應以供快取使用
+              const responseToCache = networkResponse.clone();
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  // 只快取同源的資源
+                  if (event.request.url.startsWith(self.location.origin)) {
+                    cache.put(event.request, responseToCache);
+                  }
+                });
+              return networkResponse;
             }
-            // 如果快取中也沒有，返回一個離線頁面或錯誤響應
-            if (event.request.mode === 'navigate') {
-              return caches.match('./offline.html');
-            }
+            return networkResponse;
+          })
+          .catch(() => {
+            // 網路請求失敗，返回錯誤
+            console.error('網路請求失敗:', event.request.url);
             return new Response('Network error occurred', {
               status: 503,
               statusText: 'Service Unavailable'
