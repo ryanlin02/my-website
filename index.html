@@ -8229,6 +8229,15 @@
                 <li id="userInfoItem" style="display: none; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; margin: 5px;">
                     <!-- 使用者資訊會顯示在這裡 -->
                 </li>
+
+                <li id="syncMenuItem" class="menu-item" style="display: none;" onclick="syncFromCloud(); closeMainMenu();">
+                    <span>☁️ 同步雲端資料</span>
+                </li>
+
+                <li class="menu-item" id="authMenuItem">
+                    <span>🔐 Google 登入</span> <span class="menu-item-arrow">▶</span>
+                </li>
+
                 <li class="menu-item" onclick="showPaymentComparison(); closeMainMenu();">
                     <span>📊 期數方案對比</span>
                 </li>
@@ -8241,15 +8250,6 @@
                 <li class="menu-item" onclick="openSubmenu('languageSubmenu')">
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
-
-                <li class="menu-item" id="authMenuItem">
-                    <span>🔐 Google 登入</span> <span class="menu-item-arrow">▶</span>
-                </li>
-
-                <li id="syncMenuItem" class="menu-item" style="display: none;" onclick="syncFromCloud(); closeMainMenu();">
-                    <span>☁️ 同步雲端資料</span>
-                </li>
-
             </ul>
             <div class="version-info">v3.34</div>
         </div>
