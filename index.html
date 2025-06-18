@@ -1832,6 +1832,32 @@
             box-shadow: none;                                 /* 移除陰影 */
         }
 
+        /* 同步按鈕樣式 */
+        .sync-btn {
+            background: rgba(var(--info-color-rgb), 0.15);
+            border: 1px solid var(--info-color);
+            color: var(--info-color);
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .sync-btn:hover {
+            background-color: var(--info-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(var(--info-color-rgb), 0.4);
+        }
+
+        .sync-btn:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+
         /* 模態框背景樣式 - 覆蓋整個頁面的半透明背景 */
         .modal-overlay {
             display: none;                                    /* 初始隱藏 */
@@ -3558,6 +3584,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 </head>
 <body>
@@ -3835,8 +3862,9 @@
                 <h2>歷史記錄</h2>
             </div>
             <div class="header-right">
-                <button id="compareSelectedBtn" class="compare-selected-btn" onclick="compareSelectedLoans()" disabled>比較勾選</button>
-                <button class="delete-all-btn" onclick="confirmDeleteAll()">全部刪除</button>
+                <button id="syncBtn" class="sync-btn" onclick="syncLoanHistory()" style="display: none;">同步</button>
+                <button id="compareSelectedBtn" class="compare-selected-btn" onclick="compareSelectedLoans()" disabled>比較</button>
+                <button class="delete-all-btn" onclick="confirmDeleteAll()">全刪</button>
             </div>
             <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
         </div>
@@ -5200,18 +5228,17 @@
     
 
     // 保存貸款計算結果
-    // 修改 saveLoanData 函数来确保保存的数据是干净的数字值
+    // 保存貸款計算結果
     function saveLoanData() {
         const period = document.getElementById('period').value;
         const rate = document.getElementById('rate').value;
-        // 移除千位分隔符以保存干净的数值
         const principal = document.getElementById('principal').value.replace(/,/g, '');
         const payment = document.getElementById('payment').value.replace(/,/g, '');
         const afterTaxRate = document.getElementById('afterTaxRate').value;
         const commission = document.getElementById('commission').value.replace(/,/g, '');
         const afterCommissionRate = document.getElementById('afterCommissionRate').value;
         
-        // 检查必要字段是否填写
+        // 檢查必要字段是否填寫
         if (!period || !rate || !principal || !payment) {
             showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
             return;
@@ -5235,23 +5262,132 @@
             afterCommissionRate: afterCommissionRate,
             totalInterest: document.getElementById('totalInterest').value.replace(/,/g, ''),
             timestamp: new Date().toISOString(),
-            note: '' // 初始備註為空
+            note: ''
         };
         
-        // 获取已存储的贷款记录
+        // 先儲存到本地
         let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
         loanHistory.push(loanData);
-        
-        // 保存到 localStorage
         localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
         
-        // 显示成功提示
-        showToast('貸款計算結果已保存！');
+        // 如果使用者已登入，同時儲存到雲端
+        if (window.currentUser) {
+            saveLoanToCloud(loanData)
+                .then(() => {
+                    showToast('貸款計算結果已保存（含雲端同步）！');
+                })
+                .catch((error) => {
+                    console.error('雲端儲存失敗:', error);
+                    showToast('貸款計算結果已保存（僅本地）！');
+                });
+        } else {
+            showToast('貸款計算結果已保存（本地）！');
+        }
         
-        // 触觉反馈（如果设备支持）
+        // 觸覺反饋
         if (navigator.vibrate) {
             navigator.vibrate(70);
         }
+    }
+
+    // 新增：儲存單筆資料到雲端
+    function saveLoanToCloud(loanData) {
+        if (!window.currentUser) return Promise.reject('使用者未登入');
+        
+        return db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('loanHistory')
+            .doc(loanData.id.toString())
+            .set(loanData);
+    }
+
+    // 從雲端同步貸款記錄
+    function syncLoanHistory() {
+        if (!window.currentUser) {
+            console.log('使用者未登入，無法同步');
+            return;
+        }
+        
+        showToast('正在同步資料...');
+        
+        // 從雲端獲取資料
+        db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('loanHistory')
+            .get()
+            .then((querySnapshot) => {
+                const cloudData = [];
+                querySnapshot.forEach((doc) => {
+                    cloudData.push(doc.data());
+                });
+                
+                // 獲取本地資料
+                const localData = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+                
+                // 合併資料（避免重複）
+                const mergedData = mergeLoanHistory(localData, cloudData);
+                
+                // 更新本地儲存
+                localStorage.setItem('loanHistory', JSON.stringify(mergedData));
+                
+                // 如果歷史記錄面板是開啟的，重新載入
+                if (document.getElementById('historyPanel').style.display === 'block') {
+                    loadHistoryData();
+                }
+                
+                showToast(`同步完成！共 ${mergedData.length} 筆記錄`);
+            })
+            .catch((error) => {
+                console.error('同步失敗:', error);
+                showToast('同步失敗，請稍後再試', true);
+            });
+    }
+
+    // 合併本地和雲端的貸款記錄
+    function mergeLoanHistory(localData, cloudData) {
+        const merged = [...localData];
+        const existingIds = new Set(localData.map(item => item.id));
+        
+        cloudData.forEach(cloudItem => {
+            if (!existingIds.has(cloudItem.id)) {
+                merged.push(cloudItem);
+            }
+        });
+        
+        // 按時間戳排序
+        merged.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        return merged;
+    }
+
+    // 將本地資料上傳到雲端
+    function uploadLocalDataToCloud() {
+        if (!window.currentUser) return;
+        
+        const localData = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+        if (localData.length === 0) return;
+        
+        showToast('正在上傳本地資料到雲端...');
+        
+        // 批次寫入
+        const batch = db.batch();
+        
+        localData.forEach(loan => {
+            const docRef = db.collection('users')
+                .doc(window.currentUser.uid)
+                .collection('loanHistory')
+                .doc(loan.id.toString());
+            batch.set(docRef, loan);
+        });
+        
+        batch.commit()
+            .then(() => {
+                showToast('本地資料已上傳到雲端！');
+            })
+            .catch((error) => {
+                console.error('上傳失敗:', error);
+                showToast('上傳失敗，請稍後再試', true);
+            });
     }
 
     // 全局變量，用於存儲比較的貸款數據
@@ -5864,6 +6000,12 @@
         } else {
             panel.style.display = 'block';
             loadHistoryData();
+
+            // 顯示或隱藏同步按鈕
+            const syncBtn = document.getElementById('syncBtn');
+            if (syncBtn) {
+                syncBtn.style.display = window.currentUser ? 'inline-block' : 'none';
+            }
             
             // 添加一次性背景点击关闭事件
             panel.onclick = function(event) {
@@ -6065,6 +6207,21 @@
         // 儲存更新後的歷史記錄
         localStorage.setItem('loanHistory', JSON.stringify(updatedHistory));
         
+        // 如果使用者已登入，同步到雲端
+        if (window.currentUser) {
+            db.collection('users')
+                .doc(window.currentUser.uid)
+                .collection('loanHistory')
+                .doc(loanId.toString())
+                .update({ note: newNote })
+                .then(() => {
+                    console.log('備註已同步到雲端');
+                })
+                .catch((error) => {
+                    console.error('備註同步失敗:', error);
+                });
+        }
+        
         // 關閉備註編輯器
         closeNoteEditor();
         
@@ -6129,6 +6286,22 @@
         let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
         loanHistory = loanHistory.filter(loan => loan.id !== id);
         localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
+        
+        // 如果使用者已登入，同時從雲端刪除
+        if (window.currentUser) {
+            db.collection('users')
+                .doc(window.currentUser.uid)
+                .collection('loanHistory')
+                .doc(id.toString())
+                .delete()
+                .then(() => {
+                    console.log('雲端資料已刪除');
+                })
+                .catch((error) => {
+                    console.error('雲端刪除失敗:', error);
+                });
+        }
+        
         loadHistoryData(); // 重新載入歷史記錄
         showToast('貸款記錄已刪除！');
         
@@ -6146,6 +6319,28 @@
     // 刪除所有貸款記錄
     function deleteAllLoans() {
         localStorage.removeItem('loanHistory');
+        
+        // 如果使用者已登入，同時清空雲端資料
+        if (window.currentUser) {
+            db.collection('users')
+                .doc(window.currentUser.uid)
+                .collection('loanHistory')
+                .get()
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    querySnapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    console.log('雲端資料已全部刪除');
+                })
+                .catch((error) => {
+                    console.error('雲端刪除失敗:', error);
+                });
+        }
+        
         loadHistoryData(); // 重新載入歷史記錄（會顯示無記錄）
         showToast('所有貸款記錄已刪除！');
         
@@ -8156,7 +8351,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.39</div>
+            <div class="version-info">v3.40</div>
         </div>
     </div>
 
@@ -8324,6 +8519,9 @@
         const auth = firebase.auth();
         auth.languageCode = 'zh-TW';
 
+        // 初始化 Firestore
+        const db = firebase.firestore();
+
         // 全域變數儲存使用者資訊
         window.currentUser = null;
 
@@ -8415,6 +8613,18 @@
                         lastLogin: new Date().toISOString()
                     };
                     localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                    
+                    // 登入後自動同步資料
+                    setTimeout(() => {
+                        syncLoanHistory();
+                        // 詢問是否要上傳本地資料
+                        const localHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+                        if (localHistory.length > 0) {
+                            if (confirm('偵測到本地有儲存的計算記錄，是否要上傳到雲端？')) {
+                                uploadLocalDataToCloud();
+                            }
+                        }
+                    }, 1000);
                 } else {
                     // 清除本地儲存的使用者資訊
                     localStorage.removeItem('userInfo');
