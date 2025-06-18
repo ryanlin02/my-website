@@ -3314,6 +3314,12 @@
             will-change: transform;
         }
 
+        /* 中文大寫欄位懸停效果 - 與其他行保持一致 */
+        .chinese-amount-row:hover {
+            transform: translateX(5px);           /* 懸停時右移 */
+            box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
+        }
+
         .chinese-amount-result {
             width: 100%;
             padding: 6px 8px;
@@ -3337,7 +3343,7 @@
             display: block;
             text-align: right;
             line-height: 1.2;
-            margin-left: 3px;
+            flex: 1;                              /* 讓輸入框佔用剩餘空間 */
         }
 
         .chinese-amount-result::after {
@@ -3378,6 +3384,12 @@
             will-change: transform;
         }
 
+        /* 總繳款中文大寫欄位懸停效果 - 與其他行保持一致 */
+        .total-payment-chinese-row:hover {
+            transform: translateX(5px);           /* 懸停時右移 */
+            box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
+        }
+
         .total-payment-chinese-result {
             width: 100%;
             padding: 6px 8px;
@@ -3401,7 +3413,7 @@
             display: block;
             text-align: right;
             line-height: 1.2;
-            margin-left: 3px;
+            flex: 1;                              /* 讓輸入框佔用剩餘空間 */
         }
 
         .total-payment-chinese-result::after {
@@ -3421,16 +3433,13 @@
             display: none;
         }
 
-        /* 中文大寫欄位的特殊標籤樣式 - 讓發票和總繳的標籤與輸入框間距更合理 */
+        /* 中文大寫欄位的特殊標籤樣式 - 讓發票和總繳的標籤靠左對齊 */
         .chinese-amount-row .label,
         .total-payment-chinese-row .label {
-            margin-right: 3px;                  /* 保持與未稅金額相同的間距 */
-        }
-
-        /* 中文大寫欄位的結果顯示框調整 - 讓輸入框向左延伸 */
-        .chinese-amount-result,
-        .total-payment-chinese-result {
-            margin-left: 3px !important;         /* 減少左側邊距，讓輸入框更寬 */
+            margin-right: 3px;                  /* 標籤右側的間距 */
+            text-align: left;                   /* 文字靠左對齊 */
+            width: 35px;                        /* 縮小標籤寬度，讓輸入框有更多空間 */
+            flex-shrink: 0;                     /* 防止標籤被壓縮 */
         }
 
         /* 期數方案對比全螢幕樣式 */
@@ -3820,12 +3829,12 @@
 
     <div class="row chinese-amount-row">
         <span class="label">發票</span>
-        <div class="result chinese-amount-result" id="chineseAmount" data-placeholder="客戶發票的中文國字大寫"></div>
+        <div class="result chinese-amount-result" id="chineseAmount" data-placeholder="客戶發票金額的國字大寫"></div>
     </div>
 
     <div class="row total-payment-chinese-row">
         <span class="label">總繳</span>
-        <div class="result total-payment-chinese-result" id="totalPaymentChinese" data-placeholder="總繳款的中文國字大寫"></div>
+        <div class="result total-payment-chinese-result" id="totalPaymentChinese" data-placeholder="總繳款金額的國字大寫"></div>
     </div>
     
 
