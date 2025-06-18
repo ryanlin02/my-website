@@ -63,6 +63,12 @@
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);  /* 淺陰影 */
             --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);  /* 中陰影 */
             --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4); /* 深陰影 */
+
+            /* 輸入框和標籤的特殊設定 */
+            --input-font-size: 18px;      /* 輸入框內文字大小（原16px+2級） */
+            --label-font-size: 17px;      /* 標籤文字大小（原18px-1級） */
+            --input-padding-lr: 5px;      /* 輸入框左右內邊距（原12px-7px） */
+            --helper-text-color: #999999; /* 輔助說明文字顏色 */
         }
 
         /* 默認主題：暗夜橘焰 - 預設的深色主題搭配橙色強調色 */
@@ -157,6 +163,8 @@
             --button-orange: #555555;             /* 兼容橙色按鈕 */
             --button-blue: #777777;               /* 兼容藍色按鈕 */
             --button-grey: #e0e0e0;               /* 兼容灰色按鈕 */
+
+            --helper-text-color: #999999;         /* 輔助說明文字顏色 */
             
             background-color: #fafafa;            /* 頁面背景色 */
         }
@@ -206,6 +214,8 @@
             --button-orange: #db386c;             /* 兼容橙色按鈕 */
             --button-blue: #ff69b4;               /* 兼容藍色按鈕 - 改為粉色 */
             --button-grey: #fce4ec;               /* 兼容灰色按鈕 */
+
+            --helper-text-color: #d68fa3;         /* 輔助說明文字顏色 - 中等粉色 */
         }
 
         /* 暗夜烈焰主題 - 深黑色底搭配鮮紅色調 */
@@ -683,12 +693,13 @@
         /* 標籤樣式 */
         .label {
             width: 120px;                        /* 固定寬度 */
-            margin-right: 15px;                  /* 右側邊距 */
+            margin-right: 8px;                   /* 右側邊距 - 從15px減少到8px讓標籤更靠近輸入框 */
             text-align: right;                   /* 文字右對齊 */
-            font-weight: 600;                    /* 字體粗細 */
+            font-weight: normal;                 /* 字體粗細 - 改為正常粗細（不是粗體） */
             color: var(--text-color);            /* 文字顏色 */
             position: relative;                  /* 相對定位 */
             overflow: hidden;                    /* 隱藏溢出內容 */
+            font-size: var(--label-font-size);   /* 使用變數控制字體大小 */
         }
 
         /* 輸入框與按鍵的視覺分組 */
@@ -880,6 +891,13 @@
             }
         }
 
+        /* 輔助說明文字樣式 - 用於欄位右側的說明文字 */
+        .helper-text {
+            margin-left: 0px;                    /* 左側邊距 */
+            color: var(--helper-text-color);     /* 使用變數控制文字顏色 */
+            font-size: 16px;                     /* 保持原始字體大小 */
+        }
+
         /* 強調重要欄位 */
         .emphasized-row {
             border-left: 3px solid var(--accent-color); /* 左側邊框 */
@@ -962,14 +980,15 @@
         /* 輸入框基本樣式 */
         input {
             width: 95px;                           /* 固定寬度 */
-            padding: 5px 12px;                     /* 內邊距 */
+            padding: 5px var(--input-padding-lr);  /* 內邊距 - 使用變數控制左右間距 */
             margin-right: 10px;                    /* 右側邊距 */
             background-color: var(--input-bg);     /* 使用主題輸入框背景色 */
             color: var(--text-color);              /* 使用主題文字色 */
             border: 1px solid var(--border-color); /* 邊框 */
             border-radius: 4px;                    /* 圓角 */
-            font-size: 16px;                       /* 字體大小 */
+            font-size: var(--input-font-size);     /* 使用變數控制字體大小 */
             transition: all 0.3s ease;             /* 過渡效果 */
+            text-align: right;                     /* 文字靠右對齊 */
         }
 
         /* 輸入框聚焦效果 */
@@ -3376,6 +3395,18 @@
             display: none;
         }
 
+        /* 中文大寫欄位的特殊標籤樣式 - 讓發票和總繳的標籤與輸入框間距更合理 */
+        .chinese-amount-row .label,
+        .total-payment-chinese-row .label {
+            margin-right: 15px;                  /* 保持與未稅金額相同的間距 */
+        }
+
+        /* 中文大寫欄位的結果顯示框調整 - 讓輸入框向左延伸 */
+        .chinese-amount-result,
+        .total-payment-chinese-result {
+            margin-left: 8px !important;         /* 減少左側邊距，讓輸入框更寬 */
+        }
+
         /* 期數方案對比全螢幕樣式 */
         #paymentComparisonModal {
             position: fixed !important;
@@ -3695,13 +3726,13 @@
     <div class="row">
         <span class="label">佣後利率</span>
         <input type="text" id="afterCommissionOnlyRate" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">資貸</span>
+        <span class="helper-text">資貸</span>
     </div>
 
     <div class="row">
         <span class="label">稅佣後利率</span>
         <input type="text" id="afterCommissionRate" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">分期</span>
+        <span class="helper-text">分期</span>
     </div>
 
     <div class="divider-flow"></div>
@@ -3741,7 +3772,7 @@
     <div class="row">
         <span class="label">NPV</span>
         <input type="text" id="fundingCost" class="readonly" readonly>
-        <span style="margin-left: 0px; color: var(--text-color);">稅佣後預估</span>
+        <span class="helper-text">稅佣後預估</span>
     </div>
 
     <div class="divider-flow"></div>
@@ -8125,7 +8156,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.33</div>
+            <div class="version-info">v3.37</div>
         </div>
     </div>
 
