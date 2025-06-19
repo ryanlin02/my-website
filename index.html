@@ -3581,6 +3581,177 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* 貸款比較選擇頁面樣式 */
+        .loan-selection-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .current-loan-card {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark) 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .current-loan-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loan-card {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .loan-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-color);
+        }
+
+        .loan-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent-color);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .loan-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .loan-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .loan-card-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .loan-card-rate {
+            background: var(--accent-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .loan-card-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .loan-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .loan-detail-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .loan-detail-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .select-loan-btn {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .loan-card:hover .select-loan-btn {
+            opacity: 1;
+        }
+
+        .select-loan-btn:hover {
+            background: var(--accent-color-dark);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .history-scroll-container {
+            padding: 20px;
+            padding-top: 0;
+            height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        /* 捲軸樣式 */
+        .history-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .history-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color-dark);
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -5666,100 +5837,152 @@
         // 按日期排序，最新的在前面
         loanHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
-        // 生成歷史記錄列表
-        let historyItemsHtml = '';
-        loanHistory.forEach(loan => {
-            historyItemsHtml += `
-                <div class="comparison-history-item" onclick="selectLoanForComparison(${loan.id})">
-                    <div class="comparison-history-header">
-                        <span>${formatDate(loan.date)}</span>
-                        <span>稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</span>
-                    </div>
-                    <div class="comparison-history-details">
-                        <div>期數: ${loan.period}</div>
-                        <div>本金: ${formatNumberWithCommas(loan.principal)}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        // 創建模態框
+        // 創建模態框 HTML
         const modalHTML = `
-        <div class="modal-header">
-            <h3>選擇要比較的貸款方案</h3>
-            <button class="close-btn" onclick="closeCustomModal('loanSelectionModal')">×</button>
-        </div>
-        <div class="modal-content">
-            <div style="margin-bottom: 15px;">
-                <p>目前的計算結果：</p>
-                <div class="current-loan-summary">
-                    <div>期數: ${currentLoan.period} | 利率: ${currentLoan.rate}%</div>
-                    <div>本金: ${formatNumberWithCommas(currentLoan.principal)} | 期繳: ${formatNumberWithCommas(currentLoan.payment)}</div>
+        <!-- 固定頂部區域 -->
+        <div class="loan-selection-header">
+            <!-- 頂部標題列 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; color: var(--text-color); font-size: 20px;">選擇比較方案</h3>
+                <button class="close-btn" onclick="closeCustomModal('loanSelectionModal')" style="
+                    background: none;
+                    border: none;
+                    color: var(--text-color);
+                    font-size: 28px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    transition: all 0.2s ease;
+                " onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.1)';" 
+                onmouseout="this.style.backgroundColor='transparent';">×</button>
+            </div>
+            
+            <!-- 當前計算卡片 -->
+            <div class="current-loan-card">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span style="font-size: 20px;">📊</span>
+                    <span style="font-size: 16px; font-weight: 500;">目前計算結果</span>
                 </div>
-                <p style="margin-top: 15px;">請選擇要比較的歷史方案：</p>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">本金</div>
+                        <div style="font-size: 18px; font-weight: bold;">${formatNumberWithCommas(currentLoan.principal)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">期數</div>
+                        <div style="font-size: 18px; font-weight: bold;">${currentLoan.period} 期</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">稅前利率</div>
+                        <div style="font-size: 18px; font-weight: bold;">${currentLoan.rate}%</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8;">期繳</div>
+                        <div style="font-size: 18px; font-weight: bold;">${formatNumberWithCommas(currentLoan.payment)}</div>
+                    </div>
+                </div>
             </div>
-            <div class="comparison-history-list">
-                ${historyItemsHtml}
+        </div>
+        
+        <!-- 可滾動的歷史記錄區域 -->
+        <div class="history-scroll-container">
+            <div style="margin-bottom: 12px; color: var(--text-muted); font-size: 14px;">
+                請選擇要比較的歷史方案：
             </div>
+            
+            ${loanHistory.length === 0 ? 
+                '<div style="text-align: center; padding: 40px; color: var(--text-muted);">尚無歷史記錄</div>' :
+                loanHistory.map((loan, index) => `
+                    <div class="loan-card" onclick="selectLoanForComparison(${loan.id})">
+                        <div class="loan-card-header">
+                            <div class="loan-card-date">
+                                <span style="font-size: 16px;">📅</span>
+                                <span>${formatDate(loan.date)}</span>
+                            </div>
+                            <div class="loan-card-rate">${loan.afterCommissionRate}%</div>
+                        </div>
+                        
+                        <div class="loan-card-details">
+                            <div class="loan-detail-item">
+                                <span class="loan-detail-label">本金</span>
+                                <span class="loan-detail-value">${formatNumberWithCommas(loan.principal)}</span>
+                            </div>
+                            <div class="loan-detail-item">
+                                <span class="loan-detail-label">期數</span>
+                                <span class="loan-detail-value">${loan.period} 期</span>
+                            </div>
+                            <div class="loan-detail-item">
+                                <span class="loan-detail-label">期繳</span>
+                                <span class="loan-detail-value">${formatNumberWithCommas(loan.payment)}</span>
+                            </div>
+                            <div class="loan-detail-item">
+                                <span class="loan-detail-label">總利息</span>
+                                <span class="loan-detail-value">${formatNumberWithCommas(loan.totalInterest)}</span>
+                            </div>
+                        </div>
+                        
+                        ${loan.note ? `
+                            <div style="
+                                margin-top: 8px;
+                                padding-top: 8px;
+                                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                                font-size: 13px;
+                                color: var(--text-muted);
+                                font-style: italic;
+                            ">
+                                📝 ${loan.note}
+                            </div>
+                        ` : ''}
+                        
+                        <button class="select-loan-btn">選擇此方案</button>
+                    </div>
+                `).join('')
+            }
         </div>
         `;
         
-        // 將當前貸款數據保存在 localStorage 中，以便後續使用
+        // 將當前貸款數據保存在 localStorage 中
         localStorage.setItem('currentLoanForComparison', JSON.stringify(currentLoan));
         
         // 創建並顯示全螢幕模態框
         const modalOverlay = document.createElement('div');
         modalOverlay.className = 'modal-overlay';
         modalOverlay.id = 'loanSelectionModal';
-        modalOverlay.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--primary-color); z-index: 9999;';
-        modalOverlay.innerHTML = `<div class="modal-container" style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; margin: 0; border-radius: 0; display: flex; flex-direction: column;">${modalHTML}</div>`;
+        modalOverlay.style.cssText = `
+            display: flex; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: var(--primary-color); 
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-out;
+        `;
+        modalOverlay.innerHTML = `
+            <div class="modal-container" style="
+                width: 100%; 
+                height: 100%; 
+                max-width: 100%; 
+                max-height: 100%; 
+                margin: 0; 
+                border-radius: 0; 
+                display: flex; 
+                flex-direction: column;
+                background: var(--primary-color);
+            ">${modalHTML}</div>
+        `;
 
         // 添加到網頁
         document.body.appendChild(modalOverlay);
-
-        vibrate();
         
-        // 添加樣式
-        const style = document.createElement('style');
-        style.textContent = `
-            .current-loan-summary {
-                background-color: var(--secondary-color);
-                padding: 12px;
-                border-radius: 8px;
-                margin-top: 5px;
-            }
-            
-            .comparison-history-list {
-                max-height: 60vh;
-                overflow-y: auto;
-            }
-            
-            .comparison-history-item {
-                background-color: var(--secondary-color);
-                margin: 8px 0;
-                padding: 12px;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-            }
-            
-            .comparison-history-item:hover {
-                transform: translateX(5px);
-                box-shadow: 0 2px 8px var(--shadow-color);
-            }
-            
-            .comparison-history-header {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 8px;
-            }
-            
-            .comparison-history-details {
-                display: flex;
-                justify-content: space-between;
-            }
-        `;
-        document.head.appendChild(style);
+        // 觸發震動反饋
+        vibrate();
     }
 
     // 選擇貸款進行比較
@@ -8556,11 +8779,44 @@
             </div>
 
             <ul class="menu-list" style="flex: 1; overflow-y: auto;">
-                <li class="menu-item" id="authMenuItem">
-                    <span>🔐 Google 登入</span> <span class="menu-item-arrow">▶</span>
-                </li>
-                <li id="userInfoItem" style="display: none; background-color: rgba(255, 255, 255, 0.05); border-radius: 8px; margin: 5px;">
-                    <!-- 使用者資訊會顯示在這裡 -->
+                <!-- 登入/使用者資訊整合區塊 -->
+                <li id="authSection" style="
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+                    border-radius: 12px;
+                    margin: 8px;
+                    padding: 0;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                ">
+                    <!-- 未登入狀態 -->
+                    <div id="loginPrompt" class="menu-item" style="
+                        border-bottom: none;
+                        padding: 20px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 40px; margin-bottom: 12px;">🔐</div>
+                        <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">登入以同步您的資料</div>
+                        <button onclick="signInWithGoogle()" style="
+                            background: var(--accent-color);
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            padding: 10px 24px;
+                            font-size: 15px;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" 
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.2)';">
+                            <span style="margin-right: 8px;">G</span>使用 Google 登入
+                        </button>
+                    </div>
+                    
+                    <!-- 已登入狀態（預設隱藏） -->
+                    <div id="userInfoSection" style="display: none;">
+                        <!-- 使用者資訊會動態插入這裡 -->
+                    </div>
                 </li>
                 <li class="menu-item" onclick="showPaymentComparison(); closeMainMenu();">
                     <span>📊 期數方案對比</span>
@@ -8575,7 +8831,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.42</div>
+            <div class="version-info">v3.43</div>
         </div>
     </div>
 
@@ -8810,82 +9066,133 @@
 
         // 更新介面以反映登入狀態
         function updateUIForAuth(user) {
-            const authMenuItem = document.getElementById('authMenuItem');
-            const userInfoItem = document.getElementById('userInfoItem');
+            const loginPrompt = document.getElementById('loginPrompt');
+            const userInfoSection = document.getElementById('userInfoSection');
             
             if (user) {
                 // 使用者已登入
-                if (authMenuItem) {
-                    authMenuItem.innerHTML = '登出 <span class="menu-item-arrow">▶</span>';
-                    authMenuItem.onclick = signOut;
-                }
-                if (userInfoItem) {
-                    userInfoItem.style.display = 'block';
-                    userInfoItem.innerHTML = `
-                        <div style="padding: 10px; font-size: 14px;">
-                            <!-- 使用者資訊區塊 -->
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                ${user.photoURL ? `<img src="${user.photoURL}" style="width: 32px; height: 32px; border-radius: 50%;">` : ''}
-                                <div style="flex: 1;">
-                                    <div>${user.displayName || '使用者'}</div>
-                                    <div style="color: var(--text-muted); font-size: 12px;">${user.email}</div>
-                                </div>
+                if (loginPrompt) loginPrompt.style.display = 'none';
+                if (userInfoSection) {
+                    userInfoSection.style.display = 'block';
+                    userInfoSection.innerHTML = `
+                        <!-- 使用者基本資訊 -->
+                        <div style="
+                            padding: 16px;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        ">
+                            <!-- 使用者頭像 -->
+                            <div style="position: relative;">
+                                ${user.photoURL ? 
+                                    `<img src="${user.photoURL}" style="
+                                        width: 48px; 
+                                        height: 48px; 
+                                        border-radius: 50%;
+                                        border: 2px solid var(--accent-color);
+                                    ">` : 
+                                    `<div style="
+                                        width: 48px; 
+                                        height: 48px; 
+                                        border-radius: 50%;
+                                        background: var(--accent-color);
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: white;
+                                        font-size: 20px;
+                                        font-weight: bold;
+                                    ">${(user.displayName || user.email || '使用者')[0].toUpperCase()}</div>`
+                                }
+                                <!-- 線上狀態指示器 -->
+                                <div style="
+                                    position: absolute;
+                                    bottom: 0;
+                                    right: 0;
+                                    width: 14px;
+                                    height: 14px;
+                                    background: #4CAF50;
+                                    border-radius: 50%;
+                                    border: 2px solid var(--primary-color);
+                                "></div>
                             </div>
                             
-                            <!-- 同步狀態區塊 -->
-                            <div id="syncStatusContainer" style="
-                                background-color: rgba(var(--info-color-rgb), 0.1);
+                            <!-- 使用者名稱和信箱 -->
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; font-size: 15px;">${user.displayName || '使用者'}</div>
+                                <div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">${user.email}</div>
+                            </div>
+                            
+                            <!-- 登出按鈕（優雅的小按鈕） -->
+                            <button onclick="signOut()" style="
+                                background: rgba(var(--error-color-rgb), 0.1);
+                                color: var(--error-color);
+                                border: 1px solid rgba(var(--error-color-rgb), 0.3);
                                 border-radius: 6px;
-                                padding: 8px;
+                                padding: 6px 12px;
+                                font-size: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                                white-space: nowrap;
+                            " onmouseover="this.style.backgroundColor='var(--error-color)'; this.style.color='white'; this.style.transform='scale(1.05)';" 
+                            onmouseout="this.style.backgroundColor='rgba(var(--error-color-rgb), 0.1)'; this.style.color='var(--error-color)'; this.style.transform='scale(1)';">
+                                登出
+                            </button>
+                        </div>
+                        
+                        <!-- 同步狀態區塊（保持原有設計） -->
+                        <div id="syncStatusContainer" style="
+                            margin: 8px;
+                            background-color: rgba(var(--info-color-rgb), 0.1);
+                            border-radius: 8px;
+                            padding: 12px;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 13px;
+                            transition: all 0.3s ease;
+                        ">
+                            <!-- 同步圖示 -->
+                            <div id="syncIcon" style="
+                                width: 20px;
+                                height: 20px;
                                 display: flex;
                                 align-items: center;
-                                gap: 8px;
-                                font-size: 13px;
-                                transition: all 0.3s ease;
+                                justify-content: center;
                             ">
-                                <!-- 同步圖示 -->
-                                <div id="syncIcon" style="
-                                    width: 20px;
-                                    height: 20px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <span style="font-size: 16px;">☁️</span>
-                                </div>
-                                
-                                <!-- 同步文字 -->
-                                <div style="flex: 1;">
-                                    <div id="syncStatusText" style="font-weight: 500;">已同步</div>
-                                    <div id="syncTimeText" style="color: var(--text-muted); font-size: 11px;">從未同步</div>
-                                </div>
-                                
-                                <!-- 手動同步按鈕 -->
-                                <button id="manualSyncBtn" onclick="manualSync()" style="
-                                    background: none;
-                                    border: 1px solid var(--info-color);
-                                    color: var(--info-color);
-                                    border-radius: 4px;
-                                    padding: 4px 8px;
-                                    font-size: 12px;
-                                    cursor: pointer;
-                                    transition: all 0.2s ease;
-                                " onmouseover="this.style.backgroundColor='var(--info-color)'; this.style.color='white';" 
-                                onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--info-color)';">
-                                    同步
-                                </button>
+                                <span style="font-size: 16px;">☁️</span>
                             </div>
+                            
+                            <!-- 同步文字 -->
+                            <div style="flex: 1;">
+                                <div id="syncStatusText" style="font-weight: 500;">已同步</div>
+                                <div id="syncTimeText" style="color: var(--text-muted); font-size: 11px;">從未同步</div>
+                            </div>
+                            
+                            <!-- 手動同步按鈕 -->
+                            <button id="manualSyncBtn" onclick="manualSync()" style="
+                                background: none;
+                                border: 1px solid var(--info-color);
+                                color: var(--info-color);
+                                border-radius: 4px;
+                                padding: 4px 8px;
+                                font-size: 12px;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            " onmouseover="this.style.backgroundColor='var(--info-color)'; this.style.color='white';" 
+                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--info-color)';">
+                                同步
+                            </button>
                         </div>
                     `;
                 }
             } else {
                 // 使用者未登入
-                if (authMenuItem) {
-                    authMenuItem.innerHTML = 'Google 登入 <span class="menu-item-arrow">▶</span>';
-                    authMenuItem.onclick = signInWithGoogle;
-                }
-                if (userInfoItem) {
-                    userInfoItem.style.display = 'none';
+                if (loginPrompt) loginPrompt.style.display = 'block';
+                if (userInfoSection) {
+                    userInfoSection.style.display = 'none';
+                    userInfoSection.innerHTML = '';
                 }
             }
         }
@@ -8945,12 +9252,6 @@
                 };
             }
             });
-
-            // 初始設定登入按鈕
-            const authMenuItem = document.getElementById('authMenuItem');
-            if (authMenuItem) {
-                authMenuItem.onclick = signInWithGoogle;
-            }
         });
     </script>
 
