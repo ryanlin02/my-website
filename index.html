@@ -3569,6 +3569,18 @@
             padding: 15px;
         }
 
+        /* 同步旋轉動畫 */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 同步狀態容器懸停效果 */
+        #syncStatusContainer:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -3871,7 +3883,6 @@
                 <h2>歷史記錄</h2>
             </div>
             <div class="header-right">
-                <button id="syncBtn" class="sync-btn" onclick="syncLoanHistory()" style="display: none;">同步</button>
                 <button id="compareSelectedBtn" class="compare-selected-btn" onclick="compareSelectedLoans()" disabled>比較</button>
                 <button class="delete-all-btn" onclick="confirmDeleteAll()">全刪</button>
             </div>
@@ -5281,21 +5292,25 @@
         
         // 如果使用者已登入，同時儲存到雲端
         if (window.currentUser) {
+            // 立即顯示儲存成功，背景進行雲端同步
+            showToast('貸款計算結果已保存！');
+            
+            // 背景同步到雲端
             saveLoanToCloud(loanData)
                 .then(() => {
-                    showToast('貸款計算結果已保存（含雲端同步）！');
+                    console.log('已同步到雲端');
+                    // 更新同步狀態
+                    syncStatus.lastSyncTime = new Date();
+                    updateSyncStatusUI();
                 })
                 .catch((error) => {
                     console.error('雲端儲存失敗:', error);
-                    showToast('貸款計算結果已保存（僅本地）！');
+                    // 增加待同步計數
+                    syncStatus.pendingChanges++;
+                    updateSyncStatusUI();
                 });
         } else {
             showToast('貸款計算結果已保存（本地）！');
-        }
-        
-        // 觸覺反饋
-        if (navigator.vibrate) {
-            navigator.vibrate(70);
         }
     }
 
@@ -5368,6 +5383,208 @@
         
         return merged;
     }
+
+    // 自動同步功能
+    function autoSync() {
+        // 如果未登入或正在同步中，則跳過
+        if (!window.currentUser || syncStatus.isSyncing) {
+            return;
+        }
+        
+        // 設定同步狀態
+        syncStatus.isSyncing = true;
+        updateSyncStatusUI();
+        
+        // 從雲端獲取最新資料
+        db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('loanHistory')
+            .get()
+            .then((querySnapshot) => {
+                const cloudData = [];
+                const cloudDataMap = new Map();
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    cloudData.push(data);
+                    cloudDataMap.set(data.id, data);
+                });
+                
+                // 獲取本地資料
+                const localData = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+                const localDataMap = new Map();
+                localData.forEach(item => {
+                    localDataMap.set(item.id, item);
+                });
+                
+                // 智慧合併資料（以時間戳為準）
+                const mergedData = smartMergeLoanHistory(localDataMap, cloudDataMap);
+                
+                // 更新本地儲存
+                localStorage.setItem('loanHistory', JSON.stringify(mergedData));
+                
+                // 更新同步狀態
+                syncStatus.isSyncing = false;
+                syncStatus.lastSyncTime = new Date();
+                syncStatus.pendingChanges = 0;
+                updateSyncStatusUI();
+                
+                // 如果歷史記錄面板是開啟的，重新載入
+                if (document.getElementById('historyPanel').style.display === 'block') {
+                    loadHistoryData();
+                }
+                
+                console.log(`自動同步完成，共 ${mergedData.length} 筆記錄`);
+            })
+            .catch((error) => {
+                console.error('自動同步失敗:', error);
+                syncStatus.isSyncing = false;
+                updateSyncStatusUI();
+            });
+    }
+
+    // 智慧合併貸款記錄（處理衝突）
+    function smartMergeLoanHistory(localDataMap, cloudDataMap) {
+        const merged = [];
+        const processedIds = new Set();
+        
+        // 處理所有記錄
+        const allIds = new Set([...localDataMap.keys(), ...cloudDataMap.keys()]);
+        
+        allIds.forEach(id => {
+            const localItem = localDataMap.get(id);
+            const cloudItem = cloudDataMap.get(id);
+            
+            if (localItem && cloudItem) {
+                // 兩邊都有相同ID的記錄，比較時間戳
+                const localTime = new Date(localItem.timestamp || 0).getTime();
+                const cloudTime = new Date(cloudItem.timestamp || 0).getTime();
+                
+                if (localTime > cloudTime) {
+                    // 本地較新，使用本地資料並更新雲端
+                    merged.push(localItem);
+                    updateCloudRecord(localItem);
+                } else if (cloudTime > localTime) {
+                    // 雲端較新，使用雲端資料
+                    merged.push(cloudItem);
+                } else {
+                    // 時間相同，比較備註長度（假設較長的備註包含更多資訊）
+                    if ((localItem.note || '').length >= (cloudItem.note || '').length) {
+                        merged.push(localItem);
+                    } else {
+                        merged.push(cloudItem);
+                    }
+                }
+            } else if (localItem) {
+                // 只有本地有，上傳到雲端
+                merged.push(localItem);
+                updateCloudRecord(localItem);
+            } else if (cloudItem) {
+                // 只有雲端有，加入本地
+                merged.push(cloudItem);
+            }
+        });
+        
+        // 按時間戳排序（最新的在前）
+        merged.sort((a, b) => {
+            const timeA = new Date(a.timestamp || 0).getTime();
+            const timeB = new Date(b.timestamp || 0).getTime();
+            return timeB - timeA;
+        });
+        
+        return merged;
+    }
+
+    // 更新單筆雲端記錄
+    function updateCloudRecord(record) {
+        if (!window.currentUser) return;
+        
+        db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('loanHistory')
+            .doc(record.id.toString())
+            .set(record)
+            .catch(error => {
+                console.error('更新雲端記錄失敗:', error);
+                syncStatus.pendingChanges++;
+                updateSyncStatusUI();
+            });
+    }
+
+    // 更新同步狀態UI
+    function updateSyncStatusUI() {
+        const syncIcon = document.getElementById('syncIcon');
+        const syncStatusText = document.getElementById('syncStatusText');
+        const syncTimeText = document.getElementById('syncTimeText');
+        const syncContainer = document.getElementById('syncStatusContainer');
+        const manualSyncBtn = document.getElementById('manualSyncBtn');
+        
+        if (!syncIcon || !syncStatusText || !syncTimeText || !syncContainer) return;
+        
+        // 根據狀態更新圖示和文字
+        if (!syncStatus.isOnline) {
+            // 離線狀態
+            syncIcon.innerHTML = '<span style="font-size: 16px;">📵</span>';
+            syncStatusText.textContent = '離線模式';
+            syncTimeText.textContent = '等待網路連線';
+            syncContainer.style.backgroundColor = 'rgba(var(--error-color-rgb), 0.1)';
+            if (manualSyncBtn) manualSyncBtn.disabled = true;
+        } else if (syncStatus.isSyncing) {
+            // 同步中
+            syncIcon.innerHTML = '<span style="font-size: 16px; animation: spin 1s linear infinite;">🔄</span>';
+            syncStatusText.textContent = '同步中...';
+            syncTimeText.textContent = '請稍候';
+            syncContainer.style.backgroundColor = 'rgba(var(--info-color-rgb), 0.2)';
+            if (manualSyncBtn) manualSyncBtn.disabled = true;
+        } else if (syncStatus.pendingChanges > 0) {
+            // 有待同步的變更
+            syncIcon.innerHTML = '<span style="font-size: 16px;">⚠️</span>';
+            syncStatusText.textContent = `有 ${syncStatus.pendingChanges} 項待同步`;
+            syncTimeText.textContent = formatSyncTime();
+            syncContainer.style.backgroundColor = 'rgba(var(--warning-color-rgb), 0.1)';
+            if (manualSyncBtn) manualSyncBtn.disabled = false;
+        } else {
+            // 已同步
+            syncIcon.innerHTML = '<span style="font-size: 16px;">✅</span>';
+            syncStatusText.textContent = '已同步';
+            syncTimeText.textContent = formatSyncTime();
+            syncContainer.style.backgroundColor = 'rgba(var(--success-color-rgb), 0.1)';
+            if (manualSyncBtn) manualSyncBtn.disabled = false;
+        }
+    }
+
+    // 格式化同步時間顯示
+    function formatSyncTime() {
+        if (!syncStatus.lastSyncTime) {
+            return '從未同步';
+        }
+        
+        const now = new Date();
+        const diff = now - syncStatus.lastSyncTime;
+        const minutes = Math.floor(diff / 60000);
+        
+        if (minutes < 1) {
+            return '剛剛同步';
+        } else if (minutes < 60) {
+            return `${minutes} 分鐘前同步`;
+        } else {
+            const hours = Math.floor(minutes / 60);
+            return `${hours} 小時前同步`;
+        }
+    }
+
+    // 手動同步
+    function manualSync() {
+        vibrate();
+        autoSync();
+    }
+
+    // 定期更新同步時間顯示
+    setInterval(() => {
+        if (window.currentUser && document.getElementById('syncTimeText')) {
+            document.getElementById('syncTimeText').textContent = formatSyncTime();
+        }
+    }, 60000); // 每分鐘更新一次
 
     // 將本地資料上傳到雲端
     function uploadLocalDataToCloud() {
@@ -6009,12 +6226,6 @@
         } else {
             panel.style.display = 'block';
             loadHistoryData();
-
-            // 顯示或隱藏同步按鈕
-            const syncBtn = document.getElementById('syncBtn');
-            if (syncBtn) {
-                syncBtn.style.display = window.currentUser ? 'inline-block' : 'none';
-            }
             
             // 添加一次性背景点击关闭事件
             panel.onclick = function(event) {
@@ -6225,6 +6436,8 @@
                 .update({ note: newNote })
                 .then(() => {
                     console.log('備註已同步到雲端');
+                    syncStatus.lastSyncTime = new Date();
+                    updateSyncStatusUI();
                 })
                 .catch((error) => {
                     console.error('備註同步失敗:', error);
@@ -6305,6 +6518,8 @@
                 .delete()
                 .then(() => {
                     console.log('雲端資料已刪除');
+                    syncStatus.lastSyncTime = new Date();
+                    updateSyncStatusUI();
                 })
                 .catch((error) => {
                     console.error('雲端刪除失敗:', error);
@@ -8360,7 +8575,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.40</div>
+            <div class="version-info">v3.42</div>
         </div>
     </div>
 
@@ -8531,6 +8746,29 @@
         // 初始化 Firestore
         const db = firebase.firestore();
 
+        // 同步狀態管理
+        let syncStatus = {
+            isSyncing: false,          // 是否正在同步
+            lastSyncTime: null,        // 最後同步時間
+            pendingChanges: 0,         // 待同步的變更數量
+            isOnline: navigator.onLine  // 是否在線
+        };
+
+        // 監聽網路連線狀態
+        window.addEventListener('online', () => {
+            syncStatus.isOnline = true;
+            updateSyncStatusUI();
+            // 網路恢復時自動同步
+            if (window.currentUser) {
+                autoSync();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            syncStatus.isOnline = false;
+            updateSyncStatusUI();
+        });
+
         // 全域變數儲存使用者資訊
         window.currentUser = null;
 
@@ -8583,15 +8821,62 @@
                 }
                 if (userInfoItem) {
                     userInfoItem.style.display = 'block';
-                    userInfoItem.innerHTML = `<div style="padding: 10px; font-size: 14px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            ${user.photoURL ? `<img src="${user.photoURL}" style="width: 32px; height: 32px; border-radius: 50%;">` : ''}
-                            <div>
-                                <div>${user.displayName || '使用者'}</div>
-                                <div style="color: var(--text-muted); font-size: 12px;">${user.email}</div>
+                    userInfoItem.innerHTML = `
+                        <div style="padding: 10px; font-size: 14px;">
+                            <!-- 使用者資訊區塊 -->
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                ${user.photoURL ? `<img src="${user.photoURL}" style="width: 32px; height: 32px; border-radius: 50%;">` : ''}
+                                <div style="flex: 1;">
+                                    <div>${user.displayName || '使用者'}</div>
+                                    <div style="color: var(--text-muted); font-size: 12px;">${user.email}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 同步狀態區塊 -->
+                            <div id="syncStatusContainer" style="
+                                background-color: rgba(var(--info-color-rgb), 0.1);
+                                border-radius: 6px;
+                                padding: 8px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                font-size: 13px;
+                                transition: all 0.3s ease;
+                            ">
+                                <!-- 同步圖示 -->
+                                <div id="syncIcon" style="
+                                    width: 20px;
+                                    height: 20px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                ">
+                                    <span style="font-size: 16px;">☁️</span>
+                                </div>
+                                
+                                <!-- 同步文字 -->
+                                <div style="flex: 1;">
+                                    <div id="syncStatusText" style="font-weight: 500;">已同步</div>
+                                    <div id="syncTimeText" style="color: var(--text-muted); font-size: 11px;">從未同步</div>
+                                </div>
+                                
+                                <!-- 手動同步按鈕 -->
+                                <button id="manualSyncBtn" onclick="manualSync()" style="
+                                    background: none;
+                                    border: 1px solid var(--info-color);
+                                    color: var(--info-color);
+                                    border-radius: 4px;
+                                    padding: 4px 8px;
+                                    font-size: 12px;
+                                    cursor: pointer;
+                                    transition: all 0.2s ease;
+                                " onmouseover="this.style.backgroundColor='var(--info-color)'; this.style.color='white';" 
+                                onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--info-color)';">
+                                    同步
+                                </button>
                             </div>
                         </div>
-                    </div>`;
+                    `;
                 }
             } else {
                 // 使用者未登入
@@ -8625,19 +8910,40 @@
                     
                     // 登入後自動同步資料
                     setTimeout(() => {
-                        syncLoanHistory();
-                        // 詢問是否要上傳本地資料
-                        const localHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-                        if (localHistory.length > 0) {
-                            if (confirm('偵測到本地有儲存的計算記錄，是否要上傳到雲端？')) {
-                                uploadLocalDataToCloud();
-                            }
+                        // 顯示同步開始提示
+                        showToast('正在同步您的資料...');
+                        
+                        // 執行自動同步
+                        autoSync();
+                        
+                        // 設定定期同步（每5分鐘）
+                        if (window.syncInterval) {
+                            clearInterval(window.syncInterval);
                         }
+                        window.syncInterval = setInterval(() => {
+                            if (window.currentUser && syncStatus.isOnline) {
+                                autoSync();
+                            }
+                        }, 300000); // 5分鐘 = 300000毫秒
                     }, 1000);
                 } else {
-                    // 清除本地儲存的使用者資訊
-                    localStorage.removeItem('userInfo');
+                // 清除本地儲存的使用者資訊
+                localStorage.removeItem('userInfo');
+                
+                // 清除同步定時器
+                if (window.syncInterval) {
+                    clearInterval(window.syncInterval);
+                    window.syncInterval = null;
                 }
+                
+                // 重置同步狀態
+                syncStatus = {
+                    isSyncing: false,
+                    lastSyncTime: null,
+                    pendingChanges: 0,
+                    isOnline: navigator.onLine
+                };
+            }
             });
 
             // 初始設定登入按鈕
