@@ -859,8 +859,8 @@
 
         /* 時間標籤樣式 */
         .time-label {
-            font-weight: bold;                     /* 粗體 */
-            margin-right: 10px;                    /* 右側邊距 */
+            font-weight: normal;                     /* 粗體 */
+            margin-right: 8px;                    /* 右側邊距 */
             color: var(--accent-color);            /* 使用強調色 */
         }
 
@@ -1679,7 +1679,7 @@
 
         /* 歷史記錄日期樣式 - 顯示記錄保存的日期 */
         .history-date {
-            font-weight: bold;                                  /* 文字粗細 */
+            font-weight: normal;                                  /* 文字粗細 */
             color: var(--accent-color);                         /* 強調色文字 */
             font-size: 14px;                                    /* 文字大小 */
             padding: 2px 0;                                     /* 上下內部間距 */
@@ -3799,7 +3799,7 @@
             bottom: 0;                                    /* 貼齊底部 */
             left: 0;                                      /* 貼齊左側 */
             right: 0;                                     /* 貼齊右側 */
-            background-color: var(--secondary-color);     /* 使用次要背景色 */
+            background-color: var(--primary-color);     /* 使用次要背景色 */
             border-top: 2px solid var(--accent-color);    /* 頂部邊框使用強調色 */
             padding: 6px 10px 8px 10px;                   /* 內部間距 */
             display: flex;                                /* 使用彈性布局 */
@@ -3821,7 +3821,7 @@
         .rate-footer-label {
             font-size: 16px;                              /* 文字大小 */
             color: var(--accent-color);                   /* 使用強調色 */
-            font-weight: bold;                            /* 粗體文字 */
+            font-weight: normal;                            /* 粗體文字 */
             white-space: nowrap;                          /* 防止換行 */
         }
 
@@ -3906,7 +3906,7 @@
     <div class="time-display-wrapper">
         <div id="timeDisplay" class="sticky-header">
             <div style="display: flex; justify-content: center; width: 100%;">
-                <span class="time-label">報價時間：</span>
+                <span class="time-label">報價時間</span>
                 <span id="currentTime"></span>
             </div>
         </div>
@@ -9037,7 +9037,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.51</div>
+            <div class="version-info">v3.52</div>
         </div>
     </div>
 
