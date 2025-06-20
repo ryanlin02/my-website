@@ -3789,6 +3789,81 @@
             background: var(--accent-color-dark);
         }
 
+        /* ============================================
+        * 底部固定利率顯示欄
+        * ============================================ */
+
+        /* 固定底部的利率顯示容器 */
+        .fixed-rate-footer {
+            position: fixed;                              /* 固定定位 */
+            bottom: 0;                                    /* 貼齊底部 */
+            left: 0;                                      /* 貼齊左側 */
+            right: 0;                                     /* 貼齊右側 */
+            background-color: var(--secondary-color);     /* 使用次要背景色 */
+            border-top: 2px solid var(--accent-color);    /* 頂部邊框使用強調色 */
+            padding: 5px 10px 10px 10px;                            /* 內部間距 */
+            display: flex;                                /* 使用彈性布局 */
+            align-items: center;                          /* 垂直居中 */
+            justify-content: center;                      /* 水平居中 */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);  /* 向上的陰影效果 */
+            z-index: 900;                                 /* 層級設定，低於彈出視窗 */
+            transition: all 0.3s ease;                    /* 平滑過渡效果 */
+        }
+
+        /* footer 中的利率顯示項目 */
+        .rate-display-item {
+            display: flex;                                /* 使用彈性布局 */
+            align-items: center;                          /* 垂直居中 */
+            gap: 4px;                                     /* 項目間距 */
+        }
+
+        /* footer 中的標題文字 */
+        .rate-footer-label {
+            font-size: 14px;                              /* 文字大小 */
+            color: var(--accent-color);                   /* 使用強調色 */
+            font-weight: bold;                            /* 粗體文字 */
+            white-space: nowrap;                          /* 防止換行 */
+        }
+
+        /* footer 中的利率輸入框 */
+        .rate-footer-input {
+            width: 55px;                                  /* 固定寬度 */
+            padding: 4px 6px;                             /* 內部間距 */
+            background-color: var(--input-bg);            /* 使用輸入框背景色 */
+            color: var(--text-color);                     /* 使用文字顏色 */
+            border: 1px solid var(--border-color);        /* 邊框 */
+            border-radius: 4px;                           /* 圓角 */
+            font-size: 14px;                              /* 文字大小 */
+            text-align: right;                            /* 文字右對齊 */
+            font-weight: normal;                            /* 粗體文字 */
+            cursor: default;                              /* 預設游標（不可編輯） */
+        }
+
+        /* footer 中的百分比符號 */
+        .rate-footer-percent {
+            font-size: 14px;                              /* 文字大小 */
+            color: var(--text-color);                     /* 使用文字顏色 */
+            margin-left: -11px;                             /* 左側間距 */
+        }
+
+        /* 兩個利率顯示之間的分隔器 */
+        .rate-footer-separator {
+            width: 25px;                                  /* 分隔器寬度 */
+            height: 1px;                                  /* 高度為1像素的線 */
+            background-color: var(--border-color);        /* 使用邊框顏色 */
+            margin: 0 15px;                               /* 左右間距 */
+        }
+
+        /* 當頁面有底部 footer 時，調整主要內容的底部間距 */
+        body.has-rate-footer {
+            padding-bottom: 60px;                         /* 為 footer 預留空間 */
+        }
+
+        /* 隱藏 footer 的樣式類別 */
+        .fixed-rate-footer.hidden {
+            display: none !important;                     /* 強制隱藏 */
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -3816,7 +3891,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 </head>
-<body>
+<body class="has-rate-footer">
 
 	<div class="header-container">
         <button id="menuBtn" class="header-btn header-btn-left" aria-label="選單">
@@ -4129,6 +4204,34 @@
     </div>
 
     <div class="footer-spacing"></div>
+
+    <!-- 固定底部利率顯示欄 -->
+    <div id="fixedRateFooter" class="fixed-rate-footer">
+        <!-- 佣後利率顯示 -->
+        <div class="rate-display-item">
+            <span class="rate-footer-label">佣後</span>
+            <input type="text" 
+                id="footerAfterCommissionOnlyRate" 
+                class="rate-footer-input" 
+                readonly 
+                disabled>
+            <span class="rate-footer-percent">%</span>
+        </div>
+        
+        <!-- 分隔器 -->
+        <div class="rate-footer-separator"></div>
+        
+        <!-- 稅佣後利率顯示 -->
+        <div class="rate-display-item">
+            <span class="rate-footer-label">稅佣後</span>
+            <input type="text" 
+                id="footerAfterCommissionRate" 
+                class="rate-footer-input" 
+                readonly 
+                disabled>
+            <span class="rate-footer-percent">%</span>
+        </div>
+    </div>
 
 <script>
 
@@ -4857,6 +4960,37 @@
                 animateValueChange(field);
             }
         });
+
+        // 更新底部 footer 的利率顯示
+        const footerAfterCommissionOnlyRate = document.getElementById('footerAfterCommissionOnlyRate');
+        const footerAfterCommissionRate = document.getElementById('footerAfterCommissionRate');
+        
+        if (footerAfterCommissionOnlyRate) {
+            // 從佣後利率輸入框取得值
+            const afterCommissionOnlyValue = document.getElementById('afterCommissionOnlyRate').value;
+            footerAfterCommissionOnlyRate.value = afterCommissionOnlyValue;
+            
+            // 如果有警告樣式，也套用到 footer
+            if (document.getElementById('afterCommissionOnlyRate').classList.contains('warning-text')) {
+                footerAfterCommissionOnlyRate.classList.add('warning-text');
+            } else {
+                footerAfterCommissionOnlyRate.classList.remove('warning-text');
+            }
+        }
+        
+        if (footerAfterCommissionRate) {
+            // 從稅佣後利率輸入框取得值
+            const afterCommissionValue = document.getElementById('afterCommissionRate').value;
+            footerAfterCommissionRate.value = afterCommissionValue;
+            
+            // 如果有警告樣式，也套用到 footer
+            if (document.getElementById('afterCommissionRate').classList.contains('warning-text')) {
+                footerAfterCommissionRate.classList.add('warning-text');
+            } else {
+                footerAfterCommissionRate.classList.remove('warning-text');
+            }
+        }
+
     }
 
     // 在 clearField 函數之前添加這個新函數
@@ -6956,7 +7090,14 @@
         fieldsToReset.forEach(fieldId => {
             const element = document.getElementById(fieldId);
             if (element) {  // 檢查元素是否存在，避免錯誤
-                element.value = '';
+                // 檢查是否為特殊的 div 元素（中文大寫欄位）
+                if (fieldId === 'chineseAmount' || fieldId === 'totalPaymentChinese') {
+                    // 對於 div 元素，使用 innerHTML 來清空內容
+                    element.innerHTML = '';
+                } else {
+                    // 對於一般 input 元素，使用 value 來清空
+                    element.value = '';
+                }
                 // 移除任何警告樣式
                 element.classList.remove('warning-text');
             }
@@ -6964,6 +7105,21 @@
         
         // 顯示提示訊息
         showToast('已清空所有欄位');
+
+        // 清空 footer 顯示
+        const footerAfterCommissionOnlyRate = document.getElementById('footerAfterCommissionOnlyRate');
+        const footerAfterCommissionRate = document.getElementById('footerAfterCommissionRate');
+        
+        if (footerAfterCommissionOnlyRate) {
+            footerAfterCommissionOnlyRate.value = '';
+            footerAfterCommissionOnlyRate.classList.remove('warning-text');
+        }
+        
+        if (footerAfterCommissionRate) {
+            footerAfterCommissionRate.value = '';
+            footerAfterCommissionRate.classList.remove('warning-text');
+        }
+
     }
 
     // 全局變量
@@ -8883,7 +9039,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.47</div>
+            <div class="version-info">v3.50</div>
         </div>
     </div>
 
