@@ -4233,11 +4233,53 @@
 
 <script>
 
-    
-
     window.onload = function() {
-        // 僅初始化時間顯示
+        // 初始化時間顯示
         updateTime();
+        
+        // ========== 自動恢復上次的計算數據 ==========
+        // 說明：頁面載入時，檢查是否有自動保存的數據，如果有就恢復
+        try {
+            // 從本地儲存讀取自動保存的數據
+            const savedDataStr = localStorage.getItem('loanCalculatorAutoSave');
+            
+            if (savedDataStr) {
+                // 解析保存的數據
+                const savedData = JSON.parse(savedDataStr);
+                
+                // 檢查數據是否是最近24小時內的（避免恢復太舊的數據）
+                const savedTime = new Date(savedData.timestamp);
+                const now = new Date();
+                const hoursDiff = (now - savedTime) / (1000 * 60 * 60); // 轉換為小時
+                
+                // 如果數據是24小時內的，則恢復
+                if (hoursDiff < 24) {
+                    // 恢復各個欄位的值
+                    if (savedData.period) document.getElementById('period').value = savedData.period;
+                    if (savedData.rate) document.getElementById('rate').value = savedData.rate;
+                    if (savedData.principal) document.getElementById('principal').value = savedData.principal;
+                    if (savedData.payment) document.getElementById('payment').value = savedData.payment;
+                    if (savedData.commission) document.getElementById('commission').value = savedData.commission;
+                    if (savedData.monthlyCost) document.getElementById('monthlyCost').value = savedData.monthlyCost;
+                    
+                    // 更新所有相關計算
+                    updateAllFields();
+                    
+                    // 顯示恢復成功的提示
+                    showToast('已恢復上次的計算數據');
+                    
+                    console.log('成功恢復自動保存的數據:', savedData);
+                } else {
+                    // 如果數據太舊，清除它
+                    localStorage.removeItem('loanCalculatorAutoSave');
+                    console.log('自動保存的數據已過期，已清除');
+                }
+            }
+        } catch (error) {
+            // 如果恢復失敗，記錄錯誤但不影響正常功能
+            console.error('恢復自動保存數據失敗:', error);
+        }
+        // ========== 自動恢復結束 ==========
     }
 
     // 獲取裝置類型
@@ -4357,6 +4399,127 @@
     // 每秒更新一次時間
     setInterval(updateTime, 1000);
     updateTime(); // 初始化顯示
+
+    // ========== 頁面可見性檢測 ==========
+    // 說明：當使用者切換到其他應用或標籤頁時，自動保存數據
+    // 當使用者回到頁面時，檢查並提示是否有新版本
+    
+    // 添加頁面可見性變化的監聽器
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            // ===== 頁面被隱藏時（切換到其他應用） =====
+            console.log('頁面已隱藏，執行自動保存...');
+            
+            // 執行一次完整的欄位更新，這會觸發自動保存
+            updateAllFields();
+            
+            // 記錄頁面隱藏的時間
+            localStorage.setItem('pageHiddenTime', new Date().toISOString());
+            
+        } else {
+            // ===== 頁面重新顯示時（回到應用） =====
+            console.log('頁面已顯示');
+            
+            // 檢查頁面隱藏了多久
+            const hiddenTime = localStorage.getItem('pageHiddenTime');
+            if (hiddenTime) {
+                const hiddenDuration = new Date() - new Date(hiddenTime);
+                const minutesHidden = Math.floor(hiddenDuration / 60000);
+                
+                // 如果頁面隱藏超過5分鐘，重新載入資料以確保資料是最新的
+                if (minutesHidden >= 5) {
+                    console.log(`頁面已隱藏 ${minutesHidden} 分鐘，檢查資料狀態...`);
+                    
+                    // 檢查是否有自動保存的資料
+                    const savedData = localStorage.getItem('loanCalculatorAutoSave');
+                    if (savedData) {
+                        showToast('歡迎回來！您的計算資料已保存');
+                    }
+                }
+                
+                // 清除隱藏時間記錄
+                localStorage.removeItem('pageHiddenTime');
+            }
+        }
+    });
+    
+    // 監聽頁面即將關閉或重新整理的事件
+    window.addEventListener('beforeunload', function(event) {
+        // 在頁面即將關閉前，執行最後一次保存
+        updateAllFields();
+        console.log('頁面即將關閉，已執行自動保存');
+        
+        // 如果有未保存的重要資料，可以提示使用者
+        const hasUnsavedData = document.getElementById('period').value || 
+                              document.getElementById('rate').value || 
+                              document.getElementById('principal').value || 
+                              document.getElementById('payment').value;
+        
+        if (hasUnsavedData) {
+            // 註：現代瀏覽器會顯示標準的離開提示，而不是自定義訊息
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
+    // ========== 頁面可見性檢測結束 ==========
+
+    // ========== Service Worker 更新提示 ==========
+    // 說明：當有新版本時，提示使用者是否要更新
+    
+    if ('serviceWorker' in navigator) {
+        // 監聽 Service Worker 的更新
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+            // 如果控制器改變，表示有新的 Service Worker 接管了
+            console.log('Service Worker 已更新');
+            
+            // 提示使用者頁面已更新
+            if (!document.hidden) {
+                // 只有在頁面可見時才提示
+                showToast('網頁已更新到最新版本');
+            }
+        });
+        
+        // 定期檢查 Service Worker 更新（每30分鐘檢查一次）
+        setInterval(function() {
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'CHECK_UPDATE'
+                });
+            }
+        }, 1800000); // 30分鐘 = 1800000 毫秒
+        
+        // 監聽來自 Service Worker 的消息
+        navigator.serviceWorker.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'SERVICE_WORKER_UPDATED') {
+                // 有新版本可用，詢問使用者是否要更新
+                console.log('檢測到新版本');
+                
+                // 使用您現有的確認對話框功能
+                showConfirmModal(
+                    '發現新版本',
+                    '網頁有新版本可用，是否要立即更新？<br><br>更新後您的計算資料會自動恢復。',
+                    function() {
+                        // 使用者確認更新
+                        if (navigator.serviceWorker.controller) {
+                            // 先保存當前資料
+                            updateAllFields();
+                            
+                            // 通知 Service Worker 可以更新
+                            navigator.serviceWorker.controller.postMessage({
+                                type: 'SKIP_WAITING'
+                            });
+                            
+                            // 稍後重新載入頁面
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 100);
+                        }
+                    }
+                );
+            }
+        });
+    }
+    // ========== Service Worker 更新提示結束 ==========
 
     // 原始的JavaScript函數保持不變
     function PMT(rate, nper, pv) {
@@ -4988,6 +5151,36 @@
                 footerAfterCommissionRate.classList.remove('warning-text');
             }
         }
+
+        // ========== 自動保存當前計算數據 ==========
+        // 說明：每次欄位更新時，自動將當前的計算數據保存到瀏覽器的本地儲存
+        // 這樣即使頁面意外重新整理，數據也不會丟失
+        try {
+            // 收集需要保存的數據
+            const autoSaveData = {
+                period: document.getElementById('period').value,                    // 期數
+                rate: document.getElementById('rate').value,                        // 稅前利率
+                principal: document.getElementById('principal').value,              // 本金
+                payment: document.getElementById('payment').value,                  // 期繳
+                commission: document.getElementById('commission').value,            // 推廣費
+                monthlyCost: document.getElementById('monthlyCost').value,          // 本月資金成本
+                timestamp: new Date().toISOString(),                                // 保存時間戳記
+                version: 'v1'                                                       // 版本號，方便未來升級
+            };
+            
+            // 只有在有實際數據時才保存（避免保存空白數據）
+            if (autoSaveData.period || autoSaveData.rate || autoSaveData.principal || autoSaveData.payment) {
+                // 將數據保存到瀏覽器的本地儲存
+                localStorage.setItem('loanCalculatorAutoSave', JSON.stringify(autoSaveData));
+                
+                // 在控制台記錄（方便除錯）
+                console.log('自動保存計算數據:', autoSaveData);
+            }
+        } catch (error) {
+            // 如果保存失敗，記錄錯誤但不影響正常功能
+            console.error('自動保存失敗:', error);
+        }
+        // ========== 自動保存結束 ==========
 
     }
 
@@ -7118,6 +7311,10 @@
             footerAfterCommissionRate.classList.remove('warning-text');
         }
 
+        // 清除自動保存的數據
+        localStorage.removeItem('loanCalculatorAutoSave');
+        console.log('已清除自動保存的數據');
+
     }
 
     // 全局變量
@@ -9037,7 +9234,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.54</div>
+            <div class="version-info">v3.55</div>
         </div>
     </div>
 
