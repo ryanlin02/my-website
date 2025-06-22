@@ -15,30 +15,26 @@ self.addEventListener('install', (event) => {
       .then((cache) => {
         return cache.addAll(filesToCache);
       })
-      .then(() => {
-        // 強制讓新的 service worker 立即取得控制權
-        return self.skipWaiting();
-      })
+      // 移除自動 skipWaiting，改為手動控制更新時機
+      // 這樣可以避免使用者在操作時突然被更新打斷
   );
 });
 
 // 啟動時清理舊快取
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    Promise.all([
-      // 清理舊版本的快取
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }),
-      // 確保新的 service worker 立即取得控制權
-      self.clients.claim()
-    ])
+    // 清理舊版本的快取
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+    // 移除 self.clients.claim()，讓新的 Service Worker 等到所有頁面關閉後才接管
+    // 這樣可以避免使用者在操作時被打斷
   );
 });
 
@@ -110,3 +106,29 @@ self.addEventListener('appinstalled', (event) => {
   // 當 PWA 被安裝時，在 service worker 中記錄
   console.log('PWA 應用已被使用者安裝');
 });
+
+// ========== 新增：智慧更新機制 ==========
+// 說明：只有在使用者同意或頁面閒置時才更新
+
+// 監聽來自頁面的更新請求
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    // 當使用者同意更新時，才執行 skipWaiting
+    self.skipWaiting();
+  }
+});
+
+// 通知所有客戶端有新版本可用
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    self.clients.matchAll().then(function(clients) {
+      clients.forEach(function(client) {
+        // 通知頁面有新版本已準備好
+        client.postMessage({
+          type: 'SERVICE_WORKER_UPDATED'
+        });
+      });
+    })
+  );
+});
+// ========== 智慧更新機制結束 ==========
