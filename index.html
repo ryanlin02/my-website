@@ -1927,6 +1927,12 @@
             background-color: var(--secondary-color);        /* 次要背景色 */
         }
 
+        /* 貸款比較頁面的特殊標題樣式 */
+        #multiLoanComparisonModal .modal-header {
+            min-height: 56px; /* 確保有足夠高度容納按鈕 */
+            padding: 12px 15px; /* 調整內距 */
+        }
+
         /* 模態框標題樣式 - 頂部標題文字 */
         .modal-header h3 {
             margin: 0;                                       /* 移除外部間距 */
@@ -3738,24 +3744,32 @@
         }
 
         .select-loan-btn {
-            position: absolute;
-            top: 50%;
-            right: 16px;
-            transform: translateY(-50%);
+            /* 移除絕對定位，改為直接顯示在卡片底部 */
+            /* position: absolute; -- 移除此行 */
+            /* top: 50%; -- 移除此行 */
+            /* right: 16px; -- 移除此行 */
+            /* transform: translateY(-50%); -- 移除此行 */
+            
+            /* 按鈕基本樣式 */
             background: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-size: 14px;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            opacity: 0;
+            
+            /* 按鈕顯示在卡片底部 */
+            margin-top: 12px;
+            width: 100%;
+            display: none; /* 預設隱藏 */
         }
 
+        /* 當滑鼠懸停在卡片上時顯示按鈕 */
         .loan-card:hover .select-loan-btn {
-            opacity: 1;
+            display: block; /* 改為顯示按鈕 */
         }
 
         .select-loan-btn:hover {
@@ -6227,28 +6241,73 @@
                 onmouseout="this.style.backgroundColor='transparent';">×</button>
             </div>
             
-            <!-- 當前計算卡片 -->
+            <!-- 當前計算卡片 - 重新設計以顯示更多資訊 -->
             <div class="current-loan-card">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
                     <span style="font-size: 20px;">📊</span>
                     <span style="font-size: 16px; font-weight: 500;">目前計算結果</span>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                    <div>
-                        <div style="font-size: 12px; opacity: 0.8;">本金</div>
-                        <div style="font-size: 18px; font-weight: bold;">${formatNumberWithCommas(currentLoan.principal)}</div>
+                <!-- 使用3列網格佈局，優化手機顯示空間 -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <!-- 本金 -->
+                    <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">本金</div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff;">${formatNumberWithCommas(currentLoan.principal)}</div>
                     </div>
-                    <div>
-                        <div style="font-size: 12px; opacity: 0.8;">期數</div>
-                        <div style="font-size: 18px; font-weight: bold;">${currentLoan.period} 期</div>
+                    <!-- 期數 -->
+                    <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">期數</div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff;">${currentLoan.period} 期</div>
                     </div>
-                    <div>
-                        <div style="font-size: 12px; opacity: 0.8;">稅前利率</div>
-                        <div style="font-size: 18px; font-weight: bold;">${currentLoan.rate}%</div>
+                    <!-- 稅前利率 -->
+                    <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">稅前利率</div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff;">${currentLoan.rate}%</div>
                     </div>
-                    <div>
-                        <div style="font-size: 12px; opacity: 0.8;">期繳</div>
-                        <div style="font-size: 18px; font-weight: bold;">${formatNumberWithCommas(currentLoan.payment)}</div>
+                    <!-- 期繳 -->
+                    <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">期繳</div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff;">${formatNumberWithCommas(currentLoan.payment)}</div>
+                    </div>
+                    <!-- 推廣 - 新增欄位 -->
+                    <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">推廣</div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff;">${formatNumberWithCommas(currentLoan.commission)}</div>
+                    </div>
+                    <!-- 稅佣後利率 - 使用標準樣式，確保文字清晰可讀 -->
+                    <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="font-size: 11px; opacity: 0.7; margin-bottom: 2px;">稅佣後利率</div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff;">${currentLoan.afterCommissionRate}%</div>
                     </div>
                 </div>
             </div>
@@ -6256,7 +6315,8 @@
         
         <!-- 可滾動的歷史記錄區域 -->
         <div class="history-scroll-container">
-            <div style="margin-bottom: 12px; color: var(--text-muted); font-size: 14px;">
+            <!-- 調整頂部間距，避免被上方欄位遮擋 -->
+            <div style="margin-top: 20px; margin-bottom: 16px; color: var(--text-muted); font-size: 14px;">
                 請選擇要比較的歷史方案：
             </div>
             
@@ -6269,40 +6329,103 @@
                                 <span style="font-size: 16px;">📅</span>
                                 <span>${formatDate(loan.date)}</span>
                             </div>
-                            <div class="loan-card-rate">${loan.afterCommissionRate}%</div>
+                            <!-- 改為顯示簡潔的方案標識 -->
+                            <div class="loan-card-rate" style="
+                                background: var(--secondary-color);
+                                color: var(--text-color);
+                                border: 1px solid var(--accent-color);
+                            ">方案 ${index + 1}</div>
                         </div>
                         
-                        <div class="loan-card-details">
-                            <div class="loan-detail-item">
-                                <span class="loan-detail-label">本金</span>
-                                <span class="loan-detail-value">${formatNumberWithCommas(loan.principal)}</span>
+                        <!-- 重新設計歷史卡片詳情，與目前計算結果保持一致 -->
+                        <div style="
+                            display: grid; 
+                            grid-template-columns: repeat(3, 1fr); 
+                            gap: 8px;
+                            margin-top: 12px;
+                        ">
+                            <!-- 本金 -->
+                            <div style="
+                                background: rgba(255, 255, 255, 0.05);
+                                padding: 6px;
+                                border-radius: 4px;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px;">本金</div>
+                                <div style="font-size: 13px; font-weight: 600;">${formatNumberWithCommas(loan.principal)}</div>
                             </div>
-                            <div class="loan-detail-item">
-                                <span class="loan-detail-label">期數</span>
-                                <span class="loan-detail-value">${loan.period} 期</span>
+                            <!-- 期數 -->
+                            <div style="
+                                background: rgba(255, 255, 255, 0.05);
+                                padding: 6px;
+                                border-radius: 4px;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px;">期數</div>
+                                <div style="font-size: 13px; font-weight: 600;">${loan.period} 期</div>
                             </div>
-                            <div class="loan-detail-item">
-                                <span class="loan-detail-label">期繳</span>
-                                <span class="loan-detail-value">${formatNumberWithCommas(loan.payment)}</span>
+                            <!-- 稅前利率 -->
+                            <div style="
+                                background: rgba(255, 255, 255, 0.05);
+                                padding: 6px;
+                                border-radius: 4px;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px;">稅前利率</div>
+                                <div style="font-size: 13px; font-weight: 600;">${loan.rate}%</div>
                             </div>
-                            <div class="loan-detail-item">
-                                <span class="loan-detail-label">總利息</span>
-                                <span class="loan-detail-value">${formatNumberWithCommas(loan.totalInterest)}</span>
+                            <!-- 期繳 -->
+                            <div style="
+                                background: rgba(255, 255, 255, 0.05);
+                                padding: 6px;
+                                border-radius: 4px;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px;">期繳</div>
+                                <div style="font-size: 13px; font-weight: 600;">${formatNumberWithCommas(loan.payment)}</div>
+                            </div>
+                            <!-- 推廣 -->
+                            <div style="
+                                background: rgba(255, 255, 255, 0.05);
+                                padding: 6px;
+                                border-radius: 4px;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px;">推廣</div>
+                                <div style="font-size: 13px; font-weight: 600;">${formatNumberWithCommas(loan.commission)}</div>
+                            </div>
+                            <!-- 稅佣後利率 - 使用標準樣式 -->
+                            <div style="
+                                background: rgba(255, 255, 255, 0.05);
+                                padding: 6px;
+                                border-radius: 4px;
+                                text-align: center;
+                            ">
+                                <div style="font-size: 10px; opacity: 0.7; margin-bottom: 2px;">稅佣後利率</div>
+                                <div style="font-size: 13px; font-weight: 600;">${loan.afterCommissionRate}%</div>
                             </div>
                         </div>
                         
                         ${loan.note ? `
+                        <!-- 備註區域 - 改善文字可讀性 -->
+                        <div style="
+                            margin-top: 10px;
+                            padding: 10px;
+                            background: rgba(255, 255, 255, 0.08);
+                            border-radius: 6px;
+                            border-left: 3px solid var(--accent-color);
+                        ">
                             <div style="
-                                margin-top: 8px;
-                                padding-top: 8px;
-                                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                                font-size: 13px;
-                                color: var(--text-muted);
-                                font-style: italic;
+                                font-size: 14px;
+                                color: var(--text-color);
+                                font-style: normal;
+                                line-height: 1.4;
+                                opacity: 0.9;
                             ">
                                 📝 ${loan.note}
                             </div>
-                        ` : ''}
+                        </div>
+                    ` : ''}
                         
                         <button class="select-loan-btn">選擇此方案</button>
                     </div>
@@ -6440,9 +6563,26 @@
                     <td>總還款</td>
                     ${loans.map(loan => {
                         const totalPayment = parseFloat(loan.payment) * parseFloat(loan.period);
-                        return `<td>${formatNumberWithCommas(totalPayment.toFixed(2))}</td>`;
+                        /* 修改為只顯示整數，不顯示小數 */
+                        return `<td>${formatNumberWithCommas(Math.round(totalPayment))}</td>`;
                     }).join('')}
                 </tr>
+
+                <!-- 新增備註比較欄位 -->
+                <tr>
+                    <td style="vertical-align: top;">備註</td>
+                    ${loans.map(loan => {
+                        /* 顯示備註內容，如果沒有備註則顯示"無" */
+                        const noteContent = loan.note || '無';
+                        return `<td style="
+                            font-size: 13px;
+                            line-height: 1.4;
+                            padding: 10px;
+                            vertical-align: top;
+                        ">${noteContent}</td>`;
+                    }).join('')}
+                </tr>
+
             </table>
         </div>
         
@@ -6461,8 +6601,35 @@
         
         // 創建模態框
         const modalHTML = `
-        <div class="modal-header">
-            <h3>貸款方案比較</h3>
+        <!-- 貸款方案比較頁面標題區域 - 新增回上頁按鈕 -->
+        <div class="modal-header" style="position: relative;">
+            <!-- 左側：回上頁按鈕 -->
+            <button onclick="backToLoanSelection()" style="
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: var(--text-color);
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            " onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.2)'; this.style.borderColor='var(--accent-color)';" 
+            onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.2)';">
+                <span style="font-size: 16px;">←</span>
+                <span>回上頁</span>
+            </button>
+            
+            <!-- 中間：標題 -->
+            <h3 style="margin: 0; flex: 1; text-align: center;">貸款方案比較</h3>
+            
+            <!-- 右側：關閉按鈕 -->
             <button class="close-btn" onclick="closeCustomModal('multiLoanComparisonModal')">×</button>
         </div>
         <div class="modal-content" style="padding: 10px; flex: 1; overflow-y: auto; background-color: var(--primary-color);">
@@ -6520,58 +6687,101 @@
                 padding: 10px 0;
             }
             
+            /* 比較表格樣式 - 與整體設計風格統一 */
             .comparison-table {
                 width: 100%;
-                border-collapse: collapse;
+                border-collapse: separate;
+                border-spacing: 0;
                 font-size: 14px;
+                background: var(--secondary-color);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px var(--shadow-color);
             }
-            
+
+            /* 表格標題和單元格樣式 */
             .comparison-table th, 
             .comparison-table td {
-                padding: 8px;
+                padding: 12px 10px;
                 text-align: center;
-                border-bottom: 1px solid var(--border-color);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
-            
+
+            /* 表格標題樣式 - 深色背景 */
             .comparison-table th {
-                background-color: var(--secondary-color);
+                background: linear-gradient(135deg, 
+                    rgba(var(--accent-color-rgb), 0.2) 0%, 
+                    rgba(var(--accent-color-rgb), 0.1) 100%);
+                color: var(--text-color);
+                font-weight: 600;
                 position: sticky;
                 top: 0;
                 z-index: 10;
+                font-size: 15px;
             }
-            
+
+            /* 第一列（項目名稱）特殊樣式 */
             .comparison-table td:first-child {
                 text-align: left;
-                font-weight: bold;
+                font-weight: 600;
                 color: var(--accent-color);
+                background: rgba(255, 255, 255, 0.03);
+                padding-left: 15px;
             }
-            
-            .comparison-table tr:hover {
-                background-color: var(--hover-color);
+
+            /* 表格列懸停效果 */
+            .comparison-table tr:hover td {
+                background-color: rgba(255, 255, 255, 0.05);
+                transition: background-color 0.2s ease;
             }
-            
-            .highlight-row {
-                background-color: var(--accent-color-light);
+
+            /* 強調列樣式 - 用於重要數據 */
+            .highlight-row td {
+                background-color: rgba(var(--accent-color-rgb), 0.08);
+                font-weight: 600;
+            }
+
+            /* 最後一列無底部邊框 */
+            .comparison-table tr:last-child td {
+                border-bottom: none;
             }
     
+            /* 分析報告容器樣式 */
             .comparison-report {
-                padding: 10px;
+                padding: 15px;
+                background: var(--secondary-color);
+                border-radius: 12px;
+                margin-top: 10px;
             }
-            
+
+            /* 報告項目樣式 */
             .report-item {
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 1px dashed var(--border-color);
+                margin-bottom: 16px;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                border-left: 3px solid var(--accent-color);
             }
-            
+
+            /* 報告標題樣式 */
             .report-title {
-                font-weight: bold;
+                font-weight: 600;
                 color: var(--accent-color);
-                margin-bottom: 5px;
+                margin-bottom: 8px;
+                font-size: 15px;
             }
-            
+
+            /* 報告內容樣式 */
             .report-content {
-                line-height: 1.5;
+                line-height: 1.6;
+                color: var(--text-color);
+                opacity: 0.9;
+                font-size: 14px;
+            }
+
+            /* 最後一個報告項目無底部間距 */
+            .report-item:last-child {
+                margin-bottom: 0;
             }
         `;
         document.head.appendChild(style);
@@ -7839,6 +8049,32 @@
             document.body.removeChild(modal);
         }
         vibrate();
+    }
+
+    // 從貸款方案比較頁面返回選擇比較方案頁面
+    function backToLoanSelection() {
+        // 觸發震動反饋
+        vibrate();
+        
+        // 關閉當前的比較頁面
+        closeCustomModal('multiLoanComparisonModal');
+        
+        // 延遲一點時間後重新開啟選擇頁面，確保動畫流暢
+        setTimeout(() => {
+            // 獲取當前貸款數據（之前已經保存在 localStorage 中）
+            const currentLoan = JSON.parse(localStorage.getItem('currentLoanForComparison'));
+            
+            // 獲取歷史記錄
+            const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+            
+            // 重新顯示選擇貸款的模態框
+            if (currentLoan && loanHistory.length > 0) {
+                showLoanSelectionModal(currentLoan, loanHistory);
+            } else {
+                // 如果沒有數據，顯示提示
+                showToast('無法返回選擇頁面，請重新操作');
+            }
+        }, 300); // 300毫秒的延遲，確保關閉動畫完成
     }
 
     // 关闭子选单
@@ -9234,7 +9470,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.55</div>
+            <div class="version-info">v3.59</div>
         </div>
     </div>
 
