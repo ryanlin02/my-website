@@ -3878,6 +3878,26 @@
             display: none !important;                     /* 強制隱藏 */
         }
 
+        /* 加油卡計算器 iframe 響應式樣式 */
+        @media screen and (max-height: 700px) {
+            /* 在較矮的手機螢幕上減少 iframe 高度 */
+            #gasPriceIframe {
+                height: 300px !important;
+            }
+        }
+
+        @media screen and (min-height: 800px) {
+            /* 在較高的手機螢幕上增加 iframe 高度 */
+            #gasPriceIframe {
+                height: 500px !important;
+            }
+        }
+
+        /* iframe 載入動畫 */
+        #gasIframeLoader {
+            animation: pulse 1.5s infinite;
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -8340,6 +8360,80 @@
                         <button onclick="clearGasCalculation()" class="main-action-btn">清除</button>
                     </div>
                 </div>
+
+                <!-- 即時油價資訊框架 -->
+                <div style="
+                    margin-top: 15px;
+                    padding: 10px;
+                    background: var(--secondary-color);
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px var(--shadow-color);
+                ">
+                    <!-- 框架標題 -->
+                    <div style="
+                        text-align: center;
+                        color: var(--accent-color);
+                        font-size: 16px;
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                        padding-bottom: 8px;
+                        border-bottom: 1px solid var(--border-color);
+                    ">
+                        📊 即時油價資訊
+                    </div>
+                    
+                    <!-- iframe 容器 -->
+                    <div style="
+                        position: relative;
+                        width: 100%;
+                        height: 400px;
+                        border-radius: 6px;
+                        overflow: hidden;
+                        border: 1px solid var(--border-color);
+                        background-color: #ffffff;
+                    ">
+                        <!-- 載入提示 -->
+                        <div id="gasIframeLoader" style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            color: var(--text-muted);
+                            font-size: 14px;
+                            text-align: center;
+                            z-index: 1;
+                        ">
+                            <div style="margin-bottom: 10px;">⏳ 正在載入油價資訊...</div>
+                            <div style="font-size: 12px; opacity: 0.7;">請稍候</div>
+                        </div>
+                        
+                        <!-- 油價資訊 iframe -->
+                        <iframe 
+                            id="gasPriceIframe"
+                            src="https://m.gas.goodlife.tw/" 
+                            style="
+                                width: 100%;
+                                height: 100%;
+                                border: none;
+                                background-color: #ffffff;
+                            "
+                            onload="document.getElementById('gasIframeLoader').style.display='none';"
+                            onerror="handleIframeError()"
+                            title="即時油價資訊"
+                            sandbox="allow-scripts allow-same-origin"
+                        ></iframe>
+                    </div>
+                    
+                    <!-- 提示文字 -->
+                    <div style="
+                        margin-top: 8px;
+                        font-size: 12px;
+                        color: var(--text-muted);
+                        text-align: center;
+                    ">
+                        資料來源：gas.goodlife.tw
+                    </div>
+                </div>
             </div>
             
             <!-- 加油卡計算機彈出視窗 -->
@@ -8696,6 +8790,26 @@
         });
         
         gasLastModifiedField = '';
+    }
+
+    // 處理 iframe 載入錯誤
+    function handleIframeError() {
+        // 取得載入提示元素
+        const loader = document.getElementById('gasIframeLoader');
+        if (loader) {
+            // 顯示錯誤訊息
+            loader.innerHTML = `
+                <div style="color: var(--error-color);">
+                    <div style="font-size: 24px; margin-bottom: 10px;">⚠️</div>
+                    <div style="margin-bottom: 8px;">無法載入油價資訊</div>
+                    <div style="font-size: 12px; opacity: 0.8;">請檢查網路連線</div>
+                </div>
+            `;
+            loader.style.display = 'block';
+        }
+        
+        // 顯示錯誤提示
+        showToast('無法載入即時油價資訊', true);
     }
 
     // 添加千分位符號（加油卡專用）
@@ -9470,7 +9584,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.59</div>
+            <div class="version-info">v3.60</div>
         </div>
     </div>
 
