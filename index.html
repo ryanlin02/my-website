@@ -7921,87 +7921,377 @@
         return count;
     }
 
-    // 期数方案对比
+    // 期數方案對比功能
     function showPaymentComparison() {
-        // 不需要關閉進階選單了，因為已經移除
-        
-        // 获取当前的利率和本金
+        // 獲取當前的計算數據
         const rate = parseFloat(document.getElementById('rate').value);
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
+        const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
+        const afterCommissionRate = document.getElementById('afterCommissionRate').value;
         
-        // 检查是否有足够的数据
+        // 檢查是否有足夠的數據
         if (isNaN(rate) || isNaN(principal) || rate <= 0 || principal <= 0) {
             showToast('請先輸入有效的利率和本金', true);
             return;
         }
         
-        // 生成不同期数的还款方案
-        const periods = [12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 120]; // 常见期数选项
+        // 生成不同期數的還款方案
+        const periods = [12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 120]; // 常見期數選項
         const plans = [];
         
-        // 移除 interestRatio 相关计算
+        // 計算每個期數方案的詳細數據
         for (const period of periods) {
             const payment = PMT(rate, period, principal);
             const totalPayment = payment * period;
             const totalInterest = totalPayment - principal;
             
+            // 計算稅金（總利息 / 21）
+            const tax = totalInterest / 21;
+            
+            // 計算稅佣後利率
+            const afterTaxCommissionRate = RATE(period, payment, principal + tax + commission);
+            
             plans.push({
                 period: period,
                 payment: payment,
                 totalPayment: totalPayment,
-                totalInterest: totalInterest
+                totalInterest: totalInterest,
+                monthlyInterest: totalInterest / period, // 每月利息
+                afterTaxCommissionRate: afterTaxCommissionRate
             });
         }
         
-        // 创建表格HTML
+        // 創建現代化的表格 HTML
         let tableHTML = `
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <tr style="background-color: var(--secondary-color);">
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期數</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">期繳</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總還款</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">總利息</th>
-                <th style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">操作</th>
-            </tr>
+        <!-- 方案對比主容器 -->
+        <div style="
+            background: var(--primary-color);
+            padding: 15px;
+            border-radius: 12px;
+        ">
+            <!-- 當前條件卡片 - 改進的設計 -->
+            <div style="
+                background: linear-gradient(135deg, var(--secondary-color) 0%, rgba(var(--secondary-color-rgb), 0.8) 100%);
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 12px var(--shadow-color);
+                border: 1px solid rgba(var(--accent-color-rgb), 0.3);
+            ">
+                <!-- 標題區 -->
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 12px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.2);
+                ">
+                    <span style="font-size: 18px; margin-right: 8px;">📊</span>
+                    <h4 style="
+                        margin: 0;
+                        color: var(--accent-color);
+                        font-size: 16px;
+                        font-weight: 600;
+                    ">計算條件</h4>
+                </div>
+                
+                <!-- 條件數據網格 - 使用2x2佈局 -->
+                <div style="
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 12px;
+                ">
+                    <!-- 本金 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.3);
+                        padding: 10px;
+                        border-radius: 8px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 12px;
+                            color: var(--text-muted);
+                            margin-bottom: 4px;
+                        ">本金</div>
+                        <div style="
+                            font-size: 16px;
+                            font-weight: bold;
+                            color: var(--text-color);
+                        ">${formatNumberWithCommas(principal)}</div>
+                    </div>
+                    
+                    <!-- 利率 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.3);
+                        padding: 10px;
+                        border-radius: 8px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 12px;
+                            color: var(--text-muted);
+                            margin-bottom: 4px;
+                        ">稅前利率</div>
+                        <div style="
+                            font-size: 16px;
+                            font-weight: bold;
+                            color: var(--text-color);
+                        ">${rate}%</div>
+                    </div>
+                    
+                    <!-- 推廣 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.3);
+                        padding: 10px;
+                        border-radius: 8px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 12px;
+                            color: var(--text-muted);
+                            margin-bottom: 4px;
+                        ">推廣</div>
+                        <div style="
+                            font-size: 16px;
+                            font-weight: bold;
+                            color: var(--text-color);
+                        ">${formatNumberWithCommas(commission)}</div>
+                    </div>
+                    
+                    <!-- 稅佣後利率 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.3);
+                        padding: 10px;
+                        border-radius: 8px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 12px;
+                            color: var(--text-muted);
+                            margin-bottom: 4px;
+                        ">稅佣後利率</div>
+                        <div style="
+                            font-size: 16px;
+                            font-weight: bold;
+                            color: var(--accent-color);
+                        ">${afterCommissionRate || '計算中...'}%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 說明文字 -->
+            <div style="
+                text-align: center;
+                color: var(--text-muted);
+                font-size: 14px;
+                margin-bottom: 15px;
+            ">
+                以下是不同期數的還款方案對比
+            </div>
+            
+            <!-- 方案列表容器 -->
+            <div style="
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            ">
         `;
         
-        // 移除「利息比例」列的数据
+        // 為每個方案創建卡片式設計
         plans.forEach((plan, index) => {
+            // 判斷是否為推薦方案（例如：總利息最低或月付最適中）
+            const isRecommended = index === 3 || index === 4; // 30期和36期通常較受歡迎
+            
             tableHTML += `
-            <tr style="background-color: ${index % 2 === 0 ? 'var(--secondary-color)' : 'var(--primary-color)'};">
-                <td style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">${plan.period}</td>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(plan.payment))}</td>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(plan.totalPayment))}</td>
-                <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color);">${formatNumberWithCommas(Math.round(plan.totalInterest))}</td>
-                <td style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color);">
+            <!-- 期數方案卡片 -->
+            <div style="
+                background: ${isRecommended ? 
+                    'linear-gradient(135deg, rgba(var(--accent-color-rgb), 0.1) 0%, rgba(var(--accent-color-rgb), 0.05) 100%)' : 
+                    'var(--secondary-color)'};
+                border-radius: 10px;
+                padding: 12px;
+                border: 1px solid ${isRecommended ? 'var(--accent-color)' : 'var(--border-color)'};
+                box-shadow: 0 2px 6px var(--shadow-color);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            " 
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-color)';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px var(--shadow-color)';">
+                
+                ${isRecommended ? `
+                <!-- 推薦標籤 -->
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    background: var(--accent-color);
+                    color: white;
+                    padding: 2px 8px;
+                    font-size: 11px;
+                    border-bottom-left-radius: 8px;
+                    font-weight: bold;
+                ">推薦</div>
+                ` : ''}
+                
+                <!-- 期數和基本資訊 -->
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                ">
+                    <!-- 期數 -->
+                    <div style="
+                        display: flex;
+                        align-items: baseline;
+                        gap: 4px;
+                    ">
+                        <span style="
+                            font-size: 24px;
+                            font-weight: bold;
+                            color: var(--accent-color);
+                        ">${plan.period}</span>
+                        <span style="
+                            font-size: 14px;
+                            color: var(--text-muted);
+                        ">期</span>
+                    </div>
+                    
+                    <!-- 選擇按鈕 -->
                     <button onclick="selectPlan(${plan.period}, ${rate}, ${principal}, ${plan.payment})" 
-                            style="padding: 5px 8px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        選擇
+                        style="
+                            background: var(--accent-color);
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            padding: 6px 16px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                        "
+                        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 3px 6px rgba(0, 0, 0, 0.3)';"
+                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.2)';">
+                        選擇此方案
                     </button>
-                </td>
-            </tr>
+                </div>
+                
+                <!-- 詳細數據網格 -->
+                <div style="
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 8px;
+                ">
+                    <!-- 期繳金額 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.5);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 11px;
+                            color: var(--text-muted);
+                            margin-bottom: 2px;
+                        ">期繳金額</div>
+                        <div style="
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: var(--text-color);
+                        ">${formatNumberWithCommas(Math.round(plan.payment))}</div>
+                    </div>
+                    
+                    <!-- 總還款 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.5);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 11px;
+                            color: var(--text-muted);
+                            margin-bottom: 2px;
+                        ">總還款</div>
+                        <div style="
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: var(--text-color);
+                        ">${formatNumberWithCommas(Math.round(plan.totalPayment))}</div>
+                    </div>
+                    
+                    <!-- 總利息 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.5);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 11px;
+                            color: var(--text-muted);
+                            margin-bottom: 2px;
+                        ">總利息</div>
+                        <div style="
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: var(--text-color);
+                        ">${formatNumberWithCommas(Math.round(plan.totalInterest))}</div>
+                    </div>
+                    
+                    <!-- 稅佣後利率 -->
+                    <div style="
+                        background: rgba(var(--primary-color-rgb), 0.5);
+                        padding: 8px;
+                        border-radius: 6px;
+                        text-align: center;
+                    ">
+                        <div style="
+                            font-size: 11px;
+                            color: var(--text-muted);
+                            margin-bottom: 2px;
+                        ">稅佣後利率</div>
+                        <div style="
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: var(--accent-color);
+                        ">${plan.afterTaxCommissionRate.toFixed(4)}%</div>
+                    </div>
+                </div>
+                
+                <!-- 每月利息提示 -->
+                <div style="
+                    margin-top: 8px;
+                    padding-top: 8px;
+                    border-top: 1px solid rgba(var(--border-color-rgb), 0.3);
+                    text-align: center;
+                    font-size: 12px;
+                    color: var(--text-muted);
+                ">
+                    每月利息約 ${formatNumberWithCommas(Math.round(plan.monthlyInterest))} 元
+                </div>
+            </div>
             `;
         });
         
-        tableHTML += `</table>`;
+        tableHTML += `
+            </div>
+        </div>
+        `;
         
-        // 创建模态框
+        // 創建模態框
         const modalHTML = `
         <div class="modal-header">
-            <h3>不同期數方案對比</h3>
+            <h3>期數方案對比</h3>
             <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')">×</button>
         </div>
-        <div class="modal-content" style="flex: 1; overflow-y: auto;">
-            <div style="margin-bottom: 15px;">
-                <p>本金: ${formatNumberWithCommas(principal)} 元</p>
-                <p>利率: ${rate}%</p>
-                <p>以下是不同期數的還款方案對比，您可以點擊「選擇」套用到小朋友專用計算機</p>
-            </div>
+        <div class="modal-content" style="flex: 1; overflow-y: auto; padding: 10px;">
             ${tableHTML}
         </div>
         `;
         
-        // 创建并显示模态框
+        // 創建並顯示全螢幕模態框
         showCustomModal('paymentComparisonModal', modalHTML);
     }
 
@@ -9584,7 +9874,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.60</div>
+            <div class="version-info">v3.61</div>
         </div>
     </div>
 
