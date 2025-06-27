@@ -3898,6 +3898,30 @@
             animation: pulse 1.5s infinite;
         }
 
+        /* 合併利息欄位的特殊樣式 */
+        .combined-interest-row {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .combined-interest-row .label {
+            width: 90px !important;
+            font-size: 16px !important;
+            margin-right: 4px !important;
+        }
+
+        .combined-interest-row input {
+            width: 55px !important;
+            font-size: 14px !important;
+        }
+
+        .interest-separator {
+            color: var(--accent-color);
+            margin: 0 8px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -4031,12 +4055,16 @@
         <input type="text" id="totalInterest" class="readonly" readonly>
     </div>
 
-    <div class="row">
+    <!-- 合併的每年/每月利息欄位 -->
+    <div class="row combined-interest-row">
+        <!-- 每年利息部分 -->
         <span class="label">每年利息</span>
         <input type="text" id="yearlyInterest" class="readonly" readonly>
-    </div>
-
-    <div class="row">
+        
+        <!-- 分隔符號 - 使用更美觀的設計 -->
+        <span class="interest-separator">|</span>
+        
+        <!-- 每月利息部分 -->
         <span class="label">每月利息</span>
         <input type="text" id="monthlyInterest" class="readonly" readonly>
     </div>
@@ -9874,7 +9902,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.61</div>
+            <div class="version-info">v3.65</div>
         </div>
     </div>
 
