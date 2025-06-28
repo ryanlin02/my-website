@@ -689,9 +689,9 @@
             /* 移除 will-change 因為不再需要動畫優化 */
         }
 
-        /* 行懸停效果 */
+        /* 行懸停效果 - 移除右移效果，只保留陰影變化 */
         .row:hover {
-            transform: translateX(5px);           /* 懸停時右移 */
+            /* transform: translateX(5px); 已移除右移效果 */
             box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
         }
 
@@ -778,7 +778,7 @@
         }
 
         /* 隱藏狀態的按鈕組 */
-        .input-button-group div[id$="Buttons"].hidden-element {
+        .input-button-group div[id$="Buttons"] {
             max-height: 0;                         /* 高度為0 */
             opacity: 0;                            /* 完全透明 */
             padding: 0;                            /* 移除內邊距 */
@@ -947,21 +947,10 @@
             border-color: var(--accent-color);    /* 使用強調色邊框 */
         }
 
-        /* 強調欄位懸停效果 */
+        /* 強調欄位懸停效果 - 移除右移效果 */
         .emphasized-row:hover {
-            transform: scale(1.02) translateX(5px); /* 放大並右移 */
+            transform: scale(1.02); /* 只保留放大效果，移除右移 */
             box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25); /* 增強陰影 */
-        }
-
-        /* 隱藏元素 - 移除動畫效果 */
-        .hidden-element {
-            display: none !important;             /* 強制隱藏 */
-            max-height: 0 !important;             /* 高度為0 */
-            opacity: 0 !important;                /* 完全透明 */
-            padding: 0 !important;                /* 移除內邊距 */
-            margin: 0 !important;                 /* 移除邊距 */
-            /* 移除 transition 以去除動畫效果 */
-            overflow: hidden !important;          /* 隱藏溢出內容 */
         }
 
         /* 修正精簡顯示模式下的間距問題 */
@@ -979,7 +968,7 @@
         }
 
         /* 當分隔線被隱藏時，下一個元素不需要額外的頂部間距 */
-        .divider-flow.hidden-element + .row {
+        .divider-flow + .row {
             margin-top: 4px !important;   /* 保持與其他行相同的間距 */
         }
 
@@ -1654,9 +1643,9 @@
             margin-bottom: 10px;                                /* 底部外部間距 */
         }
 
-        /* 歷史記錄項目懸停效果 - 鼠標懸停時的視覺變化 */
+        /* 歷史記錄項目懸停效果 - 移除右移效果 */
         .history-item:hover {
-            transform: translateX(5px);                         /* 右移效果 */
+            /* transform: translateX(5px); 已移除右移效果 */
             box-shadow: 0 5px 15px var(--shadow-color);         /* 增強陰影 */
         }
 
@@ -2323,16 +2312,6 @@
         #toggleIcon {
             display: inline-block;                          /* 行內塊顯示 */
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 平滑過渡效果 */
-        }
-
-        /* 箭頭上旋轉樣式 - 表示收起狀態 */
-        #toggleIcon.icon-rotate-up {
-            transform: rotate(180deg);                      /* 上旋轉180度 */
-        }
-
-        /* 箭頭上旋轉通用類 - 可應用於其他元素 */
-        .icon-rotate-up {
-            transform: rotate(180deg);                      /* 上旋轉180度 */
         }
 
         /* 按鈕組的轉換效果 - 控制按鈕組的展開/收起 */
@@ -3348,9 +3327,9 @@
             will-change: transform;
         }
 
-        /* 中文大寫欄位懸停效果 - 與其他行保持一致 */
+        /* 中文大寫欄位懸停效果 - 移除右移效果 */
         .chinese-amount-row:hover {
-            transform: translateX(5px);           /* 懸停時右移 */
+            /* transform: translateX(5px); 已移除右移效果 */
             box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
         }
 
@@ -3418,9 +3397,9 @@
             will-change: transform;
         }
 
-        /* 總繳款中文大寫欄位懸停效果 - 與其他行保持一致 */
+        /* 總繳款中文大寫欄位懸停效果 - 移除右移效果 */
         .total-payment-chinese-row:hover {
-            transform: translateX(5px);           /* 懸停時右移 */
+            /* transform: translateX(5px); 已移除右移效果 */
             box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
         }
 
@@ -3971,6 +3950,38 @@
             width: 76px !important;          /* 稍微縮小標籤寬度（原本是75px） */
         }
 
+        /* ============================================
+        * 顯示模式切換按鈕樣式
+        * ============================================ */
+
+        /* 模式圖標基礎樣式 */
+        .mode-icon {
+            font-size: 20px;                    /* 圖標大小 */
+            line-height: 1;                     /* 行高 */
+            display: inline-block;              /* 行內塊顯示 */
+            transition: none;                   /* 無過渡效果 */
+        }
+
+        /* 圓形圖標 - 完整模式 */
+        .mode-circle {
+            font-size: 18px;                    /* 圓形稍小一點 */
+        }
+
+        /* 正方形圖標 - 計算模式 */
+        .mode-square {
+            font-size: 16px;                    /* 正方形適中大小 */
+        }
+
+        /* 三角形圖標 - 精簡模式 */
+        .mode-triangle {
+            font-size: 18px;                    /* 三角形稍小一點 */
+        }
+
+        /* 隱藏元素樣式 - 簡化版本 */
+        .mode-hidden {
+            display: none !important;           /* 強制隱藏 */
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -4006,7 +4017,7 @@
         </button>
         <h1>小朋友專用計算機</h1>
         <button id="toggleViewBtn" class="header-btn header-btn-right" aria-label="切換視圖">
-            <span id="toggleIcon">▼</span>
+            <span id="toggleIcon" class="mode-icon mode-circle">●</span>
         </button>
     </div>
 	
@@ -9418,246 +9429,143 @@
 
     <script>
         
+        // ============================================
+        // 顯示模式切換功能
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
+            // 取得切換按鈕和圖標元素
             const toggleBtn = document.getElementById('toggleViewBtn');
             const toggleIcon = document.getElementById('toggleIcon');
             
-            // 需要切換顯示的按鈕組
-            const buttonGroups = [
-                'periodButtons',
-                'rateButtons',
-                'principalButtons',
-                'PaymentduringButtons',
-                'commissionButtons',
-                'commissionPercentButtons'
+            // 定義三種顯示模式
+            let viewMode = 0; // 0: 完整模式, 1: 計算模式, 2: 精簡模式
+            
+            // 定義各模式需要隱藏的欄位
+            const hideInCalcMode = [
+                // 計算模式要隱藏的欄位
+                'yearlyInterest',           // 每年利息
+                'monthlyInterest',          // 每月利息
+                'annualMillionInterest',    // 百萬每年利息
+                'monthlyMillionInterest',   // 百萬每月利息
+                'annualTenThousandInterest',// 一萬每年利息
+                'monthlyTenThousandInterest'// 一萬每月利息
             ];
             
-            // 在"自行計算"模式中需要隱藏的欄位（修改後）
-            const autoCalcHideFields = [
-                // 'totalPayment',        // 總繳款 - 已移除，讓它顯示
-                'yearlyInterest',         // 每年利息
-                'monthlyInterest',        // 每月利息
-                // 'afterTaxRate',        // 稅後利率 - 已移除，讓它顯示
-                'annualMillionInterest',  // 百萬每年利息
-                'monthlyMillionInterest', // 百萬每月利息
-                'annualTenThousandInterest', // 一萬每年利息
-                'monthlyTenThousandInterest', // 一萬每月利息
-                'customerInvoice',        // 客戶發票
-                'businessTax',            // 營業稅
-                'untaxedAmount'           // 未稅金額
+            const hideInSimpleMode = [
+                // 精簡模式要隱藏的欄位（包含計算模式的所有欄位）
+                'yearlyInterest',           // 每年利息
+                'monthlyInterest',          // 每月利息
+                'tax',                      // 稅金
+                'afterTaxRate',             // 稅後利率
+                'annualMillionInterest',    // 百萬每年利息
+                'monthlyMillionInterest',   // 百萬每月利息
+                'annualTenThousandInterest',// 一萬每年利息
+                'monthlyTenThousandInterest',// 一萬每月利息
+                'customerInvoice',          // 客戶發票
+                'businessTax',              // 營業稅
+                'untaxedAmount',            // 未稅金額
+                'chineseAmount',            // 發票（中文大寫）
+                'totalPaymentChinese'       // 總繳（中文大寫）
             ];
-            
-            // 在"精簡顯示"模式中需要隱藏的欄位
-            const simpleHideFields = [
-                'totalInterest',          // 總利息
-                'yearlyInterest',         // 每年利息
-                'monthlyInterest',        // 每月利息
-                'tax',                    // 稅金
-                'afterTaxRate',           // 稅後利率
-                'annualMillionInterest',  // 百萬每年利息
-                'monthlyMillionInterest', // 百萬每月利息
-                'annualTenThousandInterest', // 一萬每年利息
-                'monthlyTenThousandInterest', // 一萬每月利息
-                'monthlyCost',            // 本月資金成本
-                'spread',                 // Spread
-                'fundingCost',            // NPV
-                'customerInvoice',        // 客戶發票
-                'businessTax',            // 營業稅
-                'untaxedAmount',          // 未稅金額
-                'chineseAmount',          // 中文大寫
-                'totalPaymentChinese'     // 總繳大寫
-            ];
-            
-            let viewMode = 0; // 0: 完整顯示, 1: 自行計算, 2: 精簡顯示
             
             // 根據欄位ID找到對應的行容器
             function getRowByFieldId(fieldId) {
                 const field = document.getElementById(fieldId);
                 if (!field) return null;
-                return field.closest('.row');
+                return field.closest('.row, .chinese-amount-row, .total-payment-chinese-row');
             }
             
-            // 找到"一萬每月利息"欄位下方的分隔線
-            function getTenThousandMonthlyDivider() {
-                const tenThousandRow = getRowByFieldId('monthlyTenThousandInterest');
-                if (!tenThousandRow) return null;
-                
-                // 找到這個行的下一個兄弟元素
-                let nextElement = tenThousandRow.nextElementSibling;
-                
-                // 檢查下一個元素是否是分隔線
-                if (nextElement && nextElement.classList.contains('divider-flow')) {
-                    return nextElement;
-                }
-                
-                return null;
-            }
-            
-            // 隱藏指定欄位的行
-            function hideFieldRows(fieldIds) {
-                fieldIds.forEach(fieldId => {
-                    const row = getRowByFieldId(fieldId);
-                    if (row) {
-                        row.classList.add('hidden-element');
-                    }
+            // 更新顯示模式
+            function updateViewMode() {
+                // 先顯示所有元素
+                document.querySelectorAll('.mode-hidden').forEach(el => {
+                    el.classList.remove('mode-hidden');
                 });
-            }
-            
-            // 顯示指定欄位的行
-            function showFieldRows(fieldIds) {
-                fieldIds.forEach(fieldId => {
-                    const row = getRowByFieldId(fieldId);
-                    if (row) {
-                        row.classList.remove('hidden-element');
-                    }
-                });
-            }
-            
-            // 顯示所有欄位
-            function showAllFields() {
-                const allFields = [...autoCalcHideFields, ...simpleHideFields];
-                const uniqueFields = [...new Set(allFields)]; // 去除重複
-                showFieldRows(uniqueFields);
-            }
-            
-            // 隱藏"一萬每月利息"下方的分隔線
-            function hideTenThousandDivider() {
-                const divider = getTenThousandMonthlyDivider();
-                if (divider) {
-                    divider.classList.add('hidden-element');
+                
+                // 根據當前模式更新圖標
+                if (viewMode === 0) {
+                    // 完整模式 - 圓形
+                    toggleIcon.className = 'mode-icon mode-circle';
+                    toggleIcon.textContent = '●';
+                } else if (viewMode === 1) {
+                    // 計算模式 - 正方形
+                    toggleIcon.className = 'mode-icon mode-square';
+                    toggleIcon.textContent = '■';
+                    
+                    // 隱藏計算模式的欄位
+                    hideInCalcMode.forEach(fieldId => {
+                        const row = getRowByFieldId(fieldId);
+                        if (row) row.classList.add('mode-hidden');
+                    });
+                    
+                    // 處理計算模式的分隔線
+                    handleDividersForCalcMode();
+                } else {
+                    // 精簡模式 - 三角形
+                    toggleIcon.className = 'mode-icon mode-triangle';
+                    toggleIcon.textContent = '▲';
+                    
+                    // 隱藏精簡模式的欄位
+                    hideInSimpleMode.forEach(fieldId => {
+                        const row = getRowByFieldId(fieldId);
+                        if (row) row.classList.add('mode-hidden');
+                    });
+                    
+                    // 處理精簡模式的分隔線
+                    handleDividersForSimpleMode();
                 }
+                
+                // 顯示當前模式提示
+                const modeNames = ['完整模式', '計算模式', '精簡模式'];
+                showToast(`切換至${modeNames[viewMode]}`);
+            }
+
+            // 處理計算模式的分隔線
+            function handleDividersForCalcMode() {
+                // 取得所有分隔線
+                const dividers = document.querySelectorAll('.divider-flow');
+                
+                // 在計算模式下，隱藏第3條分隔線（稅佣後利率上方的分隔線）
+                // 這樣可以避免稅佣後利率和本月資金成本之間出現2條分隔線
+                if (dividers[2]) dividers[2].classList.add('mode-hidden');
+            }
+
+            // 處理精簡模式的分隔線
+            function handleDividersForSimpleMode() {
+                // 取得所有分隔線
+                const dividers = document.querySelectorAll('.divider-flow');
+                
+                // 在精簡模式下隱藏特定分隔線
+                // 隱藏第1條分隔線（每月利息下方）
+                if (dividers[0]) dividers[0].classList.add('mode-hidden');
+                
+                // 隱藏第2條分隔線（稅後利率下方）
+                if (dividers[1]) dividers[1].classList.add('mode-hidden');
+                
+                // 隱藏第3條分隔線（推廣比例下方）
+                if (dividers[2]) dividers[2].classList.add('mode-hidden');
+                
+                // 隱藏第4條分隔線（一萬利息下方）
+                if (dividers[3]) dividers[3].classList.add('mode-hidden');
+                
+                // 隱藏第5條分隔線（NPV下方的第一條）
+                if (dividers[4]) dividers[4].classList.add('mode-hidden');
             }
             
-            // 顯示"一萬每月利息"下方的分隔線
-            function showTenThousandDivider() {
-                const divider = getTenThousandMonthlyDivider();
-                if (divider) {
-                    divider.classList.remove('hidden-element');
-                }
-            }
-            
+            // 綁定按鈕點擊事件
             toggleBtn.addEventListener('click', function() {
-                // 循環切換模式：0 -> 1 -> 2 -> 0
+                // 切換到下一個模式（循環）
                 viewMode = (viewMode + 1) % 3;
                 
-                // 更新圖標
-                if (viewMode === 0) {
-                    // 完整顯示：向下箭頭
-                    toggleIcon.classList.remove('icon-rotate-up');
-                    toggleIcon.textContent = '▼';
-                } else if (viewMode === 1) {
-                    // 自行計算：橫線
-                    toggleIcon.classList.remove('icon-rotate-up');
-                    toggleIcon.textContent = '━';
-                } else {
-                    // 精簡顯示：向上箭頭
-                    toggleIcon.classList.add('icon-rotate-up');
-                    toggleIcon.textContent = '▼';
-                }
-                
-                // 根據不同模式處理顯示/隱藏
-                if (viewMode === 0) {
-                    // 完整顯示模式：顯示所有內容
-                    
-                    // 顯示所有按鈕組
-                    buttonGroups.forEach(id => {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.classList.remove('hidden-element');
-                        }
-                    });
-                    
-                    // 顯示所有欄位
-                    showAllFields();
-                    
-                    // 顯示"一萬每月利息"下方的分隔線
-                    showTenThousandDivider();
-                    
-                    // 顯示所有分隔線
-                    const dividers = document.querySelectorAll('.divider-flow');
-                    dividers.forEach(divider => {
-                        divider.classList.remove('hidden-element');
-                    });
-                    
-                } else if (viewMode === 1) {
-                    // 自行計算模式：隱藏特定欄位和分隔線
-                    
-                    // 顯示所有按鈕組
-                    buttonGroups.forEach(id => {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.classList.remove('hidden-element');
-                        }
-                    });
-                    
-                    // 先顯示所有欄位和分隔線
-                    showAllFields();
-                    showTenThousandDivider();
-                    
-                    // 顯示所有分隔線
-                    const dividers = document.querySelectorAll('.divider-flow');
-                    dividers.forEach(divider => {
-                        divider.classList.remove('hidden-element');
-                    });
-                    
-                    // 然後隱藏自行計算模式特定的欄位
-                    hideFieldRows(autoCalcHideFields);
-                    
-                    // 隱藏"一萬每月利息"下方的分隔線
-                    hideTenThousandDivider();
-
-                    // 處理自行計算模式的分隔線顯示
-                    // 確保需要的分隔線正確顯示
-                    const allDividers = document.querySelectorAll('.divider-flow');
-                    allDividers.forEach((divider, index) => {
-                        // 根據需要顯示或隱藏特定的分隔線
-                        if (index === 1 || index === 2) {
-                            // 隱藏第2和第3條分隔線（索引1和2）
-                            divider.classList.add('hidden-element');
-                        } else {
-                            // 確保其他分隔線顯示
-                            divider.classList.remove('hidden-element');
-                        }
-                    });
-                    
-                } else {
-                    // 精簡顯示模式（viewMode === 2）
-                    
-                    // 隱藏按鈕組
-                    buttonGroups.forEach(id => {
-                        const element = document.getElementById(id);
-                        if (element) {
-                            element.classList.add('hidden-element');
-                        }
-                    });
-                    
-                    // 先顯示所有欄位和分隔線
-                    showAllFields();
-                    showTenThousandDivider();
-                    
-                    // 然後隱藏精簡顯示模式特定的欄位
-                    hideFieldRows(simpleHideFields);
-                    
-                    // 處理分隔線
-                    const dividers = document.querySelectorAll('.divider-flow');
-                    if (dividers.length >= 3) {
-                        dividers[0].classList.add('hidden-element');
-                        
-                        for (let i = 1; i < dividers.length - 1; i++) {
-                            dividers[i].classList.add('hidden-element');
-                        }
-                        
-                        dividers[dividers.length - 1].classList.remove('hidden-element');
-                    }
-                }
+                // 更新顯示
+                updateViewMode();
                 
                 // 觸發震動效果
                 vibrate();
-
-                // 顯示當前模式提示
-                const modeName = ['完整顯示', '自行計算', '精簡顯示'][viewMode];
-                showToast(`切換至${modeName}模式`);
             });
+            
+            // 初始化顯示（完整模式）
+            updateViewMode();
         });
     </script>
 
@@ -9987,7 +9895,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.72</div>
+            <div class="version-info">v3.74</div>
         </div>
     </div>
 
