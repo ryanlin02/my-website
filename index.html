@@ -33,449 +33,400 @@
     <style>
 
         /* ============================================
-        * 1. 基礎變量與主題設定
+        * CSS 變數定義區域 - 統一管理所有外觀相關變數
         * ============================================ */
 
-        /* 基礎主題變數（共用基本框架） */
+        /* 基礎全域變數定義 */
         :root {
-            /* 基本尺寸變數 - 統一控制間距、圓角等尺寸 */
-            --border-radius-sm: 4px;   /* 小型元素圓角 */
-            --border-radius-md: 8px;   /* 中型元素圓角 */
-            --border-radius-lg: 12px;  /* 大型元素圓角 */
-            --spacing-xs: 2px;         /* 極小間距 */
-            --spacing-sm: 4px;         /* 小間距 */
-            --spacing-md: 8px;         /* 中間距 */
-            --spacing-lg: 15px;        /* 大間距 */
+            /* ========== 尺寸相關變數 ========== */
+            /* 圓角尺寸 */
+            --border-radius-sm: 4px;              /* 小型元素圓角（按鈕、輸入框） */
+            --border-radius-md: 8px;              /* 中型元素圓角（卡片） */
+            --border-radius-lg: 12px;             /* 大型元素圓角（模態框） */
             
-            /* 字型大小變數 - 統一控制文字尺寸 */
-            --font-size-xs: 12px;      /* 極小字體 */
-            --font-size-sm: 14px;      /* 小字體 */
-            --font-size-md: 16px;      /* 中字體 */
-            --font-size-lg: 18px;      /* 大字體 */
-            --font-size-xl: 22px;      /* 特大字體 */
+            /* 間距尺寸 */
+            --spacing-xs: 2px;                    /* 極小間距 */
+            --spacing-sm: 4px;                    /* 小間距 */
+            --spacing-md: 8px;                    /* 中間距 */
+            --spacing-lg: 15px;                   /* 大間距 */
             
-            /* 動畫時間 - 統一控制過渡動畫速度 */
-            --transition-fast: 0.2s;   /* 快速過渡 */
-            --transition-normal: 0.3s; /* 標準過渡 */
-            --transition-slow: 0.5s;   /* 慢速過渡 */
+            /* 字體大小 */
+            --font-size-xs: 12px;                 /* 極小字體（標籤說明） */
+            --font-size-sm: 14px;                 /* 小字體（次要文字） */
+            --font-size-md: 16px;                 /* 中字體（一般內容） */
+            --font-size-lg: 18px;                 /* 大字體（重要內容） */
+            --font-size-xl: 22px;                 /* 特大字體（標題） */
             
-            /* 陰影效果 - 統一控制元素陰影 */
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);  /* 淺陰影 */
-            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);  /* 中陰影 */
-            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4); /* 深陰影 */
-
-            /* 輸入框和標籤的特殊設定 */
-            --input-font-size: 16px;      /* 輸入框內文字大小（原16px+2級） */
-            --label-font-size: 16px;      /* 標籤文字大小（原18px-1級） */
-            --input-padding-lr: 5px;      /* 輸入框左右內邊距（原12px-7px） */
-            --helper-text-color: #999999; /* 輔助說明文字顏色 */
-
-            /* 備註文字顏色 - 提高明度以便閱讀 */
-            --note-text-color: #e0e0e0; /* 淺灰色文字 */
-            --note-text-empty: #888888; /* 空備註提示文字顏色 */
+            /* 特殊元素字體大小 */
+            --input-font-size: 16px;              /* 輸入框文字大小 */
+            --label-font-size: 16px;              /* 標籤文字大小 */
+            
+            /* 輸入框特殊設定 */
+            --input-padding-lr: 5px;              /* 輸入框左右內邊距 */
+            
+            /* 動畫時間 */
+            --transition-fast: 0.2s;              /* 快速過渡動畫 */
+            --transition-normal: 0.3s;            /* 標準過渡動畫 */
+            --transition-slow: 0.5s;              /* 慢速過渡動畫 */
+            
+            /* 陰影效果 */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 淺層陰影 */
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    /* 中層陰影 */
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   /* 深層陰影 */
         }
 
-        /* 默認主題：暗夜橘焰 - 預設的深色主題搭配橙色強調色 */
+        /* ========== 主題色彩定義 ========== */
+        /* 預設主題：暗夜橘焰 */
         :root {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 51, 51, 51;      /* 主背景色RGB值 */
-            --secondary-color-rgb: 74, 74, 74;    /* 次背景色RGB值 */
-            --accent-color-rgb: 255, 156, 51;     /* 強調色RGB值 */
-            --input-bg-rgb: 34, 34, 34;           /* 輸入框背景RGB值 */
-            --error-color-rgb: 231, 76, 60;       /* 錯誤色RGB值 */
-            --info-color-rgb: 52, 152, 219;       /* 信息色RGB值 */
-
-            /* 基本色調 */
-            --primary-color: #333333;             /* 主背景色 */
-            --secondary-color: #4a4a4a;           /* 次背景色 */
-            --text-color: #ffffff;                /* 文字色 */
-            --border-color: #555555;              /* 邊框色 */
-            --hover-color: #666666;               /* 懸停色 */
-            --shadow-color: rgba(0, 0, 0, 0.3);   /* 陰影色 */
+            /* RGB 色彩值（用於透明度調整） */
+            --primary-color-rgb: 51, 51, 51;              /* 主背景色 RGB */
+            --secondary-color-rgb: 74, 74, 74;            /* 次背景色 RGB */
+            --accent-color-rgb: 255, 156, 51;             /* 強調色 RGB */
+            --input-bg-rgb: 34, 34, 34;                   /* 輸入框背景 RGB */
+            --error-color-rgb: 231, 76, 60;               /* 錯誤色 RGB */
+            --info-color-rgb: 52, 152, 219;               /* 資訊色 RGB */
             
-            /* 強調色 */
-            --accent-color: #ff9c33;              /* 橙色重點色 */
-            --accent-color-light: rgba(255, 156, 51, 0.2); /* 淡橙色 */
-            --accent-color-dark: #e88a22;         /* 深橙色 */
+            /* 基本色彩 */
+            --primary-color: #333333;                      /* 主要背景色 */
+            --secondary-color: #4a4a4a;                    /* 次要背景色 */
+            --text-color: #ffffff;                         /* 文字顏色 */
+            --text-muted: #999999;                         /* 淡化文字顏色 */
+            --border-color: #555555;                       /* 邊框顏色 */
+            --hover-color: #666666;                        /* 懸停背景色 */
+            --shadow-color: rgba(0, 0, 0, 0.3);           /* 陰影顏色 */
             
-            /* 功能色 */
-            --success-color: #33b5e5;             /* 藍色成功色 */
-            --warning-color: #ff9c33;             /* 橙色警告色 */
-            --error-color: #e74c3c;               /* 紅色錯誤色 */
-            --info-color: #3498db;                /* 藍色資訊色 */
+            /* 功能色彩 */
+            --accent-color: #ff9c33;                       /* 強調色（橘色） */
+            --accent-color-light: rgba(255, 156, 51, 0.2); /* 淡強調色 */
+            --accent-color-dark: #e88a22;                  /* 深強調色 */
+            --success-color: #33b5e5;                      /* 成功色（藍色） */
+            --warning-color: #ff9c33;                      /* 警告色（橘色） */
+            --error-color: #e74c3c;                        /* 錯誤色（紅色） */
+            --info-color: #3498db;                         /* 資訊色（藍色） */
             
-            /* 特殊元件顏色 */
-            --button-primary: #ff9c33;            /* 主按鈕顏色 */
-            --button-secondary: #4a4a4a;          /* 副按鈕顏色 */
-            --input-bg: #222222;                  /* 輸入框背景色 */
-            --input-border: #555555;              /* 輸入框邊框 */
-            --input-focus-border: #ff9c33;        /* 輸入框焦點邊框 */
-            --card-bg: #333333;                   /* 卡片背景色 */
+            /* 元件專用色彩 */
+            --button-primary: #ff9c33;                     /* 主要按鈕色 */
+            --button-secondary: #4a4a4a;                   /* 次要按鈕色 */
+            --button-orange: #ff9c33;                      /* 橘色按鈕（兼容舊代碼） */
+            --button-blue: #33b5e5;                        /* 藍色按鈕（兼容舊代碼） */
+            --button-grey: #333333;                        /* 灰色按鈕（兼容舊代碼） */
             
-            /* 文字強調色 */
-            --text-highlight: #ff9c33;            /* 文字強調色 */
-            --text-muted: #999999;                /* 文字淡色 */
+            /* 輸入框色彩 */
+            --input-bg: #222222;                           /* 輸入框背景色 */
+            --input-border: #555555;                       /* 輸入框邊框色 */
+            --input-focus-border: #ff9c33;                 /* 輸入框焦點邊框色 */
             
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #ff9c33;             /* 兼容橙色按鈕 */
-            --button-blue: #33b5e5;               /* 兼容藍色按鈕 */
-            --button-grey: #333333;               /* 兼容灰色按鈕 */
+            /* 其他元件色彩 */
+            --card-bg: #333333;                            /* 卡片背景色 */
+            --text-highlight: #ff9c33;                     /* 文字強調色 */
+            --helper-text-color: #999999;                  /* 輔助文字顏色 */
+            --note-text-color: #e0e0e0;                    /* 備註文字顏色 */
+            --note-text-empty: #888888;                    /* 空備註提示文字顏色 */
         }
 
-        /* 極簡黑白主題 - 清爽的白底黑字設計 */
+        /* 極簡黑白主題 */
         :root[data-theme="white"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 250, 250, 250;   /* 主背景色RGB值 */
-            --secondary-color-rgb: 255, 255, 255; /* 次背景色RGB值 */
-            --accent-color-rgb: 85, 85, 85;       /* 強調色RGB值 */
-            --input-bg-rgb: 255, 255, 255;        /* 輸入框背景RGB值 */
-            --error-color-rgb: 85, 85, 85;        /* 錯誤色RGB值 */
-            --info-color-rgb: 85, 85, 85;         /* 信息色RGB值 */
-
-            /* 基本色調 */
-            --primary-color: #fafafa;             /* 主背景色 */
-            --secondary-color: #ffffff;           /* 次背景色 */
-            --text-color: #222222;                /* 文字色 */
-            --border-color: #cccccc;              /* 邊框色 */
-            --hover-color: #f5f5f5;               /* 懸停色 */
-            --shadow-color: rgba(0, 0, 0, 0.15);  /* 陰影色 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 250, 250, 250;
+            --secondary-color-rgb: 255, 255, 255;
+            --accent-color-rgb: 85, 85, 85;
+            --input-bg-rgb: 255, 255, 255;
+            --error-color-rgb: 85, 85, 85;
+            --info-color-rgb: 85, 85, 85;
             
-            /* 強調色 */
-            --accent-color: #555555;              /* 灰色重點色 */
-            --accent-color-light: rgba(85, 85, 85, 0.15); /* 淡灰色 */
-            --accent-color-dark: #333333;         /* 深灰色 */
+            /* 基本色彩 */
+            --primary-color: #fafafa;
+            --secondary-color: #ffffff;
+            --text-color: #222222;
+            --text-muted: #777777;
+            --border-color: #cccccc;
+            --hover-color: #f5f5f5;
+            --shadow-color: rgba(0, 0, 0, 0.15);
             
-            /* 功能色 */
-            --success-color: #777777;             /* 灰色成功色 */
-            --warning-color: #555555;             /* 灰色警告色 */
-            --error-color: #777777;               /* 灰色錯誤色 */
-            --info-color: #555555;                /* 灰色資訊色 */
+            /* 功能色彩 */
+            --accent-color: #555555;
+            --accent-color-light: rgba(85, 85, 85, 0.15);
+            --accent-color-dark: #333333;
+            --success-color: #777777;
+            --warning-color: #555555;
+            --error-color: #777777;
+            --info-color: #555555;
             
-            /* 特殊元件顏色 */
-            --button-primary: #555555;            /* 主按鈕顏色 */
-            --button-secondary: #e0e0e0;          /* 副按鈕顏色 */
-            --input-bg: #ffffff;                  /* 輸入框背景色 */
-            --input-border: #aaaaaa;              /* 輸入框邊框 */
-            --input-focus-border: #555555;        /* 輸入框焦點邊框 */
-            --card-bg: #ffffff;                   /* 卡片背景色 */
+            /* 元件色彩 */
+            --button-primary: #555555;
+            --button-secondary: #e0e0e0;
+            --button-orange: #555555;
+            --button-blue: #777777;
+            --button-grey: #e0e0e0;
+            --input-bg: #ffffff;
+            --input-border: #aaaaaa;
+            --input-focus-border: #555555;
+            --card-bg: #ffffff;
+            --text-highlight: #333333;
+            --helper-text-color: #999999;
+            --note-text-color: #333333;
+            --note-text-empty: #999999;
             
-            /* 文字強調色 */
-            --text-highlight: #333333;            /* 文字強調色 */
-            --text-muted: #777777;                /* 文字淡色 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #555555;             /* 兼容橙色按鈕 */
-            --button-blue: #777777;               /* 兼容藍色按鈕 */
-            --button-grey: #e0e0e0;               /* 兼容灰色按鈕 */
-
-            --helper-text-color: #999999;         /* 輔助說明文字顏色 */
-
-            --note-text-color: #333333; /* 深灰色文字 */
-            --note-text-empty: #999999; /* 空備註提示文字顏色 */
-            
-            background-color: #fafafa;            /* 頁面背景色 */
+            background-color: #fafafa;
         }
 
-        /* 櫻花雪主題 - 浪漫的粉紅色系主題 */
+        /* 櫻花雪主題 */
         :root[data-theme="pink"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 255, 240, 245;   /* 主背景色RGB值 */
-            --secondary-color-rgb: 255, 248, 252; /* 次背景色RGB值 */
-            --accent-color-rgb: 219, 56, 108;    /* 強調色RGB值 - 更深的粉紅色 */
-            --input-bg-rgb: 255, 250, 252;        /* 輸入框背景RGB值 - 極淡粉色 */
-            --error-color-rgb: 220, 53, 69;      /* 錯誤色RGB值 */
-            --info-color-rgb: 255, 182, 193;     /* 信息色RGB值 - 改為淺粉色 */
-
-            /* 基本色調 */
-            --primary-color: #fff0f5;             /* 主背景色 */
-            --secondary-color: #fff8fc;           /* 次背景色 - 極淡粉色 */
-            --text-color: #b8306a;                /* 文字色 - 深櫻花色 */
-            --border-color: #ffb6c1;              /* 邊框色 */
-            --hover-color: #ffd1dc;               /* 懸停色 */
-            --shadow-color: rgba(255, 182, 193, 0.3); /* 陰影色 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 255, 240, 245;
+            --secondary-color-rgb: 255, 248, 252;
+            --accent-color-rgb: 219, 56, 108;
+            --input-bg-rgb: 255, 250, 252;
+            --error-color-rgb: 220, 53, 69;
+            --info-color-rgb: 255, 182, 193;
             
-            /* 強調色 */
-            --accent-color: #db386c;              /* 深粉紅重點色 */
-            --accent-color-light: rgba(219, 56, 108, 0.1); /* 淡粉紅 */
-            --accent-color-dark: #b92d59;         /* 更深粉紅 */
+            /* 基本色彩 */
+            --primary-color: #fff0f5;
+            --secondary-color: #fff8fc;
+            --text-color: #b8306a;
+            --text-muted: #d68fa3;
+            --border-color: #ffb6c1;
+            --hover-color: #ffd1dc;
+            --shadow-color: rgba(255, 182, 193, 0.3);
             
-            /* 功能色 */
-            --success-color: #ff69b4;             /* 粉色成功色 */
-            --warning-color: #ff9e80;             /* 橙色警告色 */
-            --error-color: #dc3545;               /* 紅色錯誤色 */
-            --info-color: #ffb6c1;                /* 淺粉色資訊色 */
+            /* 功能色彩 */
+            --accent-color: #db386c;
+            --accent-color-light: rgba(219, 56, 108, 0.1);
+            --accent-color-dark: #b92d59;
+            --success-color: #ff69b4;
+            --warning-color: #ff9e80;
+            --error-color: #dc3545;
+            --info-color: #ffb6c1;
             
-            /* 特殊元件顏色 */
-            --button-primary: #db386c;            /* 主按鈕顏色 */
-            --button-secondary: #fce4ec;          /* 副按鈕顏色 */
-            --input-bg: #fffafc;                  /* 輸入框背景色 - 極淡粉色 */
-            --input-border: #ffb6c1;              /* 輸入框邊框 */
-            --input-focus-border: #db386c;        /* 輸入框焦點邊框 */
-            --card-bg: #fff8fc;                   /* 卡片背景色 - 極淡粉色 */
-            
-            /* 文字強調色 */
-            --text-highlight: #db386c;            /* 文字強調色 */
-            --text-muted: #d68fa3;                /* 文字淡色 - 改為中等粉色 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #db386c;             /* 兼容橙色按鈕 */
-            --button-blue: #ff69b4;               /* 兼容藍色按鈕 - 改為粉色 */
-            --button-grey: #fce4ec;               /* 兼容灰色按鈕 */
-
-            --helper-text-color: #d68fa3;         /* 輔助說明文字顏色 - 中等粉色 */
-
-            --note-text-color: #8b2050;        /* 深櫻花色文字 */
-            --note-text-empty: #d68fa3;        /* 中等粉色 */
+            /* 元件色彩 */
+            --button-primary: #db386c;
+            --button-secondary: #fce4ec;
+            --button-orange: #db386c;
+            --button-blue: #ff69b4;
+            --button-grey: #fce4ec;
+            --input-bg: #fffafc;
+            --input-border: #ffb6c1;
+            --input-focus-border: #db386c;
+            --card-bg: #fff8fc;
+            --text-highlight: #db386c;
+            --helper-text-color: #d68fa3;
+            --note-text-color: #8b2050;
+            --note-text-empty: #d68fa3;
         }
 
-        /* 暗夜烈焰主題 - 深黑色底搭配鮮紅色調 */
+        /* 暗夜烈焰主題 */
         :root[data-theme="red"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 26, 26, 26;      /* 主背景色RGB值 */
-            --secondary-color-rgb: 44, 44, 44;    /* 次背景色RGB值 */
-            --accent-color-rgb: 244, 67, 54;      /* 強調色RGB值 */
-            --input-bg-rgb: 33, 33, 33;           /* 輸入框背景RGB值 */
-            --error-color-rgb: 244, 67, 54;       /* 錯誤色RGB值 */
-            --info-color-rgb: 33, 150, 243;       /* 信息色RGB值 */
-
-            /* 基本色調 */
-            --primary-color: #1a1a1a;             /* 主背景色 */
-            --secondary-color: #2c2c2c;           /* 次背景色 */
-            --text-color: #ffffff;                /* 文字色 */
-            --border-color: #c62828;              /* 邊框色 */
-            --hover-color: #3d2828;               /* 懸停色 */
-            --shadow-color: rgba(198, 40, 40, 0.3); /* 陰影色 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 26, 26, 26;
+            --secondary-color-rgb: 44, 44, 44;
+            --accent-color-rgb: 244, 67, 54;
+            --input-bg-rgb: 33, 33, 33;
+            --error-color-rgb: 244, 67, 54;
+            --info-color-rgb: 33, 150, 243;
             
-            /* 強調色 */
-            --accent-color: #f44336;              /* 紅色重點色 */
-            --accent-color-light: rgba(244, 67, 54, 0.2); /* 淡紅色 */
-            --accent-color-dark: #c62828;         /* 深紅色 */
+            /* 基本色彩 */
+            --primary-color: #1a1a1a;
+            --secondary-color: #2c2c2c;
+            --text-color: #ffffff;
+            --text-muted: #9e9e9e;
+            --border-color: #c62828;
+            --hover-color: #3d2828;
+            --shadow-color: rgba(198, 40, 40, 0.3);
             
-            /* 功能色 */
-            --success-color: #4caf50;             /* 綠色成功色 */
-            --warning-color: #ff9800;             /* 橙色警告色 */
-            --error-color: #f44336;               /* 紅色錯誤色 */
-            --info-color: #2196f3;                /* 藍色資訊色 */
+            /* 功能色彩 */
+            --accent-color: #f44336;
+            --accent-color-light: rgba(244, 67, 54, 0.2);
+            --accent-color-dark: #c62828;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --info-color: #2196f3;
             
-            /* 特殊元件顏色 */
-            --button-primary: #f44336;            /* 主按鈕顏色 */
-            --button-secondary: #424242;          /* 副按鈕顏色 */
-            --input-bg: #212121;                  /* 輸入框背景色 */
-            --input-border: #424242;              /* 輸入框邊框 */
-            --input-focus-border: #f44336;        /* 輸入框焦點邊框 */
-            --card-bg: #2c2c2c;                   /* 卡片背景色 */
-            
-            /* 文字強調色 */
-            --text-highlight: #f44336;            /* 文字強調色 */
-            --text-muted: #9e9e9e;                /* 文字淡色 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #f44336;             /* 兼容橙色按鈕 */
-            --button-blue: #2196f3;               /* 兼容藍色按鈕 */
-            --button-grey: #424242;               /* 兼容灰色按鈕 */
-
-            --note-text-color: #ffffff;        /* 白色文字 */
-            --note-text-empty: #999999;        /* 灰色文字 */
+            /* 元件色彩 */
+            --button-primary: #f44336;
+            --button-secondary: #424242;
+            --button-orange: #f44336;
+            --button-blue: #2196f3;
+            --button-grey: #424242;
+            --input-bg: #212121;
+            --input-border: #424242;
+            --input-focus-border: #f44336;
+            --card-bg: #2c2c2c;
+            --text-highlight: #f44336;
+            --note-text-color: #ffffff;
+            --note-text-empty: #999999;
         }
 
-        /* 暮光星塵主題 - 深藍紫色調帶來神秘感 */
+        /* 暮光星塵主題 */
         :root[data-theme="blue-purple"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 26, 26, 46;      /* 主背景色RGB值 */
-            --secondary-color-rgb: 47, 47, 73;    /* 次背景色RGB值 */
-            --accent-color-rgb: 147, 112, 219;    /* 強調色RGB值 */
-            --input-bg-rgb: 35, 35, 66;           /* 輸入框背景RGB值 */
-            --error-color-rgb: 255, 71, 87;       /* 錯誤色RGB值 */
-            --info-color-rgb: 0, 206, 201;        /* 信息色RGB值 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 26, 26, 46;
+            --secondary-color-rgb: 47, 47, 73;
+            --accent-color-rgb: 147, 112, 219;
+            --input-bg-rgb: 35, 35, 66;
+            --error-color-rgb: 255, 71, 87;
+            --info-color-rgb: 0, 206, 201;
             
-            /* 基本色調 */
-            --primary-color: #1a1a2e;             /* 深藍紫背景 */
-            --secondary-color: #2f2f49;           /* 藍紫次背景 */
-            --text-color: #e6e6ff;                /* 淺藍紫文字 */
-            --border-color: #7b68ee;              /* 薰衣草邊框 */
-            --hover-color: #3f3f66;               /* 藍紫懸停 */
-            --shadow-color: rgba(123, 104, 238, 0.3); /* 紫色陰影 */
+            /* 基本色彩 */
+            --primary-color: #1a1a2e;
+            --secondary-color: #2f2f49;
+            --text-color: #e6e6ff;
+            --text-muted: #a0a0c8;
+            --border-color: #7b68ee;
+            --hover-color: #3f3f66;
+            --shadow-color: rgba(123, 104, 238, 0.3);
             
-            /* 強調色 */
-            --accent-color: #9370db;              /* 紫色重點色 */
-            --accent-color-light: rgba(147, 112, 219, 0.2); /* 淡紫色 */
-            --accent-color-dark: #6a3ece;         /* 深紫色 */
+            /* 功能色彩 */
+            --accent-color: #9370db;
+            --accent-color-light: rgba(147, 112, 219, 0.2);
+            --accent-color-dark: #6a3ece;
+            --success-color: #00bfa5;
+            --warning-color: #fed330;
+            --error-color: #ff4757;
+            --info-color: #00cec9;
             
-            /* 功能色 */
-            --success-color: #00bfa5;             /* 松石綠成功色 */
-            --warning-color: #fed330;             /* 金黃警告色 */
-            --error-color: #ff4757;               /* 粉紅錯誤色 */
-            --info-color: #00cec9;                /* 藍綠資訊色 */
-            
-            /* 特殊元件顏色 */
-            --button-primary: #9370db;            /* 主按鈕顏色 */
-            --button-secondary: #3d3d64;          /* 副按鈕顏色 */
-            --input-bg: #232342;                  /* 輸入框背景色 */
-            --input-border: #4b4b80;              /* 輸入框邊框 */
-            --input-focus-border: #9370db;        /* 輸入框焦點邊框 */
-            --card-bg: #2f2f49;                   /* 卡片背景色 */
-            
-            /* 文字強調色 */
-            --text-highlight: #9370db;            /* 文字強調色 */
-            --text-muted: #a0a0c8;                /* 文字淡色 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #9370db;             /* 兼容橙色按鈕 */
-            --button-blue: #00cec9;               /* 兼容藍色按鈕 */
-            --button-grey: #3d3d64;               /* 兼容灰色按鈕 */
-
-            --note-text-color: #e6e6ff;        /* 淺藍紫文字 */
-            --note-text-empty: #a0a0c8;        /* 淡紫灰色 */
+            /* 元件色彩 */
+            --button-primary: #9370db;
+            --button-secondary: #3d3d64;
+            --button-orange: #9370db;
+            --button-blue: #00cec9;
+            --button-grey: #3d3d64;
+            --input-bg: #232342;
+            --input-border: #4b4b80;
+            --input-focus-border: #9370db;
+            --card-bg: #2f2f49;
+            --text-highlight: #9370db;
+            --note-text-color: #e6e6ff;
+            --note-text-empty: #a0a0c8;
         }
 
-        /* 翠玉清風主題 - 清新的綠色系主題 */
+        /* 翠玉清風主題 */
         :root[data-theme="green"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 241, 248, 233;   /* 主背景色RGB值 */
-            --secondary-color-rgb: 255, 255, 255; /* 次背景色RGB值 */
-            --accent-color-rgb: 76, 175, 80;      /* 強調色RGB值 */
-            --input-bg-rgb: 255, 255, 255;        /* 輸入框背景RGB值 */
-            --error-color-rgb: 244, 67, 54;       /* 錯誤色RGB值 */
-            --info-color-rgb: 33, 150, 243;       /* 信息色RGB值 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 241, 248, 233;
+            --secondary-color-rgb: 255, 255, 255;
+            --accent-color-rgb: 76, 175, 80;
+            --input-bg-rgb: 255, 255, 255;
+            --error-color-rgb: 244, 67, 54;
+            --info-color-rgb: 33, 150, 243;
             
-            /* 基本色調 */
-            --primary-color: #f1f8e9;             /* 淺綠背景 */
-            --secondary-color: #ffffff;           /* 白色次背景 */
-            --text-color: #2e7d32;                /* 綠色文字 */
-            --border-color: #81c784;              /* 綠色邊框 */
-            --hover-color: #e8f5e9;               /* 更淺綠懸停 */
-            --shadow-color: rgba(129, 199, 132, 0.3); /* 綠色陰影 */
+            /* 基本色彩 */
+            --primary-color: #f1f8e9;
+            --secondary-color: #ffffff;
+            --text-color: #2e7d32;
+            --text-muted: #757575;
+            --border-color: #81c784;
+            --hover-color: #e8f5e9;
+            --shadow-color: rgba(129, 199, 132, 0.3);
             
-            /* 強調色 */
-            --accent-color: #4caf50;              /* 綠色重點色 */
-            --accent-color-light: rgba(76, 175, 80, 0.2); /* 淡綠色 */
-            --accent-color-dark: #2e7d32;         /* 深綠色 */
+            /* 功能色彩 */
+            --accent-color: #4caf50;
+            --accent-color-light: rgba(76, 175, 80, 0.2);
+            --accent-color-dark: #2e7d32;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --info-color: #2196f3;
             
-            /* 功能色 */
-            --success-color: #4caf50;             /* 綠色成功色 */
-            --warning-color: #ff9800;             /* 橙色警告色 */
-            --error-color: #f44336;               /* 紅色錯誤色 */
-            --info-color: #2196f3;                /* 藍色資訊色 */
-            
-            /* 特殊元件顏色 */
-            --button-primary: #4caf50;            /* 主按鈕顏色 */
-            --button-secondary: #e8f5e9;          /* 副按鈕顏色 */
-            --input-bg: #ffffff;                  /* 輸入框背景色 */
-            --input-border: #81c784;              /* 輸入框邊框 */
-            --input-focus-border: #4caf50;        /* 輸入框焦點邊框 */
-            --card-bg: #ffffff;                   /* 卡片背景色 */
-            
-            /* 文字強調色 */
-            --text-highlight: #2e7d32;            /* 文字強調色 */
-            --text-muted: #757575;                /* 文字淡色 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #4caf50;             /* 兼容橙色按鈕 */
-            --button-blue: #2196f3;               /* 兼容藍色按鈕 */
-            --button-grey: #e8f5e9;               /* 兼容灰色按鈕 */
-
-            --note-text-color: #1b5e20;        /* 深綠色文字 */
-            --note-text-empty: #757575;        /* 灰色文字 */
+            /* 元件色彩 */
+            --button-primary: #4caf50;
+            --button-secondary: #e8f5e9;
+            --button-orange: #4caf50;
+            --button-blue: #2196f3;
+            --button-grey: #e8f5e9;
+            --input-bg: #ffffff;
+            --input-border: #81c784;
+            --input-focus-border: #4caf50;
+            --card-bg: #ffffff;
+            --text-highlight: #2e7d32;
+            --note-text-color: #1b5e20;
+            --note-text-empty: #757575;
         }
 
-        /* 科技藍調主題 - 現代科技感的藍色系設計 */
+        /* 科技藍調主題 */
         :root[data-theme="blue"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 26, 38, 57;      /* 主背景色RGB值 */
-            --secondary-color-rgb: 46, 64, 89;    /* 次背景色RGB值 */
-            --accent-color-rgb: 52, 152, 219;     /* 強調色RGB值 */
-            --input-bg-rgb: 34, 51, 71;           /* 輸入框背景RGB值 */
-            --error-color-rgb: 231, 76, 60;       /* 錯誤色RGB值 */
-            --info-color-rgb: 52, 152, 219;       /* 信息色RGB值 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 26, 38, 57;
+            --secondary-color-rgb: 46, 64, 89;
+            --accent-color-rgb: 52, 152, 219;
+            --input-bg-rgb: 34, 51, 71;
+            --error-color-rgb: 231, 76, 60;
+            --info-color-rgb: 52, 152, 219;
             
-            /* 基本色調 */
-            --primary-color: #1a2639;             /* 深藍背景 */
-            --secondary-color: #2e4059;           /* 中藍次背景 */
-            --text-color: #e5e5e5;                /* 淺灰文字 */
-            --border-color: #4d8cc4;              /* 藍色邊框 */
-            --hover-color: #395981;               /* 懸停色 */
-            --shadow-color: rgba(77, 140, 196, 0.3); /* 藍色陰影 */
+            /* 基本色彩 */
+            --primary-color: #1a2639;
+            --secondary-color: #2e4059;
+            --text-color: #e5e5e5;
+            --text-muted: #95a5a6;
+            --border-color: #4d8cc4;
+            --hover-color: #395981;
+            --shadow-color: rgba(77, 140, 196, 0.3);
             
-            /* 強調色 */
-            --accent-color: #3498db;              /* 藍色重點色 */
-            --accent-color-light: rgba(52, 152, 219, 0.2); /* 淡藍色 */
-            --accent-color-dark: #2980b9;         /* 深藍色 */
+            /* 功能色彩 */
+            --accent-color: #3498db;
+            --accent-color-light: rgba(52, 152, 219, 0.2);
+            --accent-color-dark: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --error-color: #e74c3c;
+            --info-color: #3498db;
             
-            /* 功能色 */
-            --success-color: #2ecc71;             /* 綠色成功色 */
-            --warning-color: #f39c12;             /* 橙色警告色 */
-            --error-color: #e74c3c;               /* 紅色錯誤色 */
-            --info-color: #3498db;                /* 藍色資訊色 */
-            
-            /* 特殊元件顏色 */
-            --button-primary: #3498db;            /* 主按鈕顏色 */
-            --button-secondary: #34495e;          /* 副按鈕顏色 */
-            --input-bg: #223347;                  /* 輸入框背景色 */
-            --input-border: #4d8cc4;              /* 輸入框邊框 */
-            --input-focus-border: #3498db;        /* 輸入框焦點邊框 */
-            --card-bg: #2e4059;                   /* 卡片背景色 */
-            
-            /* 文字強調色 */
-            --text-highlight: #3498db;            /* 文字強調色 */
-            --text-muted: #95a5a6;                /* 文字淡色 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #3498db;             /* 兼容橙色按鈕 */
-            --button-blue: #3498db;               /* 兼容藍色按鈕 */
-            --button-grey: #34495e;               /* 兼容灰色按鈕 */
-
-            --note-text-color: #e5e5e5;        /* 淺灰文字 */
-            --note-text-empty: #95a5a6;        /* 藍灰色文字 */
+            /* 元件色彩 */
+            --button-primary: #3498db;
+            --button-secondary: #34495e;
+            --button-orange: #3498db;
+            --button-blue: #3498db;
+            --button-grey: #34495e;
+            --input-bg: #223347;
+            --input-border: #4d8cc4;
+            --input-focus-border: #3498db;
+            --card-bg: #2e4059;
+            --text-highlight: #3498db;
+            --note-text-color: #e5e5e5;
+            --note-text-empty: #95a5a6;
         }
 
-        /* 皇家紫韻主題 - 高貴的紫金配色方案 */
+        /* 皇家紫韻主題 */
         :root[data-theme="royal"] {
-            /* RGB版本的顏色（用於透明度控制） */
-            --primary-color-rgb: 49, 27, 77;      /* 主背景色RGB值 */
-            --secondary-color-rgb: 69, 39, 107;   /* 次背景色RGB值 */
-            --accent-color-rgb: 212, 175, 55;     /* 強調色RGB值 */
-            --input-bg-rgb: 40, 23, 60;           /* 輸入框背景RGB值 */
-            --error-color-rgb: 179, 51, 51;       /* 錯誤色RGB值 */
-            --info-color-rgb: 66, 133, 244;       /* 信息色RGB值 */
+            /* RGB 色彩值 */
+            --primary-color-rgb: 49, 27, 77;
+            --secondary-color-rgb: 69, 39, 107;
+            --accent-color-rgb: 212, 175, 55;
+            --input-bg-rgb: 40, 23, 60;
+            --error-color-rgb: 179, 51, 51;
+            --info-color-rgb: 66, 133, 244;
             
-            /* 基本色調 */
-            --primary-color: #311b4d;             /* 深紫色背景 */
-            --secondary-color: #45276b;           /* 中紫色次背景 */
-            --text-color: #f8f0e3;                /* 淺金色文字 */
-            --border-color: #8a56ac;              /* 亮紫色邊框 */
-            --hover-color: #513082;               /* 紫羅蘭懸停色 */
-            --shadow-color: rgba(49, 27, 77, 0.5); /* 紫色陰影 */
+            /* 基本色彩 */
+            --primary-color: #311b4d;
+            --secondary-color: #45276b;
+            --text-color: #f8f0e3;
+            --text-muted: #c0a9e0;
+            --border-color: #8a56ac;
+            --hover-color: #513082;
+            --shadow-color: rgba(49, 27, 77, 0.5);
             
-            /* 強調色 */
-            --accent-color: #d4af37;              /* 金色重點色 */
-            --accent-color-light: rgba(212, 175, 55, 0.2); /* 淡金色 */
-            --accent-color-dark: #b8860b;         /* 深金色 */
+            /* 功能色彩 */
+            --accent-color: #d4af37;
+            --accent-color-light: rgba(212, 175, 55, 0.2);
+            --accent-color-dark: #b8860b;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #b33333;
+            --info-color: #4285f4;
             
-            /* 功能色 */
-            --success-color: #4caf50;             /* 綠色成功色 */
-            --warning-color: #ff9800;             /* 橙色警告色 */
-            --error-color: #b33333;               /* 紅色錯誤色 */
-            --info-color: #4285f4;                /* 藍色資訊色 */
-            
-            /* 特殊元件顏色 */
-            --button-primary: #d4af37;            /* 金色主按鈕 */
-            --button-secondary: #513082;          /* 紫色副按鈕 */
-            --input-bg: #28173c;                  /* 深紫色輸入框背景 */
-            --input-border: #8a56ac;              /* 亮紫色輸入框邊框 */
-            --input-focus-border: #d4af37;        /* 金色輸入框焦點邊框 */
-            --card-bg: #45276b;                   /* 中紫色卡片背景 */
-            
-            /* 文字強調色 */
-            --text-highlight: #dfc15e;            /* 金色文字強調 */
-            --text-muted: #c0a9e0;                /* 淺紫色淡色文字 */
-            
-            /* 與舊代碼兼容的變數 */
-            --button-orange: #d4af37;             /* 金色替代橙色 */
-            --button-blue: #4285f4;               /* 保留藍色 */
-            --button-grey: #513082;               /* 紫色替代灰色 */
-
-            --note-text-color: #f8f0e3;        /* 淺金色文字 */
-            --note-text-empty: #c0a9e0;        /* 淺紫色文字 */
+            /* 元件色彩 */
+            --button-primary: #d4af37;
+            --button-secondary: #513082;
+            --button-orange: #d4af37;
+            --button-blue: #4285f4;
+            --button-grey: #513082;
+            --input-bg: #28173c;
+            --input-border: #8a56ac;
+            --input-focus-border: #d4af37;
+            --card-bg: #45276b;
+            --text-highlight: #dfc15e;
+            --note-text-color: #f8f0e3;
+            --note-text-empty: #c0a9e0;
         }
 
         /* ============================================
@@ -9895,7 +9846,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.74</div>
+            <div class="version-info">v3.75 beta</div>
         </div>
     </div>
 
