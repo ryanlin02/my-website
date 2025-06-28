@@ -3907,7 +3907,7 @@
         .combined-interest-row .label {
             width: 86px !important;
             font-size: 16px !important;
-            margin-right: 4px !important;
+            margin-right: 5px !important;
         }
 
         .combined-interest-row input {
@@ -3920,6 +3920,35 @@
             margin: 0 8px;
             font-weight: bold;
             font-size: 18px;
+        }
+
+        /* 百萬利息和一萬利息合併欄位的特殊樣式 */
+        .million-interest-row,
+        .ten-thousand-interest-row {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* 調整百萬利息和一萬利息的標籤寬度 */
+        .million-interest-row .label,
+        .ten-thousand-interest-row .label {
+            width: 80px !important;  /* 縮短標籤寬度 */
+            font-size: 16px !important;  /* 保持原有字體大小 */
+            margin-right: 4px !important;
+        }
+
+        /* 子標籤樣式（每年、每月） */
+        .sub-label {
+            
+            font-size: 16px;  /* 稍微小一點的字體 */
+            margin: 0 6px;  /* 左右間距 */
+        }
+
+        /* 縮短的輸入框樣式 */
+        .short-input {
+            width: 55px !important;  /* 縮短輸入框寬度 */
+            font-size: 16px !important;  /* 保持原有字體大小 */
+            padding: 5px 6px !important;  /* 減少內邊距 */
         }
 
     </style>
@@ -4130,24 +4159,38 @@
 
     <div class="divider-flow"></div>
 
-    <div class="row">
-        <span class="label">百萬每年利息</span>
-        <input type="text" id="annualMillionInterest" class="readonly" readonly>
+    <!-- 合併的百萬利息欄位 -->
+    <div class="row combined-interest-row million-interest-row">
+        <!-- 百萬利息標題 -->
+        <span class="label">百萬利息</span>
+        
+        <!-- 每年部分 -->
+        <span class="sub-label">每年</span>
+        <input type="text" id="annualMillionInterest" class="readonly short-input" readonly>
+        
+        <!-- 分隔符號 -->
+        <span class="interest-separator">|</span>
+        
+        <!-- 每月部分 -->
+        <span class="sub-label">每月</span>
+        <input type="text" id="monthlyMillionInterest" class="readonly short-input" readonly>
     </div>
 
-    <div class="row">
-        <span class="label">百萬每月利息</span>
-        <input type="text" id="monthlyMillionInterest" class="readonly" readonly>
-    </div>
-
-    <div class="row">
-        <span class="label">一萬每年利息</span>
-        <input type="text" id="annualTenThousandInterest" class="readonly" readonly>
-    </div>
-
-    <div class="row">
-        <span class="label">一萬每月利息</span>
-        <input type="text" id="monthlyTenThousandInterest" class="readonly" readonly>
+    <!-- 合併的一萬利息欄位 -->
+    <div class="row combined-interest-row ten-thousand-interest-row">
+        <!-- 一萬利息標題 -->
+        <span class="label">一萬利息</span>
+        
+        <!-- 每年部分 -->
+        <span class="sub-label">每年</span>
+        <input type="text" id="annualTenThousandInterest" class="readonly short-input" readonly>
+        
+        <!-- 分隔符號 -->
+        <span class="interest-separator">|</span>
+        
+        <!-- 每月部分 -->
+        <span class="sub-label">每月</span>
+        <input type="text" id="monthlyTenThousandInterest" class="readonly short-input" readonly>
     </div>
 
     <div class="divider-flow"></div>
@@ -9902,7 +9945,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.65</div>
+            <div class="version-info">v3.67</div>
         </div>
     </div>
 
