@@ -964,6 +964,25 @@
             overflow: hidden !important;          /* 隱藏溢出內容 */
         }
 
+        /* 修正精簡顯示模式下的間距問題 */
+        /* 當分隔線被隱藏時，確保不佔用任何空間 */
+        .divider-flow.hidden-element {
+            display: none !important;     /* 完全不顯示 */
+            margin: 0 !important;         /* 移除所有邊距 */
+            padding: 0 !important;        /* 移除所有內距 */
+            height: 0 !important;         /* 高度設為0 */
+        }
+
+        /* 確保行與行之間的間距一致 */
+        .row + .row {
+            margin-top: 4px;              /* 統一行與行之間的間距 */
+        }
+
+        /* 當分隔線被隱藏時，下一個元素不需要額外的頂部間距 */
+        .divider-flow.hidden-element + .row {
+            margin-top: 4px !important;   /* 保持與其他行相同的間距 */
+        }
+
         /* 頁腳訊息 */
         .footer-message {
             background-color: var(--primary-color); /* 使用主背景色 */
@@ -9413,12 +9432,12 @@
                 'commissionPercentButtons'
             ];
             
-            // 在"自行計算"模式中需要隱藏的欄位（根據您的新需求）
+            // 在"自行計算"模式中需要隱藏的欄位（修改後）
             const autoCalcHideFields = [
-                'totalPayment',           // 總繳款
+                // 'totalPayment',        // 總繳款 - 已移除，讓它顯示
                 'yearlyInterest',         // 每年利息
                 'monthlyInterest',        // 每月利息
-                'afterTaxRate',           // 稅後利率
+                // 'afterTaxRate',        // 稅後利率 - 已移除，讓它顯示
                 'annualMillionInterest',  // 百萬每年利息
                 'monthlyMillionInterest', // 百萬每月利息
                 'annualTenThousandInterest', // 一萬每年利息
@@ -9586,6 +9605,20 @@
                     
                     // 隱藏"一萬每月利息"下方的分隔線
                     hideTenThousandDivider();
+
+                    // 處理自行計算模式的分隔線顯示
+                    // 確保需要的分隔線正確顯示
+                    const allDividers = document.querySelectorAll('.divider-flow');
+                    allDividers.forEach((divider, index) => {
+                        // 根據需要顯示或隱藏特定的分隔線
+                        if (index === 1 || index === 2) {
+                            // 隱藏第2和第3條分隔線（索引1和2）
+                            divider.classList.add('hidden-element');
+                        } else {
+                            // 確保其他分隔線顯示
+                            divider.classList.remove('hidden-element');
+                        }
+                    });
                     
                 } else {
                     // 精簡顯示模式（viewMode === 2）
@@ -9954,7 +9987,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.71</div>
+            <div class="version-info">v3.72</div>
         </div>
     </div>
 
