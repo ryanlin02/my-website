@@ -676,17 +676,17 @@
 
         /* 行容器樣式 - 用於資料輸入區域 */
         .row {
-            margin: 4px 0;                        /* 上下邊距 */
-            display: flex;                        /* 使用flex佈局 */
-            align-items: center;                  /* 垂直居中 */
-            background: var(--secondary-color);   /* 使用次背景色 */
-            padding: 3px;                         /* 內邊距 */
-            border-radius: 4px;                   /* 圓角 */
-            box-shadow: 0 4px 8px var(--shadow-color); /* 陰影效果 */
-            transition: transform 0.3s ease, box-shadow 0.3s ease; /* 過渡效果 */
-            position: relative;                   /* 相對定位用於偽元素 */
-            transform-origin: left;               /* 變換起點為左側 */
-            will-change: transform;               /* 優化渲染性能 */
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            background: var(--secondary-color);
+            padding: 3px;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            /* 移除 transition 以去除動畫效果 */
+            position: relative;
+            transform-origin: left;
+            /* 移除 will-change 因為不再需要動畫優化 */
         }
 
         /* 行懸停效果 */
@@ -760,15 +760,15 @@
             display: none;                         /* 隱藏偽元素 */
         }
 
-        /* 按鍵容器樣式調整 */
+        /* 按鍵容器樣式調整 - 已移除動畫效果 */
         .input-button-group div[id$="Buttons"] {
-            margin: 0;                             /* 移除邊距 */
-            padding-top: 0;                        /* 移除上部內邊距 */
-            padding-bottom: 2px;                   /* 底部內邊距 */
-            border-top: none;                      /* 移除頂部邊框 */
-            transition: all 0.3s ease-in-out, max-height 0.3s ease-in-out; /* 過渡效果 */
-            max-height: 100px;                     /* 預設最大高度 */
-            opacity: 1;                            /* 完全不透明 */
+            margin: 0;
+            padding-top: 0;
+            padding-bottom: 2px;
+            border-top: none;
+            /* 確保沒有 transition 屬性 */
+            max-height: 100px;
+            opacity: 1;
         }
         
         /* 當滑鼠懸停在按鍵組上時的效果 */
@@ -953,14 +953,14 @@
             box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25); /* 增強陰影 */
         }
 
-        /* 隱藏元素 */
+        /* 隱藏元素 - 移除動畫效果 */
         .hidden-element {
             display: none !important;             /* 強制隱藏 */
             max-height: 0 !important;             /* 高度為0 */
             opacity: 0 !important;                /* 完全透明 */
             padding: 0 !important;                /* 移除內邊距 */
             margin: 0 !important;                 /* 移除邊距 */
-            transition: all 0.3s ease-in-out;     /* 過渡效果 */
+            /* 移除 transition 以去除動畫效果 */
             overflow: hidden !important;          /* 隱藏溢出內容 */
         }
 
@@ -1073,33 +1073,6 @@
         @keyframes pulse {
             0%, 100% { opacity: 0.7; transform: scale(1); }   /* 開始和結束狀態：輕微透明和原始大小 */
             50% { opacity: 1; transform: scale(1.1); }        /* 中間狀態：完全不透明和放大10% */
-        }
-
-        /* 讓「稅佣後利率」輸入框更明顯但不突兀 */
-        /* 稅佣後利率輸入框樣式 */
-        #afterCommissionRate {
-            font-weight: bold;                           /* 粗體 */
-            color: #ffffff;                              /* 白色文字 */
-            background-color: var(--accent-color-light); /* 強調色背景 */
-            border: 1px solid rgba(var(--accent-color-rgb), 0.6); /* 強調色邊框 */
-            box-shadow: 0 0 4px rgba(var(--accent-color-rgb), 0.15); /* 陰影效果 */
-        }
-
-        /* 稅佣後利率輸入框值變化動畫 */
-        #afterCommissionRate.value-changed {
-            animation: afterRateChange 0.8s ease-out;    /* 自定義動畫 */
-        }
-
-        /* 自定義動畫 - 定義稅佣後利率變化時的背景和大小變化 */
-        @keyframes afterRateChange {
-            0% { 
-                background-color: rgba(255, 156, 51, 0.3); /* 開始時較強的橙色背景 */
-                transform: scale(1.02);                   /* 輕微放大 */
-            }
-            100% { 
-                background-color: rgba(255, 156, 51, 0.08); /* 結束時較淡的橙色背景 */
-                transform: scale(1);                     /* 恢復原始大小 */
-            }
         }
 
         /* 按鈕基本樣式 - 所有基本按鈕的共同樣式 */
@@ -2345,7 +2318,6 @@
 
         /* 按鈕組的轉換效果 - 控制按鈕組的展開/收起 */
         .input-button-group div[id$="Buttons"] {
-            transition: all 0.3s ease-in-out, max-height 0.3s ease-in-out; /* 過渡效果 */
             max-height: 100px;                              /* 最大高度 */
             opacity: 1;                                     /* 完全不透明 */
         }
@@ -3898,21 +3870,50 @@
             animation: pulse 1.5s infinite;
         }
 
-        /* 合併利息欄位的特殊樣式 */
+        /* 合併的每年/每月利息欄位的特殊樣式 */
         .combined-interest-row {
             display: flex !important;
             align-items: center !important;
+            /* 確保欄位內容適當分佈 */
+            justify-content: flex-start !important;
         }
 
-        .combined-interest-row .label {
-            width: 86px !important;
-            font-size: 16px !important;
-            margin-right: 5px !important;
+        /* 第一個標籤的統一寬度 - 讓所有合併欄位的第一個標籤對齊 */
+        .combined-interest-row .label:first-child {
+            width: 75px !important;          /* 統一第一個標籤寬度 */
+            font-size: 16px !important;      /* 保持字體大小 */
+            margin-right: 4px !important;    /* 右側間距 */
+            text-align: right !important;    /* 文字靠右對齊 */
+            flex-shrink: 0;                 /* 防止標籤被壓縮 */
         }
 
+        /* 第二個標籤的統一寬度 */
+        .combined-interest-row .label:not(:first-child) {
+            width: 65px !important;          /* 統一第二個標籤寬度 */
+            font-size: 16px !important;      /* 保持字體大小 */
+            margin-right: 4px !important;    /* 右側間距 */
+            margin-left: 4px !important;     /* 左側間距 */
+            text-align: right !important;    /* 文字靠右對齊 */
+            flex-shrink: 0;                 /* 防止標籤被壓縮 */
+        }
+
+        /* 統一所有合併欄位的輸入框寬度 */
         .combined-interest-row input {
-            width: 62px !important;
-            font-size: 16px !important;
+            width: 85px !important;          /* 增加輸入框寬度以顯示較大數值 */
+            font-size: 16px !important;      /* 保持字體大小 */
+            flex-shrink: 0;                 /* 防止輸入框被壓縮 */
+        }
+
+        /* 分隔符號的精確定位 */
+        .interest-separator {
+            color: var(--accent-color);
+            margin: 0 8px;                   /* 左右間距各8px */
+            font-weight: bold;
+            font-size: 18px;
+            flex-shrink: 0;                 /* 防止分隔符被壓縮 */
+            /* 設定固定位置以確保對齊 */
+            position: relative;
+            left: 0;
         }
 
         .interest-separator {
@@ -3922,21 +3923,6 @@
             font-size: 18px;
         }
 
-        /* 百萬利息和一萬利息合併欄位的特殊樣式 */
-        .million-interest-row,
-        .ten-thousand-interest-row {
-            display: flex !important;
-            align-items: center !important;
-        }
-
-        /* 調整百萬利息和一萬利息的標籤寬度 */
-        .million-interest-row .label,
-        .ten-thousand-interest-row .label {
-            width: 80px !important;  /* 縮短標籤寬度 */
-            font-size: 16px !important;  /* 保持原有字體大小 */
-            margin-right: 4px !important;
-        }
-
         /* 子標籤樣式（每年、每月） */
         .sub-label {
             
@@ -3944,11 +3930,26 @@
             margin: 0 6px;  /* 左右間距 */
         }
 
-        /* 縮短的輸入框樣式 */
-        .short-input {
-            width: 55px !important;  /* 縮短輸入框寬度 */
-            font-size: 16px !important;  /* 保持原有字體大小 */
-            padding: 5px 6px !important;  /* 減少內邊距 */
+        /* 特別針對百萬利息和一萬利息欄位的輸入框寬度調整 */
+        /* 因為這兩個欄位的數值通常較小，所以縮減寬度 */
+        .million-interest-row input,
+        .ten-thousand-interest-row input {
+            width: 64px !important;          /* 縮小輸入框寬度（原本是85px） */
+            font-size: 16px !important;      /* 保持字體大小不變 */
+        }
+
+        /* 調整百萬利息和一萬利息欄位的子標籤（每年、每月）寬度 */
+        .million-interest-row .sub-label,
+        .ten-thousand-interest-row .sub-label {
+            width: auto !important;          /* 自動寬度 */
+            margin: 0 8px !important;        /* 減少左右間距 */
+            font-size: 16px !important;      /* 稍微縮小字體 */
+        }
+
+        /* 調整百萬利息和一萬利息欄位的主標籤寬度 */
+        .million-interest-row .label:first-child,
+        .ten-thousand-interest-row .label:first-child {
+            width: 76px !important;          /* 稍微縮小標籤寬度（原本是75px） */
         }
 
     </style>
@@ -4074,14 +4075,18 @@
         </div>
     </div>
 
-    <div class="row">
-        <span class="label">總繳款</span>
-        <input type="text" id="totalPayment" class="readonly" readonly>
-    </div>
-
-	<div class="row">
+    <!-- 合併的總利息和總繳款欄位 -->
+    <div class="row combined-interest-row total-payment-row">
+        <!-- 總利息部分 -->
         <span class="label">總利息</span>
-        <input type="text" id="totalInterest" class="readonly" readonly>
+        <input type="text" id="totalInterest" class="readonly medium-input" readonly>
+        
+        <!-- 分隔符號 -->
+        <span class="interest-separator">|</span>
+        
+        <!-- 總繳款部分 -->
+        <span class="label">總繳款</span>
+        <input type="text" id="totalPayment" class="readonly medium-input" readonly>
     </div>
 
     <!-- 合併的每年/每月利息欄位 -->
@@ -4100,14 +4105,18 @@
 
     <div class="divider-flow"></div>
 
-    <div class="row">
+    <!-- 合併的稅金和稅後利率欄位 -->
+    <div class="row combined-interest-row tax-rate-row">
+        <!-- 稅金部分 -->
         <span class="label">稅金</span>
-        <input type="text" id="tax" class="readonly" readonly>
-    </div>
-
-    <div class="row">
+        <input type="text" id="tax" class="readonly medium-input" readonly>
+        
+        <!-- 分隔符號 -->
+        <span class="interest-separator">|</span>
+        
+        <!-- 稅後利率部分 -->
         <span class="label">稅後利率</span>
-        <input type="text" id="afterTaxRate" step="0.001" class="readonly" readonly>
+        <input type="text" id="afterTaxRate" step="0.001" class="readonly medium-input" readonly>
     </div>
 
     <div class="divider-flow"></div>
@@ -9945,7 +9954,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.67</div>
+            <div class="version-info">v3.71</div>
         </div>
     </div>
 
