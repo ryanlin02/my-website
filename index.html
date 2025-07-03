@@ -4186,7 +4186,7 @@
     <div class="divider-flow"></div>
 
     <div class="row">
-        <span class="label">本月資金成本</span>
+        <span class="label">資金成本</span>
         <input type="text" id="monthlyCost" value="2.2165" step="0.0001" readonly>
         <button onclick="resetMonthlyCost()">7月</button>
     </div>
@@ -5259,7 +5259,7 @@
                 principal: document.getElementById('principal').value,              // 本金
                 payment: document.getElementById('payment').value,                  // 期繳
                 commission: document.getElementById('commission').value,            // 推廣費
-                monthlyCost: document.getElementById('monthlyCost').value,          // 本月資金成本
+                monthlyCost: document.getElementById('monthlyCost').value,          // 資金成本
                 timestamp: new Date().toISOString(),                                // 保存時間戳記
                 version: 'v1'                                                       // 版本號，方便未來升級
             };
@@ -7547,22 +7547,22 @@
         }, duration);
     }
 
-    // 重置本月資金成本為預設值的函數
+    // 重置資金成本為預設值的函數
     function resetMonthlyCost() {
         // 震動效果
         vibrate();
         
-        // 將本月資金成本設為預設值 2.2165
+        // 將資金成本設為預設值 2.2165
         document.getElementById('monthlyCost').value = '2.2165';
         
         // 更新所有相關計算
         updateAllFields();
         
         // 顯示提示訊息
-        showToast('已重置本月資金成本為預設值');
+        showToast('已重置資金成本為預設值');
     }
 
-    // 清空所有欄位除了本月資金成本
+    // 清空所有欄位除了資金成本
     function clearAllFieldsExceptMonthlyCost() {
         // 震動效果
         vibrate();
@@ -7601,7 +7601,7 @@
             }
         });
 
-        // 將本月資金成本重置為預設值，而不是清空
+        // 將資金成本重置為預設值，而不是清空
         const monthlyCostElement = document.getElementById('monthlyCost');
         if (monthlyCostElement) {
             monthlyCostElement.value = '2.2165';
@@ -7916,13 +7916,13 @@
                 break;
 
             case 'monthlyCost':
-                // 本月資金成本不需要千位分隔符，保留4位小數
+                // 資金成本不需要千位分隔符，保留4位小數
                 if (value < 0) {
-                    showToast('錯誤：本月資金成本不能為負數', true);
+                    showToast('錯誤：資金成本不能為負數', true);
                     return;
                 }
                 if (value > 20) {
-                    showToast('錯誤：本月資金成本不能超過20', true);
+                    showToast('錯誤：資金成本不能超過20', true);
                     return;
                 }
                 // 限制在0.0000到20.0000之間，並保留4位小數
@@ -7946,7 +7946,7 @@
         } else if (currentInputField === 'commission') {
             calculateAfterCommissionRate();
         } else if (currentInputField === 'monthlyCost') {
-            // 本月資金成本改變時，更新所有相關計算
+            // 資金成本改變時，更新所有相關計算
             updateAllFields();
         }
         
@@ -9278,9 +9278,9 @@
                 openCalculator('commission', '請輸入【推廣】');
             });
 
-            // 為本月資金成本輸入框添加點擊事件
+            // 為資金成本輸入框添加點擊事件
             document.getElementById('monthlyCost').addEventListener('click', function() {
-                openCalculator('monthlyCost', '請輸入【本月資金成本】');
+                openCalculator('monthlyCost', '請輸入【資金成本】');
             });
             
             // 點擊模態框背景關閉模態框
@@ -9522,7 +9522,7 @@
                 const dividers = document.querySelectorAll('.divider-flow');
                 
                 // 在計算模式下，隱藏第3條分隔線（稅佣後利率上方的分隔線）
-                // 這樣可以避免稅佣後利率和本月資金成本之間出現2條分隔線
+                // 這樣可以避免稅佣後利率和資金成本之間出現2條分隔線
                 if (dividers[2]) dividers[2].classList.add('mode-hidden');
             }
 
@@ -9891,7 +9891,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.79</div>
+            <div class="version-info">v3.80</div>
         </div>
     </div>
 
