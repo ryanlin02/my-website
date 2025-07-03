@@ -4714,15 +4714,6 @@
         }
     }
 
-    function calculatePeriod() {
-        const rate = parseFloat(document.getElementById('rate').value);
-        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
-        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
-        
-        // TODO: Implement period calculation
-        updateAllFields();
-    }
-
     function calculateRate() {
         const period = parseFloat(document.getElementById('period').value);
         const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
@@ -4788,15 +4779,6 @@
                 showToast('計算利率時出錯', true);
             }
         }
-    }
-
-    function calculatePrincipal() {
-        const period = parseFloat(document.getElementById('period').value);
-        const rate = parseFloat(document.getElementById('rate').value);
-        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
-        
-        // TODO: Implement principal calculation
-        updateAllFields();
     }
 
     function calculatePayment() {
@@ -5417,16 +5399,6 @@
         principalField.value = formatNumberWithCommas(newValue);
         calculatePayment();
         updateAllFields();
-    }
-
-    function calculateAfterCommissionRate() {
-        const period = parseFloat(document.getElementById('period').value);
-        const payment = parseFloat(document.getElementById('payment').value.replace(/,/g, ''));
-        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
-        const tax = parseFloat(document.getElementById('tax').value.replace(/,/g, ''));
-        const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
-
-        updateAllFields(); // 更新所有欄位
     }
 
     // 修改 roundPayment 函数以保持正数限制
@@ -7933,15 +7905,13 @@
         // 关闭模态框
         closeModal('numberInputModal');
         
-        // 根据字段执行相应的计算函数
+        // 根據欄位執行相應的計算函數
         if (currentInputField === 'period' || currentInputField === 'rate' || currentInputField === 'principal') {
             calculatePayment();
         } else if (currentInputField === 'payment') {
             calculateRate();
-        } else if (currentInputField === 'commission') {
-            calculateAfterCommissionRate();
-        } else if (currentInputField === 'monthlyCost') {
-            // 資金成本改變時，更新所有相關計算
+        } else if (currentInputField === 'commission' || currentInputField === 'monthlyCost') {
+            // 推廣費或資金成本改變時，更新所有相關計算
             updateAllFields();
         }
         
@@ -9886,7 +9856,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.82</div>
+            <div class="version-info">v3.83</div>
         </div>
     </div>
 
