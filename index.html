@@ -3752,41 +3752,43 @@
             gap: 4px;                                     /* 項目間距 */
         }
 
-        /* footer 中的標題文字 */
+        /* footer 中的標題文字 - 佣後和稅佣後的標題 */
         .rate-footer-label {
-            font-size: 16px;                              /* 文字大小 */
-            color: var(--accent-color);                   /* 使用強調色 */
-            font-weight: normal;                            /* 粗體文字 */
-            white-space: nowrap;                          /* 防止換行 */
+            font-size: 18px;                              /* 文字大小 - 從16px增加到18px */
+            color: var(--accent-color);                   /* 使用強調色（橘色） */
+            font-weight: normal;                            /* 粗體文字 - 從normal改為bold讓文字更明顯 */
+            white-space: nowrap;                          /* 防止文字換行 */
         }
 
-        /* footer 中的利率輸入框 */
+        /* footer 中的利率輸入框 - 顯示佣後和稅佣後利率的數值框 */
         .rate-footer-input {
-            width: 60px;                                  /* 固定寬度 */
-            padding: 4px 6px;                             /* 內部間距 */
-            background-color: var(--input-bg);            /* 使用輸入框背景色 */
-            color: var(--text-color);                     /* 使用文字顏色 */
-            border: 1px solid var(--border-color);        /* 邊框 */
-            border-radius: 4px;                           /* 圓角 */
-            font-size: 16px;                              /* 文字大小 */
-            text-align: right;                            /* 文字右對齊 */
-            font-weight: normal;                            /* 粗體文字 */
-            cursor: default;                              /* 預設游標（不可編輯） */
+            width: 70px;                                  /* 固定寬度 - 從60px增加到70px以容納較大的文字 */
+            padding: 5px 7px;                             /* 內部間距 - 稍微增加讓數字顯示更舒適 */
+            background-color: var(--input-bg);            /* 使用輸入框背景色（深色背景） */
+            color: var(--text-color);                     /* 使用文字顏色（白色或主題色） */
+            border: 1px solid var(--border-color);        /* 邊框顏色 */
+            border-radius: 4px;                           /* 圓角效果 */
+            font-size: 18px;                              /* 文字大小 - 從16px增加到18px */
+            text-align: right;                            /* 文字靠右對齊（數字通常靠右） */
+            font-weight: normal;                            /* 粗體文字 - 從normal改為bold讓數字更明顯 */
+            cursor: default;                              /* 預設游標（因為這是唯讀欄位） */
         }
 
-        /* footer 中的百分比符號 */
+        /* footer 中的百分比符號 - %符號的樣式 */
         .rate-footer-percent {
-            font-size: 16px;                              /* 文字大小 */
-            color: var(--text-color);                     /* 使用文字顏色 */
-            margin-left: -11px;                             /* 左側間距 */
+            font-size: 18px;                              /* 文字大小 - 從16px增加到18px配合數字大小 */
+            color: var(--text-color);                     /* 使用主題文字顏色 */
+            margin-left: -12px;                           /* 左側負間距 - 稍微調整以配合較大的輸入框 */
+            font-weight: normal;                            /* 新增粗體效果讓%符號更明顯 */
         }
 
-        /* 兩個利率顯示之間的分隔器 */
+        /* 兩個利率顯示之間的分隔器 - 佣後和稅佣後之間的垂直分隔線 */
         .rate-footer-separator {
-            width: 25px;                                  /* 分隔器寬度 */
-            height: 1px;                                  /* 高度為1像素的線 */
-            background-color: var(--border-color);        /* 使用邊框顏色 */
-            margin: 0 15px;                               /* 左右間距 */
+            width: 30px;                                  /* 分隔器寬度 - 稍微增加寬度 */
+            height: 2px;                                  /* 高度 - 從1px增加到2px讓分隔線更明顯 */
+            background-color: var(--border-color);        /* 使用邊框顏色（通常是灰色） */
+            margin: 0 18px;                               /* 左右間距 - 稍微增加以配合較大的元素 */
+            opacity: 0.7;                                 /* 新增透明度讓分隔線不會太突兀 */
         }
 
         /* 當頁面有底部 footer 時，調整主要內容的底部間距 */
@@ -9856,7 +9858,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.83</div>
+            <div class="version-info">v3.84</div>
         </div>
     </div>
 
