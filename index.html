@@ -10,6 +10,19 @@
     gtag('js', new Date());
 
     gtag('config', 'G-XE5XMQR0Z1');
+
+    // 在檔案開頭的 <script> 標籤內加入
+    let titleClickCount = 0;
+
+    function handleTitleClick() {
+        titleClickCount++;
+        if (titleClickCount >= 3) {
+            document.getElementById('ageModal').style.display = 'none';
+            checkInstallAvailable();
+            titleClickCount = 0; // 重置計數器
+        }
+    }
+
     </script>
 
     <!-- 在 <head> 標籤內添加以下內容 -->
@@ -9858,7 +9871,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.84</div>
+            <div class="version-info">v3.88</div>
         </div>
     </div>
 
@@ -9905,7 +9918,11 @@
     <!-- 年齡提示視窗 -->
     <div id="ageModal" class="install-modal-overlay" style="display: none;">
         <div class="install-modal">
-            <h2 class="install-modal-title">18+ **Warning!**</h2>
+            <!-- 修改：將標題改為可點擊的隱藏按鈕，點擊後可關閉提示框 -->
+            <h2 class="install-modal-title" 
+                style="cursor: pointer; user-select: none;" 
+                onclick="handleTitleClick();"
+                title="連續點擊3次可以關閉提示框">18+ **Warning!**</h2>
             <div class="install-modal-content">
                 This is a specialized calculator meticulously engineered for children who exhibit difficulties with mathematics and demonstrate notably sluggish computational speed. Should you be an adult possessing proficient arithmetic capabilities, it is strongly advised that you refrain from accessing this website without necessity. However, if you, too, are an enthusiast of turkey rice, your utilization of this platform's features is most heartily welcomed.
             </div>
@@ -9943,14 +9960,16 @@
     
         // 顯示年齡提示視窗和安裝提示
         function showInstallPrompt() {
+            // 修改說明：這個函數用於顯示年齡警告視窗
+            // 標題可以點擊關閉，Not 18 yet 按鈕會導向 Baby Shark 影片
+            // Already 18+ 按鈕會導向 Rick Roll 影片
+            
             document.getElementById('ageModal').style.display = 'flex';
             
-            // 當用戶點擊「Not 18 yet」按鈕時
+            // 當用戶點擊「Not 18 yet」按鈕時（修改：改為連結到 Baby Shark 影片）
             document.getElementById('notAdultBtn').addEventListener('click', function() {
-                document.getElementById('ageModal').style.display = 'none';
-                
-                // 顯示安裝提示，如果可用
-                checkInstallAvailable();
+                // 將使用者導向到 Baby Shark 的 YouTube 影片
+                window.location.href = 'https://www.youtube.com/watch?v=4bMOTTJqGgM&list=RD4bMOTTJqGgM&start_radio=1&ab_channel=BabySharkOfficial';
             });
             
             // 當用戶點擊「Already 18+」按鈕時
