@@ -8646,7 +8646,7 @@
             <div style="width: 100%; max-width: 380px; margin: 0 auto;">
                 <!-- 超級柴油價格輸入欄位 -->
                 <div class="row">
-                    <span class="label">超級柴油</span>
+                    <span class="label">油價</span>
                     <input type="text" 
                         id="dieselPrice" 
                         placeholder="0.0"
@@ -8723,6 +8723,21 @@
                         readonly
                         style="width: 95px; text-align: right;">
                     <span style="margin-left: 10px; color: var(--text-color);">元</span>
+                </div>
+
+                <!-- 新增：每年多吃火雞肉飯欄位 -->
+                <div class="row emphasized-row" style="
+                    background: linear-gradient(90deg, rgba(255, 156, 51, 0.15), transparent);
+                    border-left: 3px solid #ff9c33;
+                ">
+                    <span class="label">每年多吃</span>
+                    <input type="text" 
+                        id="yearlyBowls" 
+                        class="readonly"
+                        placeholder="0"
+                        readonly
+                        style="width: 95px; text-align: right; font-weight: bold;">
+                    <span style="margin-left: 10px; color: var(--text-color);">碗火雞肉飯</span>
                 </div>
                 
                 <!-- 清除按鈕 -->
@@ -8929,7 +8944,7 @@
         
         // 設定標題
         const titles = {
-            'dieselPrice': '請輸入【超級柴油價格】',
+            'dieselPrice': '請輸入【油價】',
             'monthlyExpense': '請輸入【每月油錢】',
             'monthlyVolume': '請輸入【每月油量】',
             'discountAmount': '請輸入【折扣金額】'
@@ -9142,6 +9157,11 @@
             
             const yearlySaving = monthlySaving * 12;
             document.getElementById('yearlySaving').value = addGasThousandsSeparator(yearlySaving);
+
+            // 新增：計算每年可多吃幾碗火雞肉飯（每碗35元）
+            const yearlyBowls = Math.floor(yearlySaving / 35);
+            document.getElementById('yearlyBowls').value = addGasThousandsSeparator(yearlyBowls);
+
         } else {
             document.getElementById('discountedExpense').value = '';
             document.getElementById('monthlySaving').value = '';
@@ -9153,7 +9173,7 @@
     function clearGasCalculation() {
         vibrate();
         
-        const fieldsToClear = ['monthlyExpense', 'monthlyVolume', 'discountAmount', 'discountedExpense', 'monthlySaving', 'yearlySaving'];
+        const fieldsToClear = ['monthlyExpense', 'monthlyVolume', 'discountAmount', 'discountedExpense', 'monthlySaving', 'yearlySaving', 'yearlyBowls'];
         
         fieldsToClear.forEach(fieldId => {
             const field = document.getElementById(fieldId);
@@ -9871,7 +9891,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.88</div>
+            <div class="version-info">v3.90</div>
         </div>
     </div>
 
