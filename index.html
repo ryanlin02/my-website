@@ -671,6 +671,158 @@
             animation: expandHeight 0.3s forwards; /* 執行高度擴展動畫 */
         }
 
+        /* ============================================
+        * 現代化可編輯欄位設計
+        * ============================================ */
+
+        /* 可編輯欄位的現代化設計 - 採用簡潔的左側邊框 + 微妙背景效果 */
+        .editable-field {
+            position: relative;                                    /* 相對定位，為內部元素提供定位基準 */
+            border-left: 3px solid var(--accent-color);           /* 左側3像素寬的實心邊框，使用主題強調色 */
+            background: linear-gradient(135deg,                    /* 135度角的漸變背景 */
+                rgba(var(--accent-color-rgb), 0.03) 0%,           /* 起始：極淡的主題色（透明度3%） */
+                rgba(var(--accent-color-rgb), 0.01) 100%);        /* 結束：更淡的主題色（透明度1%） */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);   /* 使用現代化的緩動函數，提供流暢的過渡效果 */
+            box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0); /* 初始時無陰影，用於懸停動畫 */
+        }
+
+        /* 懸停效果 - 現代化的微互動設計 */
+        .editable-field:hover {
+            border-left-width: 4px;                               /* 懸停時邊框稍微加寬 */
+            background: linear-gradient(135deg,                    /* 懸停時背景稍微加深 */
+                rgba(var(--accent-color-rgb), 0.05) 0%,           /* 起始：稍深的主題色（透明度5%） */
+                rgba(var(--accent-color-rgb), 0.02) 100%);        /* 結束：稍深的主題色（透明度2%） */
+            box-shadow: 0 2px 8px rgba(var(--accent-color-rgb), 0.1); /* 懸停時添加微妙的陰影效果 */
+            transform: translateX(2px);                            /* 懸停時輕微右移，增加互動感 */
+        }
+
+        /* 聚焦狀態 - 當欄位內的輸入框被點擊或聚焦時的效果 */
+        .editable-field:focus-within {
+            border-left-width: 4px;                               /* 聚焦時邊框加寬 */
+            background: linear-gradient(135deg,                    /* 聚焦時背景更明顯 */
+                rgba(var(--accent-color-rgb), 0.08) 0%,           /* 起始：更深的主題色（透明度8%） */
+                rgba(var(--accent-color-rgb), 0.03) 100%);        /* 結束：更深的主題色（透明度3%） */
+            box-shadow: 0 4px 12px rgba(var(--accent-color-rgb), 0.15), /* 聚焦時的主要陰影 */
+                        0 0 0 2px rgba(var(--accent-color-rgb), 0.1); /* 聚焦時的輪廓發光效果 */
+            transform: translateX(3px);                            /* 聚焦時稍微右移更多 */
+        }
+
+        /* 確保內部元素保持正常的定位和顯示 */
+        .editable-field .label,
+        .editable-field input,
+        .editable-field button,
+        .editable-field .helper-text {
+            position: relative;                                    /* 相對定位 */
+            z-index: 1;                                           /* 確保在背景效果之上 */
+        }
+
+        /* ============================================
+        * 針對不同主題的特殊優化
+        * ============================================ */
+
+        /* 極簡黑白主題 - 使用更深的灰色調 */
+        :root[data-theme="white"] .editable-field {
+            border-left-color: #666666;                           /* 使用深灰色邊框 */
+            background: linear-gradient(135deg,                    
+                rgba(85, 85, 85, 0.04) 0%,                        /* 淡灰色背景 */
+                rgba(85, 85, 85, 0.01) 100%);
+        }
+
+        :root[data-theme="white"] .editable-field:hover {
+            box-shadow: 0 2px 8px rgba(85, 85, 85, 0.1);         /* 灰色陰影 */
+        }
+
+        :root[data-theme="white"] .editable-field:focus-within {
+            box-shadow: 0 4px 12px rgba(85, 85, 85, 0.15),       /* 聚焦時的灰色陰影 */
+                        0 0 0 2px rgba(85, 85, 85, 0.1);
+        }
+
+        /* 櫻花雪主題 - 使用更溫暖的粉色調 */
+        :root[data-theme="pink"] .editable-field {
+            border-left-color: #db386c;                           /* 使用主題粉色 */
+            background: linear-gradient(135deg,                    
+                rgba(219, 56, 108, 0.04) 0%,                      /* 淡粉色背景 */
+                rgba(255, 182, 193, 0.02) 100%);                  /* 更淡的粉色漸變 */
+        }
+
+        /* 暗夜烈焰主題 - 使用更強烈的紅色效果 */
+        :root[data-theme="red"] .editable-field {
+            border-left-color: #f44336;                           /* 使用主題紅色 */
+            background: linear-gradient(135deg,                    
+                rgba(244, 67, 54, 0.05) 0%,                       /* 淡紅色背景 */
+                rgba(244, 67, 54, 0.02) 100%);
+        }
+
+        :root[data-theme="red"] .editable-field:hover {
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.15);       /* 紅色陰影效果 */
+        }
+
+        /* 暮光星塵主題 - 使用夢幻的紫色效果 */
+        :root[data-theme="blue-purple"] .editable-field {
+            border-left-color: #9370db;                           /* 使用主題紫色 */
+            background: linear-gradient(135deg,                    
+                rgba(147, 112, 219, 0.05) 0%,                     /* 淡紫色背景 */
+                rgba(147, 112, 219, 0.02) 100%);
+        }
+
+        /* 翠玉清風主題 - 使用清新的綠色效果 */
+        :root[data-theme="green"] .editable-field {
+            border-left-color: #4caf50;                           /* 使用主題綠色 */
+            background: linear-gradient(135deg,                    
+                rgba(76, 175, 80, 0.04) 0%,                       /* 淡綠色背景 */
+                rgba(76, 175, 80, 0.01) 100%);
+        }
+
+        /* 科技藍調主題 - 使用現代的藍色效果 */
+        :root[data-theme="blue"] .editable-field {
+            border-left-color: #3498db;                           /* 使用主題藍色 */
+            background: linear-gradient(135deg,                    
+                rgba(52, 152, 219, 0.05) 0%,                      /* 淡藍色背景 */
+                rgba(52, 152, 219, 0.02) 100%);
+        }
+
+        /* 皇家紫韻主題 - 使用奢華的金色效果 */
+        :root[data-theme="royal"] .editable-field {
+            border-left-color: #d4af37;                           /* 使用主題金色 */
+            background: linear-gradient(135deg,                    
+                rgba(212, 175, 55, 0.05) 0%,                      /* 淡金色背景 */
+                rgba(212, 175, 55, 0.02) 100%);
+        }
+
+        :root[data-theme="royal"] .editable-field:hover {
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);       /* 金色陰影效果 */
+        }
+
+        /* ============================================
+        * 響應式設計優化
+        * ============================================ */
+
+        /* 在較小的螢幕上減少動畫效果，提升性能 */
+        @media (max-width: 480px) {
+            .editable-field {
+                transition: border-left-width 0.2s ease,          /* 只保留邊框變化動畫 */
+                            background-color 0.2s ease;           /* 和背景色變化動畫 */
+            }
+            
+            .editable-field:hover,
+            .editable-field:focus-within {
+                transform: none;                                   /* 在小螢幕上移除位移效果 */
+            }
+        }
+
+        /* 針對觸控設備的優化 */
+        @media (hover: none) and (pointer: coarse) {
+            .editable-field:hover {
+                /* 在觸控設備上移除懸停效果，因為觸控設備沒有真正的懸停狀態 */
+                border-left-width: 3px;
+                background: linear-gradient(135deg,                
+                    rgba(var(--accent-color-rgb), 0.03) 0%,       
+                    rgba(var(--accent-color-rgb), 0.01) 100%);
+                box-shadow: none;
+                transform: none;
+            }
+        }
+
         /* 高度擴展動畫 */
         @keyframes expandHeight {
             to {
@@ -3997,7 +4149,7 @@
     </div>
     
     <div class="input-button-group">
-        <div class="row">
+        <div class="row editable-field">
             <span class="label">期數</span>
             <input type="text" id="period" step="0.1" readonly>
             <button onclick="clearField('period')">清除</button>
@@ -4016,7 +4168,7 @@
     </div>
 
     <div class="input-button-group">
-        <div class="row">
+        <div class="row editable-field">
             <span class="label">稅前利率</span>
             <input type="text" id="rate" step="0.001" readonly>
             <button onclick="clearField('rate')">清除</button>
@@ -4034,7 +4186,7 @@
     </div>
 
     <div class="input-button-group">
-        <div class="row">
+        <div class="row editable-field">
             <span class="label">本金</span>
             <input type="text" id="principal" min="0" readonly>
             <button onclick="clearField('principal')">清除</button>
@@ -4051,7 +4203,7 @@
     </div>
 
     <div class="input-button-group">
-        <div class="row">
+        <div class="row editable-field">
             <span class="label">期繳</span>
             <input type="text" id="payment" step="0.01" readonly>
             <button onclick="clearField('payment')">清除</button>
@@ -4114,7 +4266,7 @@
     <div class="divider-flow"></div>
 
     <div class="input-button-group">
-        <div class="row">
+        <div class="row editable-field">
             <span class="label">推廣</span>
             <input type="text" id="commission" min="0" step="1" readonly>
             <button onclick="clearCommission()">清除</button>
@@ -4131,7 +4283,7 @@
     </div>
 
     <div class="input-button-group">
-        <div class="row">
+        <div class="row editable-field">
             <span class="label">推廣比例</span>
             <input type="text" id="commissionRatio" class="readonly" readonly>
         </div>
@@ -4195,7 +4347,7 @@
 
     <div class="divider-flow"></div>
 
-    <div class="row">
+    <div class="row editable-field">
         <span class="label">資金成本</span>
         <input type="text" id="monthlyCost" value="2.1904" step="0.0001" readonly>
         <button onclick="resetMonthlyCost()">8月</button>
@@ -8640,6 +8792,31 @@
         vibrate();
     }
 
+    // 設定油價的快速選擇函數
+    function setDieselPrice(price) {
+        // 觸發震動反饋效果
+        vibrate();
+        
+        // 取得油價輸入框元素
+        const dieselPriceField = document.getElementById('dieselPrice');
+        
+        // 檢查輸入框是否存在
+        if (dieselPriceField) {
+            // 將輸入的價格保留一位小數後設定到輸入框
+            dieselPriceField.value = price.toFixed(1);
+            
+            // 記錄最後修改的欄位是油價欄位
+            gasLastModifiedField = 'dieselPrice';
+            
+            // 觸發計算更新，重新計算所有相關數值
+            updateGasCalculations();
+            
+            // 顯示設定成功的提示訊息
+            const priceType = price === 26.0 ? '中油' : '台塑';
+            showToast(`已設定${priceType}油價：${price.toFixed(1)}元/公升`);
+        }
+    }
+
     // 生成加油卡計算器 HTML（使用主題變量）
     function generateGasCardHTML() {
         return `
@@ -8650,10 +8827,36 @@
                     <input type="text" 
                         id="dieselPrice" 
                         placeholder="0.0"
-                        value="25.7"
+                        value="26.0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">元/公升</span>
+                    <span style="margin-left: 5px; color: var(--text-color);">元</span>
+                    <!-- 新增：中油和台塑快速選擇按鍵 -->
+                    <button onclick="setDieselPrice(26.0)" style="
+                        background-color: var(--secondary-color);
+                        color: var(--text-color);
+                        border: 1px solid var(--border-color);
+                        padding: 3px 8px;
+                        margin-left: 8px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 14px;
+                    " onmouseover="this.style.backgroundColor='var(--hover-color)';" 
+                    onmouseout="this.style.backgroundColor='var(--secondary-color)';">中</button>
+                    
+                    <button onclick="setDieselPrice(25.8)" style="
+                        background-color: var(--secondary-color);
+                        color: var(--text-color);
+                        border: 1px solid var(--border-color);
+                        padding: 3px 8px;
+                        margin-left: 5px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-size: 14px;
+                    " onmouseover="this.style.backgroundColor='var(--hover-color)';" 
+                    onmouseout="this.style.backgroundColor='var(--secondary-color)';">塑</button>
                 </div>
                 
                 <!-- 每月油錢輸入欄位 -->
@@ -8664,7 +8867,7 @@
                         placeholder="0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 每月油量輸入欄位 -->
@@ -8675,7 +8878,7 @@
                         placeholder="0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">公升</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">公升</span>
                 </div>
                 
                 <!-- 折扣金額輸入欄位 -->
@@ -8686,7 +8889,7 @@
                         placeholder="0.0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">元/公升</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">元/公升</span>
                 </div>
                 
                 <!-- 折後油錢顯示欄位 -->
@@ -8698,7 +8901,7 @@
                         placeholder="0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 每月節省顯示欄位 -->
@@ -8710,7 +8913,7 @@
                         placeholder="0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">元</span>
                 </div>
                 
                 <!-- 每年節省顯示欄位 -->
@@ -8722,7 +8925,7 @@
                         placeholder="0"
                         readonly
                         style="width: 95px; text-align: right;">
-                    <span style="margin-left: 10px; color: var(--text-color);">元</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">元</span>
                 </div>
 
                 <!-- 新增：每年多吃火雞肉飯欄位 -->
@@ -8737,7 +8940,7 @@
                         placeholder="0"
                         readonly
                         style="width: 95px; text-align: right; font-weight: bold;">
-                    <span style="margin-left: 10px; color: var(--text-color);">碗火雞肉飯</span>
+                    <span style="margin-left: 2px; color: var(--text-color);">碗火雞肉飯</span>
                 </div>
                 
                 <!-- 清除按鈕 -->
@@ -9891,7 +10094,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.90</div>
+            <div class="version-info">v3.94</div>
         </div>
     </div>
 
