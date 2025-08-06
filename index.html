@@ -5318,7 +5318,7 @@
         if (principalValue > 0) {
             try {
                 // 轉換客戶發票金額為中文國字大寫
-                const chineseAmount = arabicToChineseNumber(principalValue, 'financial') + ' 圓整';
+                const chineseAmount = arabicToChineseNumber(principalValue, 'financial') + ' 元整';
                 chineseAmountField.innerHTML = chineseAmount; // 使用 innerHTML 以支持HTML標籤
             } catch (error) {
                 console.error('中文轉換錯誤:', error);
@@ -5337,7 +5337,7 @@
                 const roundedTotalPayment = Math.round(totalPaymentValue);
                 
                 // 轉換總繳款為中文國字大寫
-                const totalPaymentChinese = arabicToChineseNumber(roundedTotalPayment, 'financial') + ' 圓整';
+                const totalPaymentChinese = arabicToChineseNumber(roundedTotalPayment, 'financial') + ' 元整';
                 totalPaymentChineseField.innerHTML = totalPaymentChinese; // 使用 innerHTML 以支持HTML標籤
             } catch (error) {
                 console.error('總繳款中文轉換錯誤:', error);
@@ -7686,7 +7686,7 @@
         // 震動效果
         vibrate();
         
-        // 將資金成本設為預設值 2.1904
+        // 將資金成本設為預設值 2.2165
         document.getElementById('monthlyCost').value = '2.1904';
         
         // 更新所有相關計算
@@ -7738,7 +7738,7 @@
         // 將資金成本重置為預設值，而不是清空
         const monthlyCostElement = document.getElementById('monthlyCost');
         if (monthlyCostElement) {
-            monthlyCostElement.value = '2.1904';
+            monthlyCostElement.value = '2.2165';
         }
         
         // 顯示提示訊息
@@ -10094,7 +10094,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.95</div>
+            <div class="version-info">v3.96</div>
         </div>
     </div>
 
