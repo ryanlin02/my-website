@@ -199,52 +199,6 @@
             --note-text-empty: #888888;                    /* 空備註提示文字顏色 */
         }
 
-        /* 極簡黑白主題 */
-        :root[data-theme="white"] {
-            /* RGB 色彩值 */
-            --primary-color-rgb: 250, 250, 250;
-            --secondary-color-rgb: 255, 255, 255;
-            --accent-color-rgb: 85, 85, 85;
-            --input-bg-rgb: 255, 255, 255;
-            --error-color-rgb: 85, 85, 85;
-            --info-color-rgb: 85, 85, 85;
-            
-            /* 基本色彩 */
-            --primary-color: #fafafa;
-            --secondary-color: #ffffff;
-            --text-color: #222222;
-            --text-muted: #777777;
-            --border-color: #cccccc;
-            --hover-color: #f5f5f5;
-            --shadow-color: rgba(0, 0, 0, 0.15);
-            
-            /* 功能色彩 */
-            --accent-color: #555555;
-            --accent-color-light: rgba(85, 85, 85, 0.15);
-            --accent-color-dark: #333333;
-            --success-color: #777777;
-            --warning-color: #555555;
-            --error-color: #777777;
-            --info-color: #555555;
-            
-            /* 元件色彩 */
-            --button-primary: #555555;
-            --button-secondary: #e0e0e0;
-            --button-orange: #555555;
-            --button-blue: #777777;
-            --button-grey: #e0e0e0;
-            --input-bg: #ffffff;
-            --input-border: #aaaaaa;
-            --input-focus-border: #555555;
-            --card-bg: #ffffff;
-            --text-highlight: #333333;
-            --helper-text-color: #999999;
-            --note-text-color: #333333;
-            --note-text-empty: #999999;
-            
-            background-color: #fafafa;
-        }
-
         /* 櫻花雪主題 */
         :root[data-theme="pink"] {
             /* RGB 色彩值 */
@@ -330,49 +284,6 @@
             --text-highlight: #f44336;
             --note-text-color: #ffffff;
             --note-text-empty: #999999;
-        }
-
-        /* 翠玉清風主題 */
-        :root[data-theme="green"] {
-            /* RGB 色彩值 */
-            --primary-color-rgb: 241, 248, 233;
-            --secondary-color-rgb: 255, 255, 255;
-            --accent-color-rgb: 76, 175, 80;
-            --input-bg-rgb: 255, 255, 255;
-            --error-color-rgb: 244, 67, 54;
-            --info-color-rgb: 33, 150, 243;
-            
-            /* 基本色彩 */
-            --primary-color: #f1f8e9;
-            --secondary-color: #ffffff;
-            --text-color: #2e7d32;
-            --text-muted: #757575;
-            --border-color: #81c784;
-            --hover-color: #e8f5e9;
-            --shadow-color: rgba(129, 199, 132, 0.3);
-            
-            /* 功能色彩 */
-            --accent-color: #4caf50;
-            --accent-color-light: rgba(76, 175, 80, 0.2);
-            --accent-color-dark: #2e7d32;
-            --success-color: #4caf50;
-            --warning-color: #ff9800;
-            --error-color: #f44336;
-            --info-color: #2196f3;
-            
-            /* 元件色彩 */
-            --button-primary: #4caf50;
-            --button-secondary: #e8f5e9;
-            --button-orange: #4caf50;
-            --button-blue: #2196f3;
-            --button-grey: #e8f5e9;
-            --input-bg: #ffffff;
-            --input-border: #81c784;
-            --input-focus-border: #4caf50;
-            --card-bg: #ffffff;
-            --text-highlight: #2e7d32;
-            --note-text-color: #1b5e20;
-            --note-text-empty: #757575;
         }
 
         /* 科技藍調主題 */
@@ -663,19 +574,6 @@
         * 針對不同主題的特殊優化
         * ============================================ */
 
-        /* 極簡黑白主題 - 使用更深的灰色調 */
-        :root[data-theme="white"] .editable-field {
-            border-left-color: #666666;                           /* 使用深灰色邊框 */
-            background: linear-gradient(135deg,                    
-                rgba(85, 85, 85, 0.04) 0%,                        /* 淡灰色背景 */
-                rgba(85, 85, 85, 0.01) 100%);
-        }
-
-        :root[data-theme="white"] .editable-field:focus-within {
-            box-shadow: 0 4px 12px rgba(85, 85, 85, 0.15),       /* 聚焦時的灰色陰影 */
-                        0 0 0 2px rgba(85, 85, 85, 0.1);
-        }
-
         /* 櫻花雪主題 - 使用更溫暖的粉色調 */
         :root[data-theme="pink"] .editable-field {
             border-left-color: #db386c;                           /* 使用主題粉色 */
@@ -690,14 +588,6 @@
             background: linear-gradient(135deg,                    
                 rgba(244, 67, 54, 0.05) 0%,                       /* 淡紅色背景 */
                 rgba(244, 67, 54, 0.02) 100%);
-        }
-
-        /* 翠玉清風主題 - 使用清新的綠色效果 */
-        :root[data-theme="green"] .editable-field {
-            border-left-color: #4caf50;                           /* 使用主題綠色 */
-            background: linear-gradient(135deg,                    
-                rgba(76, 175, 80, 0.04) 0%,                       /* 淡綠色背景 */
-                rgba(76, 175, 80, 0.01) 100%);
         }
 
         /* 科技藍調主題 - 使用現代的藍色效果 */
@@ -2887,15 +2777,6 @@
         /* 歷史記錄日期文字顏色 - 應用主題變量 */
         .history-date {
             color: var(--accent-color);                      /* 強調色文字 */
-        }
-
-        /* 白色主題輸入框背景 - 為白色主題提供特定樣式 */
-        :root[data-theme="white"] input,
-        :root[data-theme="white"] .row,
-        :root[data-theme="white"] #timeDisplay,
-        :root[data-theme="white"] .sticky-header,
-        :root[data-theme="white"] .modal-container {
-            background-color: var(--secondary-color);        /* 使用次要背景色 */
         }
 
         /* 添加到样式表的.history-item相关部分之后 */
@@ -8349,8 +8230,18 @@
         }
 
         function switchTheme(themeName) {
-            // 先移除舊有任何主題數據
-            document.documentElement.removeAttribute('data-theme');
+        // ============================================
+        // 檢查主題是否仍然可用
+        // 如果用戶之前選擇了已移除的主題，自動切換到預設主題
+        // ============================================
+        const removedThemes = ['white', 'green']; // 已移除的主題列表
+        if (removedThemes.includes(themeName)) {
+            themeName = 'default'; // 切換到預設主題
+            showToast('該主題已不可用，已切換至預設主題');
+        }
+        
+        // 先移除舊有任何主題數據
+        document.documentElement.removeAttribute('data-theme');
             
             // 如果選擇的不是預設主題，則設定新主題
             if (themeName !== 'default') {
@@ -8378,10 +8269,8 @@
         function getThemeName(themeCode) {
             switch(themeCode) {
                 case 'default': return '暗夜橘焰';    // 預設深色主題
-                case 'white': return '極簡黑白';      // 淺色主題
                 case 'pink': return '櫻花雪';         // 粉色主題
                 case 'red': return '暗夜烈焰';        // 紅色主題
-                case 'green': return '翠玉清風';      // 綠色主題
                 case 'blue': return '科技藍調';       // 藍色主題
                 // 已移除 'blue-purple' 暮光星塵主題
                 // 已移除 'royal' 皇家紫韻主題
@@ -8393,7 +8282,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             const savedTheme = localStorage.getItem('selectedTheme');
             if (savedTheme) {
-                switchTheme(savedTheme);
+                // 檢查保存的主題是否仍然可用
+                const removedThemes = ['white', 'green']; // 已移除的主題
+                if (removedThemes.includes(savedTheme)) {
+                    // 如果是已移除的主題，切換到預設主題
+                    localStorage.setItem('selectedTheme', 'default');
+                    switchTheme('default');
+                } else {
+                    switchTheme(savedTheme);
+                }
             }
         });
 
@@ -8454,7 +8351,7 @@
                     <span>🎨 外觀</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v4.08</div>
+            <div class="version-info">v4.09</div>
         </div>
     </div>
 
@@ -8468,11 +8365,9 @@
                 <h3>外觀</h3>
             </div>
             <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="switchTheme('default')">🔥 暗夜橘焰</li>
-                <li class="submenu-item" onclick="switchTheme('white')">⚪ 極簡黑白</li> 
+                <li class="submenu-item" onclick="switchTheme('default')">🔥 暗夜橘焰</li> 
                 <li class="submenu-item" onclick="switchTheme('pink')">🌸 櫻花雪</li>
                 <li class="submenu-item" onclick="switchTheme('red')">🔴 暗夜烈焰</li>
-                <li class="submenu-item" onclick="switchTheme('green')">🍃 翠玉清風</li>
                 <li class="submenu-item" onclick="switchTheme('blue')">💙 科技藍調</li>
             </ul>
         </div>
