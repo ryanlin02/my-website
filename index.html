@@ -11,19 +11,81 @@
 
     gtag('config', 'G-XE5XMQR0Z1');
 
-    // 在檔案開頭的 <script> 標籤內加入
-    let titleClickCount = 0;
+    // ============================================
+    // 全螢幕安裝提示頁面控制
+    // ============================================
 
-    function handleTitleClick() {
-        titleClickCount++;
-        if (titleClickCount >= 3) {
-            document.getElementById('ageModal').style.display = 'none';
-            checkInstallAvailable();
-            titleClickCount = 0; // 重置計數器
+    // 隱藏點擊計數器
+    let secretClickCount = 0;
+    let secretClickTimer = null;
+
+    // 處理隱藏區域的點擊事件
+    function handleSecretClick() {
+        // 增加點擊次數
+        secretClickCount++;
+        
+        // 清除之前的計時器
+        if (secretClickTimer) {
+            clearTimeout(secretClickTimer);
+        }
+        
+        // 如果連續點擊3次，關閉安裝提示
+        if (secretClickCount >= 3) {
+            console.log('秘密通道已啟動！');
+            // 關閉安裝提示頁面
+            document.getElementById('installPromptOverlay').style.display = 'none';
+            // 重置計數器
+            secretClickCount = 0;
+            // 可以在這裡加入一個小提示，但不要太明顯
+            console.log('歡迎使用網頁版本');
+        }
+        
+        // 設定計時器，1.5秒後重置計數器（確保是連續點擊）
+        secretClickTimer = setTimeout(() => {
+            secretClickCount = 0;
+        }, 1500);
+    }
+
+    // 檢測裝置類型並顯示對應的安裝步驟
+    function showInstallSteps() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        
+        // 隱藏所有步驟
+        const iosSteps = document.getElementById('iosSteps');
+        const androidSteps = document.getElementById('androidSteps');
+        const defaultSteps = document.getElementById('defaultSteps');
+        
+        if (iosSteps) iosSteps.style.display = 'none';
+        if (androidSteps) androidSteps.style.display = 'none';
+        if (defaultSteps) defaultSteps.style.display = 'none';
+        
+        // 根據裝置顯示對應步驟
+        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            // iOS 裝置
+            if (iosSteps) iosSteps.style.display = 'block';
+        } else if (/android/i.test(userAgent)) {
+            // Android 裝置
+            if (androidSteps) androidSteps.style.display = 'block';
+        } else {
+            // 其他裝置
+            if (defaultSteps) defaultSteps.style.display = 'block';
+        }
+    }
+
+    // 新的顯示安裝提示函數
+    function showInstallPrompt() {
+        // 顯示全螢幕安裝提示
+        const overlay = document.getElementById('installPromptOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            // 顯示對應的安裝步驟
+            showInstallSteps();
         }
     }
 
     </script>
+
+    
 
     <!-- 在 <head> 標籤內添加以下內容 -->
     <link rel="manifest" href="./manifest.json">
@@ -1094,7 +1156,7 @@
             color: var(--text-color);              /* 使用文字色 */
             padding: 15px;                         /* 內邊距 */
             text-align: center;                    /* 文字居中 */
-            margin-top: 15px;                      /* 頂部邊距 */
+            margin-top: 10px;                      /* 頂部邊距 */
             border-radius: 4px;                    /* 圓角 */
             transform: scale(1.05);                /* 稍微放大 */
             text-shadow: 0 0 10px var(--accent-color); /* 文字陰影 */
@@ -1118,7 +1180,7 @@
         /* 頁腳間距 */
         .footer-spacing {
             background-color: var(--primary-color); /* 使用主背景色 */
-            height: 50px;                          /* 高度 */
+            height: 40px;                          /* 高度 */
             margin-top: 0px;                       /* 頂部邊距 */
         }
 
@@ -3901,7 +3963,7 @@
             right: 0;                                     /* 貼齊右側 */
             background-color: var(--primary-color);     /* 使用次要背景色 */
             border-top: 2px solid var(--accent-color);    /* 頂部邊框使用強調色 */
-            padding: 6px 10px 8px 10px;                   /* 內部間距 */
+            padding: 8px 10px 15px 10px;                   /* 內部間距 */
             display: flex;                                /* 使用彈性布局 */
             align-items: center;                          /* 垂直居中 */
             justify-content: center;                      /* 水平居中 */
@@ -4488,6 +4550,163 @@
             <span class="rate-footer-percent">%</span>
         </div>
     </div>
+
+    <!-- ============================================
+     全螢幕安裝提示頁面
+     說明：這是一個全螢幕的提示頁面，提醒使用者安裝 PWA
+     隱藏功能：在螢幕右下角有一個隱藏區域，連續點擊3次可以繼續使用網頁版
+     ============================================ -->
+    <div id="installPromptOverlay" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a1a2e 0%, #2c2c4a 100%);
+        z-index: 10000;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-family: 'Microsoft JhengHei', Arial, sans-serif;
+    ">
+        <!-- 主要內容區域 -->
+        <div style="
+            text-align: center;
+            padding: 20px;
+            max-width: 380px;
+            width: 90%;
+        ">
+            <!-- 應用圖標 -->
+
+            
+            <!-- 主標題 -->
+            <h1 style="
+                font-size: 28px;
+                margin-bottom: 20px;
+                color: #ff9c33;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            ">
+                小朋友專用計算機
+            </h1>
+            
+            <!-- 提示文字 -->
+            <p style="
+                font-size: 18px;
+                line-height: 1.6;
+                margin-bottom: 30px;
+                color: #e0e0e0;
+            ">
+                請將應用程式<br>
+                <strong style="color: #ff9c33;">安裝到手機主畫面</strong>
+            </p>
+            
+            <!-- 安裝步驟說明 -->
+            <div style="
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 30px;
+                text-align: left;
+            ">
+                <h3 style="
+                    font-size: 16px;
+                    margin-bottom: 15px;
+                    color: #ff9c33;
+                ">
+                    安裝步驟：
+                </h3>
+                
+                <!-- iOS 步驟 -->
+                <div id="iosSteps" style="display: none;">
+                    <ol style="
+                        margin: 0;
+                        padding-left: 20px;
+                        font-size: 14px;
+                        line-height: 1.8;
+                    ">
+                        <li>點擊瀏覽器下方的 <span style="color: #ff9c33;">分享</span> 按鈕</li>
+                        <li>選擇 <span style="color: #ff9c33;">加入主畫面</span></li>
+                        <li>點擊右上角的 <span style="color: #ff9c33;">新增</span></li>
+                    </ol>
+                </div>
+                
+                <!-- Android 步驟 -->
+                <div id="androidSteps" style="display: none;">
+                    <ol style="
+                        margin: 0;
+                        padding-left: 20px;
+                        font-size: 14px;
+                        line-height: 1.8;
+                    ">
+                        <li>點擊瀏覽器右上角的 <span style="color: #ff9c33;">⋮</span> 選單</li>
+                        <li>選擇 <span style="color: #ff9c33;">安裝應用程式</span></li>
+                        <li>點擊 <span style="color: #ff9c33;">安裝</span></li>
+                    </ol>
+                </div>
+                
+                <!-- 預設步驟（桌面版或其他） -->
+                <div id="defaultSteps">
+                    <ol style="
+                        margin: 0;
+                        padding-left: 20px;
+                        font-size: 14px;
+                        line-height: 1.8;
+                    ">
+                        <li>點擊瀏覽器的選單按鈕</li>
+                        <li>尋找「安裝」或「加入主畫面」選項</li>
+                        <li>確認安裝</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 隱藏的點擊區域（右下角） -->
+        <!-- 說明：這是一個隱藏的區域，位於右下角，連續點擊3次可以跳過安裝提示 -->
+        <div id="secretClickArea" style="
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            cursor: default;
+            /* 透明區域，使用者看不見 */
+            opacity: 0;
+            /* 但仍可點擊 */
+            pointer-events: all;
+        " onclick="handleSecretClick()">
+            <!-- 可以加入一個極淡的提示，正常情況下看不見 -->
+            <div style="
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.02);
+            "></div>
+        </div>
+        
+        <!-- 底部版權文字（用來掩飾隱藏區域） -->
+        <div style="
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        ">
+            © 2025 小朋友專用計算機
+        </div>
+    </div>
+
+    <!-- 加入動畫樣式 -->
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
 
 <script>
 
@@ -10094,7 +10313,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.96</div>
+            <div class="version-info">v3.98</div>
         </div>
     </div>
 
@@ -10138,24 +10357,6 @@
         </div>
     </div>
 
-    <!-- 年齡提示視窗 -->
-    <div id="ageModal" class="install-modal-overlay" style="display: none;">
-        <div class="install-modal">
-            <!-- 修改：將標題改為可點擊的隱藏按鈕，點擊後可關閉提示框 -->
-            <h2 class="install-modal-title" 
-                style="cursor: pointer; user-select: none;" 
-                onclick="handleTitleClick();"
-                title="連續點擊3次可以關閉提示框">18+ **Warning!**</h2>
-            <div class="install-modal-content">
-                This is a specialized calculator meticulously engineered for children who exhibit difficulties with mathematics and demonstrate notably sluggish computational speed. Should you be an adult possessing proficient arithmetic capabilities, it is strongly advised that you refrain from accessing this website without necessity. However, if you, too, are an enthusiast of turkey rice, your utilization of this platform's features is most heartily welcomed.
-            </div>
-            <div class="install-modal-buttons">
-                <button id="notAdultBtn" class="install-modal-btn install-btn-cancel">Not 18 yet</button>
-                <button id="adultBtn" class="install-modal-btn install-btn-confirm">Already 18+</button>
-            </div>
-        </div>
-    </div>
-
     <!-- 安裝橫幅提示 -->
     <div id="installBanner" class="install-banner" style="display: none;">
         <div class="install-banner-text">將小朋友專用計算機安裝到桌面</div>
@@ -10180,27 +10381,6 @@
 
     <script>
         let deferredPrompt;
-    
-        // 顯示年齡提示視窗和安裝提示
-        function showInstallPrompt() {
-            // 修改說明：這個函數用於顯示年齡警告視窗
-            // 標題可以點擊關閉，Not 18 yet 按鈕會導向 Baby Shark 影片
-            // Already 18+ 按鈕會導向 Rick Roll 影片
-            
-            document.getElementById('ageModal').style.display = 'flex';
-            
-            // 當用戶點擊「Not 18 yet」按鈕時（修改：改為連結到 Baby Shark 影片）
-            document.getElementById('notAdultBtn').addEventListener('click', function() {
-                // 將使用者導向到 Baby Shark 的 YouTube 影片
-                window.location.href = 'https://www.youtube.com/watch?v=4bMOTTJqGgM&list=RD4bMOTTJqGgM&start_radio=1&ab_channel=BabySharkOfficial';
-            });
-            
-            // 當用戶點擊「Already 18+」按鈕時
-            document.getElementById('adultBtn').addEventListener('click', function() {
-                // 跳轉到Rick Roll視頻
-                window.location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
-            });
-        }
     
         // 檢查是否可以安裝PWA
         function checkInstallAvailable() {
