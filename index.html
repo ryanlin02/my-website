@@ -332,49 +332,6 @@
             --note-text-empty: #999999;
         }
 
-        /* 暮光星塵主題 */
-        :root[data-theme="blue-purple"] {
-            /* RGB 色彩值 */
-            --primary-color-rgb: 26, 26, 46;
-            --secondary-color-rgb: 47, 47, 73;
-            --accent-color-rgb: 147, 112, 219;
-            --input-bg-rgb: 35, 35, 66;
-            --error-color-rgb: 255, 71, 87;
-            --info-color-rgb: 0, 206, 201;
-            
-            /* 基本色彩 */
-            --primary-color: #1a1a2e;
-            --secondary-color: #2f2f49;
-            --text-color: #e6e6ff;
-            --text-muted: #a0a0c8;
-            --border-color: #7b68ee;
-            --hover-color: #3f3f66;
-            --shadow-color: rgba(123, 104, 238, 0.3);
-            
-            /* 功能色彩 */
-            --accent-color: #9370db;
-            --accent-color-light: rgba(147, 112, 219, 0.2);
-            --accent-color-dark: #6a3ece;
-            --success-color: #00bfa5;
-            --warning-color: #fed330;
-            --error-color: #ff4757;
-            --info-color: #00cec9;
-            
-            /* 元件色彩 */
-            --button-primary: #9370db;
-            --button-secondary: #3d3d64;
-            --button-orange: #9370db;
-            --button-blue: #00cec9;
-            --button-grey: #3d3d64;
-            --input-bg: #232342;
-            --input-border: #4b4b80;
-            --input-focus-border: #9370db;
-            --card-bg: #2f2f49;
-            --text-highlight: #9370db;
-            --note-text-color: #e6e6ff;
-            --note-text-empty: #a0a0c8;
-        }
-
         /* 翠玉清風主題 */
         :root[data-theme="green"] {
             /* RGB 色彩值 */
@@ -459,49 +416,6 @@
             --text-highlight: #3498db;
             --note-text-color: #e5e5e5;
             --note-text-empty: #95a5a6;
-        }
-
-        /* 皇家紫韻主題 */
-        :root[data-theme="royal"] {
-            /* RGB 色彩值 */
-            --primary-color-rgb: 49, 27, 77;
-            --secondary-color-rgb: 69, 39, 107;
-            --accent-color-rgb: 212, 175, 55;
-            --input-bg-rgb: 40, 23, 60;
-            --error-color-rgb: 179, 51, 51;
-            --info-color-rgb: 66, 133, 244;
-            
-            /* 基本色彩 */
-            --primary-color: #311b4d;
-            --secondary-color: #45276b;
-            --text-color: #f8f0e3;
-            --text-muted: #c0a9e0;
-            --border-color: #8a56ac;
-            --hover-color: #513082;
-            --shadow-color: rgba(49, 27, 77, 0.5);
-            
-            /* 功能色彩 */
-            --accent-color: #d4af37;
-            --accent-color-light: rgba(212, 175, 55, 0.2);
-            --accent-color-dark: #b8860b;
-            --success-color: #4caf50;
-            --warning-color: #ff9800;
-            --error-color: #b33333;
-            --info-color: #4285f4;
-            
-            /* 元件色彩 */
-            --button-primary: #d4af37;
-            --button-secondary: #513082;
-            --button-orange: #d4af37;
-            --button-blue: #4285f4;
-            --button-grey: #513082;
-            --input-bg: #28173c;
-            --input-border: #8a56ac;
-            --input-focus-border: #d4af37;
-            --card-bg: #45276b;
-            --text-highlight: #dfc15e;
-            --note-text-color: #f8f0e3;
-            --note-text-empty: #c0a9e0;
         }
 
         /* ============================================
@@ -819,14 +733,6 @@
             box-shadow: 0 2px 8px rgba(244, 67, 54, 0.15);       /* 紅色陰影效果 */
         }
 
-        /* 暮光星塵主題 - 使用夢幻的紫色效果 */
-        :root[data-theme="blue-purple"] .editable-field {
-            border-left-color: #9370db;                           /* 使用主題紫色 */
-            background: linear-gradient(135deg,                    
-                rgba(147, 112, 219, 0.05) 0%,                     /* 淡紫色背景 */
-                rgba(147, 112, 219, 0.02) 100%);
-        }
-
         /* 翠玉清風主題 - 使用清新的綠色效果 */
         :root[data-theme="green"] .editable-field {
             border-left-color: #4caf50;                           /* 使用主題綠色 */
@@ -841,14 +747,6 @@
             background: linear-gradient(135deg,                    
                 rgba(52, 152, 219, 0.05) 0%,                      /* 淡藍色背景 */
                 rgba(52, 152, 219, 0.02) 100%);
-        }
-
-        /* 皇家紫韻主題 - 使用奢華的金色效果 */
-        :root[data-theme="royal"] .editable-field {
-            border-left-color: #d4af37;                           /* 使用主題金色 */
-            background: linear-gradient(135deg,                    
-                rgba(212, 175, 55, 0.05) 0%,                      /* 淡金色背景 */
-                rgba(212, 175, 55, 0.02) 100%);
         }
 
         :root[data-theme="royal"] .editable-field:hover {
@@ -1180,7 +1078,7 @@
         /* 頁腳間距 */
         .footer-spacing {
             background-color: var(--primary-color); /* 使用主背景色 */
-            height: 40px;                          /* 高度 */
+            height: 50px;                          /* 高度 */
             margin-top: 0px;                       /* 頂部邊距 */
         }
 
@@ -3963,7 +3861,7 @@
             right: 0;                                     /* 貼齊右側 */
             background-color: var(--primary-color);     /* 使用次要背景色 */
             border-top: 2px solid var(--accent-color);    /* 頂部邊框使用強調色 */
-            padding: 8px 10px 15px 10px;                   /* 內部間距 */
+            padding: 8px 10px 18px 10px;                   /* 內部間距 */
             display: flex;                                /* 使用彈性布局 */
             align-items: center;                          /* 垂直居中 */
             justify-content: center;                      /* 水平居中 */
@@ -10156,31 +10054,17 @@
             vibrate();
         }
 
-        function getThemeName(themeCode) {
-            switch(themeCode) {
-                case 'default': return '暗夜橘焰';
-                case 'white': return '極簡黑白';
-                case 'pink': return '櫻花雪';
-                case 'red': return '暗夜烈焰';
-                case 'blue-purple': return '暮光星塵';
-                case 'green': return '翠玉清風';
-                case 'blue': return '科技藍調';
-                case 'royal': return '皇家紫韻';
-                default: return themeCode;
-            }
-        }
-
         // 根據主題代碼返回顯示名稱
         function getThemeName(themeCode) {
             switch(themeCode) {
-                case 'default': return '暗夜橘焰';
-                case 'white': return '極簡黑白';
-                case 'pink': return '櫻花雪';
-                case 'red': return '暗夜烈焰';
-                case 'blue-purple': return '暮光星塵';
-                case 'green': return '翠玉清風';
-                case 'blue': return '科技藍調';
-                case 'royal': return '皇家紫韻';
+                case 'default': return '暗夜橘焰';    // 預設深色主題
+                case 'white': return '極簡黑白';      // 淺色主題
+                case 'pink': return '櫻花雪';         // 粉色主題
+                case 'red': return '暗夜烈焰';        // 紅色主題
+                case 'green': return '翠玉清風';      // 綠色主題
+                case 'blue': return '科技藍調';       // 藍色主題
+                // 已移除 'blue-purple' 暮光星塵主題
+                // 已移除 'royal' 皇家紫韻主題
                 default: return themeCode;
             }
         }
@@ -10325,11 +10209,8 @@
                 <li class="menu-item" onclick="openSubmenu('themeSubmenu')">
                     <span>🎨 外觀</span> <span class="menu-item-arrow">▶</span>
                 </li>
-                <li class="menu-item" onclick="openSubmenu('languageSubmenu')">
-                    <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
-                </li>
             </ul>
-            <div class="version-info">v3.99</div>
+            <div class="version-info">v4.01</div>
         </div>
     </div>
 
@@ -10347,28 +10228,8 @@
                 <li class="submenu-item" onclick="switchTheme('white')">⚪ 極簡黑白</li> 
                 <li class="submenu-item" onclick="switchTheme('pink')">🌸 櫻花雪</li>
                 <li class="submenu-item" onclick="switchTheme('red')">🔴 暗夜烈焰</li>
-                <li class="submenu-item" onclick="switchTheme('blue-purple')">🌌 暮光星塵</li>
                 <li class="submenu-item" onclick="switchTheme('green')">🍃 翠玉清風</li>
                 <li class="submenu-item" onclick="switchTheme('blue')">💙 科技藍調</li>
-                <li class="submenu-item" onclick="switchTheme('royal')">👑 皇家紫韻</li>
-            </ul>
-        </div>
-    </div>
-
-    <!-- 語言子選單 -->
-    <div id="languageSubmenu" class="submenu-container">
-        <div class="submenu-content">
-            <div class="submenu-header">
-                <button class="submenu-back-btn" onclick="backToMainMenu('languageSubmenu')">
-                    ◀ 返回
-                </button>
-                <h3>語言</h3>
-            </div>
-            <ul class="submenu-list" style="flex: 1; overflow-y: auto;">
-                <li class="submenu-item" onclick="showDevelopingToast()">🇹🇼 中文</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">🇺🇸 英文</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">🇵🇭 菲律賓</li>
-                <li class="submenu-item" onclick="showDevelopingToast()">🇯🇵 日文</li>
             </ul>
         </div>
     </div>
