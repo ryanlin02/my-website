@@ -629,24 +629,6 @@
             /* 移除 will-change 因為不再需要動畫優化 */
         }
 
-        /* 行懸停效果 - 移除右移效果，只保留陰影變化 */
-        .row:hover {
-            /* transform: translateX(5px); 已移除右移效果 */
-            box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
-        }
-
-        /* 行懸停時的左側邊框動畫 */
-        .row:hover::before {
-            content: '';                         /* 創建空內容 */
-            position: absolute;                  /* 絕對定位 */
-            left: -5px;                          /* 位於左側 */
-            top: 50%;                            /* 垂直居中 */
-            width: 3px;                          /* 寬度 */
-            height: 0;                           /* 初始高度為0 */
-            background: var(--button-orange);    /* 使用橙色 */
-            animation: expandHeight 0.3s forwards; /* 執行高度擴展動畫 */
-        }
-
         /* ============================================
         * 現代化可編輯欄位設計
         * ============================================ */
@@ -662,25 +644,10 @@
             box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0); /* 初始時無陰影，用於懸停動畫 */
         }
 
-        /* 懸停效果 - 現代化的微互動設計 */
-        .editable-field:hover {
-            border-left-width: 4px;                               /* 懸停時邊框稍微加寬 */
-            background: linear-gradient(135deg,                    /* 懸停時背景稍微加深 */
-                rgba(var(--accent-color-rgb), 0.05) 0%,           /* 起始：稍深的主題色（透明度5%） */
-                rgba(var(--accent-color-rgb), 0.02) 100%);        /* 結束：稍深的主題色（透明度2%） */
-            box-shadow: 0 2px 8px rgba(var(--accent-color-rgb), 0.1); /* 懸停時添加微妙的陰影效果 */
-            transform: translateX(2px);                            /* 懸停時輕微右移，增加互動感 */
-        }
-
-        /* 聚焦狀態 - 當欄位內的輸入框被點擊或聚焦時的效果 */
+        /* 聚焦狀態 - 簡化版本 */
         .editable-field:focus-within {
-            border-left-width: 4px;                               /* 聚焦時邊框加寬 */
-            background: linear-gradient(135deg,                    /* 聚焦時背景更明顯 */
-                rgba(var(--accent-color-rgb), 0.08) 0%,           /* 起始：更深的主題色（透明度8%） */
-                rgba(var(--accent-color-rgb), 0.03) 100%);        /* 結束：更深的主題色（透明度3%） */
-            box-shadow: 0 4px 12px rgba(var(--accent-color-rgb), 0.15), /* 聚焦時的主要陰影 */
-                        0 0 0 2px rgba(var(--accent-color-rgb), 0.1); /* 聚焦時的輪廓發光效果 */
-            transform: translateX(3px);                            /* 聚焦時稍微右移更多 */
+            border-left-width: 4px;                /* 保留邊框加寬表示聚焦 */
+            /* 已移除背景漸變、陰影和位移效果以提升效能 */
         }
 
         /* 確保內部元素保持正常的定位和顯示 */
@@ -704,10 +671,6 @@
                 rgba(85, 85, 85, 0.01) 100%);
         }
 
-        :root[data-theme="white"] .editable-field:hover {
-            box-shadow: 0 2px 8px rgba(85, 85, 85, 0.1);         /* 灰色陰影 */
-        }
-
         :root[data-theme="white"] .editable-field:focus-within {
             box-shadow: 0 4px 12px rgba(85, 85, 85, 0.15),       /* 聚焦時的灰色陰影 */
                         0 0 0 2px rgba(85, 85, 85, 0.1);
@@ -727,10 +690,6 @@
             background: linear-gradient(135deg,                    
                 rgba(244, 67, 54, 0.05) 0%,                       /* 淡紅色背景 */
                 rgba(244, 67, 54, 0.02) 100%);
-        }
-
-        :root[data-theme="red"] .editable-field:hover {
-            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.15);       /* 紅色陰影效果 */
         }
 
         /* 翠玉清風主題 - 使用清新的綠色效果 */
@@ -783,14 +742,6 @@
             }
         }
 
-        /* 高度擴展動畫 */
-        @keyframes expandHeight {
-            to {
-                height: 100%;                    /* 最終高度為100% */
-                top: 0;                          /* 從頂部開始 */
-            }
-        }
-
         /* 標籤樣式 */
         .label {
             width: 120px;                        /* 固定寬度 */
@@ -823,17 +774,6 @@
             margin: 2px 0;                        /* 上下邊距 */
             padding-top: 1px;                     /* 上部內邊距 */
             padding-bottom: 1px;                  /* 下部內邊距 */
-        }
-
-        /* 分組內行容器的懸停效果 */
-        .input-button-group .row:hover {
-            transform: translateX(2px);            /* 懸停時稍微右移 */
-            box-shadow: none;                      /* 無陰影 */
-        }
-
-        /* 禁用分組內行容器的左側邊框動畫 */
-        .input-button-group .row:hover::before {
-            display: none;                         /* 隱藏偽元素 */
         }
 
         /* 按鍵容器樣式調整 - 已移除動畫效果 */
@@ -907,12 +847,6 @@
             transition: all 0.3s ease;              /* 過渡效果 */
             position: relative;                     /* 相對定位 */
             overflow: hidden;                       /* 隱藏溢出內容 */
-        }
-
-        /* 時間顯示懸停效果 */
-        #timeDisplay:hover {
-            transform: scale(1.02);                 /* 放大效果 */
-            box-shadow: 0 6px 12px var(--shadow-color); /* 增強陰影 */
         }
 
         /* 時間顯示頂部線條動畫 */
@@ -1023,12 +957,6 @@
             border-color: var(--accent-color);    /* 使用強調色邊框 */
         }
 
-        /* 強調欄位懸停效果 - 移除右移效果 */
-        .emphasized-row:hover {
-            transform: scale(1.02); /* 只保留放大效果，移除右移 */
-            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25); /* 增強陰影 */
-        }
-
         /* 修正精簡顯示模式下的間距問題 */
         /* 當分隔線被隱藏時，確保不佔用任何空間 */
         .divider-flow.hidden-element {
@@ -1100,24 +1028,17 @@
             text-align: right;                     /* 文字靠右對齊 */
         }
 
-        /* 輸入框聚焦效果 */
+        /* 輸入框聚焦效果 - 簡化版本 */
         input:focus {
             outline: none;                         /* 移除預設焦點外框 */
-            border-color: var(--accent-color);     /* 使用強調色邊框 */
-            box-shadow: 0 0 0 3px var(--accent-color-light); /* 添加亮色陰影 */
-            transform: scale(1.07);                /* 稍微放大 */
+            border-color: var(--accent-color);     /* 保留強調色邊框以表示聚焦狀態 */
+            /* 已移除 box-shadow 和 transform 以提升效能 */
         }
 
         /* 只讀輸入框樣式 */
         .readonly {
             background-color: var(--input-bg);     /* 使用主題輸入框背景色 */
             animation: breathe 4s ease-in-out infinite; /* 呼吸動畫 */
-        }
-
-        /* 呼吸動畫 - 透明度變化 */
-        @keyframes breathe {
-            0%, 100% { opacity: 1; }              /* 開始和結束時完全不透明 */
-            50% { opacity: 0.8; }                 /* 中間時稍微透明 */
         }
 
         /* 值變化動畫 */
@@ -1172,11 +1093,10 @@
             font-size: 16px;                           /* 文字大小 */
         }
 
-        /* 按鈕懸停效果 - 鼠標懸停在按鈕上的視覺變化 */
+        /* 按鈕懸停效果 - 簡化版本 */
         button:hover {
-            background-color: var(--hover-color);      /* 使用懸停背景色 */
-            transform: translateY(-2px);               /* 上移2像素 */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);  /* 增加陰影效果 */
+            background-color: var(--hover-color);      /* 保留顏色變化表示可點擊 */
+            /* 已移除 transform 和 box-shadow 以提升效能 */
         }
 
         /* 按鈕點擊效果 - 點擊按鈕時的視覺反饋 */
@@ -3004,17 +2924,6 @@
             transition: all var(--transition-normal) ease;   /* 使用主題過渡時間 */
         }
 
-        /* 行懸停效果 - 鼠標懸停時的視覺變化 */
-        .row:hover {
-            transform: translateX(5px);                      /* 右移效果 */
-            box-shadow: 0 6px 12px var(--shadow-color);      /* 增強陰影 */
-        }
-
-        /* 行懸停時的左側邊框 - 鼠標懸停時顯示強調色邊框 */
-        .row:hover::before {
-            background: var(--accent-color);                 /* 使用強調色 */
-        }
-
         /* 行標籤文字顏色 - 使用主題文字色 */
         .row .label {
             color: var(--text-color);                        /* 使用文字顏色 */
@@ -3105,57 +3014,6 @@
         :root[data-theme="white"] .sticky-header,
         :root[data-theme="white"] .modal-container {
             background-color: var(--secondary-color);        /* 使用次要背景色 */
-        }
-
-        /* 期數方案對比表格樣式 */
-        .period-comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .period-comparison-table th, 
-        .period-comparison-table td {
-            padding: 8px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .period-comparison-table th {
-            background-color: var(--secondary-color);
-            font-weight: bold;
-        }
-
-        .period-comparison-table tr:nth-child(even) {
-            background-color: var(--secondary-color);
-        }
-
-        .period-comparison-table tr:nth-child(odd) {
-            background-color: var(--primary-color);
-        }
-
-        .period-comparison-table tr:hover {
-            background-color: var(--hover-color);
-        }
-
-        .select-plan-btn {
-            padding: 5px 8px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .select-plan-btn:hover {
-            background-color: var(--accent-color-dark);
-            transform: translateY(-2px);
-        }
-
-        .select-plan-btn:active {
-            transform: translateY(0);
         }
 
         /* 添加到样式表的.history-item相关部分之后 */
@@ -3529,61 +3387,6 @@
             text-align: left;                   /* 文字靠左對齊 */
             width: 35px;                        /* 縮小標籤寬度，讓輸入框有更多空間 */
             flex-shrink: 0;                     /* 防止標籤被壓縮 */
-        }
-
-        /* 期數方案對比全螢幕樣式 */
-        #paymentComparisonModal {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            background-color: var(--primary-color) !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        #paymentComparisonModal .modal-container {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            margin: 0 !important;
-            border-radius: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-
-        #paymentComparisonModal .modal-header {
-            flex-shrink: 0;
-        }
-
-        #paymentComparisonModal .modal-content {
-            flex: 1;
-            overflow-y: auto;
-            background-color: var(--primary-color);
-            padding: 15px;
-            padding-bottom: 20px; /* 底部留一點空間 */
-        }
-
-        /* 確保表格能充分利用空間 */
-        #paymentComparisonModal table {
-            margin-bottom: 10px;
-        }
-
-        /* 調整標題區域樣式 */
-        #paymentComparisonModal .modal-header {
-            position: sticky;
-            top: 0;
-            background-color: var(--secondary-color);
-            z-index: 100;
-            box-shadow: 0 2px 4px var(--shadow-color);
-        }
-
-        #paymentComparisonModal .modal-footer {
-            flex-shrink: 0;
         }
 
         /* 全螢幕比較貸款樣式 */
@@ -4650,7 +4453,18 @@
                     if (savedData.rate) document.getElementById('rate').value = savedData.rate;
                     if (savedData.principal) document.getElementById('principal').value = savedData.principal;
                     if (savedData.payment) document.getElementById('payment').value = savedData.payment;
-                    if (savedData.commission) document.getElementById('commission').value = savedData.commission;
+
+                    // ============================================
+                    // 推廣欄位的特殊處理
+                    // 說明：只有在有實際值且不為0時才恢復，否則保持空白
+                    // ============================================
+                    if (savedData.commission && savedData.commission !== '0' && savedData.commission !== 0) {
+                        document.getElementById('commission').value = savedData.commission;
+                    } else {
+                        // 如果保存的值是0或空，則清空欄位
+                        document.getElementById('commission').value = '';
+                    }
+
                     if (savedData.monthlyCost) document.getElementById('monthlyCost').value = savedData.monthlyCost;
                     
                     // 更新所有相關計算
@@ -5246,9 +5060,25 @@
             afterTaxRateInput.classList.remove('warning-text');
         }
 
-        // 佣金格式化為整數並帶千位分隔符
-        const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
-        document.getElementById('commission').value = formatNumberWithCommas(Math.round(commission));
+        // ============================================
+        // 推廣費（佣金）欄位處理
+        // 說明：只有在欄位有實際輸入值時才格式化，空白時保持空白
+        // ============================================
+        const commissionField = document.getElementById('commission');
+        const commissionValue = commissionField.value.replace(/,/g, ''); // 移除千位分隔符
+
+        // 檢查欄位是否為空或只有空白
+        if (commissionValue === '' || commissionValue.trim() === '') {
+            // 如果欄位是空的，保持空白，不要顯示0
+            // 不做任何處理，保持原樣
+        } else {
+            // 如果欄位有值，才進行格式化
+            const commission = parseFloat(commissionValue) || 0;
+            commissionField.value = formatNumberWithCommas(Math.round(commission));
+        }
+
+        // 為了後續計算，需要取得推廣費的數值（如果為空則為0）
+        const commission = parseFloat(commissionField.value.replace(/,/g, '')) || 0;
         
         // 檢查佣金是否超過總利息的45%
         const commissionInput = document.getElementById('commission');
@@ -5653,14 +5483,33 @@
         vibrate();
         const commissionField = document.getElementById('commission');
         
-        // 獲取當前值，如果為空則預設為0，移除千位分隔符
-        const currentValue = parseFloat(commissionField.value.replace(/,/g, '')) || 0;
+        // ============================================
+        // 取得當前值的處理
+        // 說明：如果欄位為空，從0開始計算；如果有值，則基於現有值調整
+        // ============================================
+        let currentValue = 0;
+        
+        // 檢查欄位是否為空
+        if (commissionField.value && commissionField.value.trim() !== '') {
+            // 如果有值，解析該值
+            currentValue = parseFloat(commissionField.value.replace(/,/g, '')) || 0;
+        }
+        // 如果欄位為空，currentValue 保持為 0
         
         // 計算新值
         const newValue = Math.max(0, currentValue + delta);
         
-        // 更新輸入框的值，使用 Math.floor 取整數並添加千位分隔符
-        commissionField.value = formatNumberWithCommas(Math.floor(newValue));
+        // ============================================
+        // 更新輸入框的值
+        // 說明：如果新值為0且原本欄位是空的，保持空白
+        // ============================================
+        if (newValue === 0 && (!commissionField.value || commissionField.value.trim() === '')) {
+            // 如果計算結果是0且原本欄位是空的，保持空白
+            commissionField.value = '';
+        } else {
+            // 否則顯示格式化的數值
+            commissionField.value = formatNumberWithCommas(Math.floor(newValue));
+        }
         
         // 更新所有相關欄位的計算
         updateAllFields();
@@ -8287,401 +8136,6 @@
         return count;
     }
 
-    // 期數方案對比功能
-    function showPaymentComparison() {
-        // 獲取當前的計算數據
-        const rate = parseFloat(document.getElementById('rate').value);
-        const principal = parseFloat(document.getElementById('principal').value.replace(/,/g, ''));
-        const commission = parseFloat(document.getElementById('commission').value.replace(/,/g, '')) || 0;
-        const afterCommissionRate = document.getElementById('afterCommissionRate').value;
-        
-        // 檢查是否有足夠的數據
-        if (isNaN(rate) || isNaN(principal) || rate <= 0 || principal <= 0) {
-            showToast('請先輸入有效的利率和本金', true);
-            return;
-        }
-        
-        // 生成不同期數的還款方案
-        const periods = [12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 120]; // 常見期數選項
-        const plans = [];
-        
-        // 計算每個期數方案的詳細數據
-        for (const period of periods) {
-            const payment = PMT(rate, period, principal);
-            const totalPayment = payment * period;
-            const totalInterest = totalPayment - principal;
-            
-            // 計算稅金（總利息 / 21）
-            const tax = totalInterest / 21;
-            
-            // 計算稅佣後利率
-            const afterTaxCommissionRate = RATE(period, payment, principal + tax + commission);
-            
-            plans.push({
-                period: period,
-                payment: payment,
-                totalPayment: totalPayment,
-                totalInterest: totalInterest,
-                monthlyInterest: totalInterest / period, // 每月利息
-                afterTaxCommissionRate: afterTaxCommissionRate
-            });
-        }
-        
-        // 創建現代化的表格 HTML
-        let tableHTML = `
-        <!-- 方案對比主容器 -->
-        <div style="
-            background: var(--primary-color);
-            padding: 15px;
-            border-radius: 12px;
-        ">
-            <!-- 當前條件卡片 - 改進的設計 -->
-            <div style="
-                background: linear-gradient(135deg, var(--secondary-color) 0%, rgba(var(--secondary-color-rgb), 0.8) 100%);
-                border-radius: 12px;
-                padding: 16px;
-                margin-bottom: 20px;
-                box-shadow: 0 4px 12px var(--shadow-color);
-                border: 1px solid rgba(var(--accent-color-rgb), 0.3);
-            ">
-                <!-- 標題區 -->
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 12px;
-                    padding-bottom: 10px;
-                    border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.2);
-                ">
-                    <span style="font-size: 18px; margin-right: 8px;">📊</span>
-                    <h4 style="
-                        margin: 0;
-                        color: var(--accent-color);
-                        font-size: 16px;
-                        font-weight: 600;
-                    ">計算條件</h4>
-                </div>
-                
-                <!-- 條件數據網格 - 使用2x2佈局 -->
-                <div style="
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
-                ">
-                    <!-- 本金 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.3);
-                        padding: 10px;
-                        border-radius: 8px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 12px;
-                            color: var(--text-muted);
-                            margin-bottom: 4px;
-                        ">本金</div>
-                        <div style="
-                            font-size: 16px;
-                            font-weight: bold;
-                            color: var(--text-color);
-                        ">${formatNumberWithCommas(principal)}</div>
-                    </div>
-                    
-                    <!-- 利率 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.3);
-                        padding: 10px;
-                        border-radius: 8px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 12px;
-                            color: var(--text-muted);
-                            margin-bottom: 4px;
-                        ">稅前利率</div>
-                        <div style="
-                            font-size: 16px;
-                            font-weight: bold;
-                            color: var(--text-color);
-                        ">${rate}%</div>
-                    </div>
-                    
-                    <!-- 推廣 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.3);
-                        padding: 10px;
-                        border-radius: 8px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 12px;
-                            color: var(--text-muted);
-                            margin-bottom: 4px;
-                        ">推廣</div>
-                        <div style="
-                            font-size: 16px;
-                            font-weight: bold;
-                            color: var(--text-color);
-                        ">${formatNumberWithCommas(commission)}</div>
-                    </div>
-                    
-                    <!-- 稅佣後利率 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.3);
-                        padding: 10px;
-                        border-radius: 8px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 12px;
-                            color: var(--text-muted);
-                            margin-bottom: 4px;
-                        ">稅佣後利率</div>
-                        <div style="
-                            font-size: 16px;
-                            font-weight: bold;
-                            color: var(--accent-color);
-                        ">${afterCommissionRate || '計算中...'}%</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 說明文字 -->
-            <div style="
-                text-align: center;
-                color: var(--text-muted);
-                font-size: 14px;
-                margin-bottom: 15px;
-            ">
-                以下是不同期數的還款方案對比
-            </div>
-            
-            <!-- 方案列表容器 -->
-            <div style="
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            ">
-        `;
-        
-        // 為每個方案創建卡片式設計
-        plans.forEach((plan, index) => {
-            // 判斷是否為推薦方案（例如：總利息最低或月付最適中）
-            const isRecommended = index === 3 || index === 4; // 30期和36期通常較受歡迎
-            
-            tableHTML += `
-            <!-- 期數方案卡片 -->
-            <div style="
-                background: ${isRecommended ? 
-                    'linear-gradient(135deg, rgba(var(--accent-color-rgb), 0.1) 0%, rgba(var(--accent-color-rgb), 0.05) 100%)' : 
-                    'var(--secondary-color)'};
-                border-radius: 10px;
-                padding: 12px;
-                border: 1px solid ${isRecommended ? 'var(--accent-color)' : 'var(--border-color)'};
-                box-shadow: 0 2px 6px var(--shadow-color);
-                transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
-            " 
-            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px var(--shadow-color)';"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px var(--shadow-color)';">
-                
-                ${isRecommended ? `
-                <!-- 推薦標籤 -->
-                <div style="
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    background: var(--accent-color);
-                    color: white;
-                    padding: 2px 8px;
-                    font-size: 11px;
-                    border-bottom-left-radius: 8px;
-                    font-weight: bold;
-                ">推薦</div>
-                ` : ''}
-                
-                <!-- 期數和基本資訊 -->
-                <div style="
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 10px;
-                ">
-                    <!-- 期數 -->
-                    <div style="
-                        display: flex;
-                        align-items: baseline;
-                        gap: 4px;
-                    ">
-                        <span style="
-                            font-size: 24px;
-                            font-weight: bold;
-                            color: var(--accent-color);
-                        ">${plan.period}</span>
-                        <span style="
-                            font-size: 14px;
-                            color: var(--text-muted);
-                        ">期</span>
-                    </div>
-                    
-                    <!-- 選擇按鈕 -->
-                    <button onclick="selectPlan(${plan.period}, ${rate}, ${principal}, ${plan.payment})" 
-                        style="
-                            background: var(--accent-color);
-                            color: white;
-                            border: none;
-                            border-radius: 6px;
-                            padding: 6px 16px;
-                            font-size: 14px;
-                            cursor: pointer;
-                            transition: all 0.2s ease;
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                        "
-                        onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 3px 6px rgba(0, 0, 0, 0.3)';"
-                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0, 0, 0, 0.2)';">
-                        選擇此方案
-                    </button>
-                </div>
-                
-                <!-- 詳細數據網格 -->
-                <div style="
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 8px;
-                ">
-                    <!-- 期繳金額 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.5);
-                        padding: 8px;
-                        border-radius: 6px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 11px;
-                            color: var(--text-muted);
-                            margin-bottom: 2px;
-                        ">期繳金額</div>
-                        <div style="
-                            font-size: 15px;
-                            font-weight: 600;
-                            color: var(--text-color);
-                        ">${formatNumberWithCommas(Math.round(plan.payment))}</div>
-                    </div>
-                    
-                    <!-- 總還款 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.5);
-                        padding: 8px;
-                        border-radius: 6px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 11px;
-                            color: var(--text-muted);
-                            margin-bottom: 2px;
-                        ">總還款</div>
-                        <div style="
-                            font-size: 15px;
-                            font-weight: 600;
-                            color: var(--text-color);
-                        ">${formatNumberWithCommas(Math.round(plan.totalPayment))}</div>
-                    </div>
-                    
-                    <!-- 總利息 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.5);
-                        padding: 8px;
-                        border-radius: 6px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 11px;
-                            color: var(--text-muted);
-                            margin-bottom: 2px;
-                        ">總利息</div>
-                        <div style="
-                            font-size: 15px;
-                            font-weight: 600;
-                            color: var(--text-color);
-                        ">${formatNumberWithCommas(Math.round(plan.totalInterest))}</div>
-                    </div>
-                    
-                    <!-- 稅佣後利率 -->
-                    <div style="
-                        background: rgba(var(--primary-color-rgb), 0.5);
-                        padding: 8px;
-                        border-radius: 6px;
-                        text-align: center;
-                    ">
-                        <div style="
-                            font-size: 11px;
-                            color: var(--text-muted);
-                            margin-bottom: 2px;
-                        ">稅佣後利率</div>
-                        <div style="
-                            font-size: 15px;
-                            font-weight: 600;
-                            color: var(--accent-color);
-                        ">${plan.afterTaxCommissionRate.toFixed(4)}%</div>
-                    </div>
-                </div>
-                
-                <!-- 每月利息提示 -->
-                <div style="
-                    margin-top: 8px;
-                    padding-top: 8px;
-                    border-top: 1px solid rgba(var(--border-color-rgb), 0.3);
-                    text-align: center;
-                    font-size: 12px;
-                    color: var(--text-muted);
-                ">
-                    每月利息約 ${formatNumberWithCommas(Math.round(plan.monthlyInterest))} 元
-                </div>
-            </div>
-            `;
-        });
-        
-        tableHTML += `
-            </div>
-        </div>
-        `;
-        
-        // 創建模態框
-        const modalHTML = `
-        <div class="modal-header">
-            <h3>期數方案對比</h3>
-            <button class="close-btn" onclick="closeCustomModal('paymentComparisonModal')">×</button>
-        </div>
-        <div class="modal-content" style="flex: 1; overflow-y: auto; padding: 10px;">
-            ${tableHTML}
-        </div>
-        `;
-        
-        // 創建並顯示全螢幕模態框
-        showCustomModal('paymentComparisonModal', modalHTML);
-    }
-
-    // 选择特定方案
-    function selectPlan(period, rate, principal, payment) {
-        // 更新计算器中的值
-        document.getElementById('period').value = period;
-        document.getElementById('rate').value = rate;
-        document.getElementById('principal').value = formatNumberWithCommas(principal);
-        document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
-        
-        // 更新所有相关计算
-        updateAllFields();
-        
-        // 关闭模态框
-        closeCustomModal('paymentComparisonModal');
-        
-        // 显示提示
-        showToast(`已選擇 ${period} 期方案`);
-        
-        // 触发震动反馈
-        vibrate();
-    }
-
     // 通用的模態框顯示函數
     function showCustomModal(id, html) {
         // 創建模態框
@@ -8690,25 +8144,16 @@
         modalOverlay.id = id;
         modalOverlay.style.display = 'flex';
         
-        // 如果是期數方案對比，使用全螢幕樣式
-        if (id === 'paymentComparisonModal') {
-            modalOverlay.style.position = 'fixed';
-            modalOverlay.style.top = '0';
-            modalOverlay.style.left = '0';
-            modalOverlay.style.width = '100%';
-            modalOverlay.style.height = '100%';
-            modalOverlay.style.backgroundColor = 'var(--primary-color)';
-            modalOverlay.style.zIndex = '9999';
-            modalOverlay.style.overflow = 'auto';
-            modalOverlay.innerHTML = `<div class="modal-container" style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; margin: 0; border-radius: 0;">${html}</div>`;
-        } else {
-            modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
-        }
+        // ============================================
+        // 已移除期數方案對比的特殊處理
+        // 現在所有模態框都使用標準樣式
+        // ============================================
+        modalOverlay.innerHTML = `<div class="modal-container">${html}</div>`;
         
-        // 添加到网页
+        // 添加到網頁
         document.body.appendChild(modalOverlay);
         
-        // 点击背景关闭
+        // 點擊背景關閉
         modalOverlay.addEventListener('click', function(event) {
             if (event.target === this) {
                 closeCustomModal(id);
@@ -9816,11 +9261,21 @@
                 
                 // 根據當前模式更新圖標
                 if (viewMode === 0) {
-                    // 完整模式 - 圓形
+                    // ============================================
+                    // 完整模式 - 圓形圖標
+                    // 說明：顯示所有欄位和按鍵
+                    // ============================================
                     toggleIcon.className = 'mode-icon mode-circle';
                     toggleIcon.textContent = '●';
+                    
+                    // 完整模式：顯示所有快速計算按鍵
+                    showAllQuickButtons();
+                    
                 } else if (viewMode === 1) {
-                    // 計算模式 - 正方形
+                    // ============================================
+                    // 計算模式 - 正方形圖標
+                    // 說明：隱藏部分欄位，但保留快速計算按鍵
+                    // ============================================
                     toggleIcon.className = 'mode-icon mode-square';
                     toggleIcon.textContent = '■';
                     
@@ -9832,8 +9287,15 @@
                     
                     // 處理計算模式的分隔線
                     handleDividersForCalcMode();
+                    
+                    // 計算模式：顯示所有快速計算按鍵
+                    showAllQuickButtons();
+                    
                 } else {
-                    // 精簡模式 - 三角形
+                    // ============================================
+                    // 精簡模式 - 三角形圖標
+                    // 說明：隱藏更多欄位，並且隱藏所有快速計算按鍵
+                    // ============================================
                     toggleIcon.className = 'mode-icon mode-triangle';
                     toggleIcon.textContent = '▲';
                     
@@ -9845,11 +9307,68 @@
                     
                     // 處理精簡模式的分隔線
                     handleDividersForSimpleMode();
+                    
+                    // 精簡模式：隱藏所有快速計算按鍵
+                    hideAllQuickButtons();
                 }
                 
                 // 顯示當前模式提示
                 const modeNames = ['完整模式', '計算模式', '精簡模式'];
                 showToast(`切換至${modeNames[viewMode]}`);
+            }
+
+            // ============================================
+            // 顯示所有快速計算按鍵
+            // 說明：在完整模式和計算模式中使用
+            // ============================================
+            function showAllQuickButtons() {
+                // 取得所有快速計算按鍵的容器
+                const buttonContainers = [
+                    'periodButtons',           // 期數的快速按鍵
+                    'rateButtons',             // 稅前利率的快速按鍵
+                    'principalButtons',        // 本金的快速按鍵
+                    'PaymentduringButtons',    // 期繳的快速按鍵
+                    'commissionButtons',       // 推廣的快速按鍵
+                    'commissionPercentButtons' // 推廣比例的快速按鍵
+                ];
+                
+                // 顯示每個按鍵容器
+                buttonContainers.forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        // 移除隱藏類別，讓按鍵顯示
+                        container.classList.remove('mode-hidden');
+                        // 確保按鍵容器是可見的
+                        container.style.display = 'flex';
+                    }
+                });
+            }
+
+            // ============================================
+            // 隱藏所有快速計算按鍵
+            // 說明：在精簡模式中使用，讓畫面更簡潔
+            // ============================================
+            function hideAllQuickButtons() {
+                // 取得所有快速計算按鍵的容器
+                const buttonContainers = [
+                    'periodButtons',           // 期數的快速按鍵
+                    'rateButtons',             // 稅前利率的快速按鍵
+                    'principalButtons',        // 本金的快速按鍵
+                    'PaymentduringButtons',    // 期繳的快速按鍵
+                    'commissionButtons',       // 推廣的快速按鍵
+                    'commissionPercentButtons' // 推廣比例的快速按鍵
+                ];
+                
+                // 隱藏每個按鍵容器
+                buttonContainers.forEach(containerId => {
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        // 添加隱藏類別
+                        container.classList.add('mode-hidden');
+                        // 設置為不顯示
+                        container.style.display = 'none';
+                    }
+                });
             }
 
             // 處理計算模式的分隔線
@@ -10200,9 +9719,6 @@
                         <!-- 使用者資訊會動態插入這裡 -->
                     </div>
                 </li>
-                <li class="menu-item" onclick="showPaymentComparison(); closeMainMenu();">
-                    <span>📊 期數方案對比</span>
-                </li>
                 <li class="menu-item" onclick="showGasCardCalculator(); closeMainMenu();">
                     <span>⛽ 加油卡優惠計算</span>
                 </li>
@@ -10210,7 +9726,7 @@
                     <span>🎨 外觀</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v4.01</div>
+            <div class="version-info">v4.05</div>
         </div>
     </div>
 
