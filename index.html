@@ -4237,13 +4237,29 @@
         </div>
 
         <div id="rateButtons">
-            <button onclick="adjustRate(-0.2)">-0.2</button>
+            <!-- 減少0.2的按鍵，文字改為 -.2 -->
+            <button onclick="adjustRate(-0.2)">-.2</button>
+            
+            <!-- 設定利率為 4% 的按鍵 -->
             <button onclick="setRate(4)">4</button>
+            
+            <!-- 設定利率為 6% 的按鍵 -->
             <button onclick="setRate(6)">6</button>
+            
+            <!-- 設定利率為 8% 的按鍵 -->
             <button onclick="setRate(8)">8</button>
+            
+            <!-- 設定利率為 10% 的按鍵 -->
             <button onclick="setRate(10)">10</button>
-            <button onclick="setRate(13)">13</button>
-            <button onclick="adjustRate(0.2)">+0.2</button>
+            
+            <!-- 設定利率為 12% 的按鍵（原本是13，現在改為12） -->
+            <button onclick="setRate(12)">12</button>
+            
+            <!-- 新增：設定利率為 14% 的按鍵 -->
+            <button onclick="setRate(14)">14</button>
+            
+            <!-- 增加0.2的按鍵，文字改為 +.2 -->
+            <button onclick="adjustRate(0.2)">+.2</button>
         </div>
     </div>
 
@@ -10313,7 +10329,7 @@
                     <span>🌐 語言</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v3.98</div>
+            <div class="version-info">v3.99</div>
         </div>
     </div>
 
