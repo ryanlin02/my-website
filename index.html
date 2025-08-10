@@ -7052,6 +7052,77 @@
         vibrate();
     }
 
+    // ============================================
+    // 小朋友開支票功能（修正版）
+    // 說明：控制支票填寫器的開啟、關閉和載入狀態
+    // 使用全螢幕顯示並確保正確載入
+    // ============================================
+
+    /**
+     * 開啟小朋友開支票功能（精簡優化版）
+     * 說明：直接載入網頁，無載入畫面，提升速度
+     */
+    function openCheckWriter() {
+        // 觸發震動反饋
+        vibrate();
+        
+        // 取得模態框和 iframe 元素
+        const modal = document.getElementById('checkWriterModal');
+        const iframe = document.getElementById('checkWriterIframe');
+        
+        // 確保元素存在
+        if (!modal || !iframe) {
+            console.error('找不到必要的元素');
+            showToast('開啟失敗，請重新整理頁面', true);
+            return;
+        }
+        
+        // 立即顯示模態框（不等待載入）
+        modal.style.display = 'block';
+        
+        // 檢查是否已經載入過網頁
+        // 如果 iframe 沒有 src 或 src 是 'about:blank'，則載入網頁
+        if (!iframe.src || iframe.src === 'about:blank' || iframe.src === '') {
+            // 第一次載入，設定網址
+            iframe.src = 'https://ryanlin02.github.io/kid-check-writer/';
+            
+            // 顯示開啟提示（但不阻擋畫面）
+            showToast('正在開啟小朋友開支票...');
+        } else {
+            // 已經載入過，直接顯示
+            // 不需要重新載入，節省時間
+            showToast('小朋友開支票已開啟');
+        }
+    }
+
+    /**
+     * 關閉小朋友開支票功能（精簡優化版）
+     * 說明：隱藏模態框但保留內容，下次開啟更快
+     */
+    function closeCheckWriter() {
+        // 觸發震動反饋
+        vibrate();
+        
+        // 取得模態框元素
+        const modal = document.getElementById('checkWriterModal');
+        
+        if (modal) {
+            // 隱藏模態框
+            modal.style.display = 'none';
+        }
+        
+        // 顯示關閉提示
+        showToast('已關閉小朋友開支票');
+        
+        // 注意：這裡故意不清空 iframe.src
+        // 這樣下次開啟時會更快，因為網頁已經載入
+        // 如果需要釋放記憶體，可以取消以下註解：
+        // const iframe = document.getElementById('checkWriterIframe');
+        // if (iframe) {
+        //     iframe.src = 'about:blank';
+        // }
+    }
+
     // 設定油價的快速選擇函數
     function setDieselPrice(price) {
         // 觸發震動反饋效果
@@ -8347,11 +8418,18 @@
                 <li class="menu-item" onclick="showGasCardCalculator(); closeMainMenu();">
                     <span>⛽ 加油卡優惠計算</span>
                 </li>
+                <!-- ============================================
+                    新增：小朋友開支票選項
+                    說明：點擊後會在應用程式內開啟支票填寫功能
+                    ============================================ -->
+                <li class="menu-item" onclick="openCheckWriter(); closeMainMenu();">
+                    <span>💰 小朋友開支票</span>
+                </li>
                 <li class="menu-item" onclick="openSubmenu('themeSubmenu')">
                     <span>🎨 外觀</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v4.09</div>
+            <div class="version-info">v4.13</div>
         </div>
     </div>
 
@@ -8393,6 +8471,87 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ============================================
+     小朋友開支票模態框（精簡優化版）
+     說明：移除載入畫面，直接顯示內容，提升開啟速度
+     ============================================ -->
+    <div id="checkWriterModal" style="
+        display: none;                              /* 初始隱藏 */
+        position: fixed;                            /* 固定定位覆蓋整個螢幕 */
+        top: 0;                                     /* 貼齊頂部 */
+        left: 0;                                    /* 貼齊左側 */
+        width: 100%;                                /* 寬度 100% */
+        height: 100%;                               /* 高度 100% */
+        background-color: #ffffff;                  /* 白色背景 */
+        z-index: 9999;                              /* 確保在最上層 */
+    ">
+        <!-- ============================================
+            懸浮關閉按鈕（精簡版）
+            說明：小型化的關閉按鈕，採用原網頁的橘色主題
+            ============================================ -->
+        <button id="checkWriterCloseBtn" onclick="closeCheckWriter()" style="
+            position: fixed;                        /* 固定定位 */
+            top: 5px;                               /* 距離頂部 5px */
+            right: 5px;                             /* 距離右側 5px */
+            width: 30px;                            /* 按鈕寬度 */
+            height: 30px;                           /* 按鈕高度 */
+            border-radius: 6px;                     /* 圓角效果 */
+            background-color: rgba(51, 51, 51, 0.9); /* 深灰色半透明背景 */
+            color: #ff9c33;                         /* 橘色 X 符號 */
+            border: 1px solid #ff9c33;              /* 橘色邊框 */
+            font-size: 18px;                        /* X 符號大小 */
+            font-weight: normal;                    /* 正常字重 */
+            cursor: pointer;                        /* 滑鼠手型 */
+            z-index: 10000;                         /* 確保按鈕在最上層 */
+            display: flex;                          /* 彈性布局 */
+            align-items: center;                    /* 垂直居中 */
+            justify-content: center;                /* 水平居中 */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); /* 陰影效果 */
+            transition: all 0.2s ease;              /* 過渡動畫 */
+            opacity: 0.8;                           /* 略透明 */
+            font-family: Arial, sans-serif;         /* 標準字體 */
+            line-height: 1;                         /* 行高 */
+            padding: 0;                             /* 無內邊距 */
+        " 
+        onmouseover="
+            this.style.backgroundColor='#ff9c33';   /* 懸停時背景變橘色 */
+            this.style.color='#ffffff';             /* 懸停時 X 變白色 */
+            this.style.opacity='1';                 /* 懸停時完全不透明 */
+            this.style.transform='scale(1.1)';      /* 懸停時放大 */
+            this.style.boxShadow='0 3px 8px rgba(255, 156, 51, 0.5)'; /* 橘色光暈 */
+        " 
+        onmouseout="
+            this.style.backgroundColor='rgba(51, 51, 51, 0.9)'; /* 恢復深灰背景 */
+            this.style.color='#ff9c33';             /* 恢復橘色 X */
+            this.style.opacity='0.8';               /* 恢復略透明 */
+            this.style.transform='scale(1)';        /* 恢復原始大小 */
+            this.style.boxShadow='0 2px 6px rgba(0, 0, 0, 0.3)'; /* 恢復陰影 */
+        "
+        title="關閉小朋友開支票">
+            ×  <!-- X 符號 -->
+        </button>
+        
+        <!-- ============================================
+            iframe 容器（精簡版）
+            說明：直接顯示內容，無載入畫面
+            ============================================ -->
+        <iframe 
+            id="checkWriterIframe"
+            style="
+                width: 100%;                        /* 占滿寬度 */
+                height: 100%;                       /* 占滿高度 */
+                border: none;                       /* 無邊框 */
+                background-color: #ffffff;          /* 白色背景 */
+                position: absolute;                 /* 絕對定位 */
+                top: 0;                            /* 貼齊頂部 */
+                left: 0;                           /* 貼齊左側 */
+            "
+            title="小朋友開支票"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+            allow="clipboard-write"
+        ></iframe>
     </div>
 
     <script>
