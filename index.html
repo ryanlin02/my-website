@@ -7086,12 +7086,6 @@
             // 第一次載入，設定網址
             iframe.src = 'https://ryanlin02.github.io/kid-check-writer/';
             
-            // 顯示開啟提示（但不阻擋畫面）
-            showToast('正在開啟小朋友開支票...');
-        } else {
-            // 已經載入過，直接顯示
-            // 不需要重新載入，節省時間
-            showToast('小朋友開支票已開啟');
         }
     }
 
@@ -7110,9 +7104,6 @@
             // 隱藏模態框
             modal.style.display = 'none';
         }
-        
-        // 顯示關閉提示
-        showToast('已關閉小朋友開支票');
         
         // 注意：這裡故意不清空 iframe.src
         // 這樣下次開啟時會更快，因為網頁已經載入
@@ -7432,7 +7423,7 @@
             </div>
         `;
     }
-	
+
     // 初始化加油卡計算器
     function initializeGasCardCalculator() {
         // 設定超級柴油的預設值
@@ -8429,7 +8420,7 @@
                     <span>🎨 外觀</span> <span class="menu-item-arrow">▶</span>
                 </li>
             </ul>
-            <div class="version-info">v4.13</div>
+            <div class="version-info">v4.15</div>
         </div>
     </div>
 
