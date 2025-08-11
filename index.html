@@ -7143,7 +7143,7 @@
             updateGasCalculations();
             
             // 顯示設定成功的提示訊息
-            const priceType = price === 26.0 ? '中油' : '台塑';
+            const priceType = price === 26.1 ? '中油' : '台塑';
             showToast(`已設定${priceType}油價：${price.toFixed(1)}元/公升`);
         }
     }
@@ -7158,12 +7158,12 @@
                     <input type="text" 
                         id="dieselPrice" 
                         placeholder="0.0"
-                        value="26.0"
+                        value="26.1"
                         readonly
                         style="width: 95px; text-align: right;">
                     <span style="margin-left: 5px; color: var(--text-color);">元</span>
                     <!-- 新增：中油和台塑快速選擇按鍵 -->
-                    <button onclick="setDieselPrice(26.0)" style="
+                    <button onclick="setDieselPrice(26.1)" style="
                         background-color: var(--secondary-color);
                         color: var(--text-color);
                         border: 1px solid var(--border-color);
@@ -7176,7 +7176,7 @@
                     " onmouseover="this.style.backgroundColor='var(--hover-color)';" 
                     onmouseout="this.style.backgroundColor='var(--secondary-color)';">中</button>
                     
-                    <button onclick="setDieselPrice(25.8)" style="
+                    <button onclick="setDieselPrice(25.9)" style="
                         background-color: var(--secondary-color);
                         color: var(--text-color);
                         border: 1px solid var(--border-color);
@@ -7432,13 +7432,13 @@
             </div>
         `;
     }
-
+	
     // 初始化加油卡計算器
     function initializeGasCardCalculator() {
         // 設定超級柴油的預設值
         const dieselPriceField = document.getElementById('dieselPrice');
         if (dieselPriceField && !dieselPriceField.value) {
-            dieselPriceField.value = '26.0';
+            dieselPriceField.value = '26.1';
         }
         // 為可編輯的輸入框添加點擊事件
         const editableFields = ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'];
