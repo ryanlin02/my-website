@@ -431,9 +431,172 @@
                 color: var(--accent-color);                  /* 橘色文字 */
             }
         }
+
+        /* ============================================
+        * PWA 安裝引導畫面樣式
+        * ============================================ */
+
+        /* 安裝引導畫面遮罩層 */
+        .install-prompt-overlay {
+            position: fixed;                                /* 固定定位覆蓋整個螢幕 */
+            top: 0;                                        /* 從頂部開始 */
+            left: 0;                                       /* 從左側開始 */
+            width: 100%;                                   /* 全寬度 */
+            height: 100%;                                  /* 全高度 */
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); /* 漸層背景 */
+            z-index: 9999;                                 /* 最高層級確保覆蓋所有內容 */
+            display: flex;                                 /* 彈性佈局 */
+            flex-direction: column;                        /* 垂直排列 */
+            align-items: center;                           /* 水平居中 */
+            justify-content: center;                       /* 垂直居中 */
+            padding: 20px;                                 /* 內邊距 */
+            box-sizing: border-box;                       /* 邊框盒模型 */
+            opacity: 0;                                    /* 初始透明 */
+            animation: fadeIn 0.01s forwards;              /* 淡入動畫 */
+        }
+
+        /* 淡入動畫定義 */
+        @keyframes fadeIn {
+            to {
+                opacity: 1;                                /* 完全不透明 */
+            }
+        }
+
+        /* 安裝引導容器 */
+        .install-prompt-container {
+            background: var(--primary-color);             /* 主要背景色 */
+            border-radius: 15px;                          /* 圓角 */
+            padding: 30px 25px;                           /* 內邊距 */
+            max-width: 350px;                             /* 最大寬度 */
+            width: 90%;                                   /* 寬度90% */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);  /* 陰影效果 */
+            text-align: center;                           /* 文字居中 */
+        }
+
+        /* 安裝引導標題 - 可點擊但不顯示 */
+        .install-prompt-title {
+            color: var(--accent-color);                   /* 橘色文字 */
+            font-size: 24px;                              /* 大字體 */
+            font-weight: bold;                            /* 粗體 */
+            margin-bottom: 15px;                          /* 底部間距 */
+            cursor: default;                               /* 預設游標不暗示可點擊 */
+            user-select: none;                            /* 禁止選取文字 */
+            -webkit-user-select: none;                    /* iOS禁止選取 */
+            -webkit-tap-highlight-color: transparent;     /* 移除點擊高亮 */
+        }
+
+        /* 安裝引導說明文字 */
+        .install-prompt-text {
+            color: var(--text-color);                     /* 白色文字 */
+            font-size: 16px;                              /* 標準字體 */
+            line-height: 1.6;                             /* 行高 */
+            margin-bottom: 25px;                          /* 底部間距 */
+        }
+
+        /* 操作系統區塊 */
+        .install-os-section {
+            background: var(--secondary-color);           /* 次要背景色 */
+            border-radius: 10px;                          /* 圓角 */
+            padding: 15px;                                /* 內邊距 */
+            margin-bottom: 15px;                          /* 底部間距 */
+            text-align: left;                             /* 文字左對齊 */
+        }
+
+        /* 操作系統標題 */
+        .install-os-title {
+            color: var(--accent-color);                   /* 橘色文字 */
+            font-size: 18px;                              /* 中等字體 */
+            font-weight: bold;                            /* 粗體 */
+            margin-bottom: 10px;                          /* 底部間距 */
+            display: flex;                                /* 彈性佈局 */
+            align-items: center;                          /* 垂直居中 */
+            gap: 8px;                                     /* 圖示與文字間距 */
+        }
+
+        /* 安裝步驟列表 */
+        .install-steps {
+            color: var(--text-muted);                     /* 淡化文字顏色 */
+            font-size: 14px;                              /* 小字體 */
+            line-height: 1.8;                             /* 行高 */
+            padding-left: 20px;                           /* 左側內邊距 */
+        }
+
+        /* 安裝步驟項目 */
+        .install-steps li {
+            margin-bottom: 8px;                           /* 底部間距 */
+        }
+
+        /* 強調文字樣式 */
+        .install-highlight {
+            color: var(--accent-color);                   /* 橘色文字 */
+            font-weight: bold;                            /* 粗體 */
+        }
+
+        /* 隱藏安裝引導畫面 */
+        .install-prompt-overlay.hidden {
+            display: none;                                 /* 完全隱藏 */
+        }
+
     </style>
 </head>
+
 <body>
+
+    <!-- ============================================
+    * PWA 安裝引導畫面
+    * ============================================ -->
+    <div class="install-prompt-overlay" id="installPromptOverlay">
+        <div class="install-prompt-container">
+            <!-- 標題：連續點擊4次可關閉（隱藏功能） -->
+            <h2 class="install-prompt-title" id="installPromptTitle">
+                安裝小朋友工具
+            </h2>
+            
+            <p class="install-prompt-text">
+                請依照以下指引安裝應用程式
+            </p>
+            
+            <!-- iOS 安裝說明 -->
+            <div class="install-os-section" id="iosSection">
+                <div class="install-os-title">
+                    iPhone / iPad
+                </div>
+                <ol class="install-steps">
+                    <li>點擊瀏覽器底部的 <span class="install-highlight">分享按鈕</span> ⬆️</li>
+                    <li>在選單中向下滑動</li>
+                    <li>點選 <span class="install-highlight">「加入主畫面」</span></li>
+                    <li>點擊右上角的 <span class="install-highlight">「加入」</span></li>
+                </ol>
+            </div>
+            
+            <!-- Android 安裝說明 -->
+            <div class="install-os-section" id="androidSection">
+                <div class="install-os-title">
+                    Android
+                </div>
+                <ol class="install-steps">
+                    <li>點擊瀏覽器右上角的 <span class="install-highlight">選單按鈕</span> ⋮</li>
+                    <li>選擇 <span class="install-highlight">「安裝應用程式」</span></li>
+                    <li>或選擇 <span class="install-highlight">「加到主畫面」</span></li>
+                    <li>點擊 <span class="install-highlight">「安裝」</span> 確認</li>
+                </ol>
+            </div>
+            
+            <!-- 電腦版 Chrome 安裝說明 -->
+            <div class="install-os-section" id="desktopSection">
+                <div class="install-os-title">
+                    電腦版瀏覽器
+                </div>
+                <ol class="install-steps">
+                    <li>點擊網址列右側的 <span class="install-highlight">安裝圖示</span> ⊕</li>
+                    <li>或點擊右上角 <span class="install-highlight">選單</span> ⋮</li>
+                    <li>選擇 <span class="install-highlight">「安裝小朋友工具」</span></li>
+                    <li>點擊 <span class="install-highlight">「安裝」</span> 確認</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <!-- ============================================
     * 頁面標題區域 - Header
     * ============================================ -->
@@ -488,6 +651,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('小朋友工具 - 頁面初始化開始');
             
+            // 初始化安裝引導畫面（新增的）
+            initializeInstallPrompt();
+            
             // 初始化導航功能
             initializeNavigation();
             
@@ -499,7 +665,122 @@
             
             console.log('小朋友工具 - 頁面初始化完成');
         });
-        
+
+
+        // ============================================
+        // PWA 安裝引導畫面控制
+        // ============================================
+
+        // 初始化安裝引導畫面
+        initializeInstallPrompt();
+
+        /**
+         * 初始化 PWA 安裝引導畫面
+         * 檢測是否已安裝為 PWA，控制顯示邏輯
+         */
+        function initializeInstallPrompt() {
+            const installOverlay = document.getElementById('installPromptOverlay');
+            const installTitle = document.getElementById('installPromptTitle');
+            
+            // 檢測是否為 PWA 模式（已安裝的應用程式）
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                        window.navigator.standalone === true;  // iOS 檢測
+            
+            // 檢測作業系統類型
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isDesktop = !isIOS && !isAndroid;
+            
+            // 根據作業系統顯示對應的安裝說明
+            const iosSection = document.getElementById('iosSection');
+            const androidSection = document.getElementById('androidSection');
+            const desktopSection = document.getElementById('desktopSection');
+            
+            // 預設隱藏所有區塊
+            iosSection.style.display = 'none';
+            androidSection.style.display = 'none';
+            desktopSection.style.display = 'none';
+            
+            // 顯示對應的操作系統說明
+            if (isIOS) {
+                iosSection.style.display = 'block';
+            } else if (isAndroid) {
+                androidSection.style.display = 'block';
+            } else {
+                desktopSection.style.display = 'block';
+            }
+            
+            // 如果已經是 PWA 模式，直接隱藏引導畫面
+            if (isPWA) {
+                installOverlay.classList.add('hidden');
+                console.log('已偵測到 PWA 模式，隱藏安裝引導');
+                return;
+            }
+            
+            // 如果不是 PWA 模式，顯示引導畫面
+            console.log('非 PWA 模式，顯示安裝引導');
+            
+            // ============================================
+            // 隱藏功能：連續點擊標題 4 次關閉引導畫面
+            // ============================================
+            
+            let clickCount = 0;                    // 點擊計數器
+            let clickTimer = null;                 // 計時器
+            
+            // 為標題綁定點擊事件
+            installTitle.addEventListener('click', function(e) {
+                e.preventDefault();                 // 防止預設行為
+                
+                clickCount++;                       // 增加點擊次數
+                
+                // 清除之前的計時器
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                }
+                
+                // 檢查是否達到 4 次點擊
+                if (clickCount >= 4) {
+                    console.log('觸發隱藏功能：關閉安裝引導畫面');
+                    
+                    // 添加淡出動畫後隱藏
+                    installOverlay.style.animation = 'fadeOut 0.3s forwards';
+                    
+                    setTimeout(() => {
+                        installOverlay.classList.add('hidden');
+                        // 儲存關閉狀態到本地存儲（可選）
+                        localStorage.setItem('installPromptDismissed', 'true');
+                    }, 300);
+                    
+                    // 重置計數器
+                    clickCount = 0;
+                }
+                
+                // 設置計時器：2秒後重置計數器
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;                 // 重置計數
+                    console.log('點擊計數器已重置');
+                }, 2000);  // 2秒內要完成4次點擊
+            });
+            
+            // 檢查是否曾經關閉過引導畫面（可選功能）
+            const wasDismissed = localStorage.getItem('installPromptDismissed');
+            if (wasDismissed === 'true') {
+                // 如果使用者曾經關閉過，可以選擇直接隱藏
+                // installOverlay.classList.add('hidden');
+                // 或者仍然顯示，讓使用者自行決定
+            }
+        }
+
+        // 添加淡出動畫定義
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
         // ============================================
         // 導航功能初始化
         // ============================================
