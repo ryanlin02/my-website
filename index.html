@@ -377,34 +377,6 @@
         }
         
         /* ============================================
-         * 載入動畫效果
-         * ============================================ */
-        
-        .loading-overlay {
-            position: fixed;                                 /* 固定定位 */
-            top: 60px;                                      /* 在導航下方 */
-            left: 0;                                         /* 左側對齊 */
-            width: 100%;                                     /* 滿寬度 */
-            height: calc(100vh - 110px);                     /* 剩餘高度 */
-            background: var(--primary-color);               /* 背景色 */
-            display: flex;                                   /* 彈性佈局 */
-            align-items: center;                             /* 垂直居中 */
-            justify-content: center;                         /* 水平居中 */
-            z-index: 998;                                    /* 在iframe上方 */
-        }
-        
-        .loading-text {
-            color: var(--accent-color);                      /* 橘色文字 */
-            font-size: var(--font-size-lg);                 /* 大字體 */
-            font-weight: bold;                               /* 粗體 */
-        }
-        
-        /* 隱藏載入覆蓋層 */
-        .loading-overlay.hidden {
-            display: none;                                   /* 隱藏 */
-        }
-        
-        /* ============================================
          * 響應式設計 - 適配不同螢幕尺寸
          * ============================================ */
         
@@ -614,13 +586,18 @@
      * 主要內容區域 - iframe
      * ============================================ -->
     <div class="content-container">
-        <!-- 載入動畫覆蓋層 -->
-        <div class="loading-overlay" id="loadingOverlay">
-            <div class="loading-text">載入中...</div>
-        </div>
+        <!-- 移除載入動畫，改為預載所有頁面的 iframe -->
+        <!-- 計算機頁面 - 預設顯示 -->
+        <iframe class="page-iframe" id="calculatorFrame" src="pages/calculator.html" style="display: block;"></iframe>
         
-        <!-- 內容顯示iframe -->
-        <iframe class="page-iframe" id="pageIframe" src="pages/calculator.html"></iframe>
+        <!-- 支票頁面 - 預設隱藏 -->
+        <iframe class="page-iframe" id="checkFrame" src="pages/check.html" style="display: none;"></iframe>
+        
+        <!-- 發票頁面 - 預設隱藏 -->
+        <iframe class="page-iframe" id="invoiceFrame" src="pages/invoice.html" style="display: none;"></iframe>
+        
+        <!-- 加油頁面 - 預設隱藏 -->
+        <iframe class="page-iframe" id="gasFrame" src="pages/gas.html" style="display: none;"></iframe>
     </div>
     
     <!-- ============================================
@@ -656,9 +633,6 @@
             
             // 初始化導航功能
             initializeNavigation();
-            
-            // 初始化iframe載入監聽
-            initializeIframeLoading();
             
             // 註冊Service Worker (PWA功能)
             registerServiceWorker();
@@ -810,14 +784,30 @@
                 return;
             }
             
-            // 更新目前頁面
+            // ============================================
+            // 使用顯示/隱藏方式切換頁面，不重新載入
+            // ============================================
+            
+            // 隱藏當前頁面的 iframe
+            const currentFrame = document.getElementById(currentPage + 'Frame');
+            if (currentFrame) {
+                currentFrame.style.display = 'none';  // 隱藏當前頁面
+            }
+            
+            // 顯示目標頁面的 iframe
+            const targetFrame = document.getElementById(pageName + 'Frame');
+            if (targetFrame) {
+                targetFrame.style.display = 'block';   // 顯示新頁面
+            }
+            
+            // 更新目前頁面變數
             currentPage = pageName;
             
             // 更新導航按鈕狀態
             updateNavigationState(pageName);
             
-            // 載入新頁面
-            loadPageInIframe(pageName);
+            // 不再需要呼叫 loadPageInIframe
+            // loadPageInIframe(pageName);  // 移除這行
         }
         
         // ============================================
@@ -837,48 +827,6 @@
             if (activeButton) {
                 activeButton.classList.add('active');
             }
-        }
-        
-        // ============================================
-        // iframe載入功能
-        // ============================================
-        
-        function loadPageInIframe(pageName) {
-            const iframe = document.getElementById('pageIframe');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const pageUrl = pageMapping[pageName];
-            
-            console.log(`載入頁面: ${pageUrl}`);
-            
-            // 顯示載入動畫
-            loadingOverlay.classList.remove('hidden');
-            
-            // 載入新頁面
-            iframe.src = pageUrl;
-        }
-        
-        // ============================================
-        // iframe載入監聽初始化
-        // ============================================
-        
-        function initializeIframeLoading() {
-            const iframe = document.getElementById('pageIframe');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            
-            // iframe載入完成事件
-            iframe.addEventListener('load', function() {
-                console.log('iframe頁面載入完成');
-                // 隱藏載入動畫
-                setTimeout(() => {
-                    loadingOverlay.classList.add('hidden');
-                }, 300);
-            });
-            
-            // iframe載入錯誤事件
-            iframe.addEventListener('error', function() {
-                console.error('iframe頁面載入失敗');
-                loadingOverlay.classList.add('hidden');
-            });
         }
         
         // ============================================
