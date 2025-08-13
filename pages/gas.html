@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>加油卡優惠計算</title>
+
+    <!-- 將以下程式碼加入每個 iframe 頁面的 <head> 標籤內 -->
+    <!-- calculator.html, check.html, gas.html, invoice.html -->
+
+    <!-- Google Analytics 4 追蹤代碼 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
+    <script>
+        // 檢查是否在 iframe 中
+        const isInIframe = window !== window.parent;
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // 取得當前頁面名稱
+        const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
+        
+        // 初始化 GA4
+        gtag('config', 'G-XE5XMQR0Z1', {
+            page_title: `小朋友工具 - ${getPageTitle(currentPageName)}`,
+            page_location: window.location.href,
+            page_path: window.location.pathname,
+            custom_map: {
+                'dimension3': 'is_iframe',
+                'dimension4': 'page_type'
+            }
+        });
+        
+        // 頁面標題對應
+        function getPageTitle(pageName) {
+            const titles = {
+                'calculator': '計算機',
+                'check': '支票計算',
+                'invoice': '發票計算',
+                'gas': '加油計算'
+            };
+            return titles[pageName] || pageName;
+        }
+        
+        /**
+        * 發送自訂事件到 GA4
+        * @param {string} eventName - 事件名稱
+        * @param {object} parameters - 事件參數
+        */
+        function trackEvent(eventName, parameters = {}) {
+            // 加入頁面資訊
+            parameters.page_type = currentPageName;
+            parameters.is_iframe = isInIframe;
+            
+            gtag('event', eventName, parameters);
+            console.log('GA4 Event (iframe):', eventName, parameters);
+        }
+        
+        // ============================================
+        // 加油頁面專用追蹤 (gas.html)
+        // ============================================
+        
+        if (currentPageName === 'gas') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // 追蹤加油計算
+                trackEvent('page_specific_load', {
+                    feature: 'gas_calculator'
+                });
+                
+                // 根據實際功能添加更多追蹤
+            });
+        }
+        
+        // ============================================
+        // 通用互動追蹤
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 追蹤所有按鈕點擊
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', function() {
+                    trackEvent('button_click', {
+                        button_text: this.textContent.trim(),
+                        button_id: this.id,
+                        button_class: this.className
+                    });
+                });
+            });
+            
+            // 追蹤表單提交
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    trackEvent('form_submit', {
+                        form_id: this.id,
+                        form_name: this.name
+                    });
+                });
+            });
+            
+            // 追蹤滾動深度
+            let maxScrollDepth = 0;
+            let scrollTracked = {};
+            
+            window.addEventListener('scroll', function() {
+                const scrollDepth = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
+                
+                // 追蹤 25%, 50%, 75%, 100% 的滾動深度
+                [25, 50, 75, 100].forEach(threshold => {
+                    if (scrollDepth >= threshold && !scrollTracked[threshold]) {
+                        scrollTracked[threshold] = true;
+                        trackEvent('scroll_depth', {
+                            depth_percentage: threshold
+                        });
+                    }
+                });
+                
+                maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
+            });
+            
+            // 頁面卸載時追蹤最大滾動深度
+            window.addEventListener('beforeunload', function() {
+                trackEvent('page_unload', {
+                    max_scroll_depth: maxScrollDepth,
+                    time_on_page: Math.round(performance.now() / 1000)
+                });
+            });
+            
+            // 追蹤複製操作
+            document.addEventListener('copy', function() {
+                trackEvent('content_copy', {
+                    selection_length: window.getSelection().toString().length
+                });
+            });
+            
+            // 追蹤長按操作（移動裝置）
+            let touchTimer;
+            document.addEventListener('touchstart', function(e) {
+                touchTimer = setTimeout(function() {
+                    trackEvent('long_press', {
+                        target_element: e.target.tagName,
+                        target_class: e.target.className
+                    });
+                }, 500);
+            });
+            
+            document.addEventListener('touchend', function() {
+                clearTimeout(touchTimer);
+            });
+        });
+        
+        // ============================================
+        // 與父頁面通訊（如果需要）
+        // ============================================
+        
+        if (isInIframe) {
+            // 向父頁面報告載入完成
+            window.addEventListener('load', function() {
+                window.parent.postMessage({
+                    type: 'iframe_loaded',
+                    page: currentPageName
+                }, '*');
+            });
+        }
+    </script>
+
+    <style>
+        /* ===== 主題外觀集中管理區 ===== */
+        :root {
+            /* ===== 主題色彩變數 - 與支票工具統一風格 ===== */
+            --primary-color: #333333;       /* 深灰色主色調（與支票工具一致）*/
+            --secondary-color: #4a4a4a;     /* 中灰色次要色（與支票工具一致）*/
+            --button-orange: #ff9c33;       /* 橘色按鈕色（與支票工具一致）*/
+            --button-blue: #33b5e5;         /* 藍色按鈕色（與支票工具一致）*/
+            --text-color: #ffffff;          /* 白色文字（與支票工具一致）*/
+            --border-color: #555555;        /* 邊框顏色（與支票工具一致）*/
+            --hover-color: #666666;         /* 懸停顏色（與支票工具一致）*/
+            --shadow-color: rgba(0, 0, 0, 0.3); /* 陰影顏色（與支票工具一致）*/
+            
+            /* 保留原有但調整的顏色 */
+            --background-color: #333333;    /* 調整為與支票工具一致的背景色 */
+            --surface-color: #4a4a4a;       /* 調整為與支票工具一致的表面色 */
+            --display-bg: #222222;          /* 輸入框背景色（與支票工具一致）*/
+            --success-color: #52b788;       /* 保留成功綠色 */
+            --error-color: #e74c3c;         /* 調整為與支票工具一致的錯誤紅色 */
+            
+            /* 字體大小 - 保持不變 */
+            --font-size-title: 20px;
+            --font-size-label: 15px;
+            --font-size-input: 17px;
+            --font-size-unit: 14px;
+            --font-size-button: 16px;
+            --font-size-calculator: 20px;
+            
+            /* 間距與圓角 - 保持不變 */
+            --spacing-xs: 4px;
+            --spacing-sm: 6px;
+            --spacing-md: 10px;
+            --spacing-lg: 16px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            /* 陰影 - 保持不變 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* ===== 全域樣式重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* ===== 主體樣式 ===== */
+        body {
+            /* 使用與支票工具相同的字體設定 */
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);  /* 改用 --text-color 變數 */
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* 新增與支票工具一致的設定 */
+            margin: 0 auto;
+            max-width: 400px;  /* 限制最大寬度與支票工具一致 */
+            padding: 0 3px;    /* 添加左右邊距 */
+        }
+        
+        /* ===== 主要內容區域 ===== */
+        .container {
+            padding: calc(0px);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* ===== 輸入欄位橫向排版 - 修改版 ===== */
+        .input-row {
+            /* 調整為與支票工具一致的樣式 */
+            background-color: var(--secondary-color);
+            border-radius: 4px;  /* 使用較小的圓角 */
+            padding: 3px;        /* 減少內距 */
+            margin: 4px 0;                        /* 保持與小朋友開支票相同的間距 */
+            box-shadow: 0 4px 8px var(--shadow-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            /* 新增與支票工具一致的效果 */
+            transform-origin: left;
+            will-change: transform;
+        }
+        
+        /* ===== 欄位標題樣式 - 靠右對齊輸入框 ===== */
+        .input-label {
+            font-size: var(--font-size-label);
+            color: var(--text-primary);
+            font-weight: 500;
+            flex-shrink: 0;
+            margin-right: 0;
+        }
+        
+        /* ===== 輸入框容器 - 用於置中對齊 ===== */
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        /* ===== 輸入框樣式 - 調整寬度 ===== */
+        .input-field {
+            width: 120px;
+            /* 使用與支票工具一致的輸入框樣式 */
+            background-color: #222222;  /* 深黑色背景 */
+            border: 1px solid var(--border-color);
+            border-radius: 4px;  /* 較小的圓角 */
+            padding: 5px 12px;   /* 調整內距 */
+            font-size: 16px;     /* 統一字體大小 */
+            text-align: right;
+            outline: none;
+            transition: all 0.3s ease;
+            color: var(--text-color);
+            cursor: pointer;  /* 新增手型游標 */
+        }
+
+        .input-field:focus {
+            /* 調整聚焦樣式與支票工具一致 */
+            border-color: var(--button-orange);
+            box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.2);
+            transform: scale(1.02);  /* 輕微放大效果 */
+        }
+        
+        /* ===== 單位樣式 - 顯示在輸入框右側 ===== */
+        .input-unit {
+            font-size: var(--font-size-unit);
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            min-width: 50px;
+        }
+        
+        /* ===== 清除按鈕樣式 ===== */
+        .clear-button {
+            width: 100%;
+            padding: 8px 0;  /* 調整內距 */
+            /* 使用與支票工具一致的按鈕樣式 */
+            background-color: var(--secondary-color);
+            color: #ffffff;
+            border: 1px solid var(--button-orange);
+            border-radius: 6px;  /* 較小的圓角 */
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-top: var(--spacing-xs);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clear-button:hover {
+            background-color: var(--button-orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .clear-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ===== 時間顯示欄位樣式 - 從小朋友開支票複製 ===== */
+        .time-display-wrapper {
+            position: relative;                    /* 相對定位 */
+            height: auto;                          /* 自動高度 */
+            margin: 4px 0;                         /* 修改：與其他欄位相同的上下邊距 */
+            padding-top: 12px;                     /* 新增：增加與螢幕頂端的距離 */
+            z-index: 1000;                         /* 設定層級確保在最上方 */
+        }
+
+        .sticky-header {
+            position: -webkit-sticky !important;   /* Safari瀏覽器相容性 */
+            position: sticky !important;           /* 黏性定位 */
+            top: 10px;                             /* 修改：從頂部往下 10px，增加與螢幕頂端距離 */
+            background: var(--secondary-color);    /* 使用統一的次要背景色 */
+            padding: 3px;                          /* 修改：與輸入欄位相同的內部間距 */
+            border-radius: 4px;                    /* 圓角邊框 */
+            box-shadow: 0 4px 8px var(--shadow-color);  /* 修改：與輸入欄位相同的陰影效果 */
+            animation: fadeIn 0.8s ease-out;       /* 淡入動畫 */
+            transition: all 0.3s ease;            /* 過渡動畫 */
+            z-index: 999;                          /* 層級設定 */
+            width: 100%;                           /* 新增：確保寬度與其他欄位一致 */
+            box-sizing: border-box;               /* 新增：確保 padding 包含在寬度內 */
+        }
+
+        #timeDisplay {
+            margin: 4px 0;                         /* 修改：與輸入欄位相同的上下邊距 */
+            font-size: 15px;                       /* 字體大小 */
+            background: var(--secondary-color);    /* 背景顏色 */
+            color: var(--text-color);              /* 文字顏色 */
+            padding: 8px;                          /* 修改：與輸入欄位相同的內部間距 */
+            border-radius: 4px;                    /* 圓角邊框 */
+            box-shadow: 0 4px 8px var(--shadow-color);  /* 修改：與輸入欄位相同的陰影效果 */
+            animation: fadeIn 0.8s ease-out;       /* 淡入動畫 */
+            transition: all 0.3s ease;            /* 過渡效果 */
+            position: relative;                    /* 相對定位，為動畫線條做準備 */
+            overflow: hidden;                      /* 隱藏超出邊界的內容 */
+            display: flex;                         /* 新增：使用彈性盒子布局 */
+            align-items: center;                   /* 新增：垂直置中對齊 */
+            justify-content: center;               /* 新增：水平置中對齊 */
+            gap: var(--spacing-sm);                /* 新增：與輸入欄位相同的間距變數 */
+            transform-origin: left;                /* 新增：變形起點設為左側 */
+            will-change: transform;                /* 新增：優化動畫效能 */
+        }
+
+        /* 時間顯示上方的動畫線條 */
+        #timeDisplay::before {
+            content: '';                           /* 空內容 */
+            position: absolute;                    /* 絕對定位 */
+            top: 0;                               /* 位於頂部 */
+            left: -100%;                          /* 初始位置在左側外部 */
+            width: 100%;                          /* 寬度100% */
+            height: 2px;                          /* 高度2像素 */
+            background: linear-gradient(90deg, transparent, var(--button-orange), transparent);  /* 漸層背景 */
+            animation: timelineSlide 3s linear infinite;  /* 滑動動畫，3秒循環 */
+        }
+
+        /* 動畫線條滑動效果 */
+        @keyframes timelineSlide {
+            0% { left: -100%; }                   /* 開始位置：左側外部 */
+            100% { left: 100%; }                  /* 結束位置：右側外部 */
+        }
+
+        .time-label {
+            font-weight: bold;                     /* 粗體字 */
+            margin-right: 10px;                    /* 右邊距 */
+            color: var(--button-orange);          /* 橘色文字 */
+            flex-shrink: 0;                        /* 新增：防止文字被壓縮 */
+        }
+
+        /* 淡入動畫效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }  /* 從透明且向下偏移開始 */
+            to { opacity: 1; transform: translateY(0); }       /* 到完全顯示且回到原位 */
+        }
+
+        /* ===== 動畫分隔線樣式 - 從小朋友開支票複製 ===== */
+        .divider-flow {
+            position: relative;                    /* 相對定位 */
+            height: 2px;                          /* 高度2像素 */
+            background: linear-gradient(90deg,     /* 水平漸層背景 */
+                var(--secondary-color) 0%,        /* 開始：次要背景色 */
+                var(--button-orange) 50%,         /* 中間：橘色 */
+                var(--secondary-color) 100%);     /* 結束：次要背景色 */
+            margin: 4px 0;                        /* 上下邊距4像素 */
+            overflow: hidden;                     /* 隱藏超出邊界的內容 */
+        }
+
+        /* 分隔線上的流光效果 */
+        .divider-flow::after {
+            content: '';                          /* 空內容 */
+            position: absolute;                   /* 絕對定位 */
+            top: 0;                              /* 位於頂部 */
+            left: -100%;                         /* 初始位置在左側外部 */
+            width: 100%;                         /* 寬度100% */
+            height: 100%;                        /* 高度100% */
+            background: linear-gradient(90deg,    /* 流光漸層效果 */
+                transparent,                      /* 透明開始 */
+                rgba(255, 156, 51, 0.8),         /* 半透明橘色 */
+                transparent);                     /* 透明結束 */
+            animation: flowLight 3s ease-in-out infinite;  /* 流光動畫，3秒循環 */
+        }
+
+        /* 流光動畫效果 */
+        @keyframes flowLight {
+            0% { transform: translateX(0); }      /* 開始位置 */
+            100% { transform: translateX(200%); } /* 結束位置，移動兩倍寬度 */
+        }
+        
+        /* ===== 計算機彈出視窗樣式 ===== */
+        .calculator-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8); /* 更深的遮罩層 */
+            z-index: 200;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .calculator-modal.active {
+            display: flex;
+            align-items: center;  /* 從 flex-end 改為 center，讓內容垂直置中 */
+            justify-content: center;
+        }
+        
+        /* ===== 計算機容器樣式 ===== */
+        .calculator-container {
+            /* 調整為與支票工具的數字輸入器一致 */
+            background-color: var(--primary-color);
+            border-radius: 12px;
+            padding: 15px;
+            width: 90%;
+            max-width: 350px;  /* 縮小最大寬度 */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            animation: fadeInScale 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--button-orange);  /* 橘色邊框 */
+        }
+        
+        /* ===== 計算機顯示螢幕樣式 ===== */
+        .calculator-display {
+            background-color: var(--display-bg);    /* 深黑色背景 */
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            font-size: 24px;
+            text-align: right;
+            margin-bottom: var(--spacing-md);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-break: break-all;
+            color: var(--text-primary);             /* 白色文字 */
+            font-weight: 300;                       /* 較細的字體 */
+        }
+        
+        /* ===== 計算機按鈕網格樣式 ===== */
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacing-sm);
+        }
+        
+        /* ===== 計算機按鈕樣式 ===== */
+        .calc-button {
+            padding: var(--spacing-md);
+            font-size: var(--font-size-calculator);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            min-height: 50px;
+        }
+        
+        /* 數字按鈕樣式 */
+        .calc-button.number {
+            background-color: var(--primary-color); /* 深灰色背景 */
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .calc-button.number:hover {
+            background-color: var(--button-hover);
+        }
+        
+        .calc-button.number:active {
+            background-color: var(--border-color);
+            transform: scale(0.95);
+        }
+        
+        /* 運算符按鈕樣式 */
+        .calc-button.operator {
+            background-color: var(--secondary-color); /* 橘色背景 */
+            color: white;
+            font-weight: bold;
+        }
+        
+        .calc-button.operator:hover {
+            background-color: #ff7a2a;
+        }
+        
+        .calc-button.operator:active {
+            background-color: #ff6820;
+            transform: scale(0.95);
+        }
+        
+        /* 確認按鈕樣式 */
+        .calc-button.confirm {
+            background-color: var(--success-color);
+            color: white;
+            grid-column: span 2;
+            font-weight: bold;
+        }
+        
+        .calc-button.confirm:hover {
+            background-color: #42a373;
+        }
+        
+        .calc-button.confirm:active {
+            background-color: #339560;
+            transform: scale(0.95);
+        }
+        
+        /* 取消按鈕樣式 */
+        .calc-button.cancel {
+            background-color: #606060;              /* 中灰色背景 */
+            color: white;
+            grid-column: span 2;
+        }
+        
+        .calc-button.cancel:hover {
+            background-color: #505050;
+        }
+        
+        .calc-button.cancel:active {
+            background-color: #404040;
+            transform: scale(0.95);
+        }
+        
+        /* ===== 動畫效果 ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        /* 新增縮放淡入動畫 */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* ===== 響應式設計 ===== */
+        @media (max-width: 360px) {
+            .input-label {
+                font-size: 13px;
+            }
+            
+            .input-field {
+                width: 100px;
+                font-size: 15px;
+                padding: var(--spacing-xs) var(--spacing-xs);
+            }
+            
+            .input-unit {
+                font-size: 12px;
+                min-width: 45px;
+            }
+        }
+
+        /* ===== 油價查詢框架樣式 ===== */
+        .price-checker-container {
+            margin-top: var(--spacing-lg);          /* 與清除按鈕的間距 */
+            border-radius: var(--radius-md);        /* 圓角邊框 */
+            background-color: var(--secondary-color); /* 背景色與輸入欄位一致 */
+            padding: var(--spacing-sm);             /* 內部間距 */
+            box-shadow: 0 4px 8px var(--shadow-color); /* 陰影效果 */
+        }
+
+        .price-checker-title {
+            font-size: var(--font-size-label);      /* 標題字體大小 */
+            color: var(--text-color);               /* 白色文字 */
+            text-align: center;                     /* 文字置中 */
+            margin-bottom: var(--spacing-sm);       /* 標題與框架的間距 */
+            font-weight: 500;                       /* 字體粗細 */
+        }
+
+        .price-checker-frame {
+            width: 100%;                            /* 寬度填滿容器 */
+            height: 370px;                          /* 框架高度，針對手機優化 */
+            border: 1px solid var(--border-color);  /* 邊框顏色 */
+            border-radius: var(--radius-sm);        /* 圓角邊框 */
+            background-color: white;                /* 白色背景 */
+        }
+
+        /* 針對較小螢幕調整iframe高度 */
+        @media (max-width: 360px) {
+            .price-checker-frame {
+                height: 250px;                      /* 小螢幕時降低高度 */
+            }
+        }
+
+    </style>
+</head>
+<body>
+    
+    <!-- 主要內容容器 -->
+
+    <!-- 時間顯示區塊 - 調整為與輸入欄位相同寬度 -->
+    <div class="time-display-wrapper">
+        <div id="timeDisplay" class="sticky-header">
+            <!-- 移除內層div，直接使用flex布局 -->
+            <span class="time-label">現在時間：</span>
+            <span id="current-date"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 超級柴油價格輸入欄位 -->
+        <div class="input-row">
+            <label class="input-label">油品單價</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="dieselPrice" 
+                       class="input-field" 
+                       placeholder="0.0"
+                       readonly>
+                <span class="input-unit">元/公升</span>
+            </div>
+        </div>
+        
+        <!-- 每月油錢輸入欄位 -->
+        <div class="input-row">
+            <label class="input-label">每月油錢</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="monthlyExpense" 
+                       class="input-field" 
+                       placeholder="0"
+                       readonly>
+                <span class="input-unit">元</span>
+            </div>
+        </div>
+        
+        <!-- 每月油量輸入欄位 -->
+        <div class="input-row">
+            <label class="input-label">每月油量</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="monthlyVolume" 
+                       class="input-field" 
+                       placeholder="0"
+                       readonly>
+                <span class="input-unit">公升</span>
+            </div>
+        </div>
+        
+        <!-- 折扣金額輸入欄位 -->
+        <div class="input-row">
+            <label class="input-label">折扣金額</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="discountAmount" 
+                       class="input-field" 
+                       placeholder="0.0"
+                       readonly>
+                <span class="input-unit">元/公升</span>
+            </div>
+        </div>
+
+        <!-- 動畫分隔線 - 分隔輸入區與結果區 -->
+        <div class="divider-flow"></div>
+        
+        <!-- 折後油錢顯示欄位 -->
+        <div class="input-row">
+            <label class="input-label">折後油錢</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="discountedExpense" 
+                       class="input-field" 
+                       placeholder="0"
+                       disabled>
+                <span class="input-unit">元</span>
+            </div>
+        </div>
+        
+        <!-- 每月節省顯示欄位 -->
+        <div class="input-row">
+            <label class="input-label">每月節省</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="monthlySaving" 
+                       class="input-field" 
+                       placeholder="0"
+                       disabled>
+                <span class="input-unit">元</span>
+            </div>
+        </div>
+        
+        <!-- 每年節省顯示欄位 -->
+        <div class="input-row">
+            <label class="input-label">每年節省</label>
+            <div class="input-wrapper">
+                <input type="text" 
+                       id="yearlySaving" 
+                       class="input-field" 
+                       placeholder="0"
+                       disabled>
+                <span class="input-unit">元</span>
+            </div>
+        </div>
+
+        <!-- 動畫分隔線 - 分隔結果區與功能按鈕 -->
+        <div class="divider-flow"></div>
+        
+        <!-- 清除按鈕 -->
+        <button class="clear-button" onclick="clearCalculation()">清除</button>
+    </div>
+
+    <!-- 油價查詢框架 -->
+        <div class="price-checker-container">
+            <!-- 框架標題 -->
+            <div class="price-checker-title">即時油價查詢</div>
+            <!-- 油價查詢網頁框架 -->
+            <iframe class="price-checker-frame" 
+                    src="https://m.gas.goodlife.tw/" 
+                    title="台灣油價查詢"
+                    loading="lazy"
+                    sandbox="allow-scripts allow-same-origin allow-forms">
+                <!-- 當瀏覽器不支援iframe時的備用文字 -->
+                您的瀏覽器不支援iframe，請直接前往 
+                <a href="https://m.gas.goodlife.tw/" target="_blank" style="color: var(--button-orange);">
+                    油價查詢網站
+                </a>
+            </iframe>
+        </div>
+    
+    <!-- 計算機彈出視窗 -->
+    <div id="calculatorModal" class="calculator-modal">
+        <div class="calculator-container">
+            <!-- 計算機顯示螢幕 -->
+            <div class="calculator-display" id="calcDisplay">0</div>
+            
+            <!-- 計算機按鈕網格 -->
+            <div class="calculator-buttons">
+                <!-- 第一排按鈕 -->
+                <button class="calc-button operator" onclick="calcClear()">C</button>
+                <button class="calc-button operator" onclick="calcBackspace()">←</button>
+                <button class="calc-button operator" onclick="calcInput('/')">÷</button>
+                <button class="calc-button operator" onclick="calcInput('*')">×</button>
+                
+                <!-- 第二排按鈕 -->
+                <button class="calc-button number" onclick="calcInput('7')">7</button>
+                <button class="calc-button number" onclick="calcInput('8')">8</button>
+                <button class="calc-button number" onclick="calcInput('9')">9</button>
+                <button class="calc-button operator" onclick="calcInput('-')">−</button>
+                
+                <!-- 第三排按鈕 -->
+                <button class="calc-button number" onclick="calcInput('4')">4</button>
+                <button class="calc-button number" onclick="calcInput('5')">5</button>
+                <button class="calc-button number" onclick="calcInput('6')">6</button>
+                <button class="calc-button operator" onclick="calcInput('+')">+</button>
+                
+                <!-- 第四排按鈕 -->
+                <button class="calc-button number" onclick="calcInput('1')">1</button>
+                <button class="calc-button number" onclick="calcInput('2')">2</button>
+                <button class="calc-button number" onclick="calcInput('3')">3</button>
+                <button class="calc-button operator" onclick="calcEquals()">=</button>
+                
+                <!-- 第五排按鈕 -->
+                <button class="calc-button number" onclick="calcInput('0')">0</button>
+                <button class="calc-button number" onclick="calcInput('00')">00</button>
+                <button class="calc-button number" onclick="calcInput('.')">.</button>
+                <button class="calc-button operator" onclick="calcBackspace()">⌫</button>
+                
+                <!-- 確認與取消按鈕 -->
+                <button class="calc-button confirm" onclick="confirmCalculation()">確認</button>
+                <button class="calc-button cancel" onclick="closeCalculator()">取消</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        /* ===== 全域變數 ===== */
+        let currentInput = ''; // 當前輸入的欄位ID
+        let calcExpression = ''; // 計算機運算式
+        let lastResult = '0'; // 上次計算結果
+        let lastModifiedField = ''; // 最後修改的欄位
+        
+        /* ===== 震動回饋函數 ===== */
+        function vibrate(duration = 10) {
+            // 檢查瀏覽器是否支援震動 API
+            if ('vibrate' in navigator) {
+                navigator.vibrate(duration);
+            }
+        }
+        
+        /* ===== 初始化函數 ===== */
+        window.onload = function() {
+            // 為可編輯的輸入框添加點擊事件
+            // 這四個欄位可以點擊開啟計算機介面
+            const editableFields = ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'];
+            editableFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.addEventListener('click', function() {
+                    openCalculator(fieldId); // 開啟計算機並傳入欄位ID
+                });
+            });
+            
+            // 點擊計算機外部區域（遮罩層）關閉計算機
+            document.getElementById('calculatorModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCalculator();
+                }
+            });
+
+            // 初始化時間顯示
+            updateCurrentDate();
+
+            // 設定定時器，每秒更新當前時間
+            setInterval(updateCurrentDate, 1000);
+
+        };
+        
+        /* ===== 開啟計算機函數 ===== */
+        function openCalculator(inputId) {
+            vibrate(); // 添加震動回饋
+            currentInput = inputId; // 記錄當前操作的輸入框ID
+            const modal = document.getElementById('calculatorModal');
+            const display = document.getElementById('calcDisplay');
+            
+            // 取得當前輸入框的值（移除千分位符號）
+            const fieldValue = document.getElementById(inputId).value;
+            let currentValue = removeThousandsSeparator(fieldValue);
+            
+            // 如果欄位是空的或為0，設定為0
+            if (!currentValue || currentValue === '0') {
+                calcExpression = '0';
+            } else {
+                // 根據不同輸入框設定初始值
+                if (inputId === 'dieselPrice' || inputId === 'discountAmount') {
+                    // 保留小數（超級柴油和折扣金額）
+                    calcExpression = parseFloat(currentValue).toString();
+                } else {
+                    // 只取整數（每月油錢和每月油量）
+                    calcExpression = parseInt(currentValue).toString();
+                }
+            }
+            
+            display.textContent = calcExpression;
+            modal.classList.add('active'); // 顯示計算機視窗
+        }
+        
+        /* ===== 關閉計算機函數 ===== */
+        function closeCalculator() {
+            vibrate(10); // 震動回饋
+            const modal = document.getElementById('calculatorModal');
+            modal.classList.remove('active');
+            calcExpression = '';
+            currentInput = '';
+        }
+        
+        /* ===== 計算機輸入函數 ===== */
+        function calcInput(value) {
+            vibrate(5); // 輕微震動回饋
+            
+            // 如果當前顯示為0且輸入不是小數點，則替換而不是追加
+            if (calcExpression === '0' && value !== '.') {
+                calcExpression = value;
+            } else {
+                // 防止連續輸入運算符
+                const lastChar = calcExpression.slice(-1);
+                const operators = ['+', '-', '*', '/'];
+                
+                // 如果連續輸入運算符，不執行任何動作
+                if (operators.includes(value) && operators.includes(lastChar)) {
+                    return;
+                }
+                
+                // 處理小數點輸入
+                if (value === '.') {
+                    // 將運算式按運算符分割，取最後一部分
+                    const parts = calcExpression.split(/[\+\-\*\/]/);
+                    const currentPart = parts[parts.length - 1];
+                    // 如果當前部分已包含小數點，不再添加
+                    if (currentPart.includes('.')) {
+                        return;
+                    }
+                    // 如果當前部分為空或最後是運算符，自動補0
+                    if (currentPart === '' || operators.includes(lastChar)) {
+                        calcExpression += '0';
+                    }
+                }
+                
+                calcExpression += value;
+            }
+            
+            // 更新計算機顯示
+            document.getElementById('calcDisplay').textContent = calcExpression;
+        }
+        
+        /* ===== 計算機清除函數 ===== */
+        function calcClear() {
+            vibrate(10); // 震動回饋
+            calcExpression = '0';
+            document.getElementById('calcDisplay').textContent = '0';
+        }
+        
+        /* ===== 計算機退格函數 ===== */
+        function calcBackspace() {
+            vibrate(5); // 輕微震動回饋
+            if (calcExpression.length > 1) {
+                calcExpression = calcExpression.slice(0, -1);
+            } else {
+                calcExpression = '0';
+            }
+            document.getElementById('calcDisplay').textContent = calcExpression;
+        }
+        
+        /* ===== 計算機等於函數 ===== */
+        function calcEquals() {
+            vibrate(10); // 震動回饋
+            try {
+                // 使用 Function 建立安全的計算環境
+                const result = new Function('return ' + calcExpression)();
+                lastResult = result.toString();
+                calcExpression = lastResult;
+                document.getElementById('calcDisplay').textContent = lastResult;
+            } catch (e) {
+                document.getElementById('calcDisplay').textContent = '錯誤';
+                calcExpression = '0';
+            }
+        }
+        
+        /* ===== 確認計算結果函數 ===== */
+        function confirmCalculation() {
+            vibrate(15); // 較強的震動回饋，表示確認動作
+            try {
+                // 如果沒有輸入任何內容，使用0
+                if (!calcExpression || calcExpression === '') {
+                    calcExpression = '0';
+                }
+                
+                // 計算最終結果
+                let result;
+                try {
+                    // 使用 Function 建立安全的計算環境
+                    result = new Function('return ' + calcExpression)();
+                } catch (e) {
+                    // 如果計算失敗，直接使用當前顯示的值
+                    result = parseFloat(calcExpression) || 0;
+                }
+                
+                // 根據不同輸入框處理結果
+                const field = document.getElementById(currentInput);
+                
+                if (currentInput === 'dieselPrice') {
+                    // 超級柴油：限制為正數，保留1位小數
+                    result = Math.max(0, result);
+                    result = Math.round(result * 10) / 10;
+                    field.value = result.toFixed(1);
+                } else if (currentInput === 'discountAmount') {
+                    // 折扣金額：0-5之間，保留1位小數
+                    result = Math.max(0, Math.min(5, result));
+                    result = Math.round(result * 10) / 10;
+                    field.value = result.toFixed(1);
+                } else if (currentInput === 'monthlyExpense' || currentInput === 'monthlyVolume') {
+                    // 每月油錢和油量：正整數，添加千分位符號
+                    result = Math.max(0, Math.round(result));
+                    field.value = addThousandsSeparator(result);
+                }
+                
+                // 記錄最後修改的欄位
+                lastModifiedField = currentInput;
+                
+                // 關閉計算機並更新所有相關計算
+                closeCalculator();
+                updateCalculations();
+            } catch (e) {
+                alert('計算錯誤，請重新輸入');
+                console.error('計算錯誤:', e);
+            }
+        }
+        
+        /* ===== 更新所有計算函數 ===== */
+        function updateCalculations() {
+            // 取得所有輸入值（移除千分位符號）
+            const dieselPrice = parseFloat(removeThousandsSeparator(document.getElementById('dieselPrice').value)) || 0;
+            let monthlyExpense = parseInt(removeThousandsSeparator(document.getElementById('monthlyExpense').value)) || 0;
+            let monthlyVolume = parseInt(removeThousandsSeparator(document.getElementById('monthlyVolume').value)) || 0;
+            const discountAmount = parseFloat(removeThousandsSeparator(document.getElementById('discountAmount').value)) || 0;
+            
+            // 根據最後修改的欄位決定計算邏輯
+            if (dieselPrice > 0) {
+                if (lastModifiedField === 'monthlyVolume' && monthlyVolume > 0) {
+                    // 如果最後修改的是每月油量，計算每月油錢
+                    // 公式：每月油錢 = 超級柴油價格 × 每月油量
+                    monthlyExpense = Math.round(dieselPrice * monthlyVolume);
+                    document.getElementById('monthlyExpense').value = addThousandsSeparator(monthlyExpense);
+                } else if ((lastModifiedField === 'monthlyExpense' || lastModifiedField === 'dieselPrice') && monthlyExpense > 0) {
+                    // 如果最後修改的是每月油錢或超級柴油，計算每月油量
+                    // 公式：每月油量 = 每月油錢 ÷ 超級柴油價格
+                    monthlyVolume = Math.round(monthlyExpense / dieselPrice);
+                    document.getElementById('monthlyVolume').value = addThousandsSeparator(monthlyVolume);
+                }
+            }
+            
+            // 計算折後油錢 - 只在折扣金額大於0時才計算
+            if (dieselPrice > 0 && monthlyVolume > 0 && discountAmount > 0) {
+                // 計算折扣後的油價
+                const discountedPrice = Math.max(0, dieselPrice - discountAmount);
+                // 計算折後的每月油錢
+                const discountedExpense = Math.round(discountedPrice * monthlyVolume);
+                document.getElementById('discountedExpense').value = addThousandsSeparator(discountedExpense);
+                
+                // 重新計算當前的每月油錢（確保使用最新數值）
+                const currentMonthlyExpense = Math.round(dieselPrice * monthlyVolume);
+                
+                // 計算每月節省金額
+                const monthlySaving = Math.max(0, currentMonthlyExpense - discountedExpense);
+                document.getElementById('monthlySaving').value = addThousandsSeparator(monthlySaving);
+                
+                // 計算每年節省金額（每月節省 × 12個月）
+                const yearlySaving = monthlySaving * 12;
+                document.getElementById('yearlySaving').value = addThousandsSeparator(yearlySaving);
+            } else {
+                // 如果沒有足夠的資料或折扣金額為0，清空計算結果
+                document.getElementById('discountedExpense').value = '';
+                document.getElementById('monthlySaving').value = '';
+                document.getElementById('yearlySaving').value = '';
+            }
+        }
+        
+        /* ===== 清除計算函數 ===== */
+        function clearCalculation() {
+            vibrate(20); // 較強的震動回饋，表示清除動作
+            
+            // 定義需要清除的欄位陣列
+            const fieldsToClear = ['monthlyExpense', 'monthlyVolume', 'discountAmount', 'discountedExpense', 'monthlySaving', 'yearlySaving'];
+            
+            // 遍歷並清空每個欄位
+            fieldsToClear.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                field.value = '';
+            });
+            
+            // 重置最後修改的欄位記錄
+            lastModifiedField = '';
+        }
+        
+        /* ===== 添加千分位符號函數 ===== */
+        function addThousandsSeparator(num) {
+            // 使用正則表達式在數字中每三位添加逗號
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        /* ===== 移除千分位符號函數 ===== */
+        function removeThousandsSeparator(str) {
+            // 移除所有逗號和非數字字符（保留小數點）
+            return str.replace(/,/g, '').replace(/[^\d.]/g, '');
+        }
+
+        /* ===== 時間顯示相關函數 - 從小朋友開支票複製 ===== */
+        // 初始化當前時間（民國年）
+        function updateCurrentDate() {
+            const now = new Date();
+            const rocYear = now.getFullYear() - 1911;    // 轉換為民國年
+            const month = now.getMonth() + 1;             // 月份（從0開始，需要+1）
+            const date = now.getDate();                   // 日期
+            const days = ['日', '一', '二', '三', '四', '五', '六'];  // 星期陣列
+            const day = days[now.getDay()];               // 取得星期
+            const hours = String(now.getHours()).padStart(2, '0');     // 小時，補零
+            const minutes = String(now.getMinutes()).padStart(2, '0'); // 分鐘，補零
+            const seconds = String(now.getSeconds()).padStart(2, '0'); // 秒數，補零
+            
+            // 組合時間字串
+            const timeString = `${rocYear}年${month}月${date}日 星期${day} ${hours}:${minutes}:${seconds}`;
+            document.getElementById('current-date').textContent = timeString;
+        }
+
+    </script>
+</body>
+</html>
