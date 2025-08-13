@@ -1,22 +1,117 @@
 {
-  "name": "小朋友計算機",
-  "short_name": "計算機",
-  "description": "豬豬人專用計算機",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#333333",
-  "theme_color": "#333333",
-  "version": "1.66",
-  "icons": [
-    {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+    "name": "小朋友工具",
+    "short_name": "小朋友工具",
+    "description": "小朋友專用的實用工具集合，包含計算機、支票、發票、加油等功能",
+    "version": "1.0.0",
+    "author": "小朋友工具開發團隊",
+    "lang": "zh-TW",
+    "dir": "ltr",
+    "scope": "/",
+    "start_url": "/",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+    "orientation": "portrait",
+    "theme_color": "#333333",
+    "background_color": "#333333",
+    "edge_side_panel": {},
+    "launch_handler": {
+        "client_mode": "navigate-existing"
     },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "categories": [
+        "utilities",
+        "finance",
+        "productivity",
+        "tools"
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "計算功能",
+            "short_name": "計算",
+            "description": "開啟計算機功能",
+            "url": "/?page=calculator",
+            "icons": [
+                {
+                    "src": "icons/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "支票功能",
+            "short_name": "支票", 
+            "description": "開啟支票相關功能",
+            "url": "/?page=check",
+            "icons": [
+                {
+                    "src": "icons/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "發票功能",
+            "short_name": "發票",
+            "description": "開啟發票相關功能", 
+            "url": "/?page=invoice",
+            "icons": [
+                {
+                    "src": "icons/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "加油功能",
+            "short_name": "加油",
+            "description": "開啟加油相關功能",
+            "url": "/?page=gas",
+            "icons": [
+                {
+                    "src": "icons/icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.png", 
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "any maskable"
+        }
+    ],
+    "prefer_related_applications": false,
+    "related_applications": [],
+    "iarc_rating_id": "",
+    "share_target": {
+        "action": "/",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    },
+    "protocol_handlers": [],
+    "file_handlers": [],
+    "permissions": [
+        "clipboard-write",
+        "clipboard-read"
+    ],
+    "features": [
+        "cross-origin-isolated"
+    ]
 }
