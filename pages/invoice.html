@@ -1207,7 +1207,7 @@
         <div class="content-wrapper">
             <div class="result-group-horizontal">
                 <label style="color: var(--button-orange); font-weight: bold;">總金額</label>
-                <input type="tel" id="arabicNumber" placeholder="請輸入金額" oninput="updateResults()" inputmode="numeric" autocomplete="off">
+                <input type="tel" id="arabicNumber" placeholder="請輸入金額" oninput="updateResults()" inputmode="none" autocomplete="off" readonly>
             </div>
             
             <div class="result-group-horizontal">
@@ -1656,14 +1656,51 @@
         }
         
         // 頁面載入時執行
+        // 頁面載入時執行
         window.onload = function() {
             // 初始化結果顯示
             updateResults();
             
-            // 自動聚焦到輸入框但不顯示虛擬鍵盤
-            document.getElementById('arabicNumber').focus();
-            document.getElementById('arabicNumber').blur();
+            // 移除自動聚焦功能，避免觸發系統鍵盤
+            // 因為已設定為readonly，所以不需要聚焦操作
         };
+
+        // 為輸入框添加點擊事件監聽器，防止系統鍵盤彈出
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputField = document.getElementById('arabicNumber');
+            
+            // 監聽輸入框的點擊事件
+            inputField.addEventListener('click', function(event) {
+                // 阻止默認行為（包括彈出系統鍵盤）
+                event.preventDefault();
+                
+                // 立即失去焦點，確保不會觸發系統鍵盤
+                this.blur();
+                
+                // 可選：給予觸覺反饋，讓使用者知道點擊已被識別
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(50);
+                }
+                
+                // 可選：顯示提示訊息，告知使用者使用下方數字鍵盤
+                // showToast('請使用下方數字鍵盤輸入');
+            });
+            
+            // 監聽輸入框的焦點事件
+            inputField.addEventListener('focus', function(event) {
+                // 立即失去焦點，防止系統鍵盤彈出
+                this.blur();
+            });
+            
+            // 監聽輸入框的觸摸開始事件（針對移動裝置）
+            inputField.addEventListener('touchstart', function(event) {
+                // 阻止默認行為
+                event.preventDefault();
+                
+                // 立即失去焦點
+                this.blur();
+            });
+        });
 
         function showIOSInstallGuide() {
             const iosPrompt = document.createElement('div');
