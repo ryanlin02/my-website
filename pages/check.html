@@ -2363,7 +2363,7 @@
                 updateChineseDisplay(); // 確保這行存在，以更新大寫顯示
                 document.getElementById('deposit-amount-display').textContent = `押票金額：${formatNumber(depositAmount)}`;
                 // 更新下方卡片中的國字大寫顯示
-                const chineseAmount = arabicToChineseNumber(depositAmount, 'financial') + ' 圓整';
+                const chineseAmount = arabicToChineseNumber(depositAmount, 'financial') + ' 元整';
                 document.getElementById('deposit-amount-display-chinese').innerHTML = chineseAmount;
                 document.querySelector('.deposit-info-card').style.display = 'block';
 
@@ -3140,7 +3140,7 @@
                 // 顯示押票金額
                 if (depositAmount > 0) {
                     document.getElementById('deposit-amount-display').textContent = `押票金額：${formatNumber(depositAmount)}`;
-                    const chineseAmount = arabicToChineseNumber(depositAmount, 'financial') + ' 圓整';
+                    const chineseAmount = arabicToChineseNumber(depositAmount, 'financial') + ' 元整';
                     document.getElementById('deposit-amount-display-chinese').innerHTML = chineseAmount;
                     document.querySelector('.deposit-info-card').style.display = 'block';
 
@@ -3326,7 +3326,7 @@
             if (paymentAmount) {
                 // 移除可能存在的千分位符號
                 const cleanAmount = paymentAmount.replace(/,/g, '');
-                const chineseAmount = arabicToChineseNumber(cleanAmount, 'financial') + ' 圓整';
+                const chineseAmount = arabicToChineseNumber(cleanAmount, 'financial') + ' 元整';
                 document.getElementById('payment-amount-chinese').innerHTML = chineseAmount;
             } else {
                 document.getElementById('payment-amount-chinese').innerHTML = '';
@@ -3337,7 +3337,7 @@
             if (depositAmount) {
                 // 移除可能存在的千分位符號
                 const cleanAmount = depositAmount.replace(/,/g, '');
-                const chineseAmount = arabicToChineseNumber(cleanAmount, 'financial') + ' 圓整';
+                const chineseAmount = arabicToChineseNumber(cleanAmount, 'financial') + ' 元整';
                 document.getElementById('deposit-amount-chinese').innerHTML = chineseAmount;
             } else {
                 document.getElementById('deposit-amount-chinese').innerHTML = '';
