@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, user-scalable=no">
+    <title>小朋友工具</title>
+    <script>
+        // GitHub Pages 404 重定向解決方案
+        // 立即重定向到主頁面
+        const path = window.location.pathname;
+        console.log('404頁面重定向:', path);
+        
+        // 如果不是根路徑，重定向到根路徑
+        if (path !== '/') {
+            window.location.replace('/');
+        } else {
+            // 如果已經是根路徑還是404，嘗試重新載入
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    </script>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>正在重新導向...</h2>
+        <p>如果沒有自動跳轉，請<a href="/">點擊這裡</a></p>
+    </div>
+</body>
+</html>
