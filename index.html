@@ -248,6 +248,15 @@
             --spacing-lg: 15px;                            /* 大間距 */
             --font-size-sm: 14px;                          /* 小字體 */
 
+            /* 主選單相關變數 */
+            --menu-bg-color: rgba(51, 51, 51, 0.98);        /* 主選單背景色（半透明） */
+            --menu-overlay-color: rgba(0, 0, 0, 0.6);       /* 主選單遮罩層顏色 */
+            --menu-item-height: 50px;                       /* 主選單項目高度 */
+            --menu-item-padding: 15px 20px;                 /* 主選單項目內邊距 */
+            --menu-border-radius: 12px;                     /* 主選單圓角 */
+            --menu-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);  /* 主選單陰影 */
+            --menu-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 主選單動畫 */
+
             /* 陰影效果 */
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 小陰影 */
 
@@ -313,6 +322,156 @@
             padding-bottom: 5px;                            /* 底部內距 */
             flex-shrink: 0;                                  /* 不縮小 */
             font-weight: bold;                               /* 粗體 */
+        }
+
+        /* 讓標題可以點擊 */
+        .page-title {
+            color: var(--text-color);
+            font-size: var(--font-size-xl);
+            margin: 0;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+            flex-shrink: 0;
+            font-weight: bold;
+            cursor: pointer;                                 /* 添加指標樣式表示可點擊 */
+            transition: color var(--transition-fast);       /* 添加顏色過渡動畫 */
+        }
+
+        /* 標題懸停效果 */
+        .page-title:hover {
+            color: var(--accent-color);                     /* 懸停時變為橘色 */
+        }
+
+        /* ============================================
+         * 主選單覆蓋層設計
+         * ============================================ */
+
+        /* 主選單遮罩背景 */
+        .main-menu-overlay {
+            position: fixed;                                 /* 固定定位覆蓋整個螢幕 */
+            top: 0;                                         /* 從頂部開始 */
+            left: 0;                                        /* 從左側開始 */
+            width: 100%;                                    /* 全寬度 */
+            height: 100%;                                   /* 全高度 */
+            background: var(--menu-overlay-color);         /* 半透明黑色遮罩 */
+            z-index: 2000;                                 /* 最高層級確保覆蓋所有內容 */
+            display: flex;                                  /* 彈性佈局 */
+            align-items: center;                            /* 垂直居中 */
+            justify-content: center;                        /* 水平居中 */
+            opacity: 0;                                     /* 初始透明 */
+            visibility: hidden;                             /* 初始隱藏 */
+            transition: var(--menu-transition);            /* 淡入淡出動畫 */
+        }
+
+        /* 主選單顯示狀態 */
+        .main-menu-overlay.show {
+            opacity: 1;                                     /* 完全不透明 */
+            visibility: visible;                            /* 顯示 */
+        }
+
+        /* 主選單容器 */
+        .main-menu-container {
+            background: var(--menu-bg-color);              /* 主選單背景色 */
+            border-radius: var(--menu-border-radius);      /* 圓角 */
+            box-shadow: var(--menu-shadow);                /* 陰影效果 */
+            width: 90%;                                     /* 寬度90% */
+            max-width: 320px;                              /* 最大寬度限制 */
+            padding: 0;                                     /* 無內邊距 */
+            transform: scale(0.8) translateY(-20px);       /* 初始縮小並上移 */
+            transition: var(--menu-transition);            /* 動畫過渡 */
+        }
+
+        /* 主選單顯示時的動畫 */
+        .main-menu-overlay.show .main-menu-container {
+            transform: scale(1) translateY(0);             /* 恢復正常大小和位置 */
+        }
+
+        /* 主選單標題區域 */
+        .main-menu-header {
+            display: flex;                                  /* 彈性佈局 */
+            justify-content: space-between;                 /* 兩端對齊 */
+            align-items: center;                            /* 垂直居中 */
+            padding: 20px;                                  /* 內邊距 */
+            border-bottom: 1px solid var(--border-color);  /* 底部邊框 */
+        }
+
+        /* 主選單標題文字 */
+        .main-menu-title {
+            color: var(--accent-color);                     /* 橘色文字 */
+            font-size: var(--font-size-lg);                /* 大字體 */
+            font-weight: bold;                              /* 粗體 */
+            margin: 0;                                      /* 無邊距 */
+        }
+
+        /* 關閉按鈕 */
+        .main-menu-close {
+            background: var(--secondary-color);            /* 次要背景色 */
+            color: var(--text-color);                      /* 白色文字 */
+            border: none;                                   /* 無邊框 */
+            border-radius: 50%;                            /* 圓形按鈕 */
+            width: 32px;                                    /* 固定寬度 */
+            height: 32px;                                   /* 固定高度 */
+            cursor: pointer;                                /* 指標樣式 */
+            font-size: 18px;                               /* 字體大小 */
+            display: flex;                                  /* 彈性佈局 */
+            align-items: center;                            /* 垂直居中 */
+            justify-content: center;                        /* 水平居中 */
+            transition: background-color var(--transition-fast); /* 背景色動畫 */
+        }
+
+        /* 關閉按鈕懸停效果 */
+        .main-menu-close:hover {
+            background: var(--hover-color);                /* 懸停背景 */
+        }
+
+        /* 主選單內容區域 */
+        .main-menu-content {
+            padding: 15px 0;                               /* 上下內邊距 */
+        }
+
+        /* 主選單項目 */
+        .main-menu-item {
+            display: flex;                                  /* 彈性佈局 */
+            align-items: center;                            /* 垂直居中 */
+            padding: var(--menu-item-padding);             /* 內邊距 */
+            color: var(--text-color);                      /* 白色文字 */
+            background: none;                               /* 無背景 */
+            border: none;                                   /* 無邊框 */
+            width: 100%;                                    /* 全寬度 */
+            text-align: left;                               /* 文字左對齊 */
+            font-size: var(--font-size-md);                /* 中等字體 */
+            font-family: inherit;                           /* 繼承字體 */
+            cursor: pointer;                                /* 指標樣式 */
+            transition: background-color var(--transition-fast); /* 背景色動畫 */
+            min-height: var(--menu-item-height);           /* 最小高度 */
+        }
+
+        /* 主選單項目懸停效果 */
+        .main-menu-item:hover {
+            background: var(--hover-color);                /* 懸停背景 */
+        }
+
+        /* 主選單項目圖標 */
+        .main-menu-item-icon {
+            margin-right: 12px;                            /* 右側邊距 */
+            font-size: 20px;                               /* 圖標大小 */
+            color: var(--accent-color);                    /* 橘色圖標 */
+            width: 24px;                                    /* 固定寬度 */
+            text-align: center;                             /* 居中對齊 */
+        }
+
+        /* 主選單底部版權區域 */
+        .main-menu-footer {
+            padding: 15px 20px 20px;                       /* 內邊距 */
+            text-align: center;                             /* 居中對齊 */
+            border-top: 1px solid var(--border-color);     /* 頂部邊框 */
+        }
+
+        /* 版權文字 */
+        .main-menu-copyright {
+            color: var(--text-muted);                      /* 淡化文字顏色 */
+            font-size: 12px;                               /* 小字體 */
+            margin: 0;                                      /* 無邊距 */
         }
         
         /* ============================================
@@ -581,6 +740,44 @@
             <button class="nav-btn" data-page="gas">加油</button>
         </div>
     </div>
+
+    <!-- ============================================
+     * 主選單覆蓋層
+     * ============================================ -->
+    <div class="main-menu-overlay" id="mainMenuOverlay">
+        <div class="main-menu-container">
+            <!-- 主選單標題區域 -->
+            <div class="main-menu-header">
+                <h2 class="main-menu-title">主選單</h2>
+                <button class="main-menu-close" id="mainMenuClose">✕</button>
+            </div>
+            
+            <!-- 主選單內容區域 -->
+            <div class="main-menu-content">
+                <button class="main-menu-item" data-page="calculator">
+                    <span class="main-menu-item-icon">🧮</span>
+                    貸款利率計算
+                </button>
+                <button class="main-menu-item" data-page="check">
+                    <span class="main-menu-item-icon">💰</span>
+                    支票開立計算
+                </button>
+                <button class="main-menu-item" data-page="invoice">
+                    <span class="main-menu-item-icon">📋</span>
+                    發票數字轉換
+                </button>
+                <button class="main-menu-item" data-page="gas">
+                    <span class="main-menu-item-icon">⛽</span>
+                    加油優惠報價
+                </button>
+            </div>
+            
+            <!-- 主選單底部版權區域 -->
+            <div class="main-menu-footer">
+                <p class="main-menu-copyright">Copyright © 2025 Ryan02</p>
+            </div>
+        </div>
+    </div>
     
     <!-- ============================================
      * 主要內容區域 - iframe
@@ -633,6 +830,9 @@
             
             // 初始化導航功能
             initializeNavigation();
+
+            // 初始化主選單功能（新增）
+            initializeMainMenu();
             
             // 註冊Service Worker (PWA功能)
             registerServiceWorker();
@@ -769,6 +969,118 @@
                     switchPage(targetPage);
                 });
             });
+        }
+
+        // ============================================
+        // 主選單功能初始化與控制
+        // ============================================
+        
+        /**
+         * 初始化主選單功能
+         * 綁定標題點擊事件、選單項目點擊事件、關閉事件等
+         */
+        function initializeMainMenu() {
+            const pageTitle = document.querySelector('.page-title');        // 頁面標題元素
+            const menuOverlay = document.getElementById('mainMenuOverlay');  // 主選單覆蓋層
+            const menuClose = document.getElementById('mainMenuClose');      // 關閉按鈕
+            const menuItems = document.querySelectorAll('.main-menu-item');  // 所有選單項目
+            
+            // 為頁面標題綁定點擊事件 - 顯示主選單
+            pageTitle.addEventListener('click', function(e) {
+                e.preventDefault();                          // 防止預設行為
+                e.stopPropagation();                        // 阻止事件冒泡
+                showMainMenu();                             // 顯示主選單
+            });
+            
+            // 為關閉按鈕綁定點擊事件
+            menuClose.addEventListener('click', function(e) {
+                e.preventDefault();                          // 防止預設行為
+                e.stopPropagation();                        // 阻止事件冒泡
+                hideMainMenu();                             // 隱藏主選單
+            });
+            
+            // 為遮罩層綁定點擊事件 - 點擊空白處關閉選單
+            menuOverlay.addEventListener('click', function(e) {
+                // 只有點擊遮罩層本身時才關閉選單（不是選單容器）
+                if (e.target === menuOverlay) {
+                    hideMainMenu();                         // 隱藏主選單
+                }
+            });
+            
+            // 為每個選單項目綁定點擊事件
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();                      // 防止預設行為
+                    e.stopPropagation();                    // 阻止事件冒泡
+                    
+                    const targetPage = this.getAttribute('data-page');  // 獲取目標頁面
+                    
+                    // 先隱藏主選單，然後切換頁面
+                    hideMainMenu();
+                    
+                    // 延遲切換頁面，讓關閉動畫完成
+                    setTimeout(() => {
+                        switchPage(targetPage);             // 切換到目標頁面
+                    }, 150);  // 150毫秒延遲
+                });
+            });
+            
+            // 綁定 ESC 鍵關閉選單
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && menuOverlay.classList.contains('show')) {
+                    hideMainMenu();                         // ESC鍵關閉主選單
+                }
+            });
+            
+            console.log('主選單功能初始化完成');
+        }
+        
+        /**
+         * 顯示主選單
+         * 添加顯示類別，觸發CSS動畫
+         */
+        function showMainMenu() {
+            const menuOverlay = document.getElementById('mainMenuOverlay');
+            
+            // 防止頁面滾動
+            document.body.style.overflow = 'hidden';
+            
+            // 顯示選單覆蓋層
+            menuOverlay.classList.add('show');
+            
+            // 追蹤主選單開啟事件（配合現有的 GA4 追蹤）
+            if (typeof trackEvent === 'function') {
+                trackEvent('main_menu_open', {
+                    current_page: currentPage,
+                    trigger: 'title_click'
+                });
+            }
+            
+            console.log('主選單已顯示');
+        }
+        
+        /**
+         * 隱藏主選單
+         * 移除顯示類別，觸發CSS隱藏動畫
+         */
+        function hideMainMenu() {
+            const menuOverlay = document.getElementById('mainMenuOverlay');
+            
+            // 恢復頁面滾動
+            document.body.style.overflow = '';
+            
+            // 隱藏選單覆蓋層
+            menuOverlay.classList.remove('show');
+            
+            // 追蹤主選單關閉事件（配合現有的 GA4 追蹤）
+            if (typeof trackEvent === 'function') {
+                trackEvent('main_menu_close', {
+                    current_page: currentPage,
+                    trigger: 'manual_close'
+                });
+            }
+            
+            console.log('主選單已隱藏');
         }
         
         // ============================================
