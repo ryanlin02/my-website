@@ -1,0 +1,22 @@
+# GitHub Pages PWA 重定向規則
+# 確保所有路徑都指向 index.html
+
+# 啟用重寫引擎
+RewriteEngine On
+
+# 如果請求的不是文件或目錄，重定向到 index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^.*$ /index.html [L]
+
+# 設置緩存控制
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType text/html "access plus 0 seconds"
+    ExpiresByType application/json "access plus 0 seconds"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+</IfModule>
