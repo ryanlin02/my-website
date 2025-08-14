@@ -14,7 +14,7 @@
 // ============================================
 
 // 版本號和快取名稱 - 更新版本號時會自動清理舊快取
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.0.1';
 const CACHE_NAME = `xiaopenyou-tools-${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
@@ -161,6 +161,27 @@ async function cacheFirstStrategy(request) {
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(request);
     
+    // 針對HTML頁面使用網路優先策略，確保內容即時更新
+    if (request.destination === 'document' || request.url.includes('.html')) {
+        try {
+            // 嘗試從網路獲取最新內容
+            const networkResponse = await fetch(request, { cache: 'no-cache' });
+            if (networkResponse.ok) {
+                // 更新快取並返回最新內容
+                cache.put(request, networkResponse.clone());
+                console.log('🔄 Service Worker: 已更新HTML頁面快取:', request.url);
+                return networkResponse;
+            }
+        } catch (error) {
+            console.log('⚠️ Service Worker: 網路獲取失敗，使用快取版本:', request.url);
+            // 網路失敗時使用快取版本
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+        }
+    }
+    
+    // 對於其他資源，仍使用快取優先策略
     if (cachedResponse) {
         // 在背景中更新快取
         updateCacheInBackground(request, cache);
