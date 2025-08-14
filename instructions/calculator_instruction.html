@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, user-scalable=no">
+    
+    <!-- 防止瀏覽器快取，確保顯示最新內容 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>貸款利率計算 - 使用說明</title>
+
+    <!-- Google Analytics 4 追蹤代碼 - 與主頁面保持一致 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
+    <script>
+        // 檢查是否在 iframe 中
+        const isInIframe = window !== window.parent;
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // 取得當前頁面名稱
+        const currentPageName = 'calculator_instruction';
+        
+        // 初始化 GA4
+        gtag('config', 'G-XE5XMQR0Z1', {
+            page_title: `小朋友工具 - 貸款計算說明`,
+            page_location: window.location.href,
+            page_path: window.location.pathname,
+            custom_map: {
+                'dimension3': 'is_iframe',
+                'dimension4': 'instruction_page'
+            }
+        });
+        
+        /**
+         * 發送自訂事件到 GA4
+         * @param {string} eventName - 事件名稱
+         * @param {object} parameters - 事件參數
+         */
+        function trackEvent(eventName, parameters = {}) {
+            // 加入頁面資訊
+            parameters.page_type = currentPageName;
+            parameters.is_iframe = isInIframe;
+            
+            gtag('event', eventName, parameters);
+            console.log('GA4 Event (instruction):', eventName, parameters);
+        }
+        
+        // 頁面載入完成後追蹤
+        document.addEventListener('DOMContentLoaded', function() {
+            trackEvent('instruction_page_view', {
+                instruction_type: 'calculator',
+                feature: 'loan_calculator_help'
+            });
+            
+            // 追蹤用戶捲動深度
+            let maxScrollDepth = 0;
+            let scrollTracked = {};
+            
+            window.addEventListener('scroll', function() {
+                const scrollDepth = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
+                
+                // 追蹤 25%, 50%, 75%, 100% 的捲動深度
+                [25, 50, 75, 100].forEach(threshold => {
+                    if (scrollDepth >= threshold && !scrollTracked[threshold]) {
+                        scrollTracked[threshold] = true;
+                        trackEvent('instruction_scroll_depth', {
+                            depth_percentage: threshold,
+                            instruction_type: 'calculator'
+                        });
+                    }
+                });
+                
+                maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
+            });
+            
+            // 追蹤按鈕點擊
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', function() {
+                    trackEvent('instruction_button_click', {
+                        button_text: this.textContent.trim(),
+                        instruction_type: 'calculator'
+                    });
+                });
+            });
+        });
+    </script>
+
+    <style>
+        /* ============================================
+        * CSS 變數定義域 - 與主頁面保持一致的外觀設計
+        * ============================================ */
+        
+        :root {
+            /* 尺寸相關變數 */
+            --border-radius-sm: 4px;              
+            --border-radius-md: 8px;              
+            --border-radius-lg: 12px;             
+            
+            /* 間距尺寸 */
+            --spacing-xs: 2px;                    
+            --spacing-sm: 4px;                    
+            --spacing-md: 8px;                    
+            --spacing-lg: 15px;                   
+            
+            /* 字體大小 */
+            --font-size-xs: 12px;                 
+            --font-size-sm: 14px;                 
+            --font-size-md: 16px;                 
+            --font-size-lg: 18px;                 
+            --font-size-xl: 22px;                 
+            
+            /* 動畫時間 */
+            --transition-fast: 0.1s;              
+            --transition-normal: 0.2s;            
+            --transition-slow: 0.3s;              
+            
+            /* 陰影效果 */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   
+        }
+
+        /* 主題色彩定義 - 與主頁面保持一致 */
+        :root {
+            /* RGB 色彩值 */
+            --primary-color-rgb: 51, 51, 51;              
+            --secondary-color-rgb: 74, 74, 74;            
+            --accent-color-rgb: 255, 156, 51;             
+            
+            /* 基本色彩 */
+            --primary-color: #333333;                      
+            --secondary-color: #4a4a4a;                    
+            --text-color: #ffffff;                         
+            --text-muted: #999999;                         
+            --border-color: #555555;                       
+            --hover-color: #666666;                        
+            --shadow-color: rgba(0, 0, 0, 0.3);           
+            
+            /* 功能色彩 */
+            --accent-color: #ff9c33;                       
+            --accent-color-light: rgba(255, 156, 51, 0.2); 
+            --accent-color-dark: #e88a22;                  
+            --success-color: #33b5e5;                      
+            --warning-color: #ff9c33;                      
+            --error-color: #e74c3c;                        
+            --info-color: #3498db;                         
+        }
+
+        /* ============================================
+        * 基礎元素樣式
+        * ============================================ */
+
+        /* 頁面基本設定 */
+        * {
+            margin: 0;                                      
+            padding: 0;                                     
+            box-sizing: border-box;                         
+        }
+        
+        body {
+            width: 100%;                                      
+            max-width: 400px;                                 
+            margin: 0 auto;                                   
+            position: relative;                               
+            overflow-x: hidden;                               
+            -webkit-text-size-adjust: 100%;                   
+            padding: 20px 10px;                               
+            background-color: var(--primary-color);          
+            color: var(--text-color);                         
+            font-family: "Microsoft JhengHei", Arial, sans-serif; 
+            box-sizing: border-box;                           
+            min-height: 100vh;                                
+            line-height: 1.6;                                
+            -webkit-user-select: none;                        
+            -moz-user-select: none;                           
+            user-select: none;                                
+        }
+
+        /* ============================================
+        * 標題樣式設計
+        * ============================================ */
+
+        /* 主標題樣式 */
+        .page-title {
+            color: var(--accent-color);                        
+            font-size: var(--font-size-xl);                   
+            font-weight: bold;                                
+            text-align: center;                               
+            margin-bottom: 20px;                              
+            padding-bottom: 10px;                             
+            border-bottom: 2px solid var(--accent-color);      
+            text-shadow: 0 1px 2px var(--shadow-color);       
+        }
+
+        /* 區塊標題樣式 */
+        .section-title {
+            color: var(--accent-color);                        
+            font-size: var(--font-size-lg);                   
+            font-weight: bold;                                
+            margin: 25px 0 15px 0;                            
+            padding-left: 10px;                               
+            border-left: 4px solid var(--accent-color);        
+            background: linear-gradient(90deg, var(--accent-color-light), transparent); 
+        }
+
+        /* 子標題樣式 */
+        .sub-title {
+            color: var(--text-color);                          
+            font-size: var(--font-size-md);                   
+            font-weight: bold;                                
+            margin: 15px 0 10px 0;                            
+            padding-left: 8px;                                
+            border-left: 2px solid var(--accent-color);        
+        }
+
+        /* ============================================
+        * 內容區塊樣式
+        * ============================================ */
+
+        /* 內容區塊容器 */
+        .content-section {
+            background-color: var(--secondary-color);          
+            border-radius: var(--border-radius-md);           
+            padding: 15px;                                     
+            margin-bottom: 20px;                              
+            box-shadow: var(--shadow-sm);                     
+            transition: all var(--transition-normal);          
+        }
+
+        /* 內容區塊懸停效果 */
+        .content-section:hover {
+            box-shadow: var(--shadow-md);                     
+            transform: translateY(-2px);                      
+        }
+
+        /* 段落文字樣式 */
+        .content-section p {
+            color: var(--text-color);                          
+            font-size: var(--font-size-md);                   
+            line-height: 1.7;                                 
+            margin-bottom: 12px;                              
+            text-align: justify;                              
+        }
+
+        /* 最後一個段落移除底部間距 */
+        .content-section p:last-child {
+            margin-bottom: 0;                                 
+        }
+
+        /* ============================================
+        * 列表樣式設計
+        * ============================================ */
+
+        /* 無序列表樣式 */
+        .feature-list {
+            list-style: none;                                 
+            padding: 0;                                       
+            margin: 15px 0;                                   
+        }
+
+        /* 列表項目樣式 */
+        .feature-list li {
+            background-color: rgba(var(--primary-color-rgb), 0.3); 
+            margin-bottom: 8px;                               
+            padding: 10px 15px;                               
+            border-radius: var(--border-radius-sm);           
+            border-left: 3px solid var(--accent-color);        
+            transition: all var(--transition-fast);            
+            position: relative;                                
+        }
+
+        /* 列表項目懸停效果 */
+        .feature-list li:hover {
+            background-color: rgba(var(--accent-color-rgb), 0.1); 
+            transform: translateX(5px);                        
+        }
+
+        /* 列表項目前的圖示 */
+        .feature-list li::before {
+            content: "▶";                                     
+            color: var(--accent-color);                       
+            font-weight: bold;                                
+            margin-right: 8px;                                
+        }
+
+        /* ============================================
+        * 操作步驟樣式
+        * ============================================ */
+
+        /* 步驟容器 */
+        .step-container {
+            background: linear-gradient(135deg, 
+                rgba(var(--secondary-color-rgb), 0.8) 0%, 
+                rgba(var(--primary-color-rgb), 0.8) 100%);    
+            border-radius: var(--border-radius-md);           
+            padding: 15px;                                     
+            margin-bottom: 15px;                              
+            border: 1px solid rgba(var(--accent-color-rgb), 0.3); 
+            position: relative;                                
+            overflow: hidden;                                  
+        }
+
+        /* 步驟容器動畫背景 */
+        .step-container::before {
+            content: '';                                       
+            position: absolute;                                
+            top: -2px;                                         
+            left: -100%;                                       
+            width: 100%;                                       
+            height: 2px;                                       
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent); 
+            animation: stepShine 3s linear infinite;           
+        }
+
+        /* 步驟發光動畫 */
+        @keyframes stepShine {
+            0% { left: -100%; }                               
+            100% { left: 100%; }                              
+        }
+
+        /* 步驟編號樣式 */
+        .step-number {
+            display: inline-block;                             
+            background-color: var(--accent-color);            
+            color: #333333;                                   
+            font-weight: bold;                                
+            font-size: var(--font-size-sm);                   
+            padding: 4px 8px;                                 
+            border-radius: 50%;                               
+            margin-right: 10px;                               
+            min-width: 24px;                                  
+            text-align: center;                               
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);        
+        }
+
+        /* 步驟描述文字 */
+        .step-description {
+            color: var(--text-color);                         
+            font-size: var(--font-size-md);                   
+            line-height: 1.6;                                 
+            display: inline;                                   
+        }
+
+        /* ============================================
+        * 重要提示樣式
+        * ============================================ */
+
+        /* 重要提示容器 */
+        .important-note {
+            background: linear-gradient(135deg, 
+                rgba(var(--warning-color), 0.15) 0%, 
+                rgba(var(--error-color), 0.1) 100%);          
+            border: 2px solid var(--warning-color);           
+            border-radius: var(--border-radius-md);           
+            padding: 15px;                                     
+            margin: 20px 0;                                   
+            position: relative;                                
+            animation: importantPulse 2s ease-in-out infinite; 
+        }
+
+        /* 重要提示脈動動畫 */
+        @keyframes importantPulse {
+            0%, 100% { border-color: var(--warning-color); }  
+            50% { border-color: var(--error-color); }         
+        }
+
+        /* 重要提示圖示 */
+        .important-note::before {
+            content: "⚠️";                                    
+            font-size: 20px;                                  
+            margin-right: 8px;                                
+            display: inline-block;                            
+        }
+
+        /* 重要提示文字 */
+        .important-note p {
+            color: var(--text-color);                         
+            font-weight: bold;                                
+            margin: 0;                                         
+            display: inline;                                   
+        }
+
+        /* ============================================
+        * 按鈕樣式設計
+        * ============================================ */
+
+        /* 關閉按鈕樣式 */
+        .close-button {
+            background-color: var(--accent-color);            
+            color: #333333;                                   
+            border: none;                                      
+            border-radius: var(--border-radius-md);           
+            padding: 12px 24px;                               
+            font-size: var(--font-size-md);                   
+            font-weight: bold;                                
+            cursor: pointer;                                  
+            margin: 20px auto;                                
+            display: block;                                    
+            transition: all var(--transition-normal);          
+            box-shadow: var(--shadow-sm);                     
+            position: relative;                                
+            overflow: hidden;                                  
+        }
+
+        /* 關閉按鈕懸停效果 */
+        .close-button:hover {
+            background-color: var(--accent-color-dark);       
+            transform: translateY(-2px);                      
+            box-shadow: var(--shadow-md);                     
+        }
+
+        /* 關閉按鈕點擊效果 */
+        .close-button:active {
+            transform: translateY(1px);                       
+            box-shadow: var(--shadow-sm);                     
+        }
+
+        /* 按鈕點擊波紋效果 */
+        .close-button::after {
+            content: '';                                       
+            position: absolute;                                
+            top: 50%;                                          
+            left: 50%;                                         
+            width: 0;                                          
+            height: 0;                                         
+            background: rgba(255, 255, 255, 0.3);             
+            border-radius: 50%;                               
+            transform: translate(-50%, -50%);                 
+            transition: width 0.3s, height 0.3s;              
+        }
+
+        /* 按鈕懸停時的波紋動畫 */
+        .close-button:hover::after {
+            width: 100px;                                     
+            height: 100px;                                    
+        }
+
+        /* ============================================
+        * 響應式設計適配
+        * ============================================ */
+
+        /* 小螢幕適配 */
+        @media screen and (max-width: 360px) {
+            body {
+                padding: 15px 8px;                            
+            }
+            
+            .page-title {
+                font-size: 20px;                              
+            }
+            
+            .section-title {
+                font-size: 16px;                              
+            }
+            
+            .content-section {
+                padding: 12px;                                
+            }
+            
+            .feature-list li {
+                padding: 8px 12px;                            
+                font-size: 14px;                              
+            }
+        }
+
+        /* 觸控設備優化 */
+        @media (hover: none) and (pointer: coarse) {
+            .content-section:hover,
+            .feature-list li:hover {
+                transform: none;                               
+            }
+            
+            .close-button:hover {
+                transform: none;                               
+            }
+        }
+
+        /* ============================================
+        * 動畫效果定義
+        * ============================================ */
+
+        /* 淡入動畫 */
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* 頁面載入動畫 */
+        body {
+            animation: fadeIn 0.5s ease-out;                  
+        }
+
+        /* 區塊依序淡入動畫 */
+        .content-section:nth-child(1) { animation-delay: 0.1s; }
+        .content-section:nth-child(2) { animation-delay: 0.2s; }
+        .content-section:nth-child(3) { animation-delay: 0.3s; }
+        .content-section:nth-child(4) { animation-delay: 0.4s; }
+        .content-section:nth-child(5) { animation-delay: 0.5s; }
+
+        /* ============================================
+        * 可選取文字區域設定
+        * ============================================ */
+
+        /* 允許選取重要文字內容 */
+        .content-section p,
+        .feature-list li,
+        .step-description {
+            -webkit-user-select: text;                        
+            -moz-user-select: text;                           
+            user-select: text;                                
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ============================================
+    * 頁面主標題
+    * ============================================ -->
+    <h1 class="page-title">貸款利率計算工具說明</h1>
+
+    <!-- ============================================
+    * 架構說明區塊
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">🏗️ 架構說明</h2>
+        
+        <h3 class="sub-title">整體設計架構</h3>
+        <p>本工具採用先進的響應式網頁設計，專為手機直式瀏覽優化。整個介面寬度限制在400px以內，確保在各種手機螢幕上都能完美顯示。</p>
+        
+        <h3 class="sub-title">核心運算架構</h3>
+        <p>採用JavaScript原生PMT、RATE等財務函數，提供精確的貸款計算。所有計算均在瀏覽器端完成，無需網路連線，確保計算速度與資料安全。</p>
+        
+        <h3 class="sub-title">資料處理架構</h3>
+        <p>具備完整的資料驗證機制，自動檢測異常數值並提供警告提示。支援千位分隔符格式化顯示，提升數字可讀性。</p>
+    </div>
+
+    <!-- ============================================
+    * 功能說明區塊
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">⚙️ 主要功能</h2>
+        
+        <ul class="feature-list">
+            <li><strong>智慧計算系統</strong>：輸入期數、利率、本金、期繳中任意三項，自動計算第四項</li>
+            <li><strong>稅前稅後分析</strong>：自動計算稅前利率、稅後利率，提供完整的成本分析</li>
+            <li><strong>佣金成本計算</strong>：支援推廣費用設定，計算佣後利率與實際成本</li>
+            <li><strong>資金成本評估</strong>：內建資金成本率，計算Spread與NPV，評估案件獲利性</li>
+            <li><strong>快速調整功能</strong>：提供快捷按鈕，快速調整期數、利率、本金、期繳數值</li>
+            <li><strong>百萬試算功能</strong>：自動計算每百萬、每一萬本金的年/月利息收入</li>
+            <li><strong>歷史記錄管理</strong>：儲存計算記錄，支援備註編輯，方便案件管理</li>
+            <li><strong>數值驗證警告</strong>：即時檢測異常數值，如利率過高、期數過短等情況</li>
+        </ul>
+    </div>
+
+    <!-- ============================================
+    * 界面佈局說明
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">📱 界面佈局</h2>
+        
+        <h3 class="sub-title">固定頂部區域</h3>
+        <p>頂部固定顯示佣後利率與稅佣後利率，無論如何滾動頁面都能即時查看關鍵數據。包含時間顯示，方便記錄報價時間。</p>
+        
+        <h3 class="sub-title">主要輸入區域</h3>
+        <p>依序排列期數、稅前利率、本金、期繳四個核心輸入欄位。每個欄位都配有快捷調整按鈕，支援快速修改數值。</p>
+        
+        <h3 class="sub-title">計算結果區域</h3>
+        <p>自動顯示總利息、總繳款、年/月利息等計算結果。稅金計算、稅後利率、推廣費用、佣後利率依序展示。</p>
+        
+        <h3 class="sub-title">分析工具區域</h3>
+        <p>百萬利息試算、資金成本分析、Spread計算、NPV評估等進階分析工具，協助專業決策。</p>
+    </div>
+
+    <!-- ============================================
+    * 基本操作說明
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">📋 基本操作流程</h2>
+        
+        <div class="step-container">
+            <span class="step-number">1</span>
+            <span class="step-description">點擊任意輸入欄位開啟數字計算機，輸入對應數值</span>
+        </div>
+        
+        <div class="step-container">
+            <span class="step-number">2</span>
+            <span class="step-description">至少填入期數、利率、本金、期繳中的三項數值</span>
+        </div>
+        
+        <div class="step-container">
+            <span class="step-number">3</span>
+            <span class="step-description">系統自動計算第四項並顯示所有相關分析數據</span>
+        </div>
+        
+        <div class="step-container">
+            <span class="step-number">4</span>
+            <span class="step-description">如需要可設定推廣費用，查看佣後實際成本</span>
+        </div>
+        
+        <div class="step-container">
+            <span class="step-number">5</span>
+            <span class="step-description">使用「保存計算」功能儲存重要案件記錄</span>
+        </div>
+        
+        <div class="step-container">
+            <span class="step-number">6</span>
+            <span class="step-description">透過「歷史記錄」查看、編輯、比較過往計算</span>
+        </div>
+    </div>
+
+    <!-- ============================================
+    * 快捷操作說明
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">⚡ 快捷操作技巧</h2>
+        
+        <h3 class="sub-title">期數快速設定</h3>
+        <p>使用「底」、「2」、「3」等按鈕快速設定常用期數（13期、24期、36期等）。「+1」、「-1」按鈕進行微調。</p>
+        
+        <h3 class="sub-title">利率快速調整</h3>
+        <p>「4」到「14」按鈕快速設定常用利率區間。「+.2」、「-.2」按鈕以0.2%為單位微調利率。</p>
+        
+        <h3 class="sub-title">本金快速修改</h3>
+        <p>使用「+100」（萬）、「+10」（萬）、「+1」（萬）按鈕快速增減本金。對應的負數按鈕用於減少。</p>
+        
+        <h3 class="sub-title">期繳精準調整</h3>
+        <p>「捨百」、「進百」按鈕將期繳金額調整為百位整數。「+50」、「+100」按鈕微調期繳金額。</p>
+        
+        <h3 class="sub-title">推廣費快速設定</h3>
+        <p>「1%」到「5%」按鈕根據本金比例快速設定推廣費。「+萬」、「+千」、「+百」按鈕直接調整金額。</p>
+    </div>
+
+    <!-- ============================================
+    * 數值警告說明
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">⚠️ 警告提示說明</h2>
+        
+        <h3 class="sub-title">利率警告</h3>
+        <p>當稅前利率超過20%時，系統會以紅色文字警告，提醒可能不符合一般貸款條件。稅後利率低於2.5%時也會標示警告。</p>
+        
+        <h3 class="sub-title">期數警告</h3>
+        <p>當期數設定在12期以下時，期數欄位會以紅色標示，提醒注意短期貸款的特殊性。</p>
+        
+        <h3 class="sub-title">推廣費警告</h3>
+        <p>當推廣費用超過總利息的45%或超過本金的5%時，相關欄位會變為紅色，提醒注意成本比例。</p>
+        
+        <h3 class="sub-title">獲利性警告</h3>
+        <p>當Spread為負值或NPV為負值時，系統會警告此案件可能不具獲利性，建議重新評估條件。</p>
+    </div>
+
+    <!-- ============================================
+    * 計算公式說明
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">📊 計算公式說明</h2>
+        
+        <h3 class="sub-title">等額本息還款公式</h3>
+        <p>期繳金額 = 本金 × [月利率 × (1+月利率)^期數] ÷ [(1+月利率)^期數 - 1]</p>
+        <p>系統採用標準的等額本息還款公式，確保計算結果的準確性與專業性。</p>
+        
+        <h3 class="sub-title">稅金計算方式</h3>
+        <p>稅金 = 總利息 ÷ 21</p>
+        <p>依據現行稅法規定，採用21分之一的標準稅率計算方式。</p>
+        
+        <h3 class="sub-title">NPV計算公式</h3>
+        <p>NPV = 期繳現值總和 - 稅金 - 推廣費 - 本金</p>
+        <p>採用資金成本率作為折現率，評估案件的淨現值，協助獲利性判斷。</p>
+        
+        <h3 class="sub-title">Spread計算</h3>
+        <p>Spread = 稅佣後利率 - 資金成本率</p>
+        <p>衡量案件實際獲利空間，正值表示有獲利，負值需要重新評估。</p>
+    </div>
+
+    <!-- ============================================
+    * 歷史記錄功能說明
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">📚 歷史記錄功能</h2>
+        
+        <h3 class="sub-title">儲存計算記錄</h3>
+        <p>點擊「保存計算」按鈕，系統會自動儲存當前的完整計算結果，包含時間戳記，方便日後追蹤。</p>
+        
+        <h3 class="sub-title">備註編輯功能</h3>
+        <p>每筆記錄都支援備註編輯，可記錄客戶資訊、案件特殊條件等重要資訊。點擊備註區域即可編輯。</p>
+        
+        <h3 class="sub-title">記錄管理操作</h3>
+        <p>「載入計算」：將歷史記錄的數值載入到計算介面，方便修改調整。</p>
+        <p>「刪除」：移除不需要的記錄。</p>
+        <p>「全刪」：清空所有歷史記錄。</p>
+        
+        <h3 class="sub-title">資料安全性</h3>
+        <p>所有記錄儲存在瀏覽器本地，不會上傳到伺服器，確保客戶資料的隱私安全。</p>
+    </div>
+
+    <!-- ============================================
+    * 實用操作技巧
+    * ============================================ -->
+    <div class="content-section">
+        <h2 class="section-title">💡 實用操作技巧</h2>
+        
+        <h3 class="sub-title">反推利率技巧</h3>
+        <p>當客戶要求特定期繳金額時，輸入期數、本金、期繳三項數值，系統自動反推出對應的利率。</p>
+        
+        <h3 class="sub-title">期數優化建議</h3>
+        <p>利用百萬利息試算功能，快速比較不同期數下的月收益，找出最佳的期數設定。</p>
+        
+        <h3 class="sub-title">成本控制策略</h3>
+        <p>透過推廣費比例設定，即時監控案件成本，確保在合理的獲利範圍內。</p>
+        
+        <h3 class="sub-title">快速報價流程</h3>
+        <p>先設定期數和利率，再輸入客戶的本金需求，系統立即顯示期繳金額和相關成本分析。</p>
+        
+        <h3 class="sub-title">資料備份建議</h3>
+        <p>重要的計算記錄建議加上詳細備註，並定期檢查歷史記錄，適時清理過期資料。</p>
+    </div>
+
+    <!-- ============================================
+    * 重要注意事項
+    * ============================================ -->
+    <div class="important-note">
+        <p>請注意：本工具僅供業務參考使用，實際貸款條件需以正式合約為準。建議在重要決策前進行多重驗證。</p>
+    </div>
+
+    <div class="important-note">
+        <p>資料安全提醒：所有計算資料儲存在本地瀏覽器中，清除瀏覽器資料將會遺失歷史記錄，請妥善管理重要資料。</p>
+    </div>
+
+    <!-- ============================================
+    * 關閉說明按鈕
+    * 說明：呼叫父頁面的關閉函數來關閉iframe說明頁面
+    * ============================================ -->
+    <button class="close-button" onclick="parent.closeInstructionPage()">關閉說明</button>
+
+    <!-- ============================================
+    * 頁面載入完成後的初始化腳本
+    * ============================================ -->
+    <script>
+        // 防止右鍵選單和長按選取（行動裝置優化）
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // 防止文字選取（觸控裝置）
+        document.addEventListener('selectstart', function(e) {
+            // 允許特定區域的文字選取
+            if (!e.target.closest('.content-section p, .feature-list li, .step-description')) {
+                e.preventDefault();
+            }
+        });
+        
+        // 防止拖曳
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+        
+        // 頁面載入完成提示
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('貸款利率計算說明頁面載入完成');
+            
+            // 追蹤頁面停留時間
+            let startTime = Date.now();
+            
+            // 當頁面即將離開時記錄停留時間
+            window.addEventListener('beforeunload', function() {
+                let stayTime = Math.round((Date.now() - startTime) / 1000);
+                if (typeof trackEvent === 'function') {
+                    trackEvent('instruction_page_exit', {
+                        stay_time_seconds: stayTime,
+                        instruction_type: 'calculator'
+                    });
+                }
+            });
+            
+            // 添加觸控設備的震動反饋
+            document.querySelectorAll('button, .feature-list li').forEach(element => {
+                element.addEventListener('click', function() {
+                    if (navigator.vibrate) {
+                        navigator.vibrate(30); // 震動30毫秒
+                    }
+                });
+            });
+        });
+        
+        // 與父頁面通訊（如果需要）
+        if (window.parent !== window) {
+            // 向父頁面報告載入完成
+            window.parent.postMessage({
+                type: 'instruction_loaded',
+                page: 'calculator_instruction'
+            }, '*');
+        }
+    </script>
+</body>
+</html>
