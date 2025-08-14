@@ -300,6 +300,45 @@
             flex-shrink: 0;
             min-width: 50px;
         }
+
+        /* ===== 快速價格選擇按鈕樣式 ===== */
+        .quick-price-btn {
+            /* 按鈕基本設定 */
+            padding: 4px 6px;                      /* 內部間距：減少左右間距為6px */
+            background-color: var(--secondary-color); /* 使用次要背景色（深灰色） */
+            color: var(--text-color);              /* 白色文字 */
+            border: 1px solid var(--border-color); /* 灰色邊框 */
+            border-radius: 4px;                    /* 圓角邊框 */
+            font-size: 13px;                       /* 更小的字體大小 */
+            cursor: pointer;                       /* 滑鼠游標變成手型 */
+            transition: all 0.2s ease;             /* 平滑過渡效果 */
+            width: 25px;                           /* 固定寬度25px（原本單位是50px，兩個按鈕共50px） */
+            opacity: 0.8;                          /* 略微透明，讓按鈕不太明顯 */
+            flex-shrink: 0;                        /* 防止按鈕被壓縮 */
+        }
+
+        /* 滑鼠懸停時的效果 */
+        .quick-price-btn:hover {
+            background-color: var(--hover-color);  /* 懸停時背景色變亮 */
+            opacity: 1;                            /* 完全不透明 */
+            transform: scale(1.05);                /* 輕微放大 */
+        }
+
+        /* 按下按鈕時的效果 */
+        .quick-price-btn:active {
+            transform: scale(0.95);                /* 按下時縮小 */
+            opacity: 0.9;                          /* 略微透明 */
+        }
+
+        /* ===== 快速價格按鈕容器樣式 ===== */
+        .price-buttons-container {
+            display: flex;                         /* 使用彈性盒子布局 */
+            gap: 2px;                              /* 兩個按鈕之間的間距 */
+            min-width: 50px;                      /* 最小寬度50px（與原本的單位文字相同） */
+            justify-content: center;               /* 按鈕在容器內置中對齊 */
+            align-items: center;                   /* 垂直置中對齊 */
+            flex-shrink: 0;                        /* 防止容器被壓縮 */
+        }
         
         /* ===== 清除按鈕樣式 ===== */
         .clear-button {
@@ -665,11 +704,14 @@
     <!-- 時間顯示區塊 - 調整為與輸入欄位相同寬度 -->
     <div class="time-display-wrapper">
         <div id="timeDisplay" class="sticky-header">
-            <!-- 移除內層div，直接使用flex布局 -->
             <span class="time-label">現在時間：</span>
             <span id="current-date"></span>
         </div>
     </div>
+
+    </div>
+    <!-- 新增：時間與油品單價之間的流光分隔線 -->
+    <div class="divider-flow"></div>
 
     <div class="container">
         <!-- 超級柴油價格輸入欄位 -->
@@ -681,7 +723,11 @@
                        class="input-field" 
                        placeholder="0.0"
                        readonly>
-                <span class="input-unit">元/公升</span>
+                <!-- 快速價格選擇按鈕容器 -->
+                <div class="price-buttons-container">
+                    <button class="quick-price-btn" onclick="setDieselPrice(26.1)" title="中油價格">中</button>
+                    <button class="quick-price-btn" onclick="setDieselPrice(25.9)" title="台塑價格">塑</button>
+                </div>
             </div>
         </div>
         
@@ -876,7 +922,28 @@
             // 設定定時器，每秒更新當前時間
             setInterval(updateCurrentDate, 1000);
 
+            // 設定預設油品單價（中油價格）
+            document.getElementById('dieselPrice').value = '26.1';
+            // 觸發計算更新
+            updateCalculations();
+
         };
+
+        /* ===== 快速設定油品單價函數 ===== */
+        function setDieselPrice(price) {
+            // 震動回饋
+            vibrate(10);
+            
+            // 設定油品單價欄位的值
+            const dieselPriceField = document.getElementById('dieselPrice');
+            dieselPriceField.value = price.toFixed(1); // 保留一位小數
+            
+            // 記錄最後修改的欄位
+            lastModifiedField = 'dieselPrice';
+            
+            // 更新所有相關計算
+            updateCalculations();
+        }
         
         /* ===== 開啟計算機函數 ===== */
         function openCalculator(inputId) {
