@@ -19,15 +19,16 @@ const CACHE_NAME = `xiaopenyou-tools-${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
 const CORE_ASSETS = [
-    '/',                          // 主頁面
-    '/index.html',               // 主頁面（明確路徑）
-    '/manifest.json',            // PWA配置檔案
-    '/pages/calculator.html',    // 計算機頁面
-    '/pages/check.html',         // 支票頁面
-    '/pages/invoice.html',       // 發票頁面
-    '/pages/gas.html',           // 加油頁面
-    '/icons/icon-192.png',       // 小圖標
-    '/icons/icon-512.png'        // 大圖標
+    './',                        // 主頁面（相對路徑）
+    './index.html',             // 主頁面（明確路徑）
+    './manifest.json',          // PWA配置檔案
+    './pages/calculator.html',  // 計算機頁面
+    './pages/check.html',       // 支票頁面
+    './pages/invoice.html',     // 發票頁面
+    './pages/gas.html',         // 加油頁面
+    './icons/icon-192.png',     // 小圖標
+    './icons/icon-512.png',     // 大圖標
+    './404.html'                // 404錯誤頁面
 ];
 
 // 可選快取檔案 - 這些檔案會在有機會時被快取
