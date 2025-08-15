@@ -122,6 +122,10 @@
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    
             --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    
             --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   
+
+            /* Header相關變數 */
+            --header-height: 60px;
+            --header-padding: 15px;
         }
 
         /* 主題色彩定義 - 與主頁面保持一致 */
@@ -151,6 +155,53 @@
         }
 
         /* ============================================
+        * Header 區域樣式
+        * ============================================ */
+
+        /* Header容器樣式 */
+        .page-header {
+            position: fixed;                              /* 固定在頂部 */
+            top: 0;                                       /* 置頂 */
+            left: 0;                                      /* 靠左 */
+            right: 0;                                     /* 靠右 */
+            height: var(--header-height);                 /* 使用變數設定高度 */
+            background-color: var(--primary-color);       /* 使用主色調 */
+            border-bottom: 2px solid var(--accent-color); /* 底部橘色邊框 */
+            display: flex;                                /* 使用彈性布局 */
+            align-items: center;                          /* 垂直置中 */
+            justify-content: space-between;               /* 兩端對齊 */
+            padding: 0 var(--header-padding);             /* 左右內距 */
+            z-index: 1000;                               /* 確保在最上層 */
+            box-shadow: var(--shadow-sm);                /* 輕微陰影 */
+        }
+
+        /* Header標題樣式 */
+        .header-title {
+            color: var(--accent-color);                   /* 橘色文字 */
+            font-size: var(--font-size-lg);              /* 大字體 */
+            font-weight: bold;                            /* 粗體 */
+            margin: 0;                                    /* 移除預設邊距 */
+        }
+
+        /* Header關閉按鈕樣式 */
+        .header-close-btn {
+            background-color: var(--accent-color);       /* 橘色背景 */
+            color: #333333;                              /* 深色文字 */
+            border: none;                                /* 無邊框 */
+            border-radius: var(--border-radius-sm);     /* 小圓角 */
+            padding: 8px 16px;                          /* 內距 */
+            font-size: var(--font-size-sm);            /* 小字體 */
+            font-weight: bold;                           /* 粗體 */
+            cursor: pointer;                             /* 指標游標 */
+            transition: background-color var(--transition-fast); /* 顏色變化動畫 */
+        }
+
+        /* Header關閉按鈕懸停效果 */
+        .header-close-btn:hover {
+            background-color: var(--accent-color-dark);  /* 深橘色 */
+        }
+
+        /* ============================================
         * 基礎元素樣式
         * ============================================ */
 
@@ -177,7 +228,8 @@
             line-height: 1.6;                                
             -webkit-user-select: none;                        
             -moz-user-select: none;                           
-            user-select: none;                                
+            user-select: none;    
+            padding-top: calc(var(--header-height) + 20px); /* 頂部留出Header空間 */             
         }
 
         /* ============================================
@@ -231,12 +283,6 @@
             transition: all var(--transition-normal);          
         }
 
-        /* 內容區塊懸停效果 */
-        .content-section:hover {
-            box-shadow: var(--shadow-md);                     
-            transform: translateY(-2px);                      
-        }
-
         /* 段落文字樣式 */
         .content-section p {
             color: var(--text-color);                          
@@ -273,12 +319,6 @@
             position: relative;                                
         }
 
-        /* 列表項目懸停效果 */
-        .feature-list li:hover {
-            background-color: rgba(var(--accent-color-rgb), 0.1); 
-            transform: translateX(5px);                        
-        }
-
         /* 列表項目前的圖示 */
         .feature-list li::before {
             content: "▶";                                     
@@ -288,61 +328,39 @@
         }
 
         /* ============================================
-        * 操作步驟樣式
+        * 簡化的操作步驟樣式
         * ============================================ */
 
-        /* 步驟容器 */
+        /* 步驟容器 - 簡潔版本 */
         .step-container {
-            background: linear-gradient(135deg, 
-                rgba(var(--secondary-color-rgb), 0.8) 0%, 
-                rgba(var(--primary-color-rgb), 0.8) 100%);    
-            border-radius: var(--border-radius-md);           
-            padding: 15px;                                     
-            margin-bottom: 15px;                              
-            border: 1px solid rgba(var(--accent-color-rgb), 0.3); 
-            position: relative;                                
-            overflow: hidden;                                  
+            background-color: var(--secondary-color);          /* 使用統一背景色 */
+            border-radius: var(--border-radius-sm);           /* 使用小圓角 */
+            padding: 12px 15px;                               /* 簡化內距 */
+            margin-bottom: 10px;                              /* 減少底部間距 */
+            border-left: 3px solid var(--accent-color);       /* 左側橘色邊框 */
+            transition: background-color var(--transition-fast); /* 簡單的背景色變化 */
         }
 
-        /* 步驟容器動畫背景 */
-        .step-container::before {
-            content: '';                                       
-            position: absolute;                                
-            top: -2px;                                         
-            left: -100%;                                       
-            width: 100%;                                       
-            height: 2px;                                       
-            background: linear-gradient(90deg, transparent, var(--accent-color), transparent); 
-            animation: stepShine 3s linear infinite;           
-        }
-
-        /* 步驟發光動畫 */
-        @keyframes stepShine {
-            0% { left: -100%; }                               
-            100% { left: 100%; }                              
-        }
-
-        /* 步驟編號樣式 */
+        /* 步驟編號 - 簡化版本 */
         .step-number {
-            display: inline-block;                             
-            background-color: var(--accent-color);            
-            color: #333333;                                   
-            font-weight: bold;                                
-            font-size: var(--font-size-sm);                   
-            padding: 4px 8px;                                 
-            border-radius: 50%;                               
-            margin-right: 10px;                               
-            min-width: 24px;                                  
-            text-align: center;                               
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);        
+            color: var(--accent-color);                       /* 橘色數字 */
+            font-weight: bold;                                /* 粗體 */
+            font-size: var(--font-size-md);                  /* 中等字體 */
+            margin-right: 8px;                                /* 右側間距 */
+            display: inline;                                  /* 行內顯示 */
         }
 
-        /* 步驟描述文字 */
+        /* 步驟描述文字 - 簡化版本 */
         .step-description {
-            color: var(--text-color);                         
-            font-size: var(--font-size-md);                   
-            line-height: 1.6;                                 
-            display: inline;                                   
+            color: var(--text-color);                         /* 白色文字 */
+            font-size: var(--font-size-md);                   /* 中等字體 */
+            line-height: 1.5;                                 /* 適中行高 */
+            display: inline;                                   /* 行內顯示 */
+        }
+
+        /* 步驟容器的輕微懸停效果（可選） */
+        .step-container:hover {
+            background-color: rgba(var(--secondary-color-rgb), 1.1); /* 輕微背景變化 */
         }
 
         /* ============================================
@@ -360,12 +378,6 @@
             margin: 20px 0;                                   
             position: relative;                                
             animation: importantPulse 2s ease-in-out infinite; 
-        }
-
-        /* 重要提示脈動動畫 */
-        @keyframes importantPulse {
-            0%, 100% { border-color: var(--warning-color); }  
-            50% { border-color: var(--error-color); }         
         }
 
         /* 重要提示圖示 */
@@ -407,36 +419,15 @@
         }
 
         /* 關閉按鈕懸停效果 */
+        /* 修改後 */
         .close-button:hover {
-            background-color: var(--accent-color-dark);       
-            transform: translateY(-2px);                      
-            box-shadow: var(--shadow-md);                     
+            background-color: var(--accent-color-dark);       /* 只保留顏色變化 */
         }
 
         /* 關閉按鈕點擊效果 */
         .close-button:active {
             transform: translateY(1px);                       
             box-shadow: var(--shadow-sm);                     
-        }
-
-        /* 按鈕點擊波紋效果 */
-        .close-button::after {
-            content: '';                                       
-            position: absolute;                                
-            top: 50%;                                          
-            left: 50%;                                         
-            width: 0;                                          
-            height: 0;                                         
-            background: rgba(255, 255, 255, 0.3);             
-            border-radius: 50%;                               
-            transform: translate(-50%, -50%);                 
-            transition: width 0.3s, height 0.3s;              
-        }
-
-        /* 按鈕懸停時的波紋動畫 */
-        .close-button:hover::after {
-            width: 100px;                                     
-            height: 100px;                                    
         }
 
         /* ============================================
@@ -479,33 +470,10 @@
             }
         }
 
-        /* ============================================
-        * 動畫效果定義
-        * ============================================ */
-
-        /* 淡入動畫 */
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+        /* Header關閉按鈕的簡單hover效果 */
+        .header-close-btn:hover {
+            background-color: var(--accent-color-dark);        /* 只有顏色變化 */
         }
-
-        /* 頁面載入動畫 */
-        body {
-            animation: fadeIn 0.5s ease-out;                  
-        }
-
-        /* 區塊依序淡入動畫 */
-        .content-section:nth-child(1) { animation-delay: 0.1s; }
-        .content-section:nth-child(2) { animation-delay: 0.2s; }
-        .content-section:nth-child(3) { animation-delay: 0.3s; }
-        .content-section:nth-child(4) { animation-delay: 0.4s; }
-        .content-section:nth-child(5) { animation-delay: 0.5s; }
 
         /* ============================================
         * 可選取文字區域設定
@@ -523,10 +491,14 @@
 </head>
 
 <body>
+
     <!-- ============================================
-    * 頁面主標題
+    * 固定Header區域
     * ============================================ -->
-    <h1 class="page-title">貸款利率計算工具說明</h1>
+    <header class="page-header">
+        <h1 class="header-title">📚 貸款計算工具說明</h1>
+        <button class="header-close-btn" onclick="parent.closeInstructionPage()">✕ 關閉</button>
+    </header>
 
     <!-- ============================================
     * 架構說明區塊
@@ -535,10 +507,10 @@
         <h2 class="section-title">🏗️ 架構說明</h2>
         
         <h3 class="sub-title">整體設計架構</h3>
-        <p>本工具採用先進的響應式網頁設計，專為手機直式瀏覽優化。整個介面寬度限制在400px以內，確保在各種手機螢幕上都能完美顯示。</p>
+        <p>這個工具就像是專門為手機設計的小助手喔！我們把它做得剛剛好適合你的手機螢幕，不管你用什麼手機，都可以看得很清楚。就像你最喜歡的手機遊戲一樣，螢幕大小剛剛好，不會太大也不會太小。</p>
         
         <h3 class="sub-title">核心運算架構</h3>
-        <p>採用JavaScript原生PMT、RATE等財務函數，提供精確的貸款計算。所有計算均在瀏覽器端完成，無需網路連線，確保計算速度與資料安全。</p>
+        <p>這個工具使用很厲害的數學公式來幫你算錢錢的問題！就像你用計算機算數學題一樣，但是它更聰明，可以算很複雜的貸款問題。而且所有的計算都在你的手機裡面完成，不需要連接網路，就像離線遊戲一樣快速又安全！</p>
         
         <h3 class="sub-title">資料處理架構</h3>
         <p>具備完整的資料驗證機制，自動檢測異常數值並提供警告提示。支援千位分隔符格式化顯示，提升數字可讀性。</p>
@@ -735,12 +707,6 @@
     <div class="important-note">
         <p>資料安全提醒：所有計算資料儲存在本地瀏覽器中，清除瀏覽器資料將會遺失歷史記錄，請妥善管理重要資料。</p>
     </div>
-
-    <!-- ============================================
-    * 關閉說明按鈕
-    * 說明：呼叫父頁面的關閉函數來關閉iframe說明頁面
-    * ============================================ -->
-    <button class="close-button" onclick="parent.closeInstructionPage()">關閉說明</button>
 
     <!-- ============================================
     * 頁面載入完成後的初始化腳本
