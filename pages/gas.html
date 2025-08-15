@@ -193,6 +193,7 @@
             --font-size-label: 15px;
             --font-size-input: 17px;
             --font-size-unit: 14px;
+            --input-width: 95px;          /* 新增：統一所有輸入框寬度 */
             --font-size-button: 16px;
             --font-size-calculator: 20px;
             
@@ -275,11 +276,14 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-xs);
+            min-width: 180px;              /* 新增：統一右側區域最小寬度 */
+            justify-content: flex-start;   /* 新增：左對齊內容 */
+            position: relative;            /* 新增：為絕對定位做準備 */
         }
         
         /* ===== 輸入框樣式 - 調整寬度 ===== */
         .input-field {
-            width: 95px;                            /* 從 120px 改為 95px - 與小朋友計算機一致 */
+            width: var(--input-width);              /* 修改：使用統一的寬度變數 */
             background-color: var(--input-bg);      /* 使用變數而非硬編碼顏色 */
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -291,6 +295,7 @@
             color: var(--text-color);
             cursor: pointer;
             margin-right: 10px;                     /* 新增：與單位文字的間距 */
+            flex-shrink: 0;                         /* 新增：防止輸入框被壓縮 */
         }
 
         .input-field:focus {
@@ -303,9 +308,18 @@
         /* ===== 單位樣式 - 顯示在輸入框右側 ===== */
         .input-unit {
             font-size: var(--font-size-unit);
-            color: var(--text-secondary);
+            color: var(--text-color);  /* 修正：使用已定義的變數 */
             flex-shrink: 0;
             min-width: 50px;
+        }
+
+        /* 單位文字容器 - 確保與按鈕組對齊 */
+        .unit-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;  /* 與價格按鈕容器相同寬度 */
+            flex-shrink: 0;
         }
 
         /* ===== 快速價格選擇按鈕樣式 ===== */
@@ -342,11 +356,15 @@
         /* ===== 快速價格按鈕容器樣式 ===== */
         .price-buttons-container {
             display: flex;                         /* 使用彈性盒子布局 */
+            justify-content: center;
             gap: 2px;                              /* 兩個按鈕之間的間距 */
-            min-width: 50px;                      /* 最小寬度50px（與原本的單位文字相同） */
-            justify-content: center;               /* 按鈕在容器內置中對齊 */
+            min-width: 70px;                      /* 最小寬度70px（與單位容器相同） */
             align-items: center;                   /* 垂直置中對齊 */
             flex-shrink: 0;                        /* 防止容器被壓縮 */
+            position: absolute;                    /* 新增：絕對定位 */
+            right: 0;                             /* 新增：固定在右側 */
+            top: 50%;                             /* 新增：垂直置中 */
+            transform: translateY(-50%);           /* 新增：完成垂直置中 */
         }
 
         /* ===== 統一的按鈕組容器樣式 ===== */
@@ -357,18 +375,6 @@
             gap: var(--spacing-xs);                 /* 使用最小間距變數 */
             margin: 2px 0;                          /* 減少上下邊距 */
             padding: 2px 5px;                       /* 統一內邊距 */
-        }
-
-        /* 應用到價格按鈕容器 */
-        .price-buttons-container {
-            @extend .button-group-container;        /* 繼承基礎樣式 */
-            min-width: 50px;
-        }
-
-        /* 應用到新增的快速調整按鈕 */
-        #monthlyExpenseButtons {
-            @extend .button-group-container;        /* 繼承基礎樣式 */
-            justify-content: space-between;         /* 平均分布按鈕 */
         }
         
         /* ===== 清除按鈕樣式 ===== */
@@ -789,6 +795,31 @@
             background-color: rgba(255, 156, 51, 0.3);
         }
 
+        /* 新增：油品單價專用輸入容器 - 確保與其他欄位對齊 */
+        .diesel-price-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            min-width: 180px;              /* 與其他輸入容器相同寬度 */
+            justify-content: flex-start;   /* 左對齊內容 */
+            position: relative;            /* 為按鈕絕對定位做準備 */
+        }
+
+        /* 油品單價輸入框 - 確保與其他欄位垂直對齊 */
+        .diesel-price-wrapper .input-field {
+            width: var(--input-width);    /* 使用統一寬度變數 */
+            margin-right: 80px;           /* 為右側按鈕預留空間 */
+        }
+
+        /* 油品單價的快速按鈕組 - 絕對定位避免影響對齊 */
+        .diesel-price-wrapper .price-buttons-container {
+            position: absolute;           /* 絕對定位 */
+            right: -5px;                 /* 距離右邊10px */
+            top: 50%;                    /* 垂直置中 */
+            transform: translateY(-50%); /* 完成垂直置中 */
+            min-width: 60px;             /* 按鈕組寬度 */
+        }
+
     </style>
 </head>
 <body>
@@ -811,12 +842,12 @@
         <!-- 超級柴油價格輸入欄位 -->
         <div class="input-row">
             <label class="input-label">油品單價</label>
-            <div class="input-wrapper">
+            <div class="diesel-price-wrapper">  <!-- 修改：使用專用容器類別 -->
                 <input type="text" 
-                       id="dieselPrice" 
-                       class="input-field" 
-                       placeholder="0.0"
-                       readonly>
+                    id="dieselPrice" 
+                    class="input-field" 
+                    placeholder="0.0"
+                    readonly>
                 <!-- 快速價格選擇按鈕容器 -->
                 <div class="price-buttons-container">
                     <button class="quick-price-btn" onclick="setDieselPrice(26.1)" title="中油價格">中</button>
@@ -867,15 +898,31 @@
         </div>
         
         <!-- 折扣金額輸入欄位 -->
-        <div class="input-row">
-            <label class="input-label">折扣金額</label>
-            <div class="input-wrapper">
-                <input type="text" 
-                       id="discountAmount" 
-                       class="input-field" 
-                       placeholder="0.0"
-                       readonly>
-                <span class="input-unit">元/公升</span>
+        <!-- 折扣金額輸入欄位（加入快速按鍵組） -->
+        <div class="input-button-group">
+            <!-- 原有的輸入欄位 -->
+            <div class="input-row">
+                <label class="input-label">折扣金額</label>
+                <div class="input-wrapper">
+                    <input type="text" 
+                        id="discountAmount" 
+                        class="input-field" 
+                        placeholder="0.0"
+                        readonly>
+                    <span class="input-unit">元/公升</span>
+                </div>
+            </div>
+            
+            <!-- 新增：快速調整按鍵組 -->
+            <div id="discountAmountButtons" class="quick-adjust-buttons">
+                <button onclick="adjustDiscountAmount(-0.1)">-1</button>
+                <button onclick="setDiscountAmount(0.4)">4</button>
+                <button onclick="setDiscountAmount(0.5)">5</button>
+                <button onclick="setDiscountAmount(0.6)">6</button>
+                <button onclick="setDiscountAmount(0.7)">7</button>
+                <button onclick="setDiscountAmount(0.8)">8</button>
+                <button onclick="setDiscountAmount(0.9)">9</button>
+                <button onclick="adjustDiscountAmount(0.1)">+1</button>
             </div>
         </div>
 
@@ -1393,6 +1440,76 @@
                     document.getElementById('yearlySaving').value = formatNumberWithCommas(yearlySaving);
                 }
             }
+        }
+
+        /* ===== 折扣金額快速調整功能 ===== */
+        /**
+         * 調整折扣金額數值（增加或減少指定金額）
+         * @param {number} delta - 要調整的金額（正數為增加，負數為減少）
+         */
+        function adjustDiscountAmount(delta) {
+            // 震動回饋
+            vibrate(10);
+            
+            // 取得當前折扣金額欄位
+            const discountField = document.getElementById('discountAmount');
+            
+            // 解析當前值（移除所有非數字字符，保留小數點）
+            let currentValue = 0;
+            if (discountField.value && discountField.value.trim() !== '') {
+                // 移除所有非數字和小數點的字符
+                const cleanValue = discountField.value.replace(/[^0-9.]/g, '');
+                currentValue = parseFloat(cleanValue) || 0;
+            }
+            
+            // 計算新值
+            let newValue = currentValue + delta;
+            
+            // 限制最小值為0，最大值為5（一般折扣不會超過5元）
+            if (newValue < 0) {
+                newValue = 0;
+            } else if (newValue > 5) {
+                newValue = 5;
+            }
+            
+            // 四捨五入到小數點後一位
+            newValue = Math.round(newValue * 10) / 10;
+            
+            // 更新欄位值（保留一位小數）
+            discountField.value = newValue.toFixed(1);
+            
+            // 記錄最後修改的欄位
+            lastModifiedField = 'discountAmount';
+            
+            // 觸發更新計算
+            updateCalculations();
+        }
+
+        /**
+         * 直接設定折扣金額為指定數值
+         * @param {number} amount - 要設定的折扣金額
+         */
+        function setDiscountAmount(amount) {
+            // 震動回饋
+            vibrate(10);
+            
+            // 取得折扣金額欄位
+            const discountField = document.getElementById('discountAmount');
+            
+            // 確保金額在合理範圍內（0-5元）
+            let validAmount = Math.max(0, Math.min(5, amount));
+            
+            // 四捨五入到小數點後一位
+            validAmount = Math.round(validAmount * 10) / 10;
+            
+            // 設定欄位值（保留一位小數）
+            discountField.value = validAmount.toFixed(1);
+            
+            // 記錄最後修改的欄位
+            lastModifiedField = 'discountAmount';
+            
+            // 觸發更新計算
+            updateCalculations();
         }
 
         /* ===== 驗證並格式化每月油錢輸入 ===== */
