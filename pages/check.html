@@ -199,10 +199,7 @@
             padding: 3px;
             border-radius: 4px;
             box-shadow: 0 4px 8px var(--shadow-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
-            transform-origin: left;
-            will-change: transform;
         }
 
         .label {
@@ -404,24 +401,10 @@
             margin: 0;
         }
 
-        .function-buttons button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, rgba(255, 156, 51, 0.1), transparent);
-            z-index: -1;
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
         .function-buttons button:hover {
             background-color: var(--button-orange);
             color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            /* 移除 transform 和 box-shadow，保持簡潔 */
         }
 
         .function-buttons button:hover::before {
@@ -577,8 +560,7 @@
 
         .check-list-table tr:hover {
             background-color: rgba(80, 80, 80, 0.8) !important;
-            transform: translateX(3px);
-            transition: all 0.3s ease;
+            /* 移除位移和過渡效果，保持簡潔 */
         }
 
         .deposit-amount-display {
@@ -1110,7 +1092,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
+            padding: 22px 15px 5px 15px;
             background-color: var(--primary-color);
             position: sticky;
             top: 0;
@@ -1140,17 +1122,13 @@
             color: var(--text-color);
             font-size: 24px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 5px 10px;
-            border-radius: 50%;
+            transition: color 0.2s ease; /* 簡化過渡效果，只保留顏色變化 */
+            padding: 4px 8px; /* 縮小內距 */
             margin-left: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .close-btn:hover {
-            color: var(--button-orange);
-            transform: scale(1.1);
-            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--button-orange); /* 只保留顏色變化，移除其他特效 */
         }
 
         .history-content {
@@ -1656,34 +1634,6 @@
             font-weight: bold;
         }
 
-        .calculator-buttons button::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 5px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.5);
-            opacity: 0;
-            border-radius: 100%;
-            transform: scale(1, 1) translate(-50%, -50%);
-            transform-origin: 50% 50%;
-        }
-
-        .calculator-buttons button:active::after {
-            animation: ripple 0.4s ease-out;
-        }
-
-        @keyframes ripple {
-            0% {
-                transform: scale(0, 0) translate(-50%, -50%);
-                opacity: 0.5;
-            }
-            100% {
-                transform: scale(20, 20) translate(-50%, -50%);
-                opacity: 0;
-            }
-        }
 
         .calculator-buttons .function {
             background-color: #4d4d4d;
