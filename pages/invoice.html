@@ -692,7 +692,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 15px; /* 減少頂部內邊距 */
+        padding: 20px 15px 5px 15px; /* 減少頂部內邊距 */
         background-color: var(--primary-color);
         position: sticky;
         top: 0;
@@ -721,17 +721,13 @@
         color: var(--text-color);
         font-size: 24px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        padding: 5px 10px;
-        border-radius: 50%;
+        transition: color 0.2s ease; /* 簡化過渡效果，只保留顏色變化 */
+        padding: 4px 8px; /* 縮小內距 */
         margin-left: 10px;
-        background-color: rgba(255, 255, 255, 0.1); /* 添加背景色使按鈕更明顯 */
     }
 
     .close-btn:hover {
-        color: var(--button-orange);
-        transform: scale(1.1);
-        background-color: rgba(255, 255, 255, 0.2);
+        color: var(--button-orange); /* 只保留顏色變化，移除其他特效 */
     }
 
     .history-content {
