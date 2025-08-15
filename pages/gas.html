@@ -722,7 +722,7 @@
 
         .price-checker-frame {
             width: 100%;                            /* 寬度填滿容器 */
-            height: 370px;                          /* 框架高度，針對手機優化 */
+            height: 300px;                          /* 框架高度，針對手機優化 */
             border: 1px solid var(--border-color);  /* 邊框顏色 */
             border-radius: var(--radius-sm);        /* 圓角邊框 */
             background-color: white;                /* 白色背景 */
@@ -732,6 +732,37 @@
         @media (max-width: 360px) {
             .price-checker-frame {
                 height: 250px;                      /* 小螢幕時降低高度 */
+            }
+        }
+
+        /* ===== 底部緩衝區域樣式 ===== */
+        .bottom-buffer-container {
+            margin-top: var(--spacing-lg);          /* 與油價查詢框架的間距 */
+            padding: var(--spacing-lg) var(--spacing-md); /* 上下左右內邊距 */
+            text-align: center;                     /* 文字置中對齊 */
+            background-color: transparent;          /* 透明背景，不干擾整體設計 */
+        }
+
+        /* 火雞肉飯提醒文字樣式 */
+        .reminder-text {
+            font-size: var(--font-size-label);      /* 使用統一的標籤字體大小 */
+            color: var(--text-color);               /* 使用統一的文字顏色（白色） */
+            font-weight: 500;                       /* 中等字體粗細 */
+            padding: var(--spacing-md) 0;           /* 上下內邊距 */
+            margin-bottom: var(--spacing-lg);       /* 底部額外間距，避免太接近螢幕邊緣 */
+            opacity: 0.9;                           /* 略微透明，讓文字不會太突兀 */
+            transition: opacity 0.3s ease;          /* 平滑的透明度過渡效果 */
+        }
+
+        /* 針對較小螢幕調整底部緩衝區域 */
+        @media (max-width: 360px) {
+            .bottom-buffer-container {
+                padding: var(--spacing-md) var(--spacing-sm); /* 小螢幕時減少內邊距 */
+            }   
+            
+            .reminder-text {
+                font-size: 14px;                    /* 小螢幕時使用較小字體 */
+                margin-bottom: var(--spacing-md);   /* 小螢幕時減少底部間距 */
             }
         }
 
@@ -992,6 +1023,14 @@
                 </a>
             </iframe>
         </div>
+
+    <!-- 底部緩衝區域 - 避免內容被手機螢幕底部遮擋 -->
+    <div class="bottom-buffer-container">
+        <!-- 火雞肉飯提醒文字 -->
+        <div class="reminder-text">
+            報價後記得要吃碗火雞肉飯唷！
+        </div>
+    </div>
     
     <!-- 計算機彈出視窗 -->
     <div id="calculatorModal" class="calculator-modal">
