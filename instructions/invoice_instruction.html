@@ -3,45 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=400, user-scalable=no">
-    
-    <!-- 防止瀏覽器快取，確保顯示最新內容 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
-    <title>發票數字轉換 - 使用說明</title>
+    <title>支票計算工具 - 使用說明</title>
 
-    <!-- Google Analytics 4 追蹤代碼 - 與主頁面保持一致 -->
+    <!-- Google Analytics 4 追蹤代碼 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
     <script>
-        // 檢查是否在 iframe 中
         const isInIframe = window !== window.parent;
         
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
         
-        // 取得當前頁面名稱
         const currentPageName = 'invoice_instruction';
         
-        // 初始化 GA4
         gtag('config', 'G-XE5XMQR0Z1', {
-            page_title: `小朋友工具 - 發票轉換說明`,
+            page_title: `小朋友工具 - 支票計算說明`,
             page_location: window.location.href,
             page_path: window.location.pathname,
             custom_map: {
                 'dimension3': 'is_iframe',
-                'dimension4': 'invoice_instruction_page'
+                'dimension4': 'instruction_page'
             }
         });
         
-        /**
-         * 發送自訂事件到 GA4
-         * @param {string} eventName - 事件名稱
-         * @param {object} parameters - 事件參數
-         */
         function trackEvent(eventName, parameters = {}) {
-            // 加入頁面資訊
             parameters.page_type = currentPageName;
             parameters.is_iframe = isInIframe;
             
@@ -49,27 +38,24 @@
             console.log('GA4 Event (instruction):', eventName, parameters);
         }
         
-        // 頁面載入完成後追蹤
         document.addEventListener('DOMContentLoaded', function() {
             trackEvent('instruction_page_view', {
-                instruction_type: 'invoice_calculator',  // 修改：從 'calculator' 改為 'invoice_calculator'
-                feature: 'invoice_conversion_help'       // 修改：從 'loan_calculator_help' 改為 'invoice_conversion_help'
+                instruction_type: 'invoice',
+                feature: 'check_calculator_help'
             });
             
-            // 追蹤用戶捲動深度
             let maxScrollDepth = 0;
             let scrollTracked = {};
             
             window.addEventListener('scroll', function() {
                 const scrollDepth = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
                 
-                // 追蹤 25%, 50%, 75%, 100% 的捲動深度
                 [25, 50, 75, 100].forEach(threshold => {
                     if (scrollDepth >= threshold && !scrollTracked[threshold]) {
                         scrollTracked[threshold] = true;
                         trackEvent('instruction_scroll_depth', {
                             depth_percentage: threshold,
-                            instruction_type: 'invoice_calculator'
+                            instruction_type: 'invoice'
                         });
                     }
                 });
@@ -77,12 +63,11 @@
                 maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
             });
             
-            // 追蹤按鈕點擊
             document.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', function() {
                     trackEvent('instruction_button_click', {
                         button_text: this.textContent.trim(),
-                        instruction_type: 'invoice_calculator'
+                        instruction_type: 'invoice'
                     });
                 });
             });
@@ -90,662 +75,513 @@
     </script>
 
     <style>
-        /* ============================================
-        * CSS 變數定義域 - 與主頁面保持一致的外觀設計
-        * ============================================ */
-        
+        /* CSS變數定義域 - 統一管理所有外觀變數 */
         :root {
             /* 尺寸相關變數 */
-            --border-radius-sm: 4px;              
-            --border-radius-md: 8px;              
-            --border-radius-lg: 12px;             
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
             
             /* 間距尺寸 */
-            --spacing-xs: 2px;                    
-            --spacing-sm: 4px;                    
-            --spacing-md: 8px;                    
-            --spacing-lg: 15px;                   
+            --spacing-xs: 2px;
+            --spacing-sm: 4px;
+            --spacing-md: 8px;
+            --spacing-lg: 15px;
             
             /* 字體大小 */
-            --font-size-xs: 12px;                 
-            --font-size-sm: 14px;                 
-            --font-size-md: 16px;                 
-            --font-size-lg: 18px;                 
-            --font-size-xl: 22px;                 
+            --font-size-xs: 12px;
+            --font-size-sm: 14px;
+            --font-size-md: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 22px;
             
             /* 動畫時間 */
-            --transition-fast: 0.1s;              
-            --transition-normal: 0.2s;            
-            --transition-slow: 0.3s;              
+            --transition-fast: 0.1s;
+            --transition-normal: 0.2s;
+            --transition-slow: 0.3s;
             
             /* 陰影效果 */
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    
-            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    
-            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+
+            /* Header相關變數 */
+            --header-height: 60px;
+            --header-padding: 15px;
         }
 
         /* 主題色彩定義 - 與主頁面保持一致 */
         :root {
-            /* RGB 色彩值 */
-            --primary-color-rgb: 51, 51, 51;              
-            --secondary-color-rgb: 74, 74, 74;            
-            --accent-color-rgb: 255, 156, 51;             
+            /* RGB色彩值 */
+            --primary-color-rgb: 51, 51, 51;
+            --secondary-color-rgb: 74, 74, 74;
+            --accent-color-rgb: 255, 156, 51;
             
             /* 基本色彩 */
-            --primary-color: #333333;                      
-            --secondary-color: #4a4a4a;                    
-            --text-color: #ffffff;                         
-            --text-muted: #999999;                         
-            --border-color: #555555;                       
-            --hover-color: #666666;                        
-            --shadow-color: rgba(0, 0, 0, 0.3);           
+            --primary-color: #333333;
+            --secondary-color: #4a4a4a;
+            --text-color: #ffffff;
+            --text-muted: #999999;
+            --border-color: #555555;
+            --hover-color: #666666;
+            --shadow-color: rgba(0, 0, 0, 0.3);
             
             /* 功能色彩 */
-            --accent-color: #ff9c33;                       
-            --accent-color-light: rgba(255, 156, 51, 0.2); 
-            --accent-color-dark: #e88a22;                  
-            --success-color: #33b5e5;                      
-            --warning-color: #ff9c33;                      
-            --error-color: #e74c3c;                        
-            --info-color: #3498db;                         
+            --accent-color: #ff9c33;
+            --accent-color-light: rgba(255, 156, 51, 0.2);
+            --accent-color-dark: #e88a22;
+            --success-color: #33b5e5;
+            --warning-color: #ff9c33;
+            --error-color: #e74c3c;
+            --info-color: #3498db;
         }
 
-        /* ============================================
-        * 基礎元素樣式
-        * ============================================ */
+        /* Header區域樣式 */
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background-color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--header-padding);
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+        }
 
-        /* 頁面基本設定 */
+        .header-title {
+            color: var(--accent-color);
+            font-size: var(--font-size-lg);
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-close-btn {
+            background-color: var(--accent-color);
+            color: #333333;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: 8px 16px;
+            font-size: var(--font-size-sm);
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+
+        .header-close-btn:hover {
+            background-color: var(--accent-color-dark);
+        }
+
+        /* 基礎元素樣式 */
         * {
-            margin: 0;                                      
-            padding: 0;                                     
-            box-sizing: border-box;                         
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            width: 100%;                                      
-            max-width: 400px;                                 
-            margin: 0 auto;                                   
-            position: relative;                               
-            overflow-x: hidden;                               
-            -webkit-text-size-adjust: 100%;                   
-            padding: 20px 10px;                               
-            background-color: var(--primary-color);          
-            color: var(--text-color);                         
-            font-family: "Microsoft JhengHei", Arial, sans-serif; 
-            box-sizing: border-box;                           
-            min-height: 100vh;                                
-            line-height: 1.6;                                
-            -webkit-user-select: none;                        
-            -moz-user-select: none;                           
-            user-select: none;                                
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            padding: 20px 15px;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            box-sizing: border-box;
+            min-height: 100vh;
+            line-height: 1.7;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            padding-top: calc(var(--header-height) + 20px);
         }
 
-        /* ============================================
-        * 標題樣式設計
-        * ============================================ */
-
-        /* 主標題樣式 */
+        /* 標題樣式 */
         .page-title {
-            color: var(--accent-color);                        
-            font-size: var(--font-size-xl);                   
-            font-weight: bold;                                
-            text-align: center;                               
-            margin-bottom: 20px;                              
-            padding-bottom: 10px;                             
-            border-bottom: 2px solid var(--accent-color);      
-            text-shadow: 0 1px 2px var(--shadow-color);       
+            color: var(--text-color);
+            font-size: var(--font-size-xl);
+            font-weight: bold;
+            text-align: left;
+            margin-bottom: 30px;
         }
 
-        /* 區塊標題樣式 */
         .section-title {
-            color: var(--accent-color);                        
-            font-size: var(--font-size-lg);                   
-            font-weight: bold;                                
-            margin: 25px 0 15px 0;                            
-            padding-left: 10px;                               
-            border-left: 4px solid var(--accent-color);        
-            background: linear-gradient(90deg, var(--accent-color-light), transparent); 
+            color: var(--accent-color);
+            font-size: var(--font-size-lg);
+            font-weight: bold;
+            margin: 35px 0 20px 0;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 12px;
         }
 
-        /* 子標題樣式 */
         .sub-title {
-            color: var(--text-color);                          
-            font-size: var(--font-size-md);                   
-            font-weight: bold;                                
-            margin: 15px 0 10px 0;                            
-            padding-left: 8px;                                
-            border-left: 2px solid var(--accent-color);        
+            color: var(--text-color);
+            font-size: var(--font-size-md);
+            font-weight: bold;
+            margin: 25px 0 15px 0;
+            opacity: 0.9;
         }
 
-        /* ============================================
-        * 內容區塊樣式
-        * ============================================ */
-
-        /* 內容區塊容器 */
+        /* 內容區塊樣式 */
         .content-section {
-            background-color: var(--secondary-color);          
-            border-radius: var(--border-radius-md);           
-            padding: 15px;                                     
-            margin-bottom: 20px;                              
-            box-shadow: var(--shadow-sm);                     
-            transition: all var(--transition-normal);          
+            margin-bottom: 30px;
         }
 
-        /* 內容區塊懸停效果 */
-        .content-section:hover {
-            box-shadow: var(--shadow-md);                     
-            transform: translateY(-2px);                      
-        }
-
-        /* 段落文字樣式 */
         .content-section p {
-            color: var(--text-color);                          
-            font-size: var(--font-size-md);                   
-            line-height: 1.7;                                 
-            margin-bottom: 12px;                              
-            text-align: justify;                              
+            color: var(--text-color);
+            font-size: var(--font-size-md);
+            line-height: 1.8;
+            margin-bottom: 18px;
+            text-align: left;
+            opacity: 0.95;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            user-select: text;
         }
 
-        /* 最後一個段落移除底部間距 */
         .content-section p:last-child {
-            margin-bottom: 0;                                 
+            margin-bottom: 0;
         }
 
-        /* ============================================
-        * 列表樣式設計
-        * ============================================ */
-
-        /* 無序列表樣式 */
-        .feature-list {
-            list-style: none;                                 
-            padding: 0;                                       
-            margin: 15px 0;                                   
-        }
-
-        /* 列表項目樣式 */
-        .feature-list li {
-            background-color: rgba(var(--primary-color-rgb), 0.3); 
-            margin-bottom: 8px;                               
-            padding: 10px 15px;                               
-            border-radius: var(--border-radius-sm);           
-            border-left: 3px solid var(--accent-color);        
-            transition: all var(--transition-fast);            
-            position: relative;                                
-        }
-
-        /* 列表項目懸停效果 */
-        .feature-list li:hover {
-            background-color: rgba(var(--accent-color-rgb), 0.1); 
-            transform: translateX(5px);                        
-        }
-
-        /* 列表項目前的圖示 */
-        .feature-list li::before {
-            content: "▶";                                     
-            color: var(--accent-color);                       
-            font-weight: bold;                                
-            margin-right: 8px;                                
-        }
-
-        /* ============================================
-        * 操作步驟樣式
-        * ============================================ */
-
-        /* 步驟容器 */
+        /* 操作步驟容器 */
         .step-container {
-            background: linear-gradient(135deg, 
-                rgba(var(--secondary-color-rgb), 0.8) 0%, 
-                rgba(var(--primary-color-rgb), 0.8) 100%);    
-            border-radius: var(--border-radius-md);           
-            padding: 15px;                                     
-            margin-bottom: 15px;                              
-            border: 1px solid rgba(var(--accent-color-rgb), 0.3); 
-            position: relative;                                
-            overflow: hidden;                                  
+            background-color: rgba(var(--secondary-color-rgb), 0.3);
+            border-radius: var(--border-radius-md);
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-color);
         }
 
-        /* 步驟容器動畫背景 */
-        .step-container::before {
-            content: '';                                       
-            position: absolute;                                
-            top: -2px;                                         
-            left: -100%;                                       
-            width: 100%;                                       
-            height: 2px;                                       
-            background: linear-gradient(90deg, transparent, var(--accent-color), transparent); 
-            animation: stepShine 3s linear infinite;           
-        }
-
-        /* 步驟發光動畫 */
-        @keyframes stepShine {
-            0% { left: -100%; }                               
-            100% { left: 100%; }                              
-        }
-
-        /* 步驟編號樣式 */
         .step-number {
-            display: inline-block;                             
-            background-color: var(--accent-color);            
-            color: #333333;                                   
-            font-weight: bold;                                
-            font-size: var(--font-size-sm);                   
-            padding: 4px 8px;                                 
-            border-radius: 50%;                               
-            margin-right: 10px;                               
-            min-width: 24px;                                  
-            text-align: center;                               
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);        
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: var(--font-size-md);
+            margin-right: 8px;
+            display: inline;
         }
 
-        /* 步驟描述文字 */
         .step-description {
-            color: var(--text-color);                         
-            font-size: var(--font-size-md);                   
-            line-height: 1.6;                                 
-            display: inline;                                   
+            color: var(--text-color);
+            font-size: var(--font-size-md);
+            line-height: 1.8;
+            display: inline;
         }
 
-        /* ============================================
-        * 重要提示樣式
-        * ============================================ */
+        /* 功能列表樣式 */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
 
-        /* 重要提示容器 */
+        .feature-list li {
+            background-color: rgba(var(--secondary-color-rgb), 0.2);
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            border-radius: var(--border-radius-sm);
+            position: relative;
+            line-height: 1.8;
+            border-left: 3px solid var(--accent-color);
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            user-select: text;
+        }
+
+        /* 重要提示樣式 */
         .important-note {
-            background: linear-gradient(135deg, 
-                rgba(var(--warning-color), 0.15) 0%, 
-                rgba(var(--error-color), 0.1) 100%);          
-            border: 2px solid var(--warning-color);           
-            border-radius: var(--border-radius-md);           
-            padding: 15px;                                     
-            margin: 20px 0;                                   
-            position: relative;                                
-            animation: importantPulse 2s ease-in-out infinite; 
+            background: rgba(var(--accent-color-rgb), 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: var(--border-radius-md);
+            padding: 20px;
+            margin: 25px 0;
+            position: relative;
         }
 
-        /* 重要提示脈動動畫 */
-        @keyframes importantPulse {
-            0%, 100% { border-color: var(--warning-color); }  
-            50% { border-color: var(--error-color); }         
-        }
-
-        /* 重要提示圖示 */
-        .important-note::before {
-            content: "⚠️";                                    
-            font-size: 20px;                                  
-            margin-right: 8px;                                
-            display: inline-block;                            
-        }
-
-        /* 重要提示文字 */
         .important-note p {
-            color: var(--text-color);                         
-            font-weight: bold;                                
-            margin: 0;                                         
-            display: inline;                                   
+            color: var(--text-color);
+            font-weight: bold;
+            margin: 0;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            user-select: text;
         }
 
-        /* ============================================
-        * 按鈕樣式設計
-        * ============================================ */
-
-        /* 關閉按鈕樣式 */
+        /* 按鈕樣式 */
         .close-button {
-            background-color: var(--accent-color);            
-            color: #333333;                                   
-            border: none;                                      
-            border-radius: var(--border-radius-md);           
-            padding: 12px 24px;                               
-            font-size: var(--font-size-md);                   
-            font-weight: bold;                                
-            cursor: pointer;                                  
-            margin: 20px auto;                                
-            display: block;                                    
-            transition: all var(--transition-normal);          
-            box-shadow: var(--shadow-sm);                     
-            position: relative;                                
-            overflow: hidden;                                  
+            background-color: var(--accent-color);
+            color: #333333;
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 12px 24px;
+            font-size: var(--font-size-md);
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-sm);
         }
 
-        /* 關閉按鈕懸停效果 */
         .close-button:hover {
-            background-color: var(--accent-color-dark);       
-            transform: translateY(-2px);                      
-            box-shadow: var(--shadow-md);                     
+            background-color: var(--accent-color-dark);
         }
 
-        /* 關閉按鈕點擊效果 */
         .close-button:active {
-            transform: translateY(1px);                       
-            box-shadow: var(--shadow-sm);                     
+            transform: translateY(1px);
+            box-shadow: var(--shadow-sm);
         }
 
-        /* 按鈕點擊波紋效果 */
-        .close-button::after {
-            content: '';                                       
-            position: absolute;                                
-            top: 50%;                                          
-            left: 50%;                                         
-            width: 0;                                          
-            height: 0;                                         
-            background: rgba(255, 255, 255, 0.3);             
-            border-radius: 50%;                               
-            transform: translate(-50%, -50%);                 
-            transition: width 0.3s, height 0.3s;              
+        /* 分隔線樣式 */
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                var(--accent-color) 50%,
+                transparent 100%);
+            margin: 25px 0;
+            border-radius: 1px;
         }
 
-        /* 按鈕懸停時的波紋動畫 */
-        .close-button:hover::after {
-            width: 100px;                                     
-            height: 100px;                                    
-        }
-
-        /* ============================================
-        * 響應式設計適配
-        * ============================================ */
-
-        /* 小螢幕適配 */
+        /* 響應式設計適配 */
         @media screen and (max-width: 360px) {
             body {
-                padding: 15px 8px;                            
+                padding: 15px 12px;
+                padding-top: calc(var(--header-height) + 15px);
             }
             
             .page-title {
-                font-size: 20px;                              
+                font-size: 20px;
             }
             
             .section-title {
-                font-size: 16px;                              
+                font-size: 16px;
             }
             
-            .content-section {
-                padding: 12px;                                
+            .step-container {
+                padding: 12px;
+                margin: 12px 0;
             }
             
             .feature-list li {
-                padding: 8px 12px;                            
-                font-size: 14px;                              
+                padding: 10px 12px;
+                font-size: 14px;
             }
         }
 
         /* 觸控設備優化 */
         @media (hover: none) and (pointer: coarse) {
-            .content-section:hover,
-            .feature-list li:hover {
-                transform: none;                               
-            }
-            
-            .close-button:hover {
-                transform: none;                               
+            .header-close-btn:hover {
+                background-color: var(--accent-color-dark);
             }
         }
-
-        /* ============================================
-        * 動畫效果定義
-        * ============================================ */
-
-        /* 淡入動畫 */
-        @keyframes fadeIn {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
-        }
-
-        /* 頁面載入動畫 */
-        body {
-            animation: fadeIn 0.5s ease-out;                  
-        }
-
-        /* 區塊依序淡入動畫 */
-        .content-section:nth-child(1) { animation-delay: 0.1s; }
-        .content-section:nth-child(2) { animation-delay: 0.2s; }
-        .content-section:nth-child(3) { animation-delay: 0.3s; }
-        .content-section:nth-child(4) { animation-delay: 0.4s; }
-        .content-section:nth-child(5) { animation-delay: 0.5s; }
-
-        /* ============================================
-        * 可選取文字區域設定
-        * ============================================ */
 
         /* 允許選取重要文字內容 */
         .content-section p,
         .feature-list li,
-        .step-description {
-            -webkit-user-select: text;                        
-            -moz-user-select: text;                           
-            user-select: text;                                
+        .step-description,
+        .important-note p {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            user-select: text;
         }
     </style>
 </head>
 
 <body>
-    <!-- ============================================
-    * 頁面主標題
-    * ============================================ -->
-    <h1 class="page-title">發票數字轉換工具說明</h1>
+    <!-- 固定Header區域 -->
+    <header class="page-header">
+        <h1 class="header-title">支票計算工具說明</h1>
+        <button class="header-close-btn" onclick="parent.closeInstructionPage()">關閉</button>
+    </header>
 
-    <!-- ============================================
-    * 架構說明區塊
-    * ============================================ -->
+    <!-- 工具概述 -->
     <div class="content-section">
-        <h2 class="section-title">🗃️ 架構說明</h2>
-        
-        <h3 class="sub-title">整體設計架構</h3>
-        <p>本工具採用先進的響應式網頁設計，專為手機直式瀏覽優化。整個介面寬度限制在400px以內，確保在各種手機螢幕上都能完美顯示。提供即時的阿拉伯數字轉換功能，支援傳統中文和大寫金額雙重格式。</p>
-        
-        <h3 class="sub-title">核心轉換架構</h3>
-        <p>採用JavaScript原生數字轉換演算法，提供精確的中文數字轉換。支援傳統中文數字（一、二、三）和財務大寫（壹、貳、參）兩種格式。所有轉換均在瀏覽器端完成，無需網路連線，確保轉換速度與資料安全。</p>
-        
-        <h3 class="sub-title">發票計算架構</h3>
-        <p>內建5%營業稅自動計算功能，輸入含稅總金額即可自動分離未稅金額和稅金。具備完整的數值驗證機制，自動檢測異常數值並提供警告提示。支援9位數以內的金額轉換，滿足一般發票開立需求。</p>
+        <h2 class="section-title">工具概述</h2>
+        <p>這是專為火雞肉飯愛好者設計的手機端支票計算工具。當租賃業務專員在與客戶對開發票時，此工具能夠快速計算發票開立金額的相關資訊。</p>
+        <p>工具整合了金額轉換、稅金計算、歷史記錄管理等功能，協助業務人員精確處理支票相關業務，確保客戶繳款流程順暢無誤。</p>
     </div>
 
-    <!-- ============================================
-    * 功能說明區塊
-    * ============================================ -->
+    <!-- 核心功能 -->
     <div class="content-section">
-        <h2 class="section-title">⚙️ 主要功能</h2>
+        <h2 class="section-title">核心功能</h2>
         
         <ul class="feature-list">
-            <li><strong>雙重輸入模式</strong>：支援直接輸入和計算機模式，滿足不同使用習慣</li>
-            <li><strong>中文數字轉換</strong>：自動將阿拉伯數字轉換為傳統中文和財務大寫格式</li>
-            <li><strong>營業稅計算</strong>：輸入含稅總金額，自動計算未稅金額和5%營業稅</li>
-            <li><strong>計算機功能</strong>：內建完整四則運算，支援稅外加快速計算</li>
-            <li><strong>即時轉換顯示</strong>：輸入數字即時顯示所有轉換結果，無需等待</li>
-            <li><strong>數值驗證警告</strong>：超過9位數時自動警告，防止輸入錯誤</li>
-            <li><strong>歷史記錄功能</strong>：保存轉換記錄，支援查看和重複使用</li>
-            <li><strong>趣味互動元素</strong>：內建食物動畫效果，增加使用樂趣</li>
+            <li><strong>總金額轉換系統</strong> - 輸入阿拉伯數字後自動轉換為繁體中文與國字大寫格式</li>
+            <li><strong>稅金自動計算</strong> - 根據總金額自動計算未稅金額與稅金（5%營業稅）</li>
+            <li><strong>中文數字轉換</strong> - 支援傳統中文數字與財務專用大寫數字轉換</li>
+            <li><strong>雙鍵盤模式</strong> - 提供直接輸入與計算機模式，適應不同使用習慣</li>
+            <li><strong>稅外加計算</strong> - 計算機模式提供稅外加功能，快速計算含稅金額</li>
+            <li><strong>發票記錄管理</strong> - 儲存開票記錄，支援歷史查詢與記錄管理</li>
+            <li><strong>愛心彩蛋功能</strong> - 特殊互動功能，增加使用樂趣</li>
         </ul>
     </div>
 
-    <!-- ============================================
-    * 界面佈局說明
-    * ============================================ -->
+    <!-- 基本操作流程 -->
     <div class="content-section">
-        <h2 class="section-title">📱 界面佈局</h2>
-        
-        <h3 class="sub-title">固定頂部區域</h3>
-        <p>頂部固定顯示當前時間（民國年格式），無論如何滾動頁面都能即時查看時間資訊。採用民國年月日星期的完整格式，方便記錄發票開立時間。</p>
-        
-        <h3 class="sub-title">主要輸入區域</h3>
-        <p>總金額輸入欄位支援手動輸入和計算機輸入兩種模式。下方即時顯示未稅金額、稅金、傳統中文和財務大寫四種轉換結果，確保資訊完整性。</p>
-        
-        <h3 class="sub-title">雙重鍵盤系統</h3>
-        <p>提供直接輸入和計算機兩種鍵盤模式。直接輸入模式適合簡單數字輸入，計算機模式支援四則運算和稅外加功能，滿足複雜計算需求。</p>
-        
-        <h3 class="sub-title">功能按鈕區域</h3>
-        <p>保存發票和歷史記錄兩個主要功能按鈕，支援完整的記錄管理流程。歷史記錄以卡片形式展示，包含完整的轉換資訊。</p>
-    </div>
-
-    <!-- ============================================
-    * 基本操作說明
-    * ============================================ -->
-    <div class="content-section">
-        <h2 class="section-title">📋 基本操作流程</h2>
+        <h2 class="section-title">基本操作流程</h2>
         
         <div class="step-container">
-            <span class="step-number">1</span>
-            <span class="step-description">選擇輸入模式：「直接輸入」適合簡單數字，「計算機」適合複雜計算</span>
+            <span class="step-number">第一步</span>
+            <span class="step-description">選擇輸入模式：「直接輸入」或「計算機」模式</span>
         </div>
         
         <div class="step-container">
-            <span class="step-number">2</span>
-            <span class="step-description">點擊總金額欄位，使用數字鍵盤輸入發票金額（最多9位數）</span>
+            <span class="step-number">第二步</span>
+            <span class="step-description">輸入發票總金額（最多9位數）</span>
         </div>
         
         <div class="step-container">
-            <span class="step-number">3</span>
-            <span class="step-description">系統自動計算並顯示未稅金額、稅金、中文轉換結果</span>
+            <span class="step-number">第三步</span>
+            <span class="step-description">系統自動計算並顯示未稅金額、稅金、中文數字</span>
         </div>
         
         <div class="step-container">
-            <span class="step-number">4</span>
-            <span class="step-description">確認轉換結果正確後，可點擊「保存發票」儲存記錄</span>
+            <span class="step-number">第四步</span>
+            <span class="step-description">查看國字大寫格式，用於正式發票填寫</span>
         </div>
         
         <div class="step-container">
-            <span class="step-number">5</span>
-            <span class="step-description">使用「歷史記錄」功能查看、重複使用或刪除過往記錄</span>
-        </div>
-        
-        <div class="step-container">
-            <span class="step-number">6</span>
-            <span class="step-description">計算機模式下可使用「稅外加」功能快速計算含稅金額</span>
+            <span class="step-number">第五步</span>
+            <span class="step-description">使用「保存發票」功能儲存重要開票記錄</span>
         </div>
     </div>
 
-    <!-- ============================================
-    * 快捷操作說明
-    * ============================================ -->
+    <div class="divider"></div>
+
+    <!-- 輸入模式說明 -->
     <div class="content-section">
-        <h2 class="section-title">⚡ 快捷操作技巧</h2>
+        <h2 class="section-title">輸入模式說明</h2>
         
-        <h3 class="sub-title">雙重鍵盤切換</h3>
-        <p>「直接輸入」模式：適合快速輸入純數字，每個按鍵顯示阿拉伯數字和對應的中文大寫。「計算機」模式：支援完整四則運算，含稅外加、愛心動畫等特殊功能。</p>
+        <h3 class="sub-title">直接輸入模式</h3>
+        <p>適用於已知確切金額的情況。使用數字鍵盤直接輸入總金額，每個按鈕同時顯示阿拉伯數字與對應的國字大寫，方便核對。</p>
+        
+        <h3 class="sub-title">計算機模式</h3>
+        <p>適用於需要計算總金額的情況。提供完整的計算功能，包括加減乘除、稅外加計算等。計算結果會自動填入總金額欄位。</p>
         
         <h3 class="sub-title">稅外加功能</h3>
-        <p>計算機模式下的「稅外加」按鈕可將當前數值乘以1.05，快速計算含稅金額。適用於已知未稅金額，需要計算含稅總額的情況。</p>
+        <p>計算機模式中的特殊功能，將當前數值乘以1.05，快速計算含稅總額。特別適用於客戶提供未稅金額，需要計算含稅支票金額的情況。</p>
         
-        <h3 class="sub-title">即時轉換查看</h3>
-        <p>輸入數字後立即顯示四種格式：未稅金額、稅金、傳統中文、財務大寫。財務大寫使用特殊標記顯示，便於識別正式用途。</p>
-        
-        <h3 class="sub-title">數字輸入限制</h3>
-        <p>系統限制最多輸入9位數，超過限制時會顯示趣味警告提示。支援清除、退回等編輯操作，確保輸入準確性。</p>
+        <h3 class="sub-title">輸入限制說明</h3>
+        <p>為確保計算準確性與實用性，系統限制輸入金額最多為9位數（不超過億元）。超過限制時會顯示警告提示。</p>
     </div>
 
-    <!-- ============================================
-    * 數值警告說明
-    * ============================================ -->
+    <div class="divider"></div>
+
+    <!-- 數字轉換功能 -->
     <div class="content-section">
-        <h2 class="section-title">⚠️ 警告提示說明</h2>
+        <h2 class="section-title">數字轉換功能</h2>
         
-        <h3 class="sub-title">數值範圍警告</h3>
-        <p>當輸入數字超過9位數時，系統會顯示「發票金額別亂開！會被查稅喔！」的趣味警告，提醒注意合理金額範圍。</p>
+        <h3 class="sub-title">繁體中文轉換</h3>
+        <p>將阿拉伯數字轉換為繁體中文數字格式，如：123456 轉換為「十二萬三千四百五十六」。適用於一般文件記錄。</p>
         
-        <h3 class="sub-title">輸入格式驗證</h3>
-        <p>系統僅接受正整數輸入，輸入非數字字符時會顯示「請輸入正整數」提示。空白輸入時所有轉換結果自動清空。</p>
+        <h3 class="sub-title">國字大寫轉換</h3>
+        <p>轉換為財務專用的國字大寫格式，如：123456 轉換為「壹拾貳萬參仟肆佰伍拾陸」。此格式專用於正式支票填寫，防止數字被篡改。</p>
         
-        <h3 class="sub-title">計算錯誤處理</h3>
-        <p>計算機模式下，無效運算式會顯示「錯誤」並在1秒後自動重置。除以零等非法運算會觸發錯誤處理機制。</p>
+        <h3 class="sub-title">零的處理規則</h3>
+        <p>系統採用標準的中文數字表示規則，正確處理零的位置。例如：10005 轉換為「壹萬零伍」，確保符合正式文件要求。</p>
         
-        <h3 class="sub-title">轉換異常提醒</h3>
-        <p>當數字轉換過程中發生異常時，系統會顯示具體錯誤訊息，協助使用者判斷問題原因並進行修正。</p>
+        <h3 class="sub-title">元整標記</h3>
+        <p>所有轉換結果自動加上「元整」後綴，符合支票填寫的標準格式要求。</p>
     </div>
 
-    <!-- ============================================
-    * 計算公式說明
-    * ============================================ -->
+    <div class="divider"></div>
+
+    <!-- 稅金計算說明 -->
     <div class="content-section">
-        <h2 class="section-title">📊 計算公式說明</h2>
+        <h2 class="section-title">稅金計算說明</h2>
         
-        <h3 class="sub-title">營業稅計算公式</h3>
-        <p>未稅金額 = 總金額 ÷ 1.05（四捨五入至整數）</p>
-        <p>稅金 = 總金額 - 未稅金額</p>
-        <p>依據現行稅法規定，採用5%營業稅率進行自動計算分離。</p>
+        <h3 class="sub-title">營業稅計算方式</h3>
+        <p>系統採用標準的5%營業稅計算方式。輸入含稅總金額後，自動計算未稅金額 = 總金額 ÷ 1.05，稅金 = 總金額 - 未稅金額。</p>
         
-        <h3 class="sub-title">稅外加計算方式</h3>
-        <p>含稅金額 = 未稅金額 × 1.05（四捨五入至小數點後兩位）</p>
-        <p>適用於已知未稅金額，需要計算加稅後總金額的情況。</p>
+        <h3 class="sub-title">四捨五入處理</h3>
+        <p>稅金計算結果自動進行四捨五入至整數，確保金額計算的準確性與實用性。</p>
         
-        <h3 class="sub-title">中文轉換規則</h3>
-        <p>傳統中文：使用一、二、三、四、五、六、七、八、九、十、百、千、萬等傳統數字。</p>
-        <p>財務大寫：使用壹、貳、參、肆、伍、陸、柒、捌、玖、拾、佰、仟、萬等正式大寫數字，符合財務文件標準。</p>
+        <h3 class="sub-title">稅金檢核功能</h3>
+        <p>系統會自動檢核未稅金額 + 稅金是否等於總金額，確保計算無誤。</p>
         
-        <h3 class="sub-title">數位轉換處理</h3>
-        <p>支援最大9位數轉換，自動處理萬、十萬、百萬、千萬等單位。特殊處理「零」的顯示規則，確保中文數字表達正確。</p>
+        <h3 class="sub-title">稅外加應用</h3>
+        <p>當客戶提供未稅金額時，可使用計算機模式的「稅外加」功能，快速計算出含稅總額，再進行支票開立。</p>
     </div>
 
-    <!-- ============================================
-    * 歷史記錄功能說明
-    * ============================================ -->
+    <div class="divider"></div>
+
+    <!-- 歷史記錄功能 -->
     <div class="content-section">
-        <h2 class="section-title">📚 歷史記錄功能</h2>
+        <h2 class="section-title">歷史記錄功能</h2>
         
         <h3 class="sub-title">保存發票記錄</h3>
-        <p>點擊「保存發票」按鈕，系統會自動儲存當前的完整轉換結果，包含總金額、未稅金額、稅金、傳統中文、財務大寫等完整資訊，並記錄儲存時間。</p>
+        <p>點擊「保存發票」按鈕，系統會自動儲存當前的完整計算結果，包括時間戳記，方便日後追蹤。</p>
         
-        <h3 class="sub-title">記錄查看功能</h3>
-        <p>歷史記錄以卡片形式展示，包含日期、金額詳情和轉換結果。支援快速查看所有欄位資訊，方便比較和核對不同發票記錄。</p>
+        <h3 class="sub-title">記錄檢視功能</h3>
+        <p>「歷史記錄」功能可查看所有已儲存的開票記錄，包含開票日期、總金額、未稅金額、稅金、國字大寫等完整資訊。</p>
         
         <h3 class="sub-title">記錄管理操作</h3>
-        <p>「查看」：將歷史記錄的數值載入到當前介面，方便重複使用或修改。</p>
-        <p>「刪除」：移除不需要的單筆記錄。</p>
-        <p>「全部刪除」：清空所有歷史記錄，需確認操作。</p>
+        <p>每筆記錄支援「查看」和「刪除」操作。「查看」可將歷史記錄的數值載入到計算介面，方便修改調整。「刪除」可移除不需要的記錄。</p>
+        
+        <h3 class="sub-title">批量管理功能</h3>
+        <p>提供「全部刪除」功能，可一次清空所有歷史記錄。刪除前會顯示確認對話框，防止誤操作。</p>
         
         <h3 class="sub-title">資料安全性</h3>
-        <p>所有記錄儲存在瀏覽器本地，不會上傳到伺服器，確保發票資料的隱私安全。支援長期保存，除非主動刪除或清除瀏覽器資料。</p>
+        <p>所有記錄儲存在瀏覽器本地，不會上傳到伺服器，確保客戶資料的隱私安全。</p>
     </div>
 
-    <!-- ============================================
-    * 實用操作技巧
-    * ============================================ -->
+    <div class="divider"></div>
+
+    <!-- 實用操作技巧 -->
     <div class="content-section">
-        <h2 class="section-title">💡 實用操作技巧</h2>
+        <h2 class="section-title">實用操作技巧</h2>
         
-        <h3 class="sub-title">快速轉換技巧</h3>
-        <p>利用即時轉換功能，輸入數字立即查看中文大寫結果，適合快速核對發票填寫內容。財務大寫顯示特殊標記，便於識別正式用途。</p>
+        <h3 class="sub-title">快速金額輸入</h3>
+        <p>使用數字鍵盤時，可參考按鈕上的國字大寫進行快速核對，避免輸入錯誤。清除按鈕可快速清空重新輸入。</p>
         
-        <h3 class="sub-title">計算模式選擇</h3>
-        <p>簡單金額使用「直接輸入」模式，快速輸入數字。複雜計算使用「計算機」模式，支援加減乘除和稅外加功能。</p>
+        <h3 class="sub-title">計算機模式技巧</h3>
+        <p>計算複雜金額時，善用計算機模式的各種運算功能。稅外加功能特別適用於客戶提供未稅金額的情況。</p>
         
-        <h3 class="sub-title">稅金分離應用</h3>
-        <p>開立發票時輸入總金額，系統自動分離未稅金額和稅金，無需手動計算。適用於需要分別記錄銷售額和稅額的情況。</p>
+        <h3 class="sub-title">愛心彩蛋功能</h3>
+        <p>點擊計算機模式中的愛心按鈕，會觸發特殊的火雞肉飯動畫效果，為工作增添樂趣。</p>
         
-        <h3 class="sub-title">記錄管理策略</h3>
-        <p>重要的轉換記錄建議及時保存，避免重複計算。定期檢查歷史記錄，適時清理過期或錯誤的資料。</p>
+        <h3 class="sub-title">記錄備份建議</h3>
+        <p>重要的開票記錄建議加上詳細備註，並定期檢查歷史記錄，適時清理過期資料。</p>
         
-        <h3 class="sub-title">趣味功能運用</h3>
-        <p>計算機模式中的愛心按鈕會觸發「雞肉飯真好吃」動畫，增加使用樂趣。適合工作間隙的輕鬆時刻。</p>
+        <h3 class="sub-title">錯誤修正流程</h3>
+        <p>發現輸入錯誤時，可使用退回按鈕逐位刪除，或直接使用清除按鈕重新開始。歷史記錄中的「查看」功能也可用於修正舊記錄。</p>
     </div>
 
-    <!-- ============================================
-    * 重要注意事項
-    * ============================================ -->
+    <div class="divider"></div>
+
+    <!-- 注意事項與限制 -->
+    <div class="content-section">
+        <h2 class="section-title">注意事項與限制</h2>
+        
+        <h3 class="sub-title">金額輸入限制</h3>
+        <p>系統限制輸入金額最多為9位數，超過此限制會顯示警告。這是為了確保實用性，因為過大金額在實際業務中較少使用。</p>
+        
+        <h3 class="sub-title">只支援正整數</h3>
+        <p>直接輸入模式只接受正整數輸入，不支援小數點或負數。如需處理小數，請使用計算機模式。</p>
+        
+        <h3 class="sub-title">計算精確度</h3>
+        <p>稅金計算會進行四捨五入至整數，這可能與精確計算有1元的差異，但符合實際開票需求。</p>
+        
+        <h3 class="sub-title">系統鍵盤限制</h3>
+        <p>為避免系統鍵盤干擾，總金額輸入欄位已設定為唯讀，僅能使用工具提供的數字鍵盤輸入。</p>
+    </div>
+
+    <!-- 重要注意事項 -->
     <div class="important-note">
-        <p>請注意：本工具僅供數字轉換參考使用，正式發票開立需依據相關稅法規定。建議在重要文件使用前進行多重驗證，確保轉換結果的準確性。</p>
+        <p>請注意：本工具僅供業務參考使用，實際支票開立須以正式流程為準。建議在重要決策前進行多重驗證。</p>
     </div>
 
     <div class="important-note">
-        <p>營業稅提醒：本工具採用5%標準稅率計算，特殊行業或免稅商品可能適用不同稅率。正式開立發票前請確認適用的稅率規定。</p>
+        <p>資料安全提醒：所有計算資料儲存在本地瀏覽器中，清除瀏覽器資料將會遺失歷史記錄，請妥善管理重要資料。</p>
     </div>
 
-    <div class="important-note">
-        <p>資料安全提醒：所有轉換記錄儲存在本地瀏覽器中，清除瀏覽器資料將會遺失歷史記錄，請妥善管理重要資料。建議重要資訊另外備份保存。</p>
-    </div>
-
-    <!-- ============================================
-    * 關閉說明按鈕
-    * 說明：呼叫父頁面的關閉函數來關閉iframe說明頁面
-    * ============================================ -->
-    <button class="close-button" onclick="parent.closeInstructionPage()">關閉說明</button>
-
-    <!-- ============================================
-    * 頁面載入完成後的初始化腳本
-    * ============================================ -->
     <script>
         // 防止右鍵選單和長按選取（行動裝置優化）
         document.addEventListener('contextmenu', function(e) {
@@ -755,7 +591,7 @@
         // 防止文字選取（觸控裝置）
         document.addEventListener('selectstart', function(e) {
             // 允許特定區域的文字選取
-            if (!e.target.closest('.content-section p, .feature-list li, .step-description')) {
+            if (!e.target.closest('.content-section p, .feature-list li, .step-description, .important-note p')) {
                 e.preventDefault();
             }
         });
@@ -767,7 +603,7 @@
         
         // 頁面載入完成提示
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('發票數字轉換說明頁面載入完成');
+            console.log('支票計算工具說明頁面載入完成');
             
             // 追蹤頁面停留時間
             let startTime = Date.now();
@@ -778,12 +614,12 @@
                 if (typeof trackEvent === 'function') {
                     trackEvent('instruction_page_exit', {
                         stay_time_seconds: stayTime,
-                        instruction_type: 'invoice_calculator'
+                        instruction_type: 'invoice'
                     });
                 }
             });
             
-            // 添加觸控設備的震動反饋
+            // 添加觸控設備的震動回饋
             document.querySelectorAll('button, .feature-list li').forEach(element => {
                 element.addEventListener('click', function() {
                     if (navigator.vibrate) {
@@ -798,7 +634,7 @@
             // 向父頁面報告載入完成
             window.parent.postMessage({
                 type: 'instruction_loaded',
-                page: 'invoice_calculator_instruction'
+                page: 'invoice_instruction'
             }, '*');
         }
     </script>
