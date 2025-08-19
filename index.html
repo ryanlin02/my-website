@@ -314,6 +314,49 @@
             flex-shrink: 0;                                  /* 不縮小 */
             font-weight: bold;                               /* 粗體 */
         }
+
+        /* 主選單圖示樣式 - 三條橫線的漢堡選單圖示 */
+        .menu-icon {
+            width: 24px;                                    /* 圖示寬度 */
+            height: 18px;                                   /* 圖示高度 */
+            position: relative;                             /* 相對定位 */
+            cursor: pointer;                                /* 指標樣式 */
+            margin-right: 10px;                             /* 右側間距 */
+            display: flex;                                  /* 彈性佈局 */
+            flex-direction: column;                         /* 垂直排列 */
+            justify-content: space-between;                 /* 平均分配空間 */
+        }
+
+        /* 主選單圖示的三條橫線 */
+        .menu-icon::before,
+        .menu-icon::after,
+        .menu-icon .menu-line {
+            content: '';                                    /* 清空內容 */
+            width: 100%;                                    /* 滿寬度 */
+            height: 2px;                                    /* 線條高度 */
+            background-color: var(--accent-color);          /* 橘色線條 */
+            border-radius: 1px;                             /* 圓角 */
+            transition: all var(--transition-fast);        /* 動畫效果 */
+        }
+
+        /* 中間的橫線 */
+        .menu-icon .menu-line {
+            display: block;                                 /* 區塊顯示 */
+        }
+
+        /* 主選單圖示懸停效果 */
+        .menu-icon:hover::before,
+        .menu-icon:hover::after,
+        .menu-icon:hover .menu-line {
+            background-color: var(--text-color);           /* 懸停時變白色 */
+        }
+
+        /* 主標題容器 - 讓圖示和文字並排顯示 */
+        .title-container {
+            display: flex;                                  /* 彈性佈局 */
+            align-items: center;                            /* 垂直居中 */
+            cursor: pointer;                                /* 指標樣式 */
+        }
         
         /* ============================================
         * 導航按鈕設計 - 參考檔案風格
@@ -741,12 +784,50 @@
         <div class="main-menu-container">
             <!-- 主選單頂部 -->
             <div class="main-menu-header">
-                <h2 class="main-menu-title">主選單</h2>
+                <h2 class="main-menu-title">小朋友專用工具 主選單</h2>
                 <button class="main-menu-close" id="mainMenuClose">✕</button>
             </div>
             
             <!-- 主選單內容 -->
             <div class="main-menu-content">
+
+                <!-- 嘉義旅遊選項區塊 -->
+                <div class="menu-section">
+                    <h3 class="menu-section-title">嘉義旅遊</h3>
+                    <ul class="menu-items">
+                        <!-- 火雞肉飯的起源 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-external-url="https://travel.chiayi.gov.tw/StaticPage/TurkeyRiceOrigin">
+                                火雞肉飯的起源
+                            </a>
+                        </li>
+                        <!-- 嘉義火雞肉飯地圖 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-external-url="https://www.google.com/maps/d/u/0/viewer?mid=1fHuGwV5KoH2wb9WsWDcUBJjswDFd0fI0&ll=23.473329964007025%2C120.45345908891602&z=16">
+                                嘉義火雞肉飯地圖
+                            </a>
+                        </li>
+                        <!-- 嘉義市景點 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-external-url="https://travel.chiayi.gov.tw/StaticPage/FeaturedAttractions01">
+                                嘉義市景點
+                            </a>
+                        </li>
+                        <!-- 嘉義縣景點 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-external-url="https://tbocc.cyhg.gov.tw/cp.aspx?n=100327">
+                                嘉義縣景點
+                            </a>
+                        </li>
+                        <!-- 嘉義市購物節 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-external-url="https://www.facebook.com/Chiayishoppingfestival/?locale=zh_TW">
+                                嘉義市購物節｜07/01~10/12
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
                 <!-- 工具說明區塊 -->
                 <div class="menu-section">
                     <h3 class="menu-section-title">工具說明</h3>
@@ -789,7 +870,15 @@
     * 頁面標題區域 - Header
     * ============================================ -->
     <div class="header-container">
-        <h1 class="page-title" id="mainTitle" style="cursor: pointer;">小朋友專用</h1>
+        <!-- 主標題與主選單圖示容器 -->
+        <div class="title-container" id="mainTitle">
+            <!-- 主選單圖示 - 三條橫線 -->
+            <div class="menu-icon">
+                <span class="menu-line"></span>
+            </div>
+            <!-- 主標題文字 -->
+            <h1 class="page-title">小朋友</h1>
+        </div>
         <div class="nav-buttons">
             <button class="nav-btn active" data-page="calculator">計算</button>
             <button class="nav-btn" data-page="check">支票</button>
@@ -1146,13 +1235,28 @@
                 }
             });
             
-            // 綁定工具說明項目點擊事件
+            // 綁定選單項目點擊事件 - 處理工具說明和外部連結
             menuItemLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault(); // 防止預設連結行為
                     
-                    const instructionType = this.getAttribute('data-instruction');
-                    openInstructionPage(instructionType);
+                    // 檢查是否為外部連結 - 新增嘉義旅遊連結處理
+                    const externalUrl = this.getAttribute('data-external-url');
+                    
+                    if (externalUrl) {
+                        // 處理外部連結 - 在新分頁開啟
+                        console.log(`開啟外部連結: ${externalUrl}`);
+                        window.open(externalUrl, '_blank', 'noopener,noreferrer');
+                        
+                        // 開啟外部連結後關閉主選單
+                        closeMainMenu();
+                    } else {
+                        // 處理工具說明連結 - 原有功能
+                        const instructionType = this.getAttribute('data-instruction');
+                        if (instructionType) {
+                            openInstructionPage(instructionType);
+                        }
+                    }
                 });
             });
             
