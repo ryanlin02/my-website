@@ -2,12 +2,12 @@
     "name": "小朋友工具",
     "short_name": "小朋友工具",
     "description": "小朋友專用的實用工具集合，包含計算機、支票、發票、加油等功能",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "小朋友工具開發團隊",
     "lang": "zh-TW",
     "dir": "ltr",
-    "scope": "/",
-    "start_url": "/",
+    "scope": "/my-website/",
+    "start_url": "/my-website/",
     "display": "standalone",
     "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
     "orientation": "portrait",
@@ -29,7 +29,7 @@
             "name": "計算功能",
             "short_name": "計算",
             "description": "開啟計算機功能",
-            "url": "/?page=calculator",
+            "url": "/my-website/?page=calculator",
             "icons": [
                 {
                     "src": "icons/icon-192.png",
@@ -42,7 +42,7 @@
             "name": "支票功能",
             "short_name": "支票", 
             "description": "開啟支票相關功能",
-            "url": "/?page=check",
+            "url": "/my-website/?page=check",
             "icons": [
                 {
                     "src": "icons/icon-192.png",
@@ -55,7 +55,7 @@
             "name": "發票功能",
             "short_name": "發票",
             "description": "開啟發票相關功能", 
-            "url": "/?page=invoice",
+            "url": "/my-website/?page=invoice",
             "icons": [
                 {
                     "src": "icons/icon-192.png",
@@ -68,7 +68,7 @@
             "name": "加油功能",
             "short_name": "加油",
             "description": "開啟加油相關功能",
-            "url": "/?page=gas",
+            "url": "/my-website/?page=gas",
             "icons": [
                 {
                     "src": "icons/icon-192.png",
