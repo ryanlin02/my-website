@@ -720,6 +720,27 @@
             display: block;                             /* 顯示 */
         }
 
+        /* Privacy Policy 隱私政策頁面iframe樣式 */
+        .privacy-policy-iframe {
+            position: fixed;                             /* 固定定位覆蓋整個螢幕 */
+            top: 0;                                     /* 從頂部開始 */
+            left: 0;                                    /* 從左側開始 */
+            width: 100%;                                /* 全寬度覆蓋 */
+            height: 100%;                               /* 全高度覆蓋 */
+            border: none;                               /* 無邊框 */
+            background: var(--primary-color);          /* 與網站一致的背景色 */
+            z-index: 10002;                            /* 比說明頁面更高層級 */
+            display: none;                              /* 預設隱藏 */
+            opacity: 0;                                 /* 初始透明 */
+            transition: opacity var(--transition-normal); /* 淡入淡出動畫 */
+        }
+
+        /* Privacy Policy iframe 顯示狀態 */
+        .privacy-policy-iframe.show {
+            display: block;                             /* 顯示iframe */
+            opacity: 1;                                 /* 完全不透明 */
+        }
+
     </style>
 </head>
 
@@ -858,14 +879,20 @@
                     </ul>
                 </div>
 
-                <!-- 討論區區塊 - 新增區塊 -->
+                <!-- 關於小朋友區塊 - 新增區塊 -->
                 <div class="menu-section">
-                    <h3 class="menu-section-title">討論區</h3>
+                    <h3 class="menu-section-title">關於小朋友</h3>
                     <ul class="menu-items">
                         <!-- 小朋友專用工具討論區連結 -->
                         <li class="menu-item">
                             <a href="#" class="menu-item-link" data-external-url="https://line.me/ti/g2/IWii_nhwqKjLpTZxSNThsQeOZmSfOw84dHK4IA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default">
                                 小朋友專用工具討論區
+                            </a>
+                        </li>
+                        <!-- Privacy Policy 隱私政策頁面連結 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-privacy-policy="true">
+                                Privacy Policy
                             </a>
                         </li>
                     </ul>
@@ -881,6 +908,9 @@
 
     <!-- 說明頁面iframe -->
     <iframe class="instruction-iframe" id="instructionIframe"></iframe>
+
+    <!-- Privacy Policy 隱私政策頁面iframe -->
+    <iframe class="privacy-policy-iframe" id="privacyPolicyIframe"></iframe>
 
     <!-- ============================================
     * 頁面標題區域 - Header
@@ -1267,23 +1297,36 @@
                         // 開啟外部連結後關閉主選單
                         closeMainMenu();
                     } else {
-                        // 處理工具說明連結 - 原有功能
-                        const instructionType = this.getAttribute('data-instruction');
-                        if (instructionType) {
-                            openInstructionPage(instructionType);
+                        // 處理Privacy Policy連結 - 新增功能
+                        const isPrivacyPolicy = this.getAttribute('data-privacy-policy');
+                        if (isPrivacyPolicy === 'true') {
+                            openPrivacyPolicy();
+                        } else {
+                            // 處理工具說明連結 - 原有功能
+                            const instructionType = this.getAttribute('data-instruction');
+                            if (instructionType) {
+                                openInstructionPage(instructionType);
+                            }
                         }
                     }
                 });
             });
             
-            // 監聽 ESC 鍵關閉主選單
+            // 監聽 ESC 鍵關閉主選單和各種頁面
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    // 優先關閉說明頁面
-                    if (instructionIframe.classList.contains('show')) {
+                    // 檢查Privacy Policy iframe是否存在並顯示中
+                    const privacyIframe = document.getElementById('privacyPolicyIframe');
+                    
+                    // 最優先關閉Privacy Policy頁面
+                    if (privacyIframe && privacyIframe.classList.contains('show')) {
+                        closePrivacyPolicy();
+                    } 
+                    // 其次關閉說明頁面
+                    else if (instructionIframe.classList.contains('show')) {
                         closeInstructionPage();
                     } 
-                    // 其次關閉主選單
+                    // 最後關閉主選單
                     else if (mainMenuOverlay.classList.contains('show')) {
                         closeMainMenu();
                     }
@@ -1372,6 +1415,76 @@
             
             console.log('說明頁面已關閉');
         }
+
+        /**
+         * 開啟Privacy Policy隱私政策頁面
+         * 使用全版面iframe顯示隱私政策內容
+         */
+        function openPrivacyPolicy() {
+            const privacyIframe = document.getElementById('privacyPolicyIframe');
+            
+            // 設定iframe來源為about資料夾中的Privacy Policy頁面
+            privacyIframe.src = 'about/privacy-policy.html';
+            
+            // 顯示Privacy Policy iframe
+            privacyIframe.classList.add('show');
+            
+            // 關閉主選單
+            closeMainMenu();
+            
+            // 發送GA4追蹤事件
+            if (typeof trackEvent === 'function') {
+                trackEvent('privacy_policy_open', {
+                    open_method: 'main_menu',
+                    page_source: 'main_page'
+                });
+            }
+            
+            console.log('Privacy Policy頁面已開啟');
+        }
+
+        /**
+         * 關閉Privacy Policy隱私政策頁面
+         * 隱藏iframe並清空來源
+         */
+        function closePrivacyPolicy() {
+            const privacyIframe = document.getElementById('privacyPolicyIframe');
+            
+            // 隱藏Privacy Policy iframe
+            privacyIframe.classList.remove('show');
+            
+            // 延遲清空iframe來源以確保動畫完成
+            setTimeout(() => {
+                privacyIframe.src = '';
+            }, 300);
+            
+            // 發送GA4追蹤事件
+            if (typeof trackEvent === 'function') {
+                trackEvent('privacy_policy_close', {
+                    close_method: 'parent_function',
+                    page_source: 'main_page'
+                });
+            }
+            
+            console.log('Privacy Policy頁面已關閉');
+        }
+
+        /**
+         * 監聽來自Privacy Policy頁面的訊息
+         * 處理iframe內部發送的關閉請求
+         */
+        window.addEventListener('message', function(event) {
+            // 確保訊息來源安全
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+            
+            // 處理來自Privacy Policy頁面的關閉請求
+            if (event.data && event.data.type === 'closePrivacyPolicy') {
+                closePrivacyPolicy();
+                console.log('收到Privacy Policy頁面關閉請求');
+            }
+        });
 
     </script>
 </body>
