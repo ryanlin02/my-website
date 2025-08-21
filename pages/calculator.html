@@ -2519,12 +2519,12 @@
     
         <div id="periodButtons">
             <button onclick="adjustPeriod(-1)">-1</button>
-            <button onclick="setPeriod(13)">底</button>
-            <button onclick="setPeriod(24)">2</button>
-            <button onclick="setPeriod(36)">3</button>
-            <button onclick="setPeriod(48)">4</button>
-            <button onclick="setPeriod(60)">5</button>
-            <button onclick="setPeriod(72)">6</button>
+            <button onclick="setPeriod(12)">1</button>     <!-- 已修改：文字改為「1」，功能改為設定期數12 -->
+            <button onclick="setPeriod(24)">2</button>      <!-- 原本的「2」按鍵，代表24期（2年） -->
+            <button onclick="setPeriod(36)">3</button>      <!-- 原本的「3」按鍵，代表36期（3年） -->
+            <button onclick="setPeriod(48)">4</button>      <!-- 原本的「4」按鍵，代表48期（4年） -->
+            <button onclick="setPeriod(60)">5</button>      <!-- 原本的「5」按鍵，代表60期（5年） -->
+            <button onclick="setPeriod(72)">6</button>      <!-- 原本的「6」按鍵，代表72期（6年） -->
             <button onclick="adjustPeriod(1)">+1</button>
         </div>
     </div>
@@ -2739,7 +2739,7 @@
     <div class="row">
         <span class="label">NPV</span>
         <input type="text" id="fundingCost" class="readonly" readonly>
-        <span class="helper-text">稅佣後預估</span>
+        <span class="helper-text">稅佣後估算</span>
     </div>
 
     <!-- 按鈕區域重新組織 -->
