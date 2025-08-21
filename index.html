@@ -741,6 +741,27 @@
             opacity: 1;                                 /* 完全不透明 */
         }
 
+        /* Terms of Service 服務條款頁面iframe樣式 */
+        .terms-of-service-iframe {
+            position: fixed;                             /* 固定定位覆蓋整個螢幕 */
+            top: 0;                                     /* 從頂部開始 */
+            left: 0;                                    /* 從左側開始 */
+            width: 100%;                                /* 全寬度覆蓋 */
+            height: 100%;                               /* 全高度覆蓋 */
+            border: none;                               /* 無邊框 */
+            background: var(--primary-color);          /* 與網站一致的背景色 */
+            z-index: 10003;                            /* 比Privacy Policy更高層級 */
+            display: none;                              /* 預設隱藏 */
+            opacity: 0;                                 /* 初始透明 */
+            transition: opacity var(--transition-normal); /* 淡入淡出動畫 */
+        }
+
+        /* Terms of Service iframe 顯示狀態 */
+        .terms-of-service-iframe.show {
+            display: block;                             /* 顯示iframe */
+            opacity: 1;                                 /* 完全不透明 */
+        }
+
     </style>
 </head>
 
@@ -895,6 +916,12 @@
                                 Privacy Policy
                             </a>
                         </li>
+                        <!-- Terms of Service 服務條款頁面連結 -->
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-terms-of-service="true">
+                                Terms of Service
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -911,6 +938,9 @@
 
     <!-- Privacy Policy 隱私政策頁面iframe -->
     <iframe class="privacy-policy-iframe" id="privacyPolicyIframe"></iframe>
+
+    <!-- Terms of Service 服務條款頁面iframe -->
+    <iframe class="terms-of-service-iframe" id="termsOfServiceIframe"></iframe>
 
     <!-- ============================================
     * 頁面標題區域 - Header
@@ -1302,10 +1332,16 @@
                         if (isPrivacyPolicy === 'true') {
                             openPrivacyPolicy();
                         } else {
-                            // 處理工具說明連結 - 原有功能
-                            const instructionType = this.getAttribute('data-instruction');
-                            if (instructionType) {
-                                openInstructionPage(instructionType);
+                            // 處理Terms of Service連結 - 新增功能
+                            const isTermsOfService = this.getAttribute('data-terms-of-service');
+                            if (isTermsOfService === 'true') {
+                                openTermsOfService();
+                            } else {
+                                // 處理工具說明連結 - 原有功能
+                                const instructionType = this.getAttribute('data-instruction');
+                                if (instructionType) {
+                                    openInstructionPage(instructionType);
+                                }
                             }
                         }
                     }
@@ -1315,14 +1351,20 @@
             // 監聽 ESC 鍵關閉主選單和各種頁面
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
+                    // 檢查Terms of Service iframe是否存在並顯示中
+                    const termsIframe = document.getElementById('termsOfServiceIframe');
                     // 檢查Privacy Policy iframe是否存在並顯示中
                     const privacyIframe = document.getElementById('privacyPolicyIframe');
                     
-                    // 最優先關閉Privacy Policy頁面
-                    if (privacyIframe && privacyIframe.classList.contains('show')) {
+                    // 最優先關閉Terms of Service頁面
+                    if (termsIframe && termsIframe.classList.contains('show')) {
+                        closeTermsOfService();
+                    }
+                    // 其次關閉Privacy Policy頁面
+                    else if (privacyIframe && privacyIframe.classList.contains('show')) {
                         closePrivacyPolicy();
                     } 
-                    // 其次關閉說明頁面
+                    // 再次關閉說明頁面
                     else if (instructionIframe.classList.contains('show')) {
                         closeInstructionPage();
                     } 
@@ -1470,7 +1512,60 @@
         }
 
         /**
-         * 監聽來自Privacy Policy頁面的訊息
+         * 開啟Terms of Service服務條款頁面
+         * 使用全版面iframe顯示服務條款內容
+         */
+        function openTermsOfService() {
+            const termsIframe = document.getElementById('termsOfServiceIframe');
+            
+            // 設定iframe來源為about資料夾中的Terms of Service頁面
+            termsIframe.src = 'about/terms-of-service.html';
+            
+            // 顯示Terms of Service iframe
+            termsIframe.classList.add('show');
+            
+            // 關閉主選單
+            closeMainMenu();
+            
+            // 發送GA4追蹤事件
+            if (typeof trackEvent === 'function') {
+                trackEvent('terms_of_service_open', {
+                    open_method: 'main_menu',
+                    page_source: 'main_page'
+                });
+            }
+            
+            console.log('Terms of Service頁面已開啟');
+        }
+
+        /**
+         * 關閉Terms of Service服務條款頁面
+         * 隱藏iframe並清空來源
+         */
+        function closeTermsOfService() {
+            const termsIframe = document.getElementById('termsOfServiceIframe');
+            
+            // 隱藏Terms of Service iframe
+            termsIframe.classList.remove('show');
+            
+            // 延遲清空iframe來源以確保動畫完成
+            setTimeout(() => {
+                termsIframe.src = '';
+            }, 300);
+            
+            // 發送GA4追蹤事件
+            if (typeof trackEvent === 'function') {
+                trackEvent('terms_of_service_close', {
+                    close_method: 'parent_function',
+                    page_source: 'main_page'
+                });
+            }
+            
+            console.log('Terms of Service頁面已關閉');
+        }
+
+        /**
+         * 監聽來自Privacy Policy和Terms of Service頁面的訊息
          * 處理iframe內部發送的關閉請求
          */
         window.addEventListener('message', function(event) {
@@ -1483,6 +1578,12 @@
             if (event.data && event.data.type === 'closePrivacyPolicy') {
                 closePrivacyPolicy();
                 console.log('收到Privacy Policy頁面關閉請求');
+            }
+            
+            // 處理來自Terms of Service頁面的關閉請求
+            if (event.data && event.data.type === 'closeTermsOfService') {
+                closeTermsOfService();
+                console.log('收到Terms of Service頁面關閉請求');
             }
         });
 
