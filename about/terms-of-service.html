@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Little Friend Tools - Terms of Service</title>
+
+    <!-- Google Analytics 4 追蹤代碼 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
+    <script>
+        // 檢查是否在 iframe 中
+        const isInIframe = window !== window.parent;
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // 設定當前頁面名稱
+        const currentPageName = 'terms_of_service';
+        
+        // 初始化 GA4 追蹤
+        gtag('config', 'G-XE5XMQR0Z1', {
+            page_title: `Little Friend Tools - Terms of Service`,
+            page_location: window.location.href,
+            page_path: window.location.pathname,
+            custom_map: {
+                'dimension3': 'is_iframe',
+                'dimension4': 'terms_of_service_page'
+            }
+        });
+        
+        /**
+         * 發送自訂事件到 GA4
+         * @param {string} eventName - 事件名稱
+         * @param {object} parameters - 事件參數
+         */
+        function trackEvent(eventName, parameters = {}) {
+            // 加入頁面資訊
+            parameters.page_type = currentPageName;
+            parameters.is_iframe = isInIframe;
+            
+            gtag('event', eventName, parameters);
+            console.log('GA4 Event (Terms of Service):', eventName, parameters);
+        }
+        
+        // 當頁面載入完成後初始化追蹤功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 追蹤服務條款頁面瀏覽
+            trackEvent('terms_of_service_view', {
+                view_type: 'terms_of_service',
+                feature: 'legal_information'
+            });
+            
+            // 追蹤滾動深度以了解使用者閱讀行為
+            let maxScrollDepth = 0;
+            let scrollTracked = {};
+            
+            window.addEventListener('scroll', function() {
+                const scrollDepth = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
+                
+                // 追蹤 25%, 50%, 75%, 100% 的滾動深度
+                [25, 50, 75, 100].forEach(threshold => {
+                    if (scrollDepth >= threshold && !scrollTracked[threshold]) {
+                        scrollTracked[threshold] = true;
+                        trackEvent('terms_of_service_scroll', {
+                            depth_percentage: threshold,
+                            content_type: 'terms_of_service'
+                        });
+                    }
+                });
+                
+                maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
+            });
+            
+            // 追蹤關閉按鈕點擊
+            const closeButton = document.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    trackEvent('terms_of_service_close', {
+                        button_type: 'close_button',
+                        scroll_depth: maxScrollDepth
+                    });
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* ============================================
+         * CSS變數定義域 - 與主頁面保持一致的外觀設計
+         * ============================================ */
+        
+        :root {
+            /* 尺寸相關變數 */
+            --border-radius-sm: 4px;          /* 小圓角 */
+            --border-radius-md: 8px;          /* 中圓角 */
+            --border-radius-lg: 12px;         /* 大圓角 */
+            
+            /* 間距尺寸變數 */
+            --spacing-xs: 2px;                /* 極小間距 */
+            --spacing-sm: 4px;                /* 小間距 */
+            --spacing-md: 8px;                /* 中間距 */
+            --spacing-lg: 15px;               /* 大間距 */
+            --spacing-xl: 20px;               /* 特大間距 */
+            
+            /* 字體大小變數 */
+            --font-size-xs: 12px;             /* 極小字體 */
+            --font-size-sm: 14px;             /* 小字體 */
+            --font-size-md: 16px;             /* 中字體 */
+            --font-size-lg: 18px;             /* 大字體 */
+            --font-size-xl: 22px;             /* 特大字體 */
+            
+            /* 動畫時間變數 */
+            --transition-fast: 0.1s;          /* 快速動畫 */
+            --transition-normal: 0.2s;        /* 標準動畫 */
+            --transition-slow: 0.3s;          /* 慢速動畫 */
+            
+            /* 陰影效果變數 */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 小陰影 */
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    /* 中陰影 */
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   /* 大陰影 */
+
+            /* Header相關變數 */
+            --header-height: 60px;            /* Header高度 */
+            --header-padding: 15px;           /* Header內距 */
+        }
+
+        /* 主題色彩定義 - 與主頁面保持一致 */
+        :root {
+            /* 基本色彩變數 */
+            --primary-color: #333333;         /* 主要背景色 */
+            --secondary-color: #4a4a4a;       /* 次要背景色 */
+            --text-color: #ffffff;            /* 文字顏色 */
+            --text-muted: #999999;            /* 淡化文字顏色 */
+            --border-color: #555555;          /* 邊框顏色 */
+            --hover-color: #666666;           /* 懸停背景色 */
+            --shadow-color: rgba(0, 0, 0, 0.3); /* 陰影顏色 */
+            
+            /* 強調色彩變數 */
+            --accent-color: #ff9c33;          /* 橘色強調色 */
+            --accent-color-light: rgba(255, 156, 51, 0.2); /* 淡橘色 */
+            --accent-color-dark: #e88a22;     /* 深橘色 */
+            
+            /* 功能色彩變數 */
+            --success-color: #33b5e5;         /* 成功色 */
+            --warning-color: #ff9c33;         /* 警告色 */
+            --error-color: #e74c3c;           /* 錯誤色 */
+            --info-color: #3498db;            /* 資訊色 */
+        }
+
+        /* ============================================
+         * 基本頁面設定
+         * ============================================ */
+        
+        * {
+            margin: 0;                         /* 重置所有外邊距 */
+            padding: 0;                        /* 重置所有內邊距 */
+            box-sizing: border-box;            /* 使用邊框盒模型 */
+        }
+
+        body {
+            width: 100%;                       /* 滿寬度 */
+            max-width: 400px;                  /* 最大寬度限制 */
+            margin: 0 auto;                    /* 水平居中 */
+            background-color: var(--primary-color); /* 背景色 */
+            color: var(--text-color);          /* 文字顏色 */
+            font-family: "Microsoft JhengHei", Arial, sans-serif; /* 字體設定 */
+            line-height: 1.6;                  /* 行高設定 */
+            padding-top: var(--header-height); /* 頂部留空給Header */
+            -webkit-text-size-adjust: 100%;    /* 防止字體縮放 */
+            -webkit-user-select: none;          /* 禁止選取（iOS） */
+            -moz-user-select: none;             /* 禁止選取（Firefox） */
+            user-select: none;                  /* 禁止選取 */
+        }
+
+        /* ============================================
+         * Header區域樣式 - 包含標題和關閉按鈕
+         * ============================================ */
+        
+        .page-header {
+            position: fixed;                   /* 固定在頂部 */
+            top: 0;                           /* 頂部對齊 */
+            left: 50%;                        /* 左側定位到中央 */
+            transform: translateX(-50%);       /* 水平居中對齊 */
+            width: 100%;                      /* 滿寬度 */
+            max-width: 400px;                 /* 最大寬度限制 */
+            height: var(--header-height);     /* 使用變數設定高度 */
+            background-color: var(--primary-color); /* 背景色 */
+            border-bottom: 2px solid var(--accent-color); /* 底部橘色邊框 */
+            display: flex;                    /* 彈性佈局 */
+            align-items: center;              /* 垂直居中 */
+            justify-content: space-between;   /* 兩端對齊 */
+            padding: 0 var(--header-padding); /* 左右內距 */
+            box-shadow: var(--shadow-sm);     /* 陰影效果 */
+            z-index: 1000;                    /* 確保在最上層 */
+            box-sizing: border-box;           /* 邊框盒模型 */
+        }
+
+        /* Header標題樣式 */
+        .page-title {
+            color: var(--text-color);         /* 白色文字 */
+            font-size: var(--font-size-xl);   /* 大字體 */
+            font-weight: bold;                /* 粗體 */
+            margin: 0;                        /* 移除預設邊距 */
+            flex: 1;                          /* 佔據剩餘空間 */
+        }
+
+        /* 關閉按鈕樣式 */
+        .close-button {
+            width: 32px;                      /* 按鈕寬度 */
+            height: 32px;                     /* 按鈕高度 */
+            background-color: var(--secondary-color); /* 次要背景色 */
+            border: none;                     /* 無邊框 */
+            border-radius: var(--border-radius-sm); /* 小圓角 */
+            color: var(--text-color);         /* 白色文字 */
+            font-size: var(--font-size-lg);   /* 大字體 */
+            cursor: pointer;                  /* 指標樣式 */
+            display: flex;                    /* 彈性佈局 */
+            align-items: center;              /* 垂直居中 */
+            justify-content: center;          /* 水平居中 */
+            transition: background-color var(--transition-fast); /* 背景色動畫 */
+            font-weight: bold;                /* 粗體 */
+        }
+
+        /* 關閉按鈕懸停效果 */
+        .close-button:hover {
+            background-color: var(--hover-color); /* 懸停背景色 */
+        }
+
+        /* 關閉按鈕點擊效果 */
+        .close-button:active {
+            background-color: var(--accent-color); /* 點擊時橘色背景 */
+            color: var(--primary-color);      /* 點擊時深色文字 */
+        }
+
+        /* ============================================
+         * 主要內容區域樣式
+         * ============================================ */
+        
+        .content-container {
+            padding: var(--spacing-xl);       /* 內容區域內距 */
+            max-height: calc(100vh - var(--header-height)); /* 最大高度限制 */
+            overflow-y: auto;                 /* 垂直滾動 */
+        }
+
+        /* 內容標題樣式 */
+        .content-title {
+            color: var(--accent-color);       /* 橘色標題 */
+            font-size: var(--font-size-lg);   /* 大字體 */
+            font-weight: bold;                /* 粗體 */
+            margin-bottom: var(--spacing-lg); /* 底部間距 */
+            border-left: 4px solid var(--accent-color); /* 左邊橘色邊框 */
+            padding-left: var(--spacing-md);  /* 左側內距 */
+        }
+
+        /* 段落樣式 */
+        .content-paragraph {
+            margin-bottom: var(--spacing-lg); /* 段落間距 */
+            font-size: var(--font-size-md);   /* 中字體 */
+            color: var(--text-color);         /* 白色文字 */
+            line-height: 1.8;                /* 增加行高提升可讀性 */
+        }
+
+        /* 重點強調文字樣式 */
+        .highlight {
+            color: var(--accent-color);       /* 橘色強調 */
+            font-weight: bold;                /* 粗體 */
+        }
+
+        /* 列表樣式 */
+        .content-list {
+            margin-bottom: var(--spacing-lg); /* 底部間距 */
+            padding-left: var(--spacing-xl);  /* 左側內距 */
+        }
+
+        .content-list li {
+            margin-bottom: var(--spacing-sm); /* 列表項目間距 */
+            color: var(--text-color);         /* 白色文字 */
+            font-size: var(--font-size-md);   /* 中字體 */
+        }
+
+        /* 分隔線樣式 */
+        .divider {
+            border: none;                     /* 移除預設邊框 */
+            height: 1px;                      /* 分隔線高度 */
+            background-color: var(--border-color); /* 邊框色 */
+            margin: var(--spacing-xl) 0;      /* 上下間距 */
+        }
+
+        /* 重要聲明樣式 */
+        .important-notice {
+            background-color: var(--accent-color-light); /* 淡橘色背景 */
+            border-left: 4px solid var(--accent-color); /* 左邊橘色邊框 */
+            padding: var(--spacing-lg);       /* 內距 */
+            margin-bottom: var(--spacing-lg); /* 底部間距 */
+            border-radius: var(--border-radius-sm); /* 小圓角 */
+        }
+
+        /* ============================================
+         * 響應式設計 - 針對不同螢幕尺寸優化
+         * ============================================ */
+        
+        /* 針對較小螢幕調整 */
+        @media screen and (max-width: 380px) {
+            .page-title {
+                font-size: var(--font-size-lg); /* 較小標題字體 */
+            }
+            
+            .content-container {
+                padding: var(--spacing-lg);    /* 減少內距 */
+            }
+            
+            .content-paragraph {
+                font-size: var(--font-size-sm); /* 較小文字 */
+            }
+        }
+
+        /* 針對觸控設備優化 */
+        @media (hover: none) {
+            .close-button:hover {
+                background-color: var(--secondary-color); /* 取消懸停效果 */
+            }
+        }
+
+        /* 確保可滾動內容在手機上有適當的滾動行為 */
+        .content-container {
+            -webkit-overflow-scrolling: touch; /* iOS平滑滾動 */
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- ============================================
+     * 頁面Header - 包含標題和關閉按鈕
+     * ============================================ -->
+    <header class="page-header">
+        <!-- 頁面標題 -->
+        <h1 class="page-title">Terms of Service</h1>
+        
+        <!-- 關閉按鈕 - 點擊後關閉此頁面 -->
+        <button class="close-button" onclick="closeTermsOfService()" title="Close Terms of Service Page">
+            ✕
+        </button>
+    </header>
+
+    <!-- ============================================
+     * 主要內容區域
+     * ============================================ -->
+    <main class="content-container">
+        
+        <!-- Terms of Service 生效日期 -->
+        <div class="content-paragraph">
+            <strong class="highlight">Effective Date:</strong> August 21, 2025
+        </div>
+
+        <!-- Terms of Service 介紹 -->
+        <div class="content-paragraph">
+            Welcome to <span class="highlight">Little Friend Tools</span>! These Terms of Service govern your use of our calculation tools and services. By using our services, you agree to these terms.
+        </div>
+
+        <hr class="divider">
+
+        <!-- 1. Service Description -->
+        <h2 class="content-title">1. Service Description</h2>
+        
+        <div class="content-paragraph">
+            Little Friend Tools provides financial calculation services including:
+        </div>
+        
+        <ul class="content-list">
+            <li><span class="highlight">Loan Interest Calculator:</span> Calculate loan payments and interest rates</li>
+            <li><span class="highlight">Check Writing Calculator:</span> Generate check amounts in different formats</li>
+            <li><span class="highlight">Invoice Number Converter:</span> Convert numerical amounts to written form</li>
+            <li><span class="highlight">Gas Price Calculator:</span> Calculate fuel costs and discounts</li>
+        </ul>
+
+        <!-- 2. User Responsibilities -->
+        <h2 class="content-title">2. User Responsibilities</h2>
+        
+        <div class="content-paragraph">
+            When using our services, you agree to:
+        </div>
+        
+        <ul class="content-list">
+            <li>Use the tools for legitimate business and personal purposes only</li>
+            <li>Provide accurate input data for calculations</li>
+            <li>Verify all calculation results independently</li>
+            <li>Not attempt to access unauthorized areas of the service</li>
+            <li>Respect intellectual property rights</li>
+        </ul>
+
+        <!-- 3. Important Disclaimer -->
+        <div class="important-notice">
+            <h2 class="content-title" style="margin-bottom: 10px; border: none; padding: 0;">Important Disclaimer</h2>
+            <div class="content-paragraph" style="margin-bottom: 0;">
+                <span class="highlight">All calculation results are for reference purposes only.</span> We strongly recommend consulting with qualified financial professionals for important financial decisions. Our tools should not be used as the sole basis for financial planning or legal documentation.
+            </div>
+        </div>
+
+        <!-- 4. Limitation of Liability -->
+        <h2 class="content-title">4. Limitation of Liability</h2>
+        
+        <div class="content-paragraph">
+            To the maximum extent permitted by law:
+        </div>
+        
+        <ul class="content-list">
+            <li>We provide our services "as is" without warranties of any kind</li>
+            <li>We are not liable for any financial losses resulting from use of our calculators</li>
+            <li>We do not guarantee the accuracy of calculation results</li>
+            <li>Users are responsible for verifying all results independently</li>
+            <li>Our total liability shall not exceed the amount you paid for using our services</li>
+        </ul>
+
+        <!-- 5. Intellectual Property -->
+        <h2 class="content-title">5. Intellectual Property Rights</h2>
+        
+        <div class="content-paragraph">
+            All content, design, and functionality of Little Friend Tools is protected by intellectual property laws:
+        </div>
+        
+        <ul class="content-list">
+            <li>Software code, algorithms, and user interface design are our proprietary property</li>
+            <li>Users may use our tools for personal and business purposes</li>
+            <li>Reverse engineering or copying our tools is prohibited</li>
+            <li>All trademarks and logos are our property</li>
+        </ul>
+
+        <!-- 6. Service Availability -->
+        <h2 class="content-title">6. Service Availability</h2>
+        
+        <div class="content-paragraph">
+            We strive to provide reliable service but cannot guarantee uninterrupted access:
+        </div>
+        
+        <ul class="content-list">
+            <li>Services may be temporarily unavailable for maintenance</li>
+            <li>We reserve the right to modify or discontinue features</li>
+            <li>No guarantee of 100% uptime or availability</li>
+            <li>We will provide reasonable notice for planned maintenance</li>
+        </ul>
+
+        <!-- 7. Termination -->
+        <h2 class="content-title">7. Termination of Service</h2>
+        
+        <div class="content-paragraph">
+            We reserve the right to terminate or suspend access to our services:
+        </div>
+        
+        <ul class="content-list">
+            <li>For violation of these terms of service</li>
+            <li>For misuse or abuse of our tools</li>
+            <li>For activities that harm our service or other users</li>
+            <li>At our discretion with or without notice</li>
+        </ul>
+
+        <!-- 8. Changes to Terms -->
+        <h2 class="content-title">8. Changes to These Terms</h2>
+        
+        <div class="content-paragraph">
+            We may update these Terms of Service from time to time. Continued use of our services after changes indicates acceptance of the revised terms. We will notify users of significant changes through the application.
+        </div>
+
+        <!-- 9. Governing Law -->
+        <h2 class="content-title">9. Governing Law</h2>
+        
+        <div class="content-paragraph">
+            These terms are governed by applicable local laws. Any disputes will be resolved through appropriate legal channels in the jurisdiction where our services are provided.
+        </div>
+
+        <hr class="divider">
+
+        <!-- 頁尾說明 -->
+        <div class="content-paragraph" style="margin-top: 20px; text-align: center; color: var(--text-muted); font-size: var(--font-size-sm);">
+            These Terms of Service constitute the complete agreement between you and Little Friend Tools<br>
+            Thank you for using our calculation tools responsibly!
+        </div>
+
+    </main>
+
+    <!-- ============================================
+     * JavaScript功能程式碼
+     * ============================================ -->
+    <script>
+        /**
+         * 關閉服務條款頁面的函數
+         * 此函數會被父視窗的JavaScript呼叫
+         */
+        function closeTermsOfService() {
+            // 發送關閉事件追蹤
+            trackEvent('terms_of_service_close', {
+                close_method: 'close_button',
+                page_source: 'terms_of_service'
+            });
+            
+            // 通知父視窗關閉此頁面
+            // 這個訊息會被主頁面的JavaScript接收
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'closeTermsOfService',
+                    source: 'terms-of-service'
+                }, '*');
+            }
+            
+            console.log('Terms of Service page close request sent');
+        }
+
+        /**
+         * 處理ESC鍵關閉功能
+         */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTermsOfService();
+            }
+        });
+
+        /**
+         * 防止頁面選取和右鍵選單（與主頁面保持一致）
+         */
+        
+        // 禁止右鍵選單
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // 禁止文字選取（觸控裝置）
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+        
+        // 禁止拖拽
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+
+        console.log('Terms of Service page - JavaScript loaded successfully');
+    </script>
+
+</body>
+</html>
