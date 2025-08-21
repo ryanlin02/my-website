@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <title>Little Friend Tools - Privacy Policy</title>
+
+    <!-- Google Analytics 4 追蹤代碼 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
+    <script>
+        // 檢查是否在 iframe 中
+        const isInIframe = window !== window.parent;
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // 設定當前頁面名稱
+        const currentPageName = 'privacy_policy';
+        
+        // 初始化 GA4 追蹤
+        gtag('config', 'G-XE5XMQR0Z1', {
+            page_title: `Little Friend Tools - Privacy Policy`,
+            page_location: window.location.href,
+            page_path: window.location.pathname,
+            custom_map: {
+                'dimension3': 'is_iframe',
+                'dimension4': 'privacy_policy_page'
+            }
+        });
+        
+        /**
+         * 發送自訂事件到 GA4
+         * @param {string} eventName - 事件名稱
+         * @param {object} parameters - 事件參數
+         */
+        function trackEvent(eventName, parameters = {}) {
+            // 加入頁面資訊
+            parameters.page_type = currentPageName;
+            parameters.is_iframe = isInIframe;
+            
+            gtag('event', eventName, parameters);
+            console.log('GA4 Event (Privacy Policy):', eventName, parameters);
+        }
+        
+        // 當頁面載入完成後初始化追蹤功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 追蹤隱私政策頁面瀏覽
+            trackEvent('privacy_policy_view', {
+                view_type: 'privacy_policy',
+                feature: 'privacy_information'
+            });
+            
+            // 追蹤滾動深度以了解使用者閱讀行為
+            let maxScrollDepth = 0;
+            let scrollTracked = {};
+            
+            window.addEventListener('scroll', function() {
+                const scrollDepth = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
+                
+                // 追蹤 25%, 50%, 75%, 100% 的滾動深度
+                [25, 50, 75, 100].forEach(threshold => {
+                    if (scrollDepth >= threshold && !scrollTracked[threshold]) {
+                        scrollTracked[threshold] = true;
+                        trackEvent('privacy_policy_scroll', {
+                            depth_percentage: threshold,
+                            content_type: 'privacy_policy'
+                        });
+                    }
+                });
+                
+                maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
+            });
+            
+            // 追蹤關閉按鈕點擊
+            const closeButton = document.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    trackEvent('privacy_policy_close', {
+                        button_type: 'close_button',
+                        scroll_depth: maxScrollDepth
+                    });
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* ============================================
+         * CSS變數定義域 - 與主頁面保持一致的外觀設計
+         * ============================================ */
+        
+        :root {
+            /* 尺寸相關變數 */
+            --border-radius-sm: 4px;          /* 小圓角 */
+            --border-radius-md: 8px;          /* 中圓角 */
+            --border-radius-lg: 12px;         /* 大圓角 */
+            
+            /* 間距尺寸變數 */
+            --spacing-xs: 2px;                /* 極小間距 */
+            --spacing-sm: 4px;                /* 小間距 */
+            --spacing-md: 8px;                /* 中間距 */
+            --spacing-lg: 15px;               /* 大間距 */
+            --spacing-xl: 20px;               /* 特大間距 */
+            
+            /* 字體大小變數 */
+            --font-size-xs: 12px;             /* 極小字體 */
+            --font-size-sm: 14px;             /* 小字體 */
+            --font-size-md: 16px;             /* 中字體 */
+            --font-size-lg: 18px;             /* 大字體 */
+            --font-size-xl: 22px;             /* 特大字體 */
+            
+            /* 動畫時間變數 */
+            --transition-fast: 0.1s;          /* 快速動畫 */
+            --transition-normal: 0.2s;        /* 標準動畫 */
+            --transition-slow: 0.3s;          /* 慢速動畫 */
+            
+            /* 陰影效果變數 */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 小陰影 */
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    /* 中陰影 */
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   /* 大陰影 */
+
+            /* Header相關變數 */
+            --header-height: 60px;            /* Header高度 */
+            --header-padding: 15px;           /* Header內距 */
+        }
+
+        /* 主題色彩定義 - 與主頁面保持一致 */
+        :root {
+            /* 基本色彩變數 */
+            --primary-color: #333333;         /* 主要背景色 */
+            --secondary-color: #4a4a4a;       /* 次要背景色 */
+            --text-color: #ffffff;            /* 文字顏色 */
+            --text-muted: #999999;            /* 淡化文字顏色 */
+            --border-color: #555555;          /* 邊框顏色 */
+            --hover-color: #666666;           /* 懸停背景色 */
+            --shadow-color: rgba(0, 0, 0, 0.3); /* 陰影顏色 */
+            
+            /* 強調色彩變數 */
+            --accent-color: #ff9c33;          /* 橘色強調色 */
+            --accent-color-light: rgba(255, 156, 51, 0.2); /* 淡橘色 */
+            --accent-color-dark: #e88a22;     /* 深橘色 */
+            
+            /* 功能色彩變數 */
+            --success-color: #33b5e5;         /* 成功色 */
+            --warning-color: #ff9c33;         /* 警告色 */
+            --error-color: #e74c3c;           /* 錯誤色 */
+            --info-color: #3498db;            /* 資訊色 */
+        }
+
+        /* ============================================
+         * 基本頁面設定
+         * ============================================ */
+        
+        * {
+            margin: 0;                         /* 重置所有外邊距 */
+            padding: 0;                        /* 重置所有內邊距 */
+            box-sizing: border-box;            /* 使用邊框盒模型 */
+        }
+
+        body {
+            width: 100%;                       /* 滿寬度 */
+            max-width: 400px;                  /* 最大寬度限制 */
+            margin: 0 auto;                    /* 水平居中 */
+            background-color: var(--primary-color); /* 背景色 */
+            color: var(--text-color);          /* 文字顏色 */
+            font-family: "Microsoft JhengHei", Arial, sans-serif; /* 字體設定 */
+            line-height: 1.6;                  /* 行高設定 */
+            padding-top: var(--header-height); /* 頂部留空給Header */
+            -webkit-text-size-adjust: 100%;    /* 防止字體縮放 */
+            -webkit-user-select: none;          /* 禁止選取（iOS） */
+            -moz-user-select: none;             /* 禁止選取（Firefox） */
+            user-select: none;                  /* 禁止選取 */
+        }
+
+        /* ============================================
+         * Header區域樣式 - 包含標題和關閉按鈕
+         * ============================================ */
+        
+        .page-header {
+            position: fixed;                   /* 固定在頂部 */
+            top: 0;                           /* 頂部對齊 */
+            left: 50%;                        /* 左側定位到中央 */
+            transform: translateX(-50%);       /* 水平居中對齊 */
+            width: 100%;                      /* 滿寬度 */
+            max-width: 400px;                 /* 最大寬度限制 */
+            height: var(--header-height);     /* 使用變數設定高度 */
+            background-color: var(--primary-color); /* 背景色 */
+            border-bottom: 2px solid var(--accent-color); /* 底部橘色邊框 */
+            display: flex;                    /* 彈性佈局 */
+            align-items: center;              /* 垂直居中 */
+            justify-content: space-between;   /* 兩端對齊 */
+            padding: 0 var(--header-padding); /* 左右內距 */
+            box-shadow: var(--shadow-sm);     /* 陰影效果 */
+            z-index: 1000;                    /* 確保在最上層 */
+            box-sizing: border-box;           /* 邊框盒模型 */
+        }
+
+        /* Header標題樣式 */
+        .page-title {
+            color: var(--text-color);         /* 白色文字 */
+            font-size: var(--font-size-xl);   /* 大字體 */
+            font-weight: bold;                /* 粗體 */
+            margin: 0;                        /* 移除預設邊距 */
+            flex: 1;                          /* 佔據剩餘空間 */
+        }
+
+        /* 關閉按鈕樣式 */
+        .close-button {
+            width: 32px;                      /* 按鈕寬度 */
+            height: 32px;                     /* 按鈕高度 */
+            background-color: var(--secondary-color); /* 次要背景色 */
+            border: none;                     /* 無邊框 */
+            border-radius: var(--border-radius-sm); /* 小圓角 */
+            color: var(--text-color);         /* 白色文字 */
+            font-size: var(--font-size-lg);   /* 大字體 */
+            cursor: pointer;                  /* 指標樣式 */
+            display: flex;                    /* 彈性佈局 */
+            align-items: center;              /* 垂直居中 */
+            justify-content: center;          /* 水平居中 */
+            transition: background-color var(--transition-fast); /* 背景色動畫 */
+            font-weight: bold;                /* 粗體 */
+        }
+
+        /* 關閉按鈕懸停效果 */
+        .close-button:hover {
+            background-color: var(--hover-color); /* 懸停背景色 */
+        }
+
+        /* 關閉按鈕點擊效果 */
+        .close-button:active {
+            background-color: var(--accent-color); /* 點擊時橘色背景 */
+            color: var(--primary-color);      /* 點擊時深色文字 */
+        }
+
+        /* ============================================
+         * 主要內容區域樣式
+         * ============================================ */
+        
+        .content-container {
+            padding: var(--spacing-xl);       /* 內容區域內距 */
+            max-height: calc(100vh - var(--header-height)); /* 最大高度限制 */
+            overflow-y: auto;                 /* 垂直滾動 */
+        }
+
+        /* 內容標題樣式 */
+        .content-title {
+            color: var(--accent-color);       /* 橘色標題 */
+            font-size: var(--font-size-lg);   /* 大字體 */
+            font-weight: bold;                /* 粗體 */
+            margin-bottom: var(--spacing-lg); /* 底部間距 */
+            border-left: 4px solid var(--accent-color); /* 左邊橘色邊框 */
+            padding-left: var(--spacing-md);  /* 左側內距 */
+        }
+
+        /* 段落樣式 */
+        .content-paragraph {
+            margin-bottom: var(--spacing-lg); /* 段落間距 */
+            font-size: var(--font-size-md);   /* 中字體 */
+            color: var(--text-color);         /* 白色文字 */
+            line-height: 1.8;                /* 增加行高提升可讀性 */
+        }
+
+        /* 重點強調文字樣式 */
+        .highlight {
+            color: var(--accent-color);       /* 橘色強調 */
+            font-weight: bold;                /* 粗體 */
+        }
+
+        /* 列表樣式 */
+        .content-list {
+            margin-bottom: var(--spacing-lg); /* 底部間距 */
+            padding-left: var(--spacing-xl);  /* 左側內距 */
+        }
+
+        .content-list li {
+            margin-bottom: var(--spacing-sm); /* 列表項目間距 */
+            color: var(--text-color);         /* 白色文字 */
+            font-size: var(--font-size-md);   /* 中字體 */
+        }
+
+        /* 分隔線樣式 */
+        .divider {
+            border: none;                     /* 移除預設邊框 */
+            height: 1px;                      /* 分隔線高度 */
+            background-color: var(--border-color); /* 邊框色 */
+            margin: var(--spacing-xl) 0;      /* 上下間距 */
+        }
+
+        /* ============================================
+         * 響應式設計 - 針對不同螢幕尺寸優化
+         * ============================================ */
+        
+        /* 針對較小螢幕調整 */
+        @media screen and (max-width: 380px) {
+            .page-title {
+                font-size: var(--font-size-lg); /* 較小標題字體 */
+            }
+            
+            .content-container {
+                padding: var(--spacing-lg);    /* 減少內距 */
+            }
+            
+            .content-paragraph {
+                font-size: var(--font-size-sm); /* 較小文字 */
+            }
+        }
+
+        /* 針對觸控設備優化 */
+        @media (hover: none) {
+            .close-button:hover {
+                background-color: var(--secondary-color); /* 取消懸停效果 */
+            }
+        }
+
+        /* 確保可滾動內容在手機上有適當的滾動行為 */
+        .content-container {
+            -webkit-overflow-scrolling: touch; /* iOS平滑滾動 */
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- ============================================
+     * 頁面Header - 包含標題和關閉按鈕
+     * ============================================ -->
+    <header class="page-header">
+        <!-- 頁面標題 -->
+        <h1 class="page-title">Privacy Policy</h1>
+        
+        <!-- 關閉按鈕 - 點擊後關閉此頁面 -->
+        <button class="close-button" onclick="closePrivacyPolicy()" title="Close Privacy Policy Page">
+            ✕
+        </button>
+    </header>
+
+    <!-- ============================================
+     * 主要內容區域
+     * ============================================ -->
+    <main class="content-container">
+        
+        <!-- Privacy Policy 生效日期 -->
+        <div class="content-paragraph">
+            <strong class="highlight">Effective Date:</strong> August 21, 2025
+        </div>
+
+        <!-- Privacy Policy 介紹 -->
+        <div class="content-paragraph">
+            Welcome to <span class="highlight">Little Friend Tools</span>! We value your privacy and this Privacy Policy explains how we collect, use, disclose, and protect your personal information.
+        </div>
+
+        <hr class="divider">
+
+        <!-- 1. Information Collection -->
+        <h2 class="content-title">1. Information We Collect</h2>
+        
+        <div class="content-paragraph">
+            We may collect the following types of information:
+        </div>
+        
+        <ul class="content-list">
+            <li><span class="highlight">Usage Information:</span> How you use our calculation tools, including calculation types and frequency of use</li>
+            <li><span class="highlight">Device Information:</span> Device type, browser type, screen resolution, and other technical information</li>
+            <li><span class="highlight">Analytics Information:</span> Anonymous usage statistics collected through Google Analytics</li>
+        </ul>
+
+        <!-- 2. Information Usage -->
+        <h2 class="content-title">2. How We Use Your Information</h2>
+        
+        <div class="content-paragraph">
+            We use the collected information to:
+        </div>
+        
+        <ul class="content-list">
+            <li>Provide and improve our calculation tool services</li>
+            <li>Analyze usage patterns to optimize user experience</li>
+            <li>Ensure application security and stability</li>
+            <li>Develop new features and improve existing functionality</li>
+        </ul>
+
+        <!-- 3. Information Sharing -->
+        <h2 class="content-title">3. Information Sharing and Disclosure</h2>
+        
+        <div class="content-paragraph">
+            We <span class="highlight">do not sell, rent, or share</span> your personal information with third parties, except when:
+        </div>
+        
+        <ul class="content-list">
+            <li>We have obtained your explicit consent</li>
+            <li>Required by law or court order</li>
+            <li>To protect our rights, property, or safety</li>
+            <li>Anonymous statistical data for service improvement</li>
+        </ul>
+
+        <!-- 4. Data Security -->
+        <h2 class="content-title">4. Data Security</h2>
+        
+        <div class="content-paragraph">
+            We implement appropriate technical and organizational measures to protect your information:
+        </div>
+        
+        <ul class="content-list">
+            <li>Use HTTPS encryption for data transmission</li>
+            <li>Regular security measure updates</li>
+            <li>Restricted employee access to data</li>
+            <li>Following industry best practices</li>
+        </ul>
+
+        <!-- 5. Cookie Policy -->
+        <h2 class="content-title">5. Cookies and Tracking Technologies</h2>
+        
+        <div class="content-paragraph">
+            We use the following technologies to improve your experience:
+        </div>
+        
+        <ul class="content-list">
+            <li><span class="highlight">Essential Cookies:</span> Ensure website functionality</li>
+            <li><span class="highlight">Analytics Cookies:</span> Understand user behavior patterns</li>
+            <li><span class="highlight">Functional Cookies:</span> Remember your preferences</li>
+        </ul>
+
+        <!-- 6. Your Rights -->
+        <h2 class="content-title">6. Your Rights</h2>
+        
+        <div class="content-paragraph">
+            You have the following rights regarding your personal data:
+        </div>
+        
+        <ul class="content-list">
+            <li>Access the data we hold about you</li>
+            <li>Request correction of inaccurate data</li>
+            <li>Request deletion of your data</li>
+            <li>Object to processing of your data</li>
+            <li>Data portability</li>
+        </ul>
+
+        <!-- 7. Children's Privacy -->
+        <h2 class="content-title">7. Children's Privacy Protection</h2>
+        
+        <div class="content-paragraph">
+            Our services are primarily designed for <span class="highlight">adult users</span>. We do not knowingly collect personal information from children under 13. If we discover we have collected such information, we will delete it immediately.
+        </div>
+
+        <!-- 8. Policy Updates -->
+        <h2 class="content-title">8. Privacy Policy Updates</h2>
+        
+        <div class="content-paragraph">
+            We may update this Privacy Policy from time to time. Any significant changes will be notified within the application. Continued use of our services indicates your acceptance of the revised policy.
+        </div>
+
+        <hr class="divider">
+
+        <!-- 頁尾說明 -->
+        <div class="content-paragraph" style="margin-top: 20px; text-align: center; color: var(--text-muted); font-size: var(--font-size-sm);">
+            This Privacy Policy is part of our commitment to protecting your privacy<br>
+            Thank you for using Little Friend Tools!
+        </div>
+
+    </main>
+
+    <!-- ============================================
+     * JavaScript功能程式碼
+     * ============================================ -->
+    <script>
+        /**
+         * 關閉隱私政策頁面的函數
+         * 此函數會被父視窗的JavaScript呼叫
+         */
+        function closePrivacyPolicy() {
+            // 發送關閉事件追蹤
+            trackEvent('privacy_policy_close', {
+                close_method: 'close_button',
+                page_source: 'privacy_policy'
+            });
+            
+            // 通知父視窗關閉此頁面
+            // 這個訊息會被主頁面的JavaScript接收
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'closePrivacyPolicy',
+                    source: 'privacy-policy'
+                }, '*');
+            }
+            
+            console.log('Privacy Policy page close request sent');
+        }
+
+        /**
+         * 處理ESC鍵關閉功能
+         */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePrivacyPolicy();
+            }
+        });
+
+        /**
+         * 防止頁面選取和右鍵選單（與主頁面保持一致）
+         */
+        
+        // 禁止右鍵選單
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // 禁止文字選取（觸控裝置）
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+        
+        // 禁止拖拽
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+
+        console.log('Privacy Policy page - JavaScript loaded successfully');
+    </script>
+
+</body>
+</html>
