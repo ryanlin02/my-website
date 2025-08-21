@@ -599,6 +599,7 @@
             font-size: var(--font-size-xl);             /* 特大字體 */
             color: var(--text-color);                    /* 白色文字 */
             font-weight: bold;                           /* 粗體 */
+            text-align: center;                          /* 文字置中顯示 */
         }
 
         /* 關閉按鈕 */
@@ -639,8 +640,9 @@
             font-size: var(--font-size-lg);             /* 大字體 */
             font-weight: bold;                           /* 粗體 */
             margin-bottom: 15px;                         /* 底部外邊距 */
-            padding-left: 10px;                          /* 左側內距 */
-            border-left: 3px solid var(--accent-color);  /* 左側橘色邊框 */
+            padding-left: 0;                             /* 移除左側內距以配合置中 */
+            border-left: none;                           /* 移除左側橘色邊框以配合置中 */
+            text-align: center;                          /* 文字置中顯示 */
         }
 
         /* 選單項目列表 */
@@ -652,8 +654,8 @@
 
         /* 選單項目 */
         .menu-item {
-            background: var(--secondary-color);          /* 次要背景色 */
-            margin-bottom: 10px;                         /* 底部外邊距 */
+            background: transparent;                     /* 透明背景 - 移除灰色背景 */
+            margin-bottom: 8px;                         /* 底部外邊距 */
             border-radius: var(--border-radius-md);      /* 中圓角 */
             transition: all var(--transition-fast);      /* 全部屬性動畫 */
         }
@@ -665,13 +667,14 @@
             color: var(--text-color);                    /* 白色文字 */
             text-decoration: none;                       /* 無底線 */
             font-size: var(--font-size-md);             /* 中字體 */
-            transition: padding-left var(--transition-fast); /* 左內距動畫 */
+            text-align: center;                          /* 文字置中顯示 */
+            transition: all var(--transition-fast);     /* 修改為全部屬性動畫以配合置中效果 */
         }
 
         /* 選單項目懸停效果 */
         .menu-item:hover {
             background: var(--hover-color);              /* 懸停背景 */
-            transform: translateX(5px);                  /* 右移效果 */
+
         }
 
         .menu-item-link:hover {
