@@ -881,8 +881,8 @@
                     readonly>
                 <!-- 快速價格選擇按鈕容器 -->
                 <div class="price-buttons-container">
-                    <button class="quick-price-btn" onclick="setDieselPrice(25.9)" title="中油價格">中</button>
-                    <button class="quick-price-btn" onclick="setDieselPrice(25.7)" title="台塑價格">塑</button>
+                    <button class="quick-price-btn" onclick="setDieselPrice(25.7)" title="中油價格">中</button>
+                    <button class="quick-price-btn" onclick="setDieselPrice(25.5)" title="台塑價格">塑</button>
                 </div>
             </div>
         </div>
@@ -1118,7 +1118,7 @@
             setInterval(updateCurrentDate, 1000);
 
             // 設定預設油品單價（中油價格）
-            document.getElementById('dieselPrice').value = '25.9';
+            document.getElementById('dieselPrice').value = '25.7';
             // 觸發計算更新
             updateCalculations();
 
