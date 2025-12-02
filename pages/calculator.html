@@ -2456,6 +2456,13 @@
             text-align: center;                                 /* 文字居中 */
         }
 
+        /* ============================================
+        * 隱藏佣後利率和稅佣後利率欄位
+        * ============================================ */
+        .hidden-rate-field {
+            display: none !important;
+        }
+
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2822,6 +2829,14 @@
 <script>
 
     window.onload = function() {
+
+        // ============================================
+        // 隱藏佣後利率和稅佣後利率欄位
+        // ============================================
+        const afterCommissionOnlyRateRow = document.getElementById('afterCommissionOnlyRate').closest('.row');
+        const afterCommissionRateRow = document.getElementById('afterCommissionRate').closest('.row');
+        if (afterCommissionOnlyRateRow) afterCommissionOnlyRateRow.style.display = 'none';
+        if (afterCommissionRateRow) afterCommissionRateRow.style.display = 'none';
 
         // ========== 清理舊的主題設定 ==========
         // 說明：移除之前儲存的主題選擇，確保使用預設主題
