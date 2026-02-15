@@ -2733,7 +2733,7 @@
     <div class="row editable-field">
         <span class="label">資金成本</span>
         <input type="text" id="monthlyCost" value="" step="0.0001" readonly>
-        <button onclick="resetMonthlyCost()">12月</button>
+        <button onclick="resetMonthlyCost()">2月</button>
     </div>
 
     <div class="row">
@@ -4497,14 +4497,14 @@
         // 震動效果
         vibrate();
         
-        // 將資金成本設為預設值 2.1206
-        document.getElementById('monthlyCost').value = '2.1206';
+        // 將資金成本設為預設值 2.1367
+        document.getElementById('monthlyCost').value = '2.1367';
         
         // 更新所有相關計算
         updateAllFields();
         
         // 顯示提示訊息
-        showToast('已設定資金成本為12月預設值');
+        showToast('已設定資金成本為2月預設值');
     }
 
     // 清空所有欄位除了資金成本
