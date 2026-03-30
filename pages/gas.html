@@ -872,7 +872,7 @@
     <div class="container">
         <!-- 超級柴油價格輸入欄位 -->
         <div class="input-row">
-            <label class="input-label">油品單價</label>
+            <label class="input-label">柴油單價</label>
             <div class="diesel-price-wrapper">  <!-- 修改：使用專用容器類別 -->
                 <input type="text" 
                     id="dieselPrice" 
@@ -881,8 +881,8 @@
                     readonly>
                 <!-- 快速價格選擇按鈕容器 -->
                 <div class="price-buttons-container">
-                    <button class="quick-price-btn" onclick="setDieselPrice(28.1)" title="中油價格">中</button>
-                    <button class="quick-price-btn" onclick="setDieselPrice(27.9)" title="台塑價格">塑</button>
+                    <button class="quick-price-btn" onclick="setDieselPrice(31.0)" title="中油價格">中油</button>
+                    <button class="quick-price-btn" onclick="setDieselPrice(30.8)" title="台塑價格">台塑</button>
                 </div>
             </div>
         </div>
@@ -1118,7 +1118,7 @@
             setInterval(updateCurrentDate, 1000);
 
             // 設定預設油品單價（中油價格）
-            document.getElementById('dieselPrice').value = '28.1';
+            document.getElementById('dieselPrice').value = '31.0';
             // 觸發計算更新
             updateCalculations();
 
