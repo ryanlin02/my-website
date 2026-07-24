@@ -175,33 +175,31 @@
         </div>
     </div>
 
-    <!-- 合併的總利息和總繳款欄位 -->
-    <div class="row combined-interest-row total-payment-row">
-        <span class="label">總利息</span>
-        <input type="text" id="totalInterest" class="readonly medium-input" readonly>
-        <span class="interest-separator">|</span>
-        <span class="label">總繳款</span>
-        <input type="text" id="totalPayment" class="readonly medium-input" readonly>
-    </div>
+    <!-- 基礎試算結果組 -->
+    <div class="output-group">
+        <div class="row combined-interest-row total-payment-row">
+            <span class="label">總利息</span>
+            <input type="text" id="totalInterest" class="readonly medium-input" readonly>
+            <span class="interest-separator">|</span>
+            <span class="label">總繳款</span>
+            <input type="text" id="totalPayment" class="readonly medium-input" readonly>
+        </div>
 
-    <!-- 合併的每年/每月利息欄位 -->
-    <div class="row combined-interest-row">
-        <span class="label">每年利息</span>
-        <input type="text" id="yearlyInterest" class="readonly" readonly>
-        <span class="interest-separator">|</span>
-        <span class="label">每月利息</span>
-        <input type="text" id="monthlyInterest" class="readonly" readonly>
-    </div>
+        <div class="row combined-interest-row">
+            <span class="label">每年利息</span>
+            <input type="text" id="yearlyInterest" class="readonly" readonly>
+            <span class="interest-separator">|</span>
+            <span class="label">每月利息</span>
+            <input type="text" id="monthlyInterest" class="readonly" readonly>
+        </div>
 
-    <div class="divider-flow"></div>
-
-    <!-- 合併的稅金和稅後利率欄位 -->
-    <div class="row combined-interest-row tax-rate-row">
-        <span class="label">稅金</span>
-        <input type="text" id="tax" class="readonly medium-input" readonly>
-        <span class="interest-separator">|</span>
-        <span class="label">稅後利率</span>
-        <input type="text" id="afterTaxRate" step="0.001" class="readonly medium-input" readonly>
+        <div class="row combined-interest-row tax-rate-row">
+            <span class="label">稅金</span>
+            <input type="text" id="tax" class="readonly medium-input" readonly>
+            <span class="interest-separator">|</span>
+            <span class="label">稅後利率</span>
+            <input type="text" id="afterTaxRate" step="0.001" class="readonly medium-input" readonly>
+        </div>
     </div>
 
     <div class="divider-flow"></div>
@@ -250,42 +248,49 @@
 
     <div class="divider-flow"></div>
 
-    <!-- 合併的百萬利息欄位 -->
-    <div class="row combined-interest-row million-interest-row">
-        <span class="label">百萬利息</span>
-        <span class="sub-label">每年</span>
-        <input type="text" id="annualMillionInterest" class="readonly short-input" readonly>
-        <span class="interest-separator">|</span>
-        <span class="sub-label">每月</span>
-        <input type="text" id="monthlyMillionInterest" class="readonly short-input" readonly>
-    </div>
+    <!-- 百萬與一萬參考利息組 -->
+    <div class="output-group">
+        <div class="row combined-interest-row million-interest-row">
+            <span class="label">百萬利息</span>
+            <span class="sub-label">每年</span>
+            <input type="text" id="annualMillionInterest" class="readonly short-input" readonly>
+            <span class="interest-separator">|</span>
+            <span class="sub-label">每月</span>
+            <input type="text" id="monthlyMillionInterest" class="readonly short-input" readonly>
+        </div>
 
-    <!-- 合併的一萬利息欄位 -->
-    <div class="row combined-interest-row ten-thousand-interest-row">
-        <span class="label">一萬利息</span>
-        <span class="sub-label">每年</span>
-        <input type="text" id="annualTenThousandInterest" class="readonly short-input" readonly>
-        <span class="interest-separator">|</span>
-        <span class="sub-label">每月</span>
-        <input type="text" id="monthlyTenThousandInterest" class="readonly short-input" readonly>
+        <div class="row combined-interest-row ten-thousand-interest-row">
+            <span class="label">一萬利息</span>
+            <span class="sub-label">每年</span>
+            <input type="text" id="annualTenThousandInterest" class="readonly short-input" readonly>
+            <span class="interest-separator">|</span>
+            <span class="sub-label">每月</span>
+            <input type="text" id="monthlyTenThousandInterest" class="readonly short-input" readonly>
+        </div>
     </div>
 
     <div class="divider-flow"></div>
 
-    <div class="row editable-field">
-        <span class="label">資金成本</span>
-        <input type="text" id="monthlyCost" value="" step="0.0001" readonly>
+    <div class="input-button-group">
+        <div class="row editable-field">
+            <span class="label">資金成本</span>
+            <input type="text" id="monthlyCost" value="2" step="0.0001" readonly>
+            <button onclick="openCalculator('monthlyCost', '請輸入【資金成本】')">調整</button>
+        </div>
     </div>
 
-    <div class="row">
-        <span class="label">Spread</span>
-        <input type="text" id="spread" class="readonly" readonly>
-    </div>
-	
-    <div class="row">
-        <span class="label">NPV</span>
-        <input type="text" id="fundingCost" class="readonly" readonly>
-        <span class="helper-text">稅佣後估算</span>
+    <!-- 獲利指標組 -->
+    <div class="output-group">
+        <div class="row">
+            <span class="label">Spread</span>
+            <input type="text" id="spread" class="readonly" readonly>
+        </div>
+        
+        <div class="row">
+            <span class="label">NPV</span>
+            <input type="text" id="fundingCost" class="readonly" readonly>
+            <span class="helper-text">稅佣後估算</span>
+        </div>
     </div>
 
     <div class="divider-flow"></div>

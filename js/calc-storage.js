@@ -47,7 +47,7 @@ function restoreAutoData() {
                 if (savedData.monthlyCost && savedData.monthlyCost !== '') {
                     document.getElementById('monthlyCost').value = savedData.monthlyCost;
                 } else {
-                    document.getElementById('monthlyCost').value = '';
+                    document.getElementById('monthlyCost').value = '2';
                 }
                 
                 if (typeof updateAllFields === 'function') updateAllFields();

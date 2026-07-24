@@ -550,7 +550,7 @@ function clearAllFieldsExceptMonthlyCost() {
     });
 
     const monthlyCostElement = document.getElementById('monthlyCost');
-    if (monthlyCostElement) monthlyCostElement.value = '';
+    if (monthlyCostElement) monthlyCostElement.value = '2';
     
     const headerAfterCommissionOnlyRate = document.getElementById('headerAfterCommissionOnlyRate');
     const headerAfterCommissionRate = document.getElementById('headerAfterCommissionRate');
@@ -569,9 +569,9 @@ function clearAllFieldsExceptMonthlyCost() {
 
 function resetMonthlyCost() {
     vibrate();
-    document.getElementById('monthlyCost').value = '2.1367';
+    document.getElementById('monthlyCost').value = '2';
     updateAllFields();
-    showToast('已設定資金成本為2月預設值');
+    showToast('已設定資金成本為預設值 2%');
 }
 
 /* 模態框與 Toast 視窗介面處理 */

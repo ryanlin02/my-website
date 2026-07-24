@@ -315,7 +315,7 @@ html, body {
     font-size: var(--label-font-size);
 }
 
-.input-button-group {
+.input-button-group, .output-group {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     margin: 4px 0;
@@ -328,7 +328,7 @@ html, body {
     z-index: 5;
 }
 
-.input-button-group .row {
+.input-button-group .row, .output-group .row {
     background: transparent;
     box-shadow: none;
     margin: 2px 0;
