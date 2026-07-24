@@ -522,8 +522,9 @@ html, body {
 /* 全站通用頁尾 (Global App Footer) */
 .global-app-footer {
     text-align: center;
-    padding: 20px 10px 30px;
+    padding: 20px 10px 80px;
     margin-top: 15px;
+    margin-bottom: 30px;
     border-top: 1px solid rgba(255, 156, 51, 0.2);
     color: var(--text-muted);
 }
