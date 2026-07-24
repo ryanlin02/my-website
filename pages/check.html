@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=400, user-scalable=no, initial-scale=1, maximum-scale=1">
-    <title>小朋友工具 - 支票頁面</title>
+    <title>支票試算工具</title>
 
     <!-- 將以下程式碼加入每個 iframe 頁面的 <head> 標籤內 -->
     <!-- calculator.html, check.html, gas.html, invoice.html -->
@@ -23,7 +23,7 @@
         
         // 初始化 GA4
         gtag('config', 'G-XE5XMQR0Z1', {
-            page_title: `小朋友工具 - ${getPageTitle(currentPageName)}`,
+            page_title: `貸款業務工具箱 - ${getPageTitle(currentPageName)}`,
             page_location: window.location.href,
             page_path: window.location.pathname,
             custom_map: {
@@ -1939,7 +1939,7 @@
     <div class="time-display-wrapper">
         <div id="timeDisplay" class="sticky-header">
             <div style="display: flex; justify-content: center; width: 100%;">
-                <span class="time-label">現在時間：</span>
+                <span class="time-label">現在時間</span>
                 <span id="current-date"></span>
             </div>
         </div>
@@ -2264,8 +2264,8 @@
         function updateCurrentDate() {
             const now = new Date();
             const rocYear = now.getFullYear() - 1911;
-            const month = now.getMonth() + 1;
-            const date = now.getDate();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
             const days = ['日', '一', '二', '三', '四', '五', '六'];
             const day = days[now.getDay()];
             const hours = String(now.getHours()).padStart(2, '0');

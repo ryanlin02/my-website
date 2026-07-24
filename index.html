@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=400, user-scalable=no">
-    <title>小朋友工具</title>
+    <title>貸款業務工具箱</title>
 
     <!-- 將以下程式碼加入 index.html 的 <head> 標籤內 -->
     <!-- 放在 <title> 標籤之後 -->
@@ -18,7 +18,7 @@
         // 初始化 GA4 - 請將 G-XE5XMQR0Z1 替換為您的測量 ID
         gtag('config', 'G-XE5XMQR0Z1', {
             // 增強型測量設定
-            page_title: '小朋友工具 - 主頁',
+            page_title: '貸款業務工具箱 - 主頁',
             page_location: window.location.href,
             page_path: window.location.pathname,
             
@@ -836,37 +836,6 @@
             <!-- 主選單內容 -->
             <div class="main-menu-content">
 
-                <!-- 嘉義旅遊選項區塊 -->
-                <div class="menu-section">
-                    <h3 class="menu-section-title">嘉義旅遊</h3>
-                    <ul class="menu-items">
-                        <!-- 火雞肉飯的起源 -->
-                        <li class="menu-item">
-                            <a href="#" class="menu-item-link" data-external-url="https://travel.chiayi.gov.tw/StaticPage/TurkeyRiceOrigin">
-                                火雞肉飯的起源
-                            </a>
-                        </li>
-                        <!-- 嘉義火雞肉飯優選店家 -->
-                        <li class="menu-item">
-                            <a href="#" class="menu-item-link" data-external-url="https://travel.chiayi.gov.tw/StaticPage/TurkeyRiceRestaurant">
-                                嘉義火雞肉飯優選店家
-                            </a>
-                        </li>
-                        <!-- 嘉義市景點 -->
-                        <li class="menu-item">
-                            <a href="#" class="menu-item-link" data-external-url="https://travel.chiayi.gov.tw/StaticPage/FeaturedAttractions01">
-                                嘉義市景點
-                            </a>
-                        </li>
-                        <!-- 嘉義縣景點 -->
-                        <li class="menu-item">
-                            <a href="#" class="menu-item-link" data-external-url="https://tbocc.cyhg.gov.tw/cp.aspx?n=100327">
-                                嘉義縣景點
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
                 <!-- 工具說明區塊 -->
                 <div class="menu-section">
                     <h3 class="menu-section-title">工具說明</h3>
@@ -980,7 +949,7 @@
      * ============================================ -->
     <script>
         /**
-         * 小朋友工具 - 主要功能控制程式
+         * 貸款業務工具箱 - 主要功能控制程式
          * 處理頁面切換、iframe載入、PWA註冊等功能
          */
         
@@ -1001,7 +970,7 @@
         // ============================================
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('小朋友工具 - 頁面初始化開始');
+            console.log('貸款業務工具箱 - 頁面初始化開始');
             
             // 初始化安裝引導畫面（新增的）
             initializeInstallPrompt();
@@ -1015,7 +984,7 @@
             // 註冊Service Worker (PWA功能)
             registerServiceWorker();
             
-            console.log('小朋友工具 - 頁面初始化完成');
+            console.log('貸款業務工具箱 - 頁面初始化完成');
         });
 
 
@@ -1270,7 +1239,7 @@
             e.preventDefault();
         });
         
-        console.log('小朋友工具 - JavaScript載入完成');
+        console.log('貸款業務工具箱 - JavaScript載入完成');
 
         // ============================================
         // 主選單功能控制
@@ -1310,7 +1279,7 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault(); // 防止預設連結行為
                     
-                    // 檢查是否為外部連結 - 新增嘉義旅遊連結處理
+                    // 檢查是否為外部連結
                     const externalUrl = this.getAttribute('data-external-url');
                     
                     if (externalUrl) {

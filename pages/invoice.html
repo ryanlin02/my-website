@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=400, user-scalable=no">
-    <title>小朋友開發票</title>
+    <title>發票金額轉換工具</title>
 
     <!-- 將以下程式碼加入每個 iframe 頁面的 <head> 標籤內 -->
     <!-- calculator.html, check.html, gas.html, invoice.html -->
@@ -23,7 +23,7 @@
         
         // 初始化 GA4
         gtag('config', 'G-XE5XMQR0Z1', {
-            page_title: `小朋友工具 - ${getPageTitle(currentPageName)}`,
+            page_title: `貸款業務工具箱 - ${getPageTitle(currentPageName)}`,
             page_location: window.location.href,
             page_path: window.location.pathname,
             custom_map: {
@@ -1301,7 +1301,7 @@
             <div class="keyboard-row">
                 <button class="calc-btn operator-btn" onclick="calcClear()">C</button>
                 <button class="calc-btn operator-btn special-operator" onclick="calcTaxAddition()" style="font-size: 20px;">稅外加</button>
-                <button class="calc-btn operator-btn special-operator" onclick="showFoodAnimation()" style="color: #FF5050;">❤</button>
+                <button class="calc-btn operator-btn special-operator" onclick="calcClear()" style="font-size: 18px;">AC</button>
                 <button class="calc-btn operator-btn special-operator" onclick="calcAddOperator('/')">/</button>
             </div>
             <div class="keyboard-row">
@@ -1402,23 +1402,16 @@
         }
 
         // 添加更新時間的函數
-        // 修改後的代碼
         function updateTime() {
             const now = new Date();
+            const rocYear = now.getFullYear() - 1911;
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
             const days = ['日', '一', '二', '三', '四', '五', '六'];
-            
-            // 調整為台北時間 (GMT+8)
-            const taipeiTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-            
-            const westernYear = taipeiTime.getUTCFullYear();
-            // 計算民國年 (西元年 - 1911)
-            const rocYear = westernYear - 1911;
-            const month = String(taipeiTime.getUTCMonth() + 1).padStart(2, '0');
-            const date = String(taipeiTime.getUTCDate()).padStart(2, '0');
-            const day = days[taipeiTime.getUTCDay()];
-            const hours = String(taipeiTime.getUTCHours()).padStart(2, '0');
-            const minutes = String(taipeiTime.getUTCMinutes()).padStart(2, '0');
-            const seconds = String(taipeiTime.getUTCSeconds()).padStart(2, '0');
+            const day = days[now.getDay()];
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
             
             const timeString = `${rocYear}年${month}月${date}日 星期${day} ${hours}:${minutes}:${seconds}`;
             document.getElementById('currentTime').textContent = timeString;
@@ -2253,76 +2246,6 @@
                     window.navigator.vibrate([100, 50, 100]);
                 }
             }
-        }
-
-        // 儲存可以播放的文字
-        const foodTexts = ['雞', '肉', '飯', '真', '好', '吃'];
-        let animationInProgress = false;
-
-        // 顯示食物動畫
-        function showFoodAnimation() {
-            // 如果正在播放動畫，直接返回
-            if (animationInProgress) return;
-            
-            // 設置動畫進行中標記
-            animationInProgress = true;
-            
-            // 創建動畫容器
-            const container = document.createElement('div');
-            container.className = 'food-animation-container';
-            document.body.appendChild(container);
-            
-            // 觸覺反饋 - 長震動
-            if (window.navigator && window.navigator.vibrate) {
-                window.navigator.vibrate(100);
-            }
-            
-            // 依序顯示文字
-            let index = 0;
-            const showNextText = () => {
-                if (index >= foodTexts.length) {
-                    // 動畫結束，移除容器
-                    setTimeout(() => {
-                        document.body.removeChild(container);
-                        animationInProgress = false;
-                    }, 200); 
-                    return;
-                }
-                
-                // 創建文字元素
-                const textElement = document.createElement('div');
-                textElement.className = 'food-text';
-                textElement.textContent = foodTexts[index];
-                container.appendChild(textElement);
-                
-                // 觸發震動
-                if (window.navigator && window.navigator.vibrate) {
-                    window.navigator.vibrate(50);
-                }
-                
-                // 顯示動畫
-                setTimeout(() => {
-                    textElement.classList.add('show');
-                    
-                    // 淡出動畫
-                    setTimeout(() => {
-                        textElement.classList.add('hide');
-                        textElement.classList.remove('show');
-                        
-                        // 移除元素
-                        setTimeout(() => {
-                            if (textElement.parentNode === container) {
-                                container.removeChild(textElement);
-                            }
-                            index++;
-                            showNextText();
-                        }, 250);
-                    }, 500); 
-                }, 40);
-            };
-            
-            // 開始動畫
-            showNextText();
         }
 
         // 在頁面載入時初始化計算機顯示

@@ -1,5 +1,5 @@
 /**
- * 小朋友工具 - Service Worker
+ * 貸款業務工具箱 - Service Worker
  * 提供離線支援、快取管理和自動更新功能
  * 
  * 功能特色：
@@ -14,7 +14,7 @@
 // ============================================
 
 // 版本號和快取名稱 - 更新版本號時會自動清理舊快取
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.0.2';
 const CACHE_NAME = `xiaopenyou-tools-${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
@@ -26,6 +26,10 @@ const CORE_ASSETS = [
     './pages/check.html',       // 支票頁面
     './pages/invoice.html',     // 發票頁面
     './pages/gas.html',         // 加油頁面
+    './css/calculator.css',     // 計算機專用樣式
+    './js/calc-engine.js',      // 計算引擎
+    './js/calc-storage.js',     // 數據持久化模組
+    './js/calc-ui.js',          // UI 交互控制模組
     './icons/icon-192.png',     // 小圖標
     './icons/icon-512.png',     // 大圖標
     './404.html'                // 404錯誤頁面
@@ -313,7 +317,7 @@ async function getCacheStats() {
 // Service Worker 生命週期日誌
 // ============================================
 
-console.log('📦 Service Worker: 小朋友工具 PWA Service Worker 已載入');
+console.log('📦 Service Worker: 貸款業務工具箱 PWA Service Worker 已載入');
 console.log(`🏷️  Service Worker: 版本 ${CACHE_VERSION}`);
 console.log(`📁 Service Worker: 快取名稱 ${CACHE_NAME}`);
 console.log(`📋 Service Worker: 核心資源數量 ${CORE_ASSETS.length}`);

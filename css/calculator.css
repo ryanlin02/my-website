@@ -1,0 +1,1509 @@
+/* ============================================
+* 重車貸款業務工具箱 - 計算頁面專用樣式 (calculator.css)
+* ============================================ */
+
+/* 基礎全域變數定義 */
+:root {
+    /* ========== 尺寸相關變數 ========== */
+    --border-radius-sm: 4px;              /* 小型元素圓角（按鈕、輸入框） */
+    --border-radius-md: 8px;              /* 中型元素圓角（卡片） */
+    --border-radius-lg: 12px;             /* 大型元素圓角（模態框） */
+    
+    /* 間距尺寸 */
+    --spacing-xs: 2px;                    /* 極小間距 */
+    --spacing-sm: 4px;                    /* 小間距 */
+    --spacing-md: 8px;                    /* 中間距 */
+    --spacing-lg: 15px;                   /* 大間距 */
+    
+    /* 字體大小 */
+    --font-size-xs: 12px;                 /* 極小字體（標籤說明） */
+    --font-size-sm: 14px;                 /* 小字體（次要文字） */
+    --font-size-md: 16px;                 /* 中字體（一般內容） */
+    --font-size-lg: 18px;                 /* 大字體（重要內容） */
+    --font-size-xl: 22px;                 /* 特大字體（標題） */
+    
+    /* 特殊元素字體大小 */
+    --input-font-size: 16px;              /* 輸入框文字大小 */
+    --label-font-size: 16px;              /* 標籤文字大小 */
+    
+    /* 輸入框特殊設定 */
+    --input-padding-lr: 5px;              /* 輸入框左右內邊距 */
+    
+    /* 動畫時間 */
+    --transition-fast: 0.1s;              /* 快速過渡動畫 */
+    --transition-normal: 0.2s;            /* 標準過渡動畫 */
+    --transition-slow: 0.3s;              /* 慢速過渡動畫 */
+    
+    /* 陰影效果 */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);    /* 淺層陰影 */
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);    /* 中層陰影 */
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);   /* 深層陰影 */
+}
+
+/* ========== 主題色彩定義 ========== */
+:root {
+    /* RGB 色彩值（用於透明度調整） */
+    --primary-color-rgb: 51, 51, 51;              /* 主背景色 RGB */
+    --secondary-color-rgb: 74, 74, 74;            /* 次背景色 RGB */
+    --accent-color-rgb: 255, 156, 51;             /* 強調色 RGB */
+    --input-bg-rgb: 34, 34, 34;                   /* 輸入框背景 RGB */
+    --error-color-rgb: 231, 76, 60;               /* 錯誤色 RGB */
+    --info-color-rgb: 52, 152, 219;               /* 資訊色 RGB */
+    
+    /* 基本色彩 */
+    --primary-color: #333333;                      /* 主要背景色 */
+    --secondary-color: #4a4a4a;                    /* 次要背景色 */
+    --text-color: #ffffff;                         /* 文字顏色 */
+    --text-muted: #999999;                         /* 淡化文字顏色 */
+    --border-color: #555555;                       /* 邊框顏色 */
+    --hover-color: #666666;                        /* 懸停背景色 */
+    --shadow-color: rgba(0, 0, 0, 0.3);           /* 陰影顏色 */
+    
+    /* 功能色彩 */
+    --accent-color: #ff9c33;                       /* 強調色（橘色） */
+    --accent-color-light: rgba(255, 156, 51, 0.2); /* 淡強調色 */
+    --accent-color-dark: #e88a22;                  /* 深強調色 */
+    --success-color: #33b5e5;                      /* 成功色（藍色） */
+    --warning-color: #ff9c33;                      /* 警告色（橘色） */
+    --error-color: #e74c3c;                        /* 錯誤色（紅色） */
+    --info-color: #3498db;                         /* 資訊色（藍色） */
+    
+    /* 元件專用色彩 */
+    --button-primary: #ff9c33;                     /* 主要按鈕色 */
+    --button-secondary: #4a4a4a;                   /* 次要按鈕色 */
+    --button-orange: #ff9c33;                      /* 橘色按鈕 */
+    --button-blue: #33b5e5;                        /* 藍色按鈕 */
+    --button-grey: #333333;                        /* 灰色按鈕 */
+    
+    /* 輸入框色彩 */
+    --input-bg: #222222;                           /* 輸入框背景色 */
+    --input-border: #555555;                       /* 輸入框邊框色 */
+    --input-focus-border: #ff9c33;                 /* 輸入框焦點邊框色 */
+    
+    /* 其他元件色彩 */
+    --card-bg: #333333;                            /* 卡片背景色 */
+    --text-highlight: #ff9c33;                     /* 文字強調色 */
+    --helper-text-color: #999999;                  /* 輔助文字顏色 */
+    --note-text-color: #e0e0e0;                    /* 備註文字顏色 */
+    --note-text-empty: #888888;                    /* 空備註提示文字顏色 */
+}
+
+/* ============================================
+* 固定頂部利率顯示 header 樣式
+* ============================================ */
+.fixed-rate-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: var(--primary-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding: 22px 5px 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    transition: all 0.3s ease;
+    animation: headerSlideDown 0.5s ease-out;
+}
+
+@keyframes headerSlideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.rate-header-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.2s ease;
+}
+
+.rate-header-item:hover {
+    transform: scale(1.02);
+}
+
+.rate-header-label {
+    font-size: 18px;
+    color: var(--accent-color);
+    font-weight: normal;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+}
+
+.rate-header-input {
+    width: 94px;
+    padding: 3px 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 17px;
+    text-align: right;
+    font-weight: normal;
+    cursor: default;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    font-family: 'Consolas', monospace;
+}
+
+.rate-header-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px rgba(var(--accent-color-rgb), 0.4);
+}
+
+.rate-header-percent {
+    font-size: 17px;
+    color: var(--text-color);
+    margin-left: -6px;
+    font-weight: normal;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.rate-header-separator {
+    width: 8px;
+    height: 2px;
+    background: var(--accent-color);
+    margin: 0 4px;
+    border-radius: 2px;
+}
+
+.rate-header-input.warning-text {
+    color: var(--error-color) !important;
+    background-color: rgba(var(--error-color-rgb), 0.15);
+    border-color: var(--error-color) !important;
+    animation: warningPulse 1s infinite;
+    box-shadow: 0 0 10px rgba(var(--error-color-rgb), 0.3);
+}
+
+@keyframes warningPulse {
+    0%, 100% {
+        border-color: var(--error-color);
+        box-shadow: 0 0 5px rgba(var(--error-color-rgb), 0.3);
+    }
+    50% {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 15px rgba(var(--error-color-rgb), 0.6);
+    }
+}
+
+@media screen and (max-width: 360px) {
+    .fixed-rate-header {
+        padding: 10px 4px;
+    }
+    .rate-header-label {
+        font-size: 16px;
+        letter-spacing: 0.5px;
+    }
+    .rate-header-input {
+        width: 86px;
+        font-size: 16px;
+        padding: 3px 3px;
+    }
+    .rate-header-percent {
+        font-size: 16px;
+    }
+    .rate-header-separator {
+        width: 6px;
+        margin: 0 4px;
+    }
+}
+
+@media print {
+    .fixed-rate-header {
+        position: relative !important;
+        top: auto !important;
+        box-shadow: none;
+        animation: none;
+    }
+}
+
+/* ============================================
+* 基礎元素與頁面樣式
+* ============================================ */
+html, body {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    padding: 0 3px;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-family: "Microsoft JhengHei", Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: 30px;
+}
+
+/* ============================================
+* 佈局與容器
+* ============================================ */
+.row {
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    background: var(--secondary-color);
+    padding: 3px;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    position: relative;
+    transform-origin: left;
+    z-index: 1;
+}
+
+.editable-field {
+    position: relative;
+    background: rgba(var(--secondary-color-rgb), 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 0 0 rgba(var(--accent-color-rgb), 0);
+    border-radius: 4px;
+}
+
+.editable-field:focus-within {
+    background: rgba(var(--accent-color-rgb), 0.1);
+    transform: scale(1.01);
+}
+
+.editable-field .label,
+.editable-field input,
+.editable-field button,
+.editable-field .helper-text {
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 480px) {
+    .editable-field {
+        transition: border-left-width 0.2s ease, background-color 0.2s ease;
+    }
+    .editable-field:hover,
+    .editable-field:focus-within {
+        transform: none;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .editable-field:hover {
+        border-left-width: 3px;
+        background: linear-gradient(135deg, rgba(var(--accent-color-rgb), 0.03) 0%, rgba(var(--accent-color-rgb), 0.01) 100%);
+        box-shadow: none;
+        transform: none;
+    }
+}
+
+.label {
+    width: 120px;
+    margin-right: 8px;
+    text-align: right;
+    font-weight: normal;
+    color: var(--text-color);
+    position: relative;
+    overflow: hidden;
+    font-size: var(--label-font-size);
+}
+
+.input-button-group {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin: 4px 0;
+    padding: 1px;
+    background: var(--secondary-color);
+    box-shadow: 0 4px 8px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+    z-index: 5;
+}
+
+.input-button-group .row {
+    background: transparent;
+    box-shadow: none;
+    margin: 2px 0;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    overflow: visible;
+    position: relative;
+    z-index: 1;
+}
+
+.input-button-group div[id$="Buttons"] {
+    margin: 0;
+    padding-top: 0;
+    padding-bottom: 2px;
+    border-top: none;
+    max-height: 100px;
+    opacity: 1;
+    z-index: 10;
+    position: relative;
+}
+
+.input-button-group div[id$="Buttons"]:hover {
+    background-color: rgba(255, 156, 51, 0.05);
+    border-radius: 4px;
+}
+
+.time-display-wrapper {
+    position: relative;
+    height: auto;
+    margin: 3px 0;
+    z-index: 90;
+    margin-top: 5px;
+}
+
+.sticky-header {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 65px;
+    background: var(--secondary-color);
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    animation: fadeIn 0.5s ease-out;
+    transition: all 0.3s ease;
+    z-index: 80;
+    width: calc(100% - 16px);
+    margin: 0 auto;
+}
+
+.sticky-header.is-sticky {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 0 0 4px 4px;
+    transform: translateY(0);
+}
+
+#timeDisplay {
+    margin: 3px 0;
+    font-size: 15px;
+    background: var(--secondary-color);
+    color: var(--text-color);
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    animation: fadeIn 0.5s ease-out;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#timeDisplay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    animation: timelineSlide 3s linear infinite;
+}
+
+@keyframes timelineSlide {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.time-label {
+    font-weight: normal;
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.divider-flow {
+    position: relative;
+    height: 2px;
+    background: linear-gradient(90deg, var(--secondary-color) 0%, var(--accent-color) 50%, var(--secondary-color) 100%);
+    margin: 4px 0;
+    overflow: hidden;
+    animation: dividerFadeIn 0.5s ease-out;
+}
+
+.divider-flow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+    animation: flowLight 3s ease-in-out infinite;
+}
+
+@keyframes flowLight {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(200%); }
+}
+
+@keyframes dividerFadeIn {
+    from { opacity: 0; transform: scaleX(0.8); }
+    to { opacity: 1; transform: scaleX(1); }
+}
+
+.helper-text {
+    margin-left: 0px;
+    color: var(--helper-text-color);
+    font-size: 16px;
+}
+
+.emphasized-row {
+    background: linear-gradient(90deg, var(--accent-color-light), transparent);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    border: 2px solid var(--accent-color);
+}
+
+.emphasized-row .label {
+    color: var(--accent-color);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.emphasized-row input {
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 17px;
+    border-color: var(--accent-color);
+}
+
+.divider-flow.hidden-element {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+}
+
+.row + .row {
+    margin-top: 4px;
+}
+
+.divider-flow + .row {
+    margin-top: 4px !important;
+}
+
+.footer-message {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    padding: 15px;
+    text-align: center;
+    margin-top: 10px;
+    border-radius: 4px;
+    transform: scale(1.05);
+    text-shadow: 0 0 10px var(--accent-color);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.footer-message::before {
+    content: '🍚';
+    margin-right: 8px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.footer-message:hover::before {
+    transform: rotate(360deg);
+}
+
+.footer-spacing {
+    background-color: var(--primary-color);
+    height: 50px;
+    margin-top: 0px;
+}
+
+/* ============================================
+* 輸入框與按鈕
+* ============================================ */
+input {
+    width: 95px;
+    padding: 5px var(--input-padding-lr);
+    margin-right: 10px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: var(--input-font-size);
+    transition: all 0.3s ease;
+    text-align: right;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.readonly {
+    background-color: var(--input-bg);
+}
+
+.value-changed {
+    animation: valueChange 0.5s ease-out;
+    will-change: background-color;
+}
+
+@keyframes valueChange {
+    0% {
+        background-color: var(--accent-color-light);
+        transform: scale(1.02);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+.warning-text {
+    color: var(--error-color) !important;
+    font-weight: bold !important;
+    animation: pulse 1s infinite, shake 0.5s ease-in-out;
+    will-change: transform;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-1px); }
+    40%, 80% { transform: translateX(1px); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+}
+
+button {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+button:hover {
+    background-color: var(--hover-color);
+}
+
+button:active {
+    transform: scale(0.95) translateY(1px);
+    transition: transform 0.1s;
+}
+
+.row button {
+    background-color: var(--secondary-color);
+    color: #888888;
+    border: 1px solid #444444;
+    padding: 3px 8px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    opacity: 0.8;
+}
+
+#periodButtons button, 
+#rateButtons button, 
+#principalButtons button, 
+#commissionButtons button, 
+#PaymentduringButtons button,
+#commissionPercentButtons button {
+    min-width: 50px;
+    text-align: center;
+    flex: 1;
+    max-width: 80px;
+    margin: 0 2px;
+    height: 28px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#periodButtons button, 
+#rateButtons button {
+    min-width: 35px;
+    max-width: 50px;
+    padding: 0 3px;
+    font-size: 15px;
+}
+
+#periodButtons, 
+#rateButtons {
+    gap: 2px;
+}
+
+.row button:hover {
+    background-color: #4a4a4a;
+    color: #cccccc;
+    border-color: #555555;
+    opacity: 0.9;
+}
+
+.row button:active {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border-color: var(--button-grey);
+}
+
+.input-button-group div[id$="Buttons"] button {
+    position: relative;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.input-button-group div[id$="Buttons"] button:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.input-button-group div[id$="Buttons"] button:hover {
+    border-color: var(--button-orange);
+}
+
+div[id$="Buttons"] button {
+    background-color: var(--secondary-color);
+    color: #bcbcbc;
+    border: 1px solid var(--button-orange);
+    padding: 4px 9px;
+    margin: 0 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    opacity: 0.95;
+}
+
+div[id$="Buttons"] button:hover {
+    background-color: rgba(255, 156, 51, 0.15);
+    color: #ffffff;
+    border-color: var(--button-orange);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(255, 156, 51, 0.2);
+}
+
+div[id$="Buttons"] button:active {
+    transform: translateY(1px);
+    background-color: rgba(255, 156, 51, 0.3);
+    box-shadow: 0 0 5px rgba(255, 156, 51, 0.5) inset;
+    transition: all 0.1s ease;
+}
+
+#periodButtons, #rateButtons, #principalButtons, #commissionButtons, #PaymentduringButtons, #commissionPercentButtons {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    width: 100%;
+    justify-content: center;
+    padding: 0 5px;
+    box-sizing: border-box;
+    min-height: 32px;
+    align-items: center;
+}
+
+.function-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0;
+    padding: 0;
+    width: 100%;
+}
+
+.function-buttons .button-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+}
+
+.top-buttons .button-row button,
+.bottom-buttons .button-row button {
+    flex: 1;
+    min-width: 0;
+}
+
+.function-buttons button {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border: 1px solid var(--button-orange);
+    border-radius: 6px;
+    padding: 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+}
+
+.function-buttons button:hover {
+    background-color: var(--button-orange);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.function-buttons button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.1s;
+}
+
+/* ============================================
+* 歷史紀錄與模態框
+* ============================================ */
+.history-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--primary-color-rgb), 0.95);
+    z-index: 1500;
+    overflow-y: auto;
+    animation: fadeIn 0.1s ease-out;
+    padding-top: 0;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 15px 5px 15px;
+    background-color: var(--primary-color);
+    position: sticky;
+    top: 0;
+    z-index: 1600;
+    border-bottom: 2px solid var(--accent-color);
+    box-shadow: 0 2px 10px var(--shadow-color);
+    margin-top: 0;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-right {
+    margin-right: 10px;
+}
+
+.history-header h2 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 20px;
+    text-shadow: 0 1px 2px var(--shadow-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    padding: 0;
+    margin-left: 10px;
+    line-height: 1;
+    width: auto;
+    height: auto;
+}
+
+.close-btn:hover {
+    color: var(--accent-color);
+}
+
+.history-content {
+    padding: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+    padding-top: 20px;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 3px;
+    margin-bottom: 4px;
+}
+
+.history-item {
+    background-color: var(--secondary-color);
+    padding: 3px;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    margin: 4px 0;
+    transform-origin: left;
+    border: 1px solid rgba(var(--accent-color-rgb), 0.2);
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 2px 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 2px;
+    margin-bottom: 2px;
+}
+
+.history-date {
+    font-weight: normal;
+    color: var(--accent-color);
+    font-size: 14px;
+    padding: 2px 0;
+    margin-left: 5px;
+}
+
+.history-header-rate {
+    font-weight: normal;
+    color: var(--text-color);
+    font-size: 16px;
+    background-color: var(--accent-color-light);
+    padding: 2px 6px;
+    margin: 0px 5px 0px 5px;
+    border-radius: 4px;
+}
+
+.history-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    background-color: rgba(var(--primary-color-rgb), 0.08);
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.detail-label {
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--text-color);
+    line-height: 1;
+    text-align: right;
+}
+
+.history-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 3px;
+}
+
+.delete-btn, .detail-btn {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: normal;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    min-width: 60px;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.delete-btn {
+    background-color: rgba(var(--error-color-rgb), 0.15);
+    color: var(--text-muted);
+    border: 1px solid rgba(var(--error-color-rgb), 0.3);
+    opacity: 0.7;
+    transform: scale(0.9);
+}
+
+.delete-btn:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4);
+}
+
+.detail-btn {
+    background-color: rgba(var(--info-color-rgb), 0.25);
+    color: var(--text-color);
+    border: 1px solid rgba(var(--info-color-rgb), 0.5);
+}
+
+.detail-btn:hover {
+    background-color: var(--info-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(var(--info-color-rgb), 0.4);
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 30px 0;
+    font-size: 16px;
+}
+
+.delete-all-btn {
+    background: rgba(var(--error-color-rgb), 0.15);
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.delete-all-btn:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4);
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--primary-color-rgb), 0.7);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.1s ease-out;
+}
+
+.modal-container {
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    animation: modalSlideIn 0.1s ease-out;
+    overflow: hidden;
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--secondary-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 20px;
+    text-shadow: 0 1px 2px var(--shadow-color);
+    flex: 1;
+    text-align: center;
+}
+
+.modal-content {
+    padding: 20px 15px;
+    color: var(--text-color);
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 10px 15px 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--secondary-color);
+}
+
+.modal-btn {
+    padding: 8px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.modal-btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background-color: var(--accent-color-dark);
+    transform: translateY(-2px);
+}
+
+.modal-btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.modal-btn-secondary:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+}
+
+.toast-message {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(var(--info-color-rgb), 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 9999;
+    font-weight: bold;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.toast-error {
+    background-color: rgba(var(--error-color-rgb), 0.9);
+}
+
+/* ============================================
+* 數字計算機鍵盤彈窗 (Number Pad Modal)
+* ============================================ */
+.number-input-modal {
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    width: 95%;
+    max-width: 350px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    overflow: hidden;
+    animation: modalSlideIn 0.1s ease-out;
+}
+
+.calculator-display-container {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--input-bg);
+    margin: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 2px 8px var(--shadow-color);
+    overflow: hidden;
+    height: 110px;
+    position: relative;
+}
+
+.calculator-history {
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 8px 15px;
+    text-align: right;
+    height: 40px;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    line-height: 1.3;
+    word-break: break-all;
+    font-family: 'Consolas', monospace;
+    position: relative;
+    background: linear-gradient(to bottom, rgba(var(--input-bg-rgb), 0.8), rgba(var(--secondary-color-rgb), 0.8));
+}
+
+.calculator-history::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(var(--accent-color-rgb), 0.4), transparent);
+}
+
+.calculator-display {
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 36px;
+    padding: 10px 15px;
+    text-align: right;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    overflow: hidden;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    font-family: 'Consolas', monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    position: relative;
+    background: linear-gradient(to bottom, rgba(var(--input-bg-rgb), 0.9), rgba(var(--input-bg-rgb), 0.7));
+    text-shadow: 0 1px 2px var(--shadow-color);
+}
+
+.calculator-scroll-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 12px;
+    height: 12px;
+    background-color: rgba(var(--accent-color-rgb), 0.7);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, auto);
+    gap: 6px;
+    padding: 10px;
+}
+
+.calculator-buttons button {
+    padding: 10px 0;
+    font-size: 20px;
+    border-radius: 10px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: none;
+    transition: all 0.2s ease;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.calculator-buttons button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.calculator-buttons button:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.calculator-buttons .number-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 2px;
+    position: relative;
+}
+
+.calculator-buttons .arabic-number {
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+    margin-right: 3px;
+    flex-grow: 0;
+}
+
+.calculator-buttons .financial-char {
+    font-size: 18px;
+    color: var(--accent-color);
+    line-height: 1;
+    position: absolute;
+    right: 6px;
+    opacity: 0.9;
+}
+
+.calculator-buttons .number-btn:active .arabic-number,
+.calculator-buttons .number-btn:active .financial-char {
+    color: white;
+}
+
+.calculator-buttons .operator,
+.calculator-buttons .equals {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.calculator-buttons .clear,
+.calculator-buttons .function {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.calculator-buttons .function {
+    background-color: #4d4d4d;
+    color: #eee;
+}
+
+.calculator-buttons .operator {
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 6px rgba(var(--accent-color-rgb), 0.4);
+}
+
+.calculator-buttons .clear {
+    background-color: var(--error-color);
+    color: white;
+    box-shadow: 0 2px 6px rgba(var(--error-color-rgb), 0.4);
+}
+
+.calculator-buttons .equals {
+    background-color: var(--info-color);
+    color: white;
+    box-shadow: 0 2px 6px rgba(var(--info-color-rgb), 0.4);
+}
+
+.calculator-buttons .submit {
+    grid-column: span 2;
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(var(--accent-color-rgb), 0.4);
+}
+
+/* ============================================
+* 備註編輯視窗 (Note Editor Modal)
+* ============================================ */
+.history-note-container {
+    background-color: rgba(var(--primary-color-rgb), 0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+    padding: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.history-item-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-note-preview {
+    color: var(--note-text-color);
+    font-size: 14px;
+    min-height: 20px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background-color: rgba(var(--primary-color-rgb), 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    max-width: 170px;
+    line-height: 1.4;
+}
+
+.history-note-preview.empty-note {
+    color: var(--note-text-empty);
+    font-style: italic;
+    background-color: transparent;
+}
+
+.history-note-preview:hover {
+    background-color: var(--accent-color-light);
+    border-color: rgba(var(--accent-color-rgb), 0.3);
+}
+
+.note-editor-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--primary-color-rgb), 0.7);
+    z-index: 2500;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 160px;
+}
+
+.note-editor-content {
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    width: 80%;
+    max-width: 320px;
+    padding: 15px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    border: 1px solid var(--accent-color);
+    animation: slideDown 0.3s ease-out;
+    margin: 0 auto;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.note-editor-input {
+    width: calc(100% - 24px);
+    padding: 12px;
+    margin: 12px 0;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    min-height: 100px;
+    resize: none;
+    font-size: 16px;
+    box-shadow: inset 0 2px 4px var(--shadow-color);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.note-editor-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px var(--accent-color-light);
+    outline: none;
+}
+
+.note-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.note-editor-content h3 {
+    color: var(--accent-color);
+    font-size: 18px;
+    margin: 0 0 8px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.3);
+}
+
+/* ============================================
+* 合併欄位對齊輔助
+* ============================================ */
+.combined-interest-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+.combined-interest-row .label:first-child {
+    width: 75px !important;
+    font-size: 16px !important;
+    margin-right: 4px !important;
+    text-align: right !important;
+    flex-shrink: 0;
+}
+
+.combined-interest-row .label:not(:first-child) {
+    width: 65px !important;
+    font-size: 16px !important;
+    margin-right: 4px !important;
+    margin-left: 4px !important;
+    text-align: right !important;
+    flex-shrink: 0;
+}
+
+.combined-interest-row input {
+    width: 85px !important;
+    font-size: 16px !important;
+    flex-shrink: 0;
+}
+
+.interest-separator {
+    color: var(--accent-color);
+    margin: 0 8px;
+    font-weight: bold;
+    font-size: 18px;
+    flex-shrink: 0;
+    position: relative;
+    left: 0;
+}
+
+.sub-label {
+    font-size: 16px;
+    margin: 0 6px;
+}
+
+.million-interest-row input,
+.ten-thousand-interest-row input {
+    width: 64px !important;
+    font-size: 16px !important;
+}
+
+.million-interest-row .sub-label,
+.ten-thousand-interest-row .sub-label {
+    width: auto !important;
+    margin: 0 8px !important;
+    font-size: 16px !important;
+}
+
+.million-interest-row .label:first-child,
+.ten-thousand-interest-row .label:first-child {
+    width: 76px !important;
+}
+
+.hidden-rate-field {
+    display: none !important;
+}
