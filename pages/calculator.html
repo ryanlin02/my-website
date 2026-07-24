@@ -74,6 +74,7 @@
     <script src="../js/calc-engine.js"></script>
     <script src="../js/calc-storage.js"></script>
     <script src="../js/calc-ui.js"></script>
+    <script src="../js/common-modals.js"></script>
 </head>
 <body>
 
@@ -310,8 +311,6 @@
         </div>
     </div>
 
-    <div class="footer-message"></div>
-
     <!-- 歷史記錄面板 -->
     <div id="historyPanel" class="history-panel">
         <div class="history-header">
@@ -326,113 +325,7 @@
         <div id="historyContent" class="history-content"></div>
     </div>
 
-    <!-- 普通提示模態框 -->
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3 id="modalTitle">提示</h3>
-                <button class="close-btn" onclick="hideModal()">×</button>
-            </div>
-            <div id="modalContent" class="modal-content"></div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-primary" onclick="hideModal()">確定</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 確認模態框 -->
-    <div id="confirmModalOverlay" class="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3 id="confirmModalTitle">確認</h3>
-                <button class="close-btn" onclick="hideConfirmModal()">×</button>
-            </div>
-            <div id="confirmModalContent" class="modal-content"></div>
-            <div class="modal-footer">
-                <button class="modal-btn modal-btn-secondary" onclick="hideConfirmModal()">取消</button>
-                <button id="confirmModalOk" class="modal-btn modal-btn-primary">確定</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="footer-spacing"></div>
-
-    <!-- 數字輸入器模態框 -->
-    <div id="numberInputModal" class="modal-overlay">
-        <div class="number-input-modal">
-            <div class="modal-header">
-                <h3 id="inputModalTitle">數字輸入器</h3>
-                <button class="close-btn" onclick="closeModal('numberInputModal')">×</button>
-            </div>
-
-            <div class="calculator-display-container">
-                <div class="calculator-scroll-indicator" id="historyScrollIndicator"></div>
-                <div class="calculator-history" id="calculatorHistory"></div>
-                <div class="calculator-display" id="calculatorDisplay">0</div>
-            </div>
-
-            <div class="calculator-buttons">
-                <!-- 第一行：功能鍵 -->
-                <button onclick="calculatorClear()" class="clear">C</button>
-                <button onclick="calculatorBackspace()" class="function">⌫</button>
-                <button onclick="calculatorOperation('/')" class="operator">÷</button>
-                <button onclick="calculatorOperation('*')" class="operator">×</button>
-                
-                <!-- 第二行：數字和減號 -->
-                <button onclick="calculatorInput(7)" class="number-btn">
-                    <div class="arabic-number">7</div>
-                    <div class="financial-char">柒</div>
-                </button>
-                <button onclick="calculatorInput(8)" class="number-btn">
-                    <div class="arabic-number">8</div>
-                    <div class="financial-char">捌</div>
-                </button>
-                <button onclick="calculatorInput(9)" class="number-btn">
-                    <div class="arabic-number">9</div>
-                    <div class="financial-char">玖</div>
-                </button>
-                <button onclick="calculatorOperation('-')" class="operator">−</button>
-                
-                <!-- 第三行：數字和加號 -->
-                <button onclick="calculatorInput(4)" class="number-btn">
-                    <div class="arabic-number">4</div>
-                    <div class="financial-char">肆</div>
-                </button>
-                <button onclick="calculatorInput(5)" class="number-btn">
-                    <div class="arabic-number">5</div>
-                    <div class="financial-char">伍</div>
-                </button>
-                <button onclick="calculatorInput(6)" class="number-btn">
-                    <div class="arabic-number">6</div>
-                    <div class="financial-char">陸</div>
-                </button>
-                <button onclick="calculatorOperation('+')" class="operator">+</button>
-                
-                <!-- 第四行：數字和等號 -->
-                <button onclick="calculatorInput(1)" class="number-btn">
-                    <div class="arabic-number">1</div>
-                    <div class="financial-char">壹</div>
-                </button>
-                <button onclick="calculatorInput(2)" class="number-btn">
-                    <div class="arabic-number">2</div>
-                    <div class="financial-char">貳</div>
-                </button>
-                <button onclick="calculatorInput(3)" class="number-btn">
-                    <div class="arabic-number">3</div>
-                    <div class="financial-char">參</div>
-                </button>
-                <button onclick="calculatorEquals()" class="equals">=</button>
-                
-                <!-- 第五行：零、小數點和確認鍵 -->
-                <button onclick="calculatorInput(0)" class="number-btn">
-                    <div class="arabic-number">0</div>
-                    <div class="financial-char">零</div>
-                </button>
-                <button onclick="calculatorDecimal()" class="function">.</button>
-                <button onclick="submitCalculatorValue()" class="submit">確認輸入</button>
-            </div>
-        </div>
-    </div>
+    <!-- 通用頁尾, 提示模態框, 確認模態框, 數字輸入器模態框 由 common-modals.js 動態注入 -->
 
     <script>
         if ('serviceWorker' in navigator) {
