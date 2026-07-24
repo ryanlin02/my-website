@@ -703,36 +703,108 @@
             }
         }
 
-        /* ===== 油價查詢框架樣式 ===== */
+        /* ===== 本週油價對照表樣式 ===== */
         .price-checker-container {
-            margin-top: var(--spacing-lg);          /* 與清除按鈕的間距 */
-            border-radius: var(--radius-md);        /* 圓角邊框 */
-            background-color: var(--secondary-color); /* 背景色與輸入欄位一致 */
-            padding: var(--spacing-sm);             /* 內部間距 */
-            box-shadow: 0 4px 8px var(--shadow-color); /* 陰影效果 */
+            margin-top: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            background-color: var(--secondary-color);
+            padding: 16px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .price-checker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
         }
 
         .price-checker-title {
-            font-size: var(--font-size-label);      /* 標題字體大小 */
-            color: var(--text-color);               /* 白色文字 */
-            text-align: center;                     /* 文字置中 */
-            margin-bottom: var(--spacing-sm);       /* 標題與框架的間距 */
-            font-weight: 500;                       /* 字體粗細 */
+            font-size: 16px;
+            color: var(--text-color);
+            font-weight: 600;
         }
 
-        .price-checker-frame {
-            width: 100%;                            /* 寬度填滿容器 */
-            height: 300px;                          /* 框架高度，針對手機優化 */
-            border: 1px solid var(--border-color);  /* 邊框顏色 */
-            border-radius: var(--radius-sm);        /* 圓角邊框 */
-            background-color: white;                /* 白色背景 */
+        .price-update-tag {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 0, 0, 0.25);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* 針對較小螢幕調整iframe高度 */
-        @media (max-width: 360px) {
-            .price-checker-frame {
-                height: 250px;                      /* 小螢幕時降低高度 */
-            }
+        .fuel-price-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #222222;
+        }
+
+        .fuel-price-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .fuel-price-table th {
+            background-color: #1a1a1a;
+            color: #ff9c33;
+            font-weight: 600;
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .fuel-price-table td {
+            padding: 11px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            white-space: nowrap;
+        }
+
+        .fuel-price-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .price-val {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .price-val:hover {
+            opacity: 0.85;
+            text-decoration: underline;
+        }
+
+        .price-val:active {
+            transform: scale(0.95);
+        }
+
+        .price-val.cpc {
+            color: #33b5e5;
+        }
+
+        .price-val.formosa {
+            color: #52b788;
+        }
+
+        .table-footnote {
+            margin-top: 8px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: right;
+            line-height: 1.4;
         }
 
         /* ===== 底部緩衝區域樣式 ===== */
@@ -854,9 +926,9 @@
     <div class="divider-flow"></div>
 
     <div class="container">
-        <!-- 超級柴油價格輸入欄位 -->
+        <!-- 油品單價輸入欄位 -->
         <div class="input-row">
-            <label class="input-label">柴油單價</label>
+            <label class="input-label">油品單價</label>
             <div class="diesel-price-wrapper">  <!-- 修改：使用專用容器類別 -->
                 <input type="text" 
                     id="dieselPrice" 
@@ -865,8 +937,8 @@
                     readonly>
                 <!-- 快速價格選擇按鈕容器 -->
                 <div class="price-buttons-container">
-                    <button class="quick-price-btn" onclick="setDieselPrice(31.0)" title="中油價格">中</button>
-                    <button class="quick-price-btn" onclick="setDieselPrice(30.8)" title="台塑價格">塑</button>
+                    <button class="quick-price-btn" id="btnCpcDiesel" onclick="setDieselPrice(28.8)" title="中油價格">中</button>
+                    <button class="quick-price-btn" id="btnFormosaDiesel" onclick="setDieselPrice(28.6)" title="台塑價格">塑</button>
                 </div>
             </div>
         </div>
@@ -990,22 +1062,28 @@
         <button class="clear-button" onclick="clearCalculation()">清除</button>
     </div>
 
-    <!-- 油價查詢框架 -->
+    <!-- 本週油價對照表區塊 -->
         <div class="price-checker-container">
-            <!-- 框架標題 -->
-            <div class="price-checker-title">即時油價查詢</div>
-            <!-- 油價查詢網頁框架 -->
-            <iframe class="price-checker-frame" 
-                    src="https://m.gas.goodlife.tw/" 
-                    title="台灣油價查詢"
-                    loading="lazy"
-                    sandbox="allow-scripts allow-same-origin allow-forms">
-                <!-- 當瀏覽器不支援iframe時的備用文字 -->
-                您的瀏覽器不支援iframe，請直接前往 
-                <a href="https://m.gas.goodlife.tw/" target="_blank" style="color: var(--button-orange);">
-                    油價查詢網站
-                </a>
-            </iframe>
+            <div class="price-checker-header">
+                <div class="price-checker-title">本週油品單價對照表</div>
+                <div class="price-update-tag">點擊油品單價計算</div>
+            </div>
+            
+            <div class="fuel-price-table-wrapper">
+                <table class="fuel-price-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding-left: 12px;">油品種類</th>
+                            <th>台灣中油</th>
+                            <th>台塑石油</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fuelPriceTableBody">
+                        <!-- 由 JavaScript 動態繪製 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-footnote" id="tableFootnote">* 最後更新時間：載入中...</div>
         </div>
 
     <!-- 底部緩衝區域 - 避免內容被手機螢幕底部遮擋 -->
@@ -1097,12 +1175,104 @@
             // 設定定時器，每秒更新當前時間
             setInterval(updateCurrentDate, 1000);
 
-            // 設定預設油品單價（中油價格）
-            document.getElementById('dieselPrice').value = '31.0';
-            // 觸發計算更新
-            updateCalculations();
+            // 全自動載入最新每週油價（自動更新中/塑按鈕與對照表）
+            loadFuelPrices();
 
         };
+
+        /* ===== 載入全自動每週最新油價 ===== */
+        let fuelPricesData = null;
+
+        async function loadFuelPrices() {
+            try {
+                // 讀取全自動更新的 JSON 資料，加入時間戳記防快取
+                const response = await fetch('../data/fuel-prices.json?v=' + new Date().getTime());
+                if (!response.ok) throw new Error('HTTP status ' + response.status);
+                fuelPricesData = await response.json();
+            } catch (err) {
+                console.warn('讀取 data/fuel-prices.json 失敗，使用預設靜態資料', err);
+                fuelPricesData = {
+                    updatedDateStr: '即時數據',
+                    prices: {
+                        cpc: { name: '台灣中油', diesel: 28.8, unleaded92: 29.8, unleaded95: 31.3, unleaded98: 33.3 },
+                        formosa: { name: '台塑石油', diesel: 28.6, unleaded92: 29.8, unleaded95: 31.3, unleaded98: 33.3 }
+                    }
+                };
+            }
+
+            renderFuelPricesUI(fuelPricesData);
+        }
+
+        function renderFuelPricesUI(data) {
+            if (!data || !data.prices) return;
+
+            const cpc = data.prices.cpc || {};
+            const formosa = data.prices.formosa || {};
+
+            // 1. 動態更新「中」、「塑」柴油快速按鈕的點擊價格與提示說明（還原按鈕顯示文字為 "中" 與 "塑"）
+            const btnCpc = document.getElementById('btnCpcDiesel');
+            const btnFormosa = document.getElementById('btnFormosaDiesel');
+
+            if (btnCpc && cpc.diesel) {
+                btnCpc.setAttribute('onclick', `setDieselPrice(${cpc.diesel})`);
+                btnCpc.title = `中油超級柴油 $${cpc.diesel.toFixed(1)}`;
+                btnCpc.textContent = '中';
+            }
+
+            if (btnFormosa && formosa.diesel) {
+                btnFormosa.setAttribute('onclick', `setDieselPrice(${formosa.diesel})`);
+                btnFormosa.title = `台塑超級柴油 $${formosa.diesel.toFixed(1)}`;
+                btnFormosa.textContent = '塑';
+            }
+
+            // 2. 預設自動填入中油超級柴油單價 (若當前尚未有值)
+            const dieselField = document.getElementById('dieselPrice');
+            if (dieselField && cpc.diesel && !dieselField.value) {
+                dieselField.value = cpc.diesel.toFixed(1);
+                updateCalculations();
+            }
+
+            // 3. 更新表格下方最後更新時間
+            const footnote = document.getElementById('tableFootnote');
+            if (footnote && data.updatedDateStr) {
+                footnote.textContent = `* 最後更新時間：${data.updatedDateStr}`;
+            }
+
+            // 4. 動態繪製「本週油品單價對照表」
+            const tableBody = document.getElementById('fuelPriceTableBody');
+            if (!tableBody) return;
+
+            const items = [
+                { key: 'unleaded92', label: '92 無鉛汽油' },
+                { key: 'unleaded95', label: '95 無鉛汽油 (+)' },
+                { key: 'unleaded98', label: '98 無鉛汽油' },
+                { key: 'diesel', label: '超級柴油' }
+            ];
+
+            let html = '';
+            items.forEach(item => {
+                const cpcVal = cpc[item.key];
+                const formVal = formosa[item.key];
+
+                const cpcTd = cpcVal 
+                    ? `<td class="price-val cpc" onclick="setDieselPrice(${cpcVal})" title="點擊帶入 ${item.label} 中油價格 $${cpcVal.toFixed(1)}">$${cpcVal.toFixed(1)}</td>`
+                    : `<td>-</td>`;
+
+                const formTd = formVal 
+                    ? `<td class="price-val formosa" onclick="setDieselPrice(${formVal})" title="點擊帶入 ${item.label} 台塑價格 $${formVal.toFixed(1)}">$${formVal.toFixed(1)}</td>`
+                    : `<td>-</td>`;
+
+                html += `
+                    <tr>
+                        <td style="text-align: left; padding-left: 12px; font-weight: 500;">${item.label}</td>
+                        ${cpcTd}
+                        ${formTd}
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
 
         /* ===== 快速設定油品單價函數 ===== */
         function setDieselPrice(price) {
