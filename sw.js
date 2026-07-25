@@ -20,7 +20,7 @@
  * 規則：4.24 → 4.25 → ... → 4.99 → 5.00 → 5.01
  * 版本號一變，Service Worker 就會重新安裝並抓取全新的檔案。
  * ============================================================ */
-const CACHE_VERSION = '4.28';
+const CACHE_VERSION = '4.29';
 const CACHE_NAME = `xiaopenyou-tools-v${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
