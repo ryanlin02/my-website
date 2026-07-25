@@ -326,6 +326,16 @@
         }
     </style>
 
+    <!--
+        數字鍵盤選項（必須在 common-modals.js 之前設定）
+        支票頁的總金額／繳款金額／開票張數三個欄位都是整數，不需要小數點。
+        舊版共用鍵盤上那顆小數點鍵會呼叫 calculatorDecimal()，
+        但該函式只有計算頁有定義，在支票頁按下去會直接報錯且毫無反應。
+    -->
+    <script>
+        window.KEYPAD_OPTIONS = { decimal: false };
+    </script>
+
     <!-- 引用通用組件與支票邏輯 JS -->
     <script src="../js/common-modals.js"></script>
     <script src="../js/check-engine.js"></script>

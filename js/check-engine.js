@@ -183,39 +183,60 @@ function submitCalculatorValue() {
     let value = parseFloat(calculatorValue);
     if (isNaN(value)) value = 0;
     
+    /* 【2026/07 修正 A5】
+     * 舊版三個欄位都只檢查上限，沒有檢查下限。
+     * 鍵盤雖然沒有 ± 鍵，但有減號 —— 輸入「100 - 200 =」就會得到 -100，
+     * 這個負數會被直接寫進 totalAmount，接著讓大寫金額顯示成正數。
+     * 計算頁對應的檢查是 value <= 0 一併擋掉，支票頁漏了，這裡補上。
+     *
+     * 另外把 Math.round() 提到驗證之前：
+     * 舊版先驗證再四捨五入，輸入 0.4 會通過 value > 0 的檢查，
+     * 四捨五入後才變成 0，等於繞過了下限。 */
     switch (currentInputField) {
         case 'total-amount':
+            value = Math.round(value);
+            if (value <= 0) {
+                showToast('錯誤：總金額必須大於零', true);
+                return;
+            }
             if (value > 999999999) {
                 showToast('錯誤：總金額不能超過9位數', true);
                 return;
             }
-            value = Math.round(value);
             document.getElementById(currentInputField).value = formatNumber(value);
             totalAmount = value;
             calculateDepositAmount();
             updateChineseDisplay();
             if (startDate) generateCheckList();
             break;
-            
+
         case 'payment-amount':
+            value = Math.round(value);
+            if (value <= 0) {
+                showToast('錯誤：繳款金額必須大於零', true);
+                return;
+            }
             if (value > 9999999) {
                 showToast('錯誤：繳款金額不能超過7位數', true);
                 return;
             }
-            value = Math.round(value);
             document.getElementById(currentInputField).value = formatNumber(value);
             paymentAmount = value;
             calculateDepositAmount();
             updateChineseDisplay();
             if (startDate) generateCheckList();
             break;
-            
+
         case 'check-count':
+            value = Math.round(value);
+            if (value < 1) {
+                showToast('錯誤：開票張數至少為 1 張', true);
+                return;
+            }
             if (value > 99) {
                 showToast('錯誤：開票張數不能超過2位數', true);
                 return;
             }
-            value = Math.round(value);
             document.getElementById(currentInputField).value = formatNumber(value);
             checkCount = value;
             calculateDepositAmount();
@@ -258,18 +279,14 @@ function clearAllInputs() {
     checkCount = 0;
     depositAmount = 0;
     startDate = null;
-    
-    const paymentCn = document.getElementById('payment-amount-chinese');
-    if (paymentCn) paymentCn.innerHTML = '';
-    const depositCn = document.getElementById('deposit-amount-chinese');
-    if (depositCn) depositCn.innerHTML = '';
-    
-    const card = document.querySelector('.deposit-info-card');
-    if (card) card.style.display = 'none';
-    
+
+    // 大寫、底部卡片、提示文字統一交給 resetDepositDisplay() 清，
+    // 避免像過去那樣「這裡清了三個、那裡漏了一個」而留下殘影
+    resetDepositDisplay();
+
     const listContent = document.getElementById('check-list-content');
     if (listContent) listContent.innerHTML = '';
-    
+
     showToast('已清除所有欄位');
 }
 
@@ -306,53 +323,88 @@ function updateCurrentDate() {
     if (el) el.textContent = timeString;
 }
 
-function calculateDepositAmount() {
-    if (totalAmount && paymentAmount && checkCount) {
-        depositAmount = totalAmount - (paymentAmount * checkCount) + paymentAmount;
-        if (depositAmount <= 0) {
-            const depEl = document.getElementById('deposit-amount');
-            if (depEl) depEl.value = '';
-            showToast('錯誤：押票金額必須大於零', true);
-            return;
-        }
-        const depEl = document.getElementById('deposit-amount');
-        if (depEl) depEl.value = formatNumber(depositAmount);
-        updateChineseDisplay();
-        
-        const depDisp = document.getElementById('deposit-amount-display');
-        if (depDisp) depDisp.textContent = `押票金額：${formatNumber(depositAmount)}`;
-        
-        const chineseAmount = arabicToChineseNumber(depositAmount, 'financial') + ' 元整';
-        const depCn = document.getElementById('deposit-amount-display-chinese');
-        if (depCn) depCn.innerHTML = chineseAmount;
-        
-        const card = document.querySelector('.deposit-info-card');
-        if (card) card.style.display = 'block';
+/**
+ * 把押票金額相關的所有顯示一次歸零
+ *
+ * 【2026/07 修正 A2 / A6】
+ * 舊版在「押票金額算出負數」時只清掉了阿拉伯數字欄位就 return，
+ * 既沒有把 depositAmount 歸零，也沒有清掉欄位下方的大寫、沒有收起底部卡片。
+ * 結果是畫面上同時出現三個互相矛盾的數字：
+ *   - 押票金額欄位：空白
+ *   - 欄位下方大寫：負數被 Math.abs 吃掉負號後的「看起來很正常」的正數
+ *   - 底部卡片：上一次的舊金額
+ * 業務很可能直接把那個大寫抄到支票上。
+ *
+ * 現在只要金額不成立，就一律走這個函式，把六個顯示位置全部清乾淨。
+ */
+function resetDepositDisplay() {
+    const depEl = document.getElementById('deposit-amount');
+    if (depEl) depEl.value = '';
 
-        const tipElement = document.getElementById('deposit-amount-tip');
-        if (tipElement) {
-            if (depositAmount < paymentAmount) {
-                tipElement.textContent = '押票金額小於繳款金額，請再次檢查金額。';
-                tipElement.style.display = 'block';
-            } else if (depositAmount === paymentAmount) {
-                tipElement.textContent = '押票金額等於繳款金額，此為最後一張支票。';
-                tipElement.style.display = 'block';
-            } else {
-                tipElement.style.display = 'none';
-            }
-        }
-    } else {
-        const depEl = document.getElementById('deposit-amount');
-        if (depEl) depEl.value = '';
-        const depDisp = document.getElementById('deposit-amount-display');
-        if (depDisp) depDisp.textContent = '';
-        const depCn = document.getElementById('deposit-amount-display-chinese');
-        if (depCn) depCn.innerHTML = '';
-        const card = document.querySelector('.deposit-info-card');
-        if (card) card.style.display = 'none';
+    const depDisp = document.getElementById('deposit-amount-display');
+    if (depDisp) depDisp.textContent = '';
+
+    const depDispCn = document.getElementById('deposit-amount-display-chinese');
+    if (depDispCn) depDispCn.innerHTML = '';
+
+    const card = document.querySelector('.deposit-info-card');
+    if (card) card.style.display = 'none';
+
+    const tipElement = document.getElementById('deposit-amount-tip');
+    if (tipElement) {
+        tipElement.textContent = '';
+        tipElement.style.display = 'none';
+    }
+
+    // 一併清掉「押票金額」欄位正下方那一行大寫（舊版漏掉的就是這一個）
+    updateChineseDisplay();
+}
+
+function calculateDepositAmount() {
+    // 必要欄位沒填齊：直接歸零，不留任何殘影
+    if (!totalAmount || !paymentAmount || !checkCount) {
         depositAmount = 0;
-        const tipElement = document.getElementById('deposit-amount-tip');
-        if (tipElement) tipElement.style.display = 'none';
+        resetDepositDisplay();
+        return;
+    }
+
+    depositAmount = totalAmount - (paymentAmount * checkCount) + paymentAmount;
+
+    if (depositAmount <= 0) {
+        // 關鍵：一定要把 depositAmount 歸零。
+        // 若留著負數，後續 updateChineseDisplay() 會把它當成有效金額，
+        // 而 arabicToChineseNumber 早期版本會用 Math.abs 把負號吃掉。
+        depositAmount = 0;
+        resetDepositDisplay();
+        showToast('錯誤：押票金額必須大於零，請檢查總金額、繳款金額與張數', true);
+        return;
+    }
+
+    const depEl = document.getElementById('deposit-amount');
+    if (depEl) depEl.value = formatNumber(depositAmount);
+
+    updateChineseDisplay();
+
+    const depDisp = document.getElementById('deposit-amount-display');
+    if (depDisp) depDisp.textContent = `押票金額：${formatNumber(depositAmount)}`;
+
+    renderChineseAmount('deposit-amount-display-chinese', depositAmount);
+
+    const card = document.querySelector('.deposit-info-card');
+    if (card) card.style.display = 'block';
+
+    const tipElement = document.getElementById('deposit-amount-tip');
+    if (tipElement) {
+        if (depositAmount < paymentAmount) {
+            tipElement.textContent = '押票金額小於繳款金額，請再次檢查金額。';
+            tipElement.style.display = 'block';
+        } else if (depositAmount === paymentAmount) {
+            tipElement.textContent = '押票金額等於繳款金額，此為最後一張支票。';
+            tipElement.style.display = 'block';
+        } else {
+            tipElement.textContent = '';
+            tipElement.style.display = 'none';
+        }
     }
 }
 
@@ -385,6 +437,12 @@ function generateCheckList() {
         listContent.innerHTML = '';
         const card = document.querySelector('.deposit-info-card');
         if (card) card.style.display = 'none';
+        /* 【2026/07 修正 A7】
+         * updateEndDateDisplay() 原本只寫在函式最後一行，這個 early return
+         * 會整個跳過它，導致清空開票張數之後：列表消失了、卡片收起來了，
+         * 但「結束日期」欄位還停在舊的日期上，業務可能誤以為那個日期還有效。
+         * 該函式本身在 !checkCount || !startDate 時就會清空欄位，直接呼叫即可。 */
+        updateEndDateDisplay();
         return;
     }
     
@@ -432,77 +490,95 @@ function generateCheckList() {
     updateEndDateDisplay();
 }
 
-function updateChineseDisplays() {
-    updateChineseDisplay();
+/**
+ * 把單一金額渲染成「大寫 + 元整」，金額不成立時輸出空字串
+ *
+ * 【2026/07 修正 A2】舊版是 arabicToChineseNumber(x) + ' 元整' 直接串接，
+ * 只要函式回傳空字串就會變成孤零零的「元整」兩個字。改由這裡統一判斷。
+ */
+function renderChineseAmount(elementId, amount) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const chinese = arabicToChineseNumber(amount, 'financial');
+    el.innerHTML = chinese ? chinese + ' 元整' : '';
 }
 
 function updateChineseDisplay() {
-    if (paymentAmount) {
-        const chinesePayment = arabicToChineseNumber(paymentAmount, 'financial') + ' 元整';
-        const el = document.getElementById('payment-amount-chinese');
-        if (el) el.innerHTML = chinesePayment;
-    } else {
-        const el = document.getElementById('payment-amount-chinese');
-        if (el) el.innerHTML = '';
-    }
-    
-    if (depositAmount) {
-        const chineseDeposit = arabicToChineseNumber(depositAmount, 'financial') + ' 元整';
-        const el = document.getElementById('deposit-amount-chinese');
-        if (el) el.innerHTML = chineseDeposit;
-    } else {
-        const el = document.getElementById('deposit-amount-chinese');
-        if (el) el.innerHTML = '';
-    }
+    renderChineseAmount('payment-amount-chinese', paymentAmount);
+    renderChineseAmount('deposit-amount-chinese', depositAmount);
 }
 
+/**
+ * 阿拉伯數字轉中文大寫金額
+ *
+ * 【2026/07 重寫 A3】
+ * 舊版把數字每 4 位切成一段分別轉換，但「要補零」的旗標在每一段開頭
+ * 都會被重設，導致段與段之間的零整個消失。實測失效案例：
+ *     1,005,000  → 壹佰萬伍仟    （正確：壹佰萬零伍仟）
+ *    10,005,000  → 壹仟萬伍仟    （正確：壹仟萬零伍仟）
+ * 失效條件是「高位段的尾數是 0，且低位段的千位不是 0」——
+ * 這在重車業務是很常見的金額，不是罕見邊界。
+ * 支票大寫漏一個「零」，銀行有權以文義不清、可被增改為由退票。
+ *
+ * 新版改為「整串由高位往低位掃描」：
+ *   - 遇到非零數字：若前面累積過零，先補一個「零」，再寫數字與位單位
+ *   - 遇到零：只是把「待補零」記起來，連續幾個零也只會補一個
+ *   - 走到每個四位段的最低位時，若該段有非零數字才補上 萬／億／兆
+ *   - 「待補零」刻意不在 萬／億／兆 之後重設，這正是舊版漏字的原因
+ *
+ * 另外新增防呆：負數、NaN、Infinity、零一律回傳空字串，
+ * 絕不把不合理的金額轉成「看起來很正常」的大寫（見 A2 / A5）。
+ */
 function arabicToChineseNumber(number, type = 'financial', highlight = true) {
-    if (number === 0 || !number) {
-        return highlight ? '<span class="chinese-digit">零</span>' : '零';
-    }
-    
-    const digits = type === 'financial' 
+    const value = typeof number === 'number' ? number : parseFloat(number);
+    if (!Number.isFinite(value) || value <= 0) return '';
+
+    const digits = type === 'financial'
         ? ['零', '壹', '貳', '參', '肆', '伍', '陸', '柒', '捌', '玖']
         : ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
     const units = type === 'financial'
         ? ['', '拾', '佰', '仟']
         : ['', '十', '百', '千'];
     const bigUnits = ['', '萬', '億', '兆'];
-    
-    let numStr = Math.floor(Math.abs(number)).toString();
-    let result = '';
 
-    const chunks = [];
-    for (let i = numStr.length; i > 0; i -= 4) {
-        chunks.push(numStr.substring(Math.max(0, i - 4), i));
-    }
-    
-    for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        let chunkResult = '';
-        let chunkZero = false;
-        
-        for (let j = 0; j < chunk.length; j++) {
-            const digit = parseInt(chunk[j]);
-            const position = chunk.length - j - 1;
-            
-            if (digit !== 0) {
-                if (chunkZero) {
-                    chunkResult += highlight ? `<span class="chinese-digit">${digits[0]}</span>` : digits[0];
-                    chunkZero = false;
-                }
-                const digitText = highlight ? `<span class="chinese-digit">${digits[digit]}</span>` : digits[digit];
-                chunkResult += digitText + units[position];
-            } else {
-                chunkZero = true;
+    const numStr = Math.floor(value).toString();
+    if (numStr.length > bigUnits.length * 4) return '';   // 超出「兆」可表達的範圍
+
+    const wrap = ch => highlight ? `<span class="chinese-digit">${ch}</span>` : ch;
+
+    const len = numStr.length;
+    let result = '';
+    let pendingZero = false;      // 前面是否出現過尚未寫出的零
+
+    for (let idx = 0; idx < len; idx++) {
+        const position = len - idx - 1;                 // 這一位由右數來的位數
+        const groupIndex = Math.floor(position / 4);    // 0=個 1=萬 2=億 3=兆
+        const digit = parseInt(numStr[idx], 10);
+
+        if (digit !== 0) {
+            if (pendingZero) {
+                result += wrap(digits[0]);
+                pendingZero = false;
+            }
+            result += wrap(digits[digit]) + units[position % 4];
+        } else if (result !== '') {
+            // result 為空代表還在前導零，不需要記錄
+            pendingZero = true;
+        }
+
+        // 走到某個四位段的最低位：該段只要有非零數字就補上段位單位
+        if (position % 4 === 0 && groupIndex > 0) {
+            const groupStart = Math.max(0, len - (groupIndex + 1) * 4);
+            const groupDigits = numStr.substring(groupStart, len - position);
+            if (/[1-9]/.test(groupDigits)) {
+                result += bigUnits[groupIndex];
+                // 注意：這裡刻意不重設 pendingZero。
+                // 例如 10,005,000 需要輸出「壹仟萬零伍仟」，
+                // 那個「零」正是靠萬字之前累積下來的 pendingZero 補上的。
             }
         }
-        
-        if (chunkResult !== '') {
-            result = chunkResult + bigUnits[i] + result;
-        }
     }
-    
+
     return result;
 }
 
@@ -653,6 +729,16 @@ function saveCheckData() {
         showToast('請先完成所有必要欄位的填寫', true);
         return;
     }
+
+    /* 【2026/07 修正 A2 延伸】
+     * 舊版只檢查四個輸入欄位，沒有檢查押票金額本身是否成立。
+     * 當金額組合不合理（押票金額 ≤ 0）時，畫面上押票欄位是空的，
+     * 卻仍然可以按下「保存計算」，把一筆押票金額為 0（舊版是負數）的
+     * 紀錄存進歷史，日後載出來會是一筆看不出哪裡有問題的錯誤資料。 */
+    if (!depositAmount || depositAmount <= 0) {
+        showToast('押票金額不成立，請先檢查總金額、繳款金額與張數', true);
+        return;
+    }
     
     const checkDate = new Date();
     const formattedDate = `${checkDate.getFullYear()}-${(checkDate.getMonth() + 1).toString().padStart(2, '0')}-${checkDate.getDate().toString().padStart(2, '0')}`;
@@ -745,15 +831,31 @@ function hideConfirmModal() {
     if (overlay) overlay.style.display = 'none';
 }
 
+/**
+ * 開關歷史記錄面板
+ *
+ * 【2026/07 修正 A1】
+ * 舊版用 classList.add('active') 來開啟面板，但全站 CSS 從來沒有定義過
+ * .history-panel.active 這條規則（.history-panel 本身是 display: none），
+ * 所以加上這個 class 完全不會讓面板顯示出來。
+ *
+ * 實際後果：按「保存計算」會跳出「已保存」，資料也真的寫進 localStorage，
+ * 但按「歷史記錄」畫面毫無反應 —— 整套歷史功能（查詢、備註、刪除、全刪，
+ * 約 120 行程式碼）等於完全是死的，存進去的資料永遠看不到。
+ *
+ * 改為與計算頁一致的 style.display 寫法（calc-ui.js 的 toggleHistoryPanel）。
+ */
 function toggleHistoryPanel() {
     vibrate();
     const historyPanel = document.getElementById('historyPanel');
     if (!historyPanel) return;
-    if (historyPanel.classList.contains('active')) {
-        historyPanel.classList.remove('active');
+
+    const isOpen = historyPanel.style.display === 'block';
+    if (isOpen) {
+        historyPanel.style.display = 'none';
     } else {
         loadCheckHistory();
-        historyPanel.classList.add('active');
+        historyPanel.style.display = 'block';
     }
 }
 

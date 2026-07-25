@@ -10,6 +10,40 @@ function initCommonModals() {
     // 避免重複注入
     if (document.getElementById('numberInputModal')) return;
 
+    /* ------------------------------------------------------------
+     * 鍵盤選項
+     * 【2026/07 修正 A4】
+     * 這個檔案注入的共用鍵盤上有一顆小數點鍵，onclick 寫死呼叫
+     * calculatorDecimal()。但這個函式只有 calc-ui.js（計算頁）有定義，
+     * check-engine.js（支票頁）沒有 —— 在支票頁按小數點會直接丟出
+     * ReferenceError，按鈕沒反應、沒震動、沒提示，
+     * 使用者會以為是螢幕沒感應到而重複按。
+     *
+     * 支票頁的三個欄位（總金額／繳款金額／開票張數）本來就都是整數，
+     * 根本不需要小數點。與其複製一份 calculatorDecimal 過去，
+     * 不如讓各頁自行決定要不要顯示這顆鍵。
+     *
+     * 用法：在載入本檔案之前設定
+     *     window.KEYPAD_OPTIONS = { decimal: false };
+     * 未設定時預設維持顯示，計算頁行為完全不變。
+     * ------------------------------------------------------------ */
+    const keypadOptions = window.KEYPAD_OPTIONS || {};
+    const showDecimal = keypadOptions.decimal !== false;
+
+    // 不顯示小數點時，讓 0 鍵補上空出來的格子，鍵盤不會破格
+    const lastRowHtml = showDecimal
+        ? `<button onclick="calculatorInput(0)" class="number-btn zero-btn">
+                    <div class="arabic-number">0</div>
+                    <div class="financial-char">零</div>
+                </button>
+                <button onclick="calculatorDecimal()" class="function">.</button>
+                <button onclick="calculatorEquals()" class="equals">=</button>`
+        : `<button onclick="calculatorInput(0)" class="number-btn zero-btn" style="grid-column: span 3;">
+                    <div class="arabic-number">0</div>
+                    <div class="financial-char">零</div>
+                </button>
+                <button onclick="calculatorEquals()" class="equals">=</button>`;
+
     const modalWrapper = document.createElement('div');
     modalWrapper.id = 'commonModalsWrapper';
     modalWrapper.innerHTML = `
@@ -107,13 +141,8 @@ function initCommonModals() {
                 </button>
                 <button onclick="calculatorOperation('+')" class="operator">+</button>
                 
-                <!-- 第五行：零、小數點和等號 -->
-                <button onclick="calculatorInput(0)" class="number-btn zero-btn">
-                    <div class="arabic-number">0</div>
-                    <div class="financial-char">零</div>
-                </button>
-                <button onclick="calculatorDecimal()" class="function">.</button>
-                <button onclick="calculatorEquals()" class="equals">=</button>
+                <!-- 第五行：零、小數點（可關閉）和等號 -->
+                ${lastRowHtml}
             </div>
 
             <!-- 獨立滿版確認輸入按鈕區域 -->
