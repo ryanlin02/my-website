@@ -336,7 +336,10 @@
         window.KEYPAD_OPTIONS = { decimal: false };
     </script>
 
-    <!-- 引用通用組件與支票邏輯 JS -->
+    <!-- 引用通用組件與支票邏輯 JS
+         注意：common-keypad.js 必須排在 check-engine.js 之前，
+         它以 let 宣告鍵盤共用狀態，需先完成宣告 -->
+    <script src="../js/common-keypad.js"></script>
     <script src="../js/common-modals.js"></script>
     <script src="../js/check-engine.js"></script>
 </head>

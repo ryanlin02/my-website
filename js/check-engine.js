@@ -2,182 +2,33 @@
  * 重車貸款業務工具箱 - 支票試算引擎與介面邏輯 (check-engine.js)
  */
 
+/* ------------------------------------------------------------
+ * 支票頁專用狀態
+ *
+ * 【2026/07 修正 B1】
+ * 數字鍵盤、Toast、彈窗的共用狀態與函式已全部移到 js/common-keypad.js，
+ * 本檔案只保留支票頁真正專屬的邏輯。
+ * 原本這裡宣告的 currentInputField / calculatorValue 等 6 個變數，
+ * 以及 vibrate、closeModal、showToast、showModal、showConfirmModal、
+ * openCalculator、calculatorInput/Clear/Backspace/Operation/Equals、
+ * updateCalculatorHistory 共 14 個函式，都與 calc-ui.js 逐字重複，已刪除。
+ * ------------------------------------------------------------ */
 let totalAmount = 0;
 let paymentAmount = 0;
 let checkCount = 0;
 let depositAmount = 0;
 let startDate = null;
-let resultValue = 0;
 
 // 日期選擇器變數
 let selectedDate = null;
 let currentViewMonth = new Date();
 
-// 計算機全域變數
-let currentInputField = null;
-let calculatorValue = "0";
-let calculatorOperator = null;
-let calculatorFirstValue = null;
-let calculatorWaitingForSecondValue = false;
-let calculatorHistory = "";
-
-// 震動回饋
-function vibrate() {
-    if (navigator.vibrate) {
-        navigator.vibrate(30);
-    }
-}
-
-// 關閉模態框
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'none';
-    vibrate();
-}
-
-// 計算機輸入與運算
-function calculatorInput(num) {
-    if (calculatorWaitingForSecondValue) {
-        calculatorValue = num.toString();
-        calculatorWaitingForSecondValue = false;
-    } else {
-        calculatorValue = calculatorValue === '0' ? num.toString() : calculatorValue + num.toString();
-    }
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
-    vibrate();
-}
-
-function calculatorClear() {
-    calculatorValue = '0';
-    calculatorOperator = null;
-    calculatorFirstValue = null;
-    calculatorWaitingForSecondValue = false;
-    calculatorHistory = "";
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
-    const history = document.getElementById('calculatorHistory');
-    if (history) history.textContent = "";
-    const indicator = document.getElementById('historyScrollIndicator');
-    if (indicator) indicator.style.opacity = '0';
-    vibrate();
-}
-
-function calculatorBackspace() {
-    if (calculatorValue.length > 1) {
-        calculatorValue = calculatorValue.slice(0, -1);
-    } else {
-        calculatorValue = '0';
-    }
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
-    vibrate();
-}
-
-function calculatorOperation(op) {
-    if (calculatorFirstValue !== null && calculatorOperator !== null) {
-        calculatorEquals();
-    }
-    calculatorFirstValue = parseFloat(calculatorValue);
-    calculatorOperator = op;
-    calculatorWaitingForSecondValue = true;
-    let opSymbol = op;
-    switch(op) {
-        case '+': opSymbol = ' + '; break;
-        case '-': opSymbol = ' - '; break;
-        case '*': opSymbol = ' × '; break;
-        case '/': opSymbol = ' ÷ '; break;
-    }
-    if (calculatorHistory === "") {
-        calculatorHistory = calculatorValue + opSymbol;
-    } else {
-        if (calculatorHistory.length > 20) {
-            calculatorHistory += "\n" + calculatorValue + opSymbol;
-        } else {
-            calculatorHistory += calculatorValue + opSymbol;
-        }
-    }
-    updateCalculatorHistory();
-    vibrate();
-}
-
-function calculatorEquals() {
-    if (calculatorFirstValue === null || calculatorOperator === null) return;
-    const secondValue = parseFloat(calculatorValue);
-    let result;
-    let completeExpression = calculatorHistory + calculatorValue + " = ";
-    switch (calculatorOperator) {
-        case '+': result = calculatorFirstValue + secondValue; break;
-        case '-': result = calculatorFirstValue - secondValue; break;
-        case '*': result = calculatorFirstValue * secondValue; break;
-        case '/':
-            if (secondValue === 0) {
-                showToast('錯誤：不能除以零', true);
-                calculatorClear();
-                return;
-            }
-            result = calculatorFirstValue / secondValue;
-            break;
-        default: return;
-    }
-    calculatorValue = result.toString();
-    if (calculatorValue.includes('.')) {
-        calculatorValue = parseFloat(result.toFixed(8)).toString();
-    }
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
-    calculatorHistory = completeExpression.length > 30 ? calculatorValue : completeExpression;
-    updateCalculatorHistory();
-    calculatorOperator = null;
-    calculatorFirstValue = parseFloat(calculatorValue);
-    calculatorWaitingForSecondValue = true;
-    vibrate();
-}
-
-function updateCalculatorHistory() {
-    const historyElement = document.getElementById('calculatorHistory');
-    if (!historyElement) return;
-    historyElement.textContent = calculatorHistory;
-    const isOverflowing = historyElement.scrollWidth > historyElement.clientWidth || 
-                        historyElement.scrollHeight > historyElement.clientHeight;
-    if (isOverflowing) {
-        historyElement.classList.add('has-overflow');
-    } else {
-        historyElement.classList.remove('has-overflow');
-    }
-}
-
-// 喚起數字輸入器
-function openCalculator(targetId, title) {
-    currentInputField = targetId;
-    const titleEl = document.getElementById('inputModalTitle');
-    if (titleEl) titleEl.textContent = title;
-    
-    const inputEl = document.getElementById(targetId);
-    const currentValue = inputEl ? inputEl.value : '';
-    
-    if (currentValue && currentValue !== '') {
-        calculatorValue = currentValue.replace(/,/g, '');
-    } else {
-        calculatorValue = "0";
-    }
-    
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
-    
-    calculatorOperator = null;
-    calculatorFirstValue = null;
-    calculatorWaitingForSecondValue = false;
-    calculatorHistory = "";
-    
-    const historyEl = document.getElementById('calculatorHistory');
-    if (historyEl) historyEl.textContent = "";
-    
-    const modal = document.getElementById('numberInputModal');
-    if (modal) modal.style.display = 'flex';
-    vibrate();
-}
-
+/**
+ * 把數字輸入器的結果寫回欄位
+ *
+ * 這是支票頁唯一與計算頁不同的鍵盤相關邏輯（各欄位驗證規則不同），
+ * 所以刻意保留在本檔案，沒有搬進 common-keypad.js。
+ */
 function submitCalculatorValue() {
     if (!currentInputField) return;
     let value = parseFloat(calculatorValue);
@@ -761,75 +612,8 @@ function saveCheckData() {
     showToast('支票計算結果已保存！');
 }
 
-/**
- * 顯示提示訊息
- *
- * 【2026/07 修正】舊版使用 .toast 與 .show 這兩個樣式名稱，
- * 但全站 CSS 從來沒有定義過它們（CSS 裡只有 .toast-message / .toast-error）。
- * 造成兩個問題：
- *   1. 提示變成沒有樣式的普通區塊，直接接在頁尾下方
- *   2. 兩秒後執行的「移除 .show」等於移除一個不存在的樣式，
- *      所以提示永遠不會消失，會一直留在畫面最底部
- *
- * 改為沿用計算頁已證實正常運作的 .toast-message / .toast-error，
- * 並且改成每次建立新元素、時間到就從畫面移除，確保一定會消失。
- */
-function showToast(message, isError = false, duration = 2000) {
-    // 先移除仍在畫面上的舊提示，避免多則訊息互相重疊
-    const existing = document.querySelector('.toast-message');
-    if (existing && existing.parentNode) {
-        existing.parentNode.removeChild(existing);
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'toast-message';
-    if (isError) toast.classList.add('toast-error');
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        // 淡出動畫結束後，把元素真正從畫面上移除
-        setTimeout(() => {
-            if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 500);
-    }, duration);
-}
-
-function showModal(title, content) {
-    const titleEl = document.getElementById('modalTitle');
-    if (titleEl) titleEl.textContent = title || '提示';
-    const contentEl = document.getElementById('modalContent');
-    if (contentEl) contentEl.innerHTML = content;
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.style.display = 'flex';
-}
-
-function hideModal() {
-    const overlay = document.getElementById('modalOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-function showConfirmModal(title, content, onConfirm) {
-    const titleEl = document.getElementById('confirmModalTitle');
-    if (titleEl) titleEl.textContent = title || '確認';
-    const contentEl = document.getElementById('confirmModalContent');
-    if (contentEl) contentEl.innerHTML = content;
-    const okBtn = document.getElementById('confirmModalOk');
-    if (okBtn) {
-        okBtn.onclick = function() {
-            hideConfirmModal();
-            if (typeof onConfirm === 'function') onConfirm();
-        };
-    }
-    const overlay = document.getElementById('confirmModalOverlay');
-    if (overlay) overlay.style.display = 'flex';
-}
-
-function hideConfirmModal() {
-    const overlay = document.getElementById('confirmModalOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
+/* showToast / showModal / hideModal / showConfirmModal / hideConfirmModal
+ * 已移至 js/common-keypad.js（見 B1 修正說明） */
 
 /**
  * 開關歷史記錄面板

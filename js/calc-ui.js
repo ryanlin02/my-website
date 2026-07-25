@@ -37,22 +37,12 @@ function warnRateIfOver(rate) {
     );
 }
 
-// 全域狀態變數 (鍵盤輸入器)
-let currentInputField = null;
-let calculatorValue = "0";
-let calculatorOperator = null;
-let calculatorFirstValue = null;
-let calculatorWaitingForSecondValue = false;
-let calculatorHistory = "";
-
-/**
- * 觸覺震動回饋 helper
- */
-function vibrate() {
-    if (navigator.vibrate) {
-        navigator.vibrate(30);
-    }
-}
+/* ------------------------------------------------------------
+ * 【2026/07 修正 B1】
+ * 鍵盤共用狀態（currentInputField、calculatorValue 等 6 個變數）
+ * 與 vibrate() 已移至 js/common-keypad.js，與支票頁共用同一份實作。
+ * 該檔案必須排在本檔案之前載入（calculator.html 已調整）。
+ * ------------------------------------------------------------ */
 
 /**
  * 時鐘即時更新
@@ -649,192 +639,17 @@ function toggleHistoryPanel() {
     }
 }
 
-function showModal(title, content) {
-    document.getElementById('modalTitle').textContent = title || '提示';
-    document.getElementById('modalContent').innerHTML = content;
-    document.getElementById('modalOverlay').style.display = 'flex';
-}
+/* showModal / hideModal / showConfirmModal / hideConfirmModal / showToast
+ * openCalculator / closeModal / calculatorInput / calculatorDecimal /
+ * calculatorClear / calculatorBackspace / calculatorOperation / calculatorEquals
+ * 已移至 js/common-keypad.js（見 B1 修正說明），與支票頁共用同一份實作 */
 
-function hideModal() {
-    document.getElementById('modalOverlay').style.display = 'none';
-}
-
-function showConfirmModal(title, content, confirmCallback) {
-    document.getElementById('confirmModalTitle').textContent = title || '確認';
-    document.getElementById('confirmModalContent').innerHTML = content;
-    document.getElementById('confirmModalOverlay').style.display = 'flex';
-    
-    const confirmButton = document.getElementById('confirmModalOk');
-    const newConfirmButton = confirmButton.cloneNode(true);
-    confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
-    
-    newConfirmButton.addEventListener('click', function() {
-        hideConfirmModal();
-        if (typeof confirmCallback === 'function') confirmCallback();
-    });
-}
-
-function hideConfirmModal() {
-    document.getElementById('confirmModalOverlay').style.display = 'none';
-}
-
-function showToast(message, isError = false, duration = 2000) {
-    const existingToast = document.querySelector('.toast-message');
-    if (existingToast && existingToast.parentNode) {
-        existingToast.parentNode.removeChild(existingToast);
-    }
-    
-    const toast = document.createElement('div');
-    toast.className = 'toast-message';
-    if (isError) toast.classList.add('toast-error');
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            if (document.body.contains(toast)) document.body.removeChild(toast);
-        }, 500);
-    }, duration);
-}
-
-/* 數字輸入器 (Calculator Pad Modal) 邏輯 */
-function openCalculator(inputId, title) {
-    currentInputField = inputId;
-    document.getElementById('inputModalTitle').textContent = title;
-    
-    const currentValue = document.getElementById(inputId).value;
-    if (currentValue && currentValue !== '') {
-        calculatorValue = currentValue.replace(/,/g, '');
-    } else {
-        calculatorValue = "0";
-    }
-    
-    document.getElementById('calculatorDisplay').textContent = calculatorValue;
-    calculatorOperator = null;
-    calculatorFirstValue = null;
-    calculatorWaitingForSecondValue = false;
-    calculatorHistory = "";
-    document.getElementById('calculatorHistory').textContent = "";
-    document.getElementById('historyScrollIndicator').style.opacity = '0';
-    document.getElementById('numberInputModal').style.display = 'flex';
-    vibrate();
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.style.display = 'none';
-    vibrate();
-}
-
-function calculatorInput(num) {
-    if (calculatorWaitingForSecondValue) {
-        calculatorValue = num.toString();
-        calculatorWaitingForSecondValue = false;
-    } else {
-        calculatorValue = calculatorValue === '0' ? num.toString() : calculatorValue + num.toString();
-    }
-    document.getElementById('calculatorDisplay').textContent = calculatorValue;
-    vibrate();
-}
-
-function calculatorDecimal() {
-    if (calculatorWaitingForSecondValue) {
-        calculatorValue = '0';
-        calculatorWaitingForSecondValue = false;
-    }
-    if (!calculatorValue.includes('.')) {
-        calculatorValue += '.';
-    }
-    document.getElementById('calculatorDisplay').textContent = calculatorValue;
-    vibrate();
-}
-
-function calculatorClear() {
-    calculatorValue = '0';
-    calculatorOperator = null;
-    calculatorFirstValue = null;
-    calculatorWaitingForSecondValue = false;
-    calculatorHistory = "";
-    document.getElementById('calculatorDisplay').textContent = calculatorValue;
-    document.getElementById('calculatorHistory').textContent = "";
-    document.getElementById('historyScrollIndicator').style.opacity = '0';
-    vibrate();
-}
-
-function calculatorBackspace() {
-    if (calculatorValue.length > 1) {
-        calculatorValue = calculatorValue.slice(0, -1);
-    } else {
-        calculatorValue = '0';
-    }
-    document.getElementById('calculatorDisplay').textContent = calculatorValue;
-    vibrate();
-}
-
-function calculatorOperation(op) {
-    if (calculatorFirstValue !== null && calculatorOperator !== null) {
-        calculatorEquals();
-    }
-    
-    calculatorFirstValue = parseFloat(calculatorValue);
-    calculatorOperator = op;
-    calculatorWaitingForSecondValue = true;
-    
-    let opSymbol = op;
-    switch(op) {
-        case '+': opSymbol = ' + '; break;
-        case '-': opSymbol = ' - '; break;
-        case '*': opSymbol = ' × '; break;
-        case '/': opSymbol = ' ÷ '; break;
-    }
-    
-    if (calculatorHistory === "") {
-        calculatorHistory = calculatorValue + opSymbol;
-    } else {
-        calculatorHistory += (calculatorHistory.length > 20 ? "\n" : "") + calculatorValue + opSymbol;
-    }
-    
-    updateCalculatorHistory();
-    vibrate();
-}
-
-function calculatorEquals() {
-    if (calculatorFirstValue === null || calculatorOperator === null) return;
-    const secondValue = parseFloat(calculatorValue);
-    let result;
-    let completeExpression = calculatorHistory + calculatorValue + " = ";
-    
-    switch (calculatorOperator) {
-        case '+': result = calculatorFirstValue + secondValue; break;
-        case '-': result = calculatorFirstValue - secondValue; break;
-        case '*': result = calculatorFirstValue * secondValue; break;
-        case '/':
-            if (secondValue === 0) {
-                showToast('錯誤：不能除以零', true);
-                calculatorClear();
-                return;
-            }
-            result = calculatorFirstValue / secondValue;
-            break;
-        default: return;
-    }
-    
-    calculatorValue = result.toString();
-    if (calculatorValue.includes('.')) {
-        calculatorValue = parseFloat(result.toFixed(8)).toString();
-    }
-    
-    document.getElementById('calculatorDisplay').textContent = calculatorValue;
-    calculatorHistory = completeExpression.length > 30 ? calculatorValue : completeExpression;
-    updateCalculatorHistory();
-    
-    calculatorOperator = null;
-    calculatorFirstValue = parseFloat(calculatorValue);
-    calculatorWaitingForSecondValue = true;
-    vibrate();
-}
-
+/**
+ * 把數字輸入器的結果寫回欄位
+ *
+ * 這是計算頁唯一與支票頁不同的鍵盤相關邏輯（各欄位驗證規則不同），
+ * 所以刻意保留在本檔案，沒有搬進 common-keypad.js。
+ */
 function submitCalculatorValue() {
     if (!currentInputField) return;
     
@@ -915,19 +730,7 @@ function submitCalculatorValue() {
     vibrate();
 }
 
-function updateCalculatorHistory() {
-    const historyElement = document.getElementById('calculatorHistory');
-    if (!historyElement) return;
-    historyElement.textContent = calculatorHistory;
-    
-    const isOverflowing = historyElement.scrollWidth > historyElement.clientWidth || 
-                        historyElement.scrollHeight > historyElement.clientHeight;
-    if (isOverflowing) {
-        historyElement.classList.add('has-overflow');
-    } else {
-        historyElement.classList.remove('has-overflow');
-    }
-}
+/* updateCalculatorHistory() 已移至 js/common-keypad.js（見 B1 修正說明） */
 
 /* 頁面加載初始化與事件綁定 */
 window.onload = function() {

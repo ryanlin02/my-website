@@ -73,8 +73,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- 引用拆分模組化 JS 檔案 -->
+    <!-- 引用拆分模組化 JS 檔案
+         注意：common-keypad.js 必須排在 calc-ui.js 之前，
+         它以 let 宣告鍵盤共用狀態，需先完成宣告 -->
     <script src="../js/calc-engine.js"></script>
+    <script src="../js/common-keypad.js"></script>
     <script src="../js/calc-storage.js"></script>
     <script src="../js/calc-ui.js"></script>
     <script src="../js/common-modals.js"></script>
