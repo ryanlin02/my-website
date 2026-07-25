@@ -2,14 +2,18 @@
     "name": "貸款業務工具箱",
     "short_name": "貸款業務",
     "description": "重車貸款業務專用的實用工具集合，包含試算、支票、發票、油資折讓等功能",
-    "version": "1.0.1",
+    "version": "4.25",
     "author": "貸款業務工具開發團隊",
     "lang": "zh-TW",
     "dir": "ltr",
     "scope": "/my-website/",
     "start_url": "/my-website/",
     "display": "standalone",
-    "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+    "display_override": [
+        "window-controls-overlay",
+        "standalone",
+        "minimal-ui"
+    ],
     "orientation": "portrait",
     "theme_color": "#333333",
     "background_color": "#333333",
@@ -40,7 +44,7 @@
         },
         {
             "name": "支票功能",
-            "short_name": "支票", 
+            "short_name": "支票",
             "description": "開啟支票相關功能",
             "url": "/my-website/?page=check",
             "icons": [
@@ -54,7 +58,7 @@
         {
             "name": "發票功能",
             "short_name": "發票",
-            "description": "開啟發票相關功能", 
+            "description": "開啟發票相關功能",
             "url": "/my-website/?page=invoice",
             "icons": [
                 {
@@ -86,7 +90,7 @@
             "purpose": "any maskable"
         },
         {
-            "src": "icons/icon-512.png", 
+            "src": "icons/icon-512.png",
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "any maskable"
