@@ -3,6 +3,40 @@
  * 管理 DOM 事件綁定、動態連動計算 UI 更新、彈窗對話框與數字鍵盤輸入器
  */
 
+/* ------------------------------------------------------------
+ * 警告狀態記錄
+ * 用途：讓「利率超過門檻」與「佣金比例超過門檻」的提示訊息
+ *       只在剛跨過門檻時跳一次，避免連按調整鍵時被提示洗版。
+ *       欄位的紅字則會持續顯示，不受這裡影響。
+ * ------------------------------------------------------------ */
+let rateWarnShown = false;      // 利率是否已提示過
+let ratioWarnShown = false;     // 佣金比例是否已提示過
+
+/**
+ * 跨門檻才提示一次的共用邏輯
+ * @param {boolean} isOver 目前是否超標
+ * @param {boolean} alreadyShown 先前是否已提示過
+ * @param {string} message 要顯示的提示文字
+ * @returns {boolean} 更新後的「已提示過」狀態
+ */
+function warnOnCross(isOver, alreadyShown, message) {
+    if (isOver && !alreadyShown) {
+        if (typeof showToast === 'function') showToast(message, true);
+        return true;
+    }
+    if (!isOver) return false;   // 回到門檻以下，重置，下次超標會再提示
+    return alreadyShown;
+}
+
+// 利率超標提示（供各輸入路徑呼叫）
+function warnRateIfOver(rate) {
+    rateWarnShown = warnOnCross(
+        rate > LIMITS.RATE_WARN,
+        rateWarnShown,
+        `警告：利率超過 ${LIMITS.RATE_WARN}%，可能不符合一般貸款條件`
+    );
+}
+
 // 全域狀態變數 (鍵盤輸入器)
 let currentInputField = null;
 let calculatorValue = "0";
@@ -82,8 +116,9 @@ function calculatePayment() {
     }
     
     try {
-        const safeRate = Math.min(Math.max(rate, 0.0001), 50);
-        const safePeriod = Math.min(Math.max(period, 1), 999);
+        // 上限與 RATE() 的搜尋範圍一致，避免「欄位顯示 60% 卻用 50% 計算」的落差
+        const safeRate = Math.min(Math.max(rate, 0.0001), LIMITS.MAX_RATE);
+        const safePeriod = Math.min(Math.max(period, 1), LIMITS.MAX_PERIOD);
         const payment = PMT(safeRate, safePeriod, principal);
         
         if (isNaN(payment) || !isFinite(payment) || payment <= 0) {
@@ -137,15 +172,15 @@ function calculateRate() {
     
     try {
         const rate = RATE(period, payment, principal);
-        if (isNaN(rate) || !isFinite(rate) || rate < 0) {
-            if (shouldWarn) showToast('利率計算結果無效，請檢查輸入值', true);
+        if (!isValidRate(rate)) {
+            // 反推結果超出可計算範圍（高於 MAX_RATE）
+            if (shouldWarn) showToast(`利率超出可計算範圍（高於 ${LIMITS.MAX_RATE}%），請檢查期繳與本金`, true);
             return;
         }
-        
-        if (rate > 20) {
-            showToast('警告：計算結果顯示利率超過20%，可能不符合一般貸款條件', true);
-        }
-        
+
+        // 超過警告門檻時提醒，但仍然完成計算
+        warnRateIfOver(rate);
+
         document.getElementById('rate').value = rate.toFixed(4);
         updateAllFields();
     } catch (error) {
@@ -221,12 +256,19 @@ function updateAllFields() {
         const totalInterest = (payment * period) - principal;
         const tax = totalInterest / 21;
         const afterTaxRate = RATE(period, payment, principal + tax);
-        afterTaxRateInput.value = afterTaxRate.toFixed(4);
-        
-        if (afterTaxRate > 20 || afterTaxRate <= 2.5) {
+
+        // 防呆：超出可計算範圍時顯示提示文字，不可讓 NaN 直接印在欄位上
+        if (!isValidRate(afterTaxRate)) {
+            afterTaxRateInput.value = RATE_OUT_OF_RANGE_TEXT;
             afterTaxRateInput.classList.add('warning-text');
         } else {
-            afterTaxRateInput.classList.remove('warning-text');
+            afterTaxRateInput.value = afterTaxRate.toFixed(4);
+
+            if (afterTaxRate > LIMITS.RATE_WARN || afterTaxRate <= 2.5) {
+                afterTaxRateInput.classList.add('warning-text');
+            } else {
+                afterTaxRateInput.classList.remove('warning-text');
+            }
         }
     } else {
         afterTaxRateInput.value = '';
@@ -258,14 +300,26 @@ function updateAllFields() {
     if (principal > 0 && commission > 0) {
         const commissionRatio = commission / principal * 100;
         commissionRatioInput.value = commissionRatio.toFixed(2);
-        if (commissionRatio > 5) {
+
+        const ratioOver = commissionRatio > LIMITS.RATIO_WARN;
+
+        // 紅字：只要超標就持續顯示
+        if (ratioOver) {
             commissionRatioInput.classList.add('warning-text');
         } else {
             commissionRatioInput.classList.remove('warning-text');
         }
+
+        // 提示訊息：只在剛跨過門檻時跳一次，連按調整鍵不會重複跳
+        ratioWarnShown = warnOnCross(
+            ratioOver,
+            ratioWarnShown,
+            `警告：佣金比例超過 ${LIMITS.RATIO_WARN}%，已超出內部規範標準`
+        );
     } else {
         commissionRatioInput.value = '';
         commissionRatioInput.classList.remove('warning-text');
+        ratioWarnShown = false;   // 清空後重置，下次超標會再提示
     }
 
     // 佣後利率
@@ -273,8 +327,8 @@ function updateAllFields() {
     if (hasAllRequiredValues) {
         try {
             const afterCommissionOnlyRate = RATE(period, payment, principal + commission);
-            if (isNaN(afterCommissionOnlyRate) || !isFinite(afterCommissionOnlyRate)) {
-                afterCommissionOnlyRateInput.value = "計算錯誤";
+            if (!isValidRate(afterCommissionOnlyRate)) {
+                afterCommissionOnlyRateInput.value = RATE_OUT_OF_RANGE_TEXT;
                 afterCommissionOnlyRateInput.classList.add('warning-text');
             } else {
                 afterCommissionOnlyRateInput.value = afterCommissionOnlyRate.toFixed(4);
@@ -309,9 +363,11 @@ function updateAllFields() {
                 spreadInput.classList.add('warning-text');
             } else {
                 const afterCommissionRate = RATE(period, payment, principal + tax + commission);
-                if (isNaN(afterCommissionRate) || !isFinite(afterCommissionRate)) {
-                    afterCommissionRateInput.value = "計算錯誤";
+                if (!isValidRate(afterCommissionRate)) {
+                    afterCommissionRateInput.value = RATE_OUT_OF_RANGE_TEXT;
                     afterCommissionRateInput.classList.add('warning-text');
+                    spreadInput.value = RATE_OUT_OF_RANGE_TEXT;
+                    spreadInput.classList.add('warning-text');
                 } else {
                     afterCommissionRateInput.value = afterCommissionRate.toFixed(4);
                     if (afterCommissionRate <= 2.5) {
@@ -456,16 +512,18 @@ function adjustRate(delta) {
     vibrate();
     const rateField = document.getElementById('rate');
     const currentValue = parseFloat(rateField.value) || 0;
-    const newRate = currentValue + delta;
-    if (newRate > 20) showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
+    // 夾在 0 ~ 硬上限之間，確保欄位顯示值與實際計算值一致
+    const newRate = Math.max(0, Math.min(currentValue + delta, LIMITS.MAX_RATE));
+    warnRateIfOver(newRate);
     rateField.value = newRate.toFixed(4);
     calculatePayment();
 }
 
 function setRate(value) {
     vibrate();
-    if (value > 20) showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
-    document.getElementById('rate').value = value;
+    const newRate = Math.max(0, Math.min(value, LIMITS.MAX_RATE));
+    warnRateIfOver(newRate);
+    document.getElementById('rate').value = newRate;
     calculatePayment();
 }
 
@@ -476,7 +534,8 @@ function adjustCommission(delta) {
     if (commissionField.value && commissionField.value.trim() !== '') {
         currentValue = parseFloat(commissionField.value.replace(/,/g, '')) || 0;
     }
-    const newValue = Math.max(0, currentValue + delta);
+    // 與數字鍵盤輸入套用同一組上限
+    const newValue = Math.max(0, Math.min(currentValue + delta, LIMITS.MAX_AMOUNT));
     if (newValue === 0 && (!commissionField.value || commissionField.value.trim() === '')) {
         commissionField.value = '';
     } else {
@@ -492,7 +551,7 @@ function setCommissionPercent(percent) {
         showToast('請先輸入有效的本金金額', true);
         return;
     }
-    const commissionAmount = Math.floor(principal * (percent / 100));
+    const commissionAmount = Math.min(Math.floor(principal * (percent / 100)), LIMITS.MAX_AMOUNT);
     document.getElementById('commission').value = formatNumberWithCommas(commissionAmount);
     updateAllFields();
 }
@@ -501,7 +560,7 @@ function adjustPrincipal(delta) {
     vibrate();
     const principalField = document.getElementById('principal');
     const currentValue = parseFloat(principalField.value.replace(/,/g, '')) || 0;
-    const newValue = Math.max(1, Math.floor(currentValue + delta));
+    const newValue = Math.max(1, Math.min(Math.floor(currentValue + delta), LIMITS.MAX_AMOUNT));
     principalField.value = formatNumberWithCommas(newValue);
     calculatePayment();
     updateAllFields();
@@ -516,7 +575,7 @@ function roundPayment(direction, base) {
     } else {
         value = Math.ceil(value / base) * base;
     }
-    value = Math.max(1, Math.round(value));
+    value = Math.max(1, Math.min(Math.round(value), LIMITS.MAX_AMOUNT));
     paymentField.value = formatNumberWithCommas(value);
     calculateRate();
 }
@@ -525,7 +584,7 @@ function adjustPayment(delta) {
     vibrate();
     const paymentField = document.getElementById('payment');
     const currentValue = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
-    const newValue = Math.max(1, Math.round(currentValue + delta));
+    const newValue = Math.max(1, Math.min(Math.round(currentValue + delta), LIMITS.MAX_AMOUNT));
     paymentField.value = formatNumberWithCommas(newValue);
     calculateRate();
 }
@@ -562,6 +621,10 @@ function clearAllFieldsExceptMonthlyCost() {
         headerAfterCommissionRate.value = '';
         headerAfterCommissionRate.classList.remove('warning-text');
     }
+
+    // 重置警告狀態，清空後再次超標時會重新提示
+    rateWarnShown = false;
+    ratioWarnShown = false;
 
     localStorage.removeItem('loanCalculatorAutoSave');
     showToast('已清空所有欄位');
@@ -781,55 +844,61 @@ function submitCalculatorValue() {
     switch (currentInputField) {
         case 'period':
             value = Math.floor(value);
-            if (value < 0 || value > 999) {
-                showToast('錯誤：請輸入有效期數 (0-999)', true);
+            if (value < 0 || value > LIMITS.MAX_PERIOD) {
+                showToast(`錯誤：請輸入有效期數 (0-${LIMITS.MAX_PERIOD})`, true);
                 return;
             }
             document.getElementById(currentInputField).value = value;
             break;
-            
+
         case 'rate':
             if (value < 0) {
                 showToast('錯誤：利率不能為負數', true);
                 return;
             }
-            if (value > 20) showToast('警告：利率超過20%，可能不符合一般貸款條件', true);
+            // 硬上限：超過就擋下來，避免欄位顯示值與實際計算值不一致
+            if (value > LIMITS.MAX_RATE) {
+                showToast(`錯誤：利率不可超過 ${LIMITS.MAX_RATE}%`, true);
+                return;
+            }
+            // 警告門檻：提醒但仍允許計算
+            warnRateIfOver(value);
             document.getElementById(currentInputField).value = value.toFixed(4);
             break;
-            
+
         case 'principal':
             value = Math.floor(value);
-            if (value <= 0 || value > 999999999) {
-                showToast('錯誤：請輸入有效本金金額', true);
+            if (value <= 0 || value > LIMITS.MAX_AMOUNT) {
+                showToast(`錯誤：本金應介於 1 與 ${formatNumberWithCommas(LIMITS.MAX_AMOUNT)} 之間`, true);
                 return;
             }
             document.getElementById(currentInputField).value = formatNumberWithCommas(value);
             break;
-            
+
         case 'payment':
             value = Math.max(1, Math.round(value));
-            if (value > 999999) {
-                showToast('錯誤：期繳金額過大', true);
+            if (value > LIMITS.MAX_AMOUNT) {
+                showToast(`錯誤：期繳金額不可超過 ${formatNumberWithCommas(LIMITS.MAX_AMOUNT)}`, true);
                 return;
             }
             document.getElementById(currentInputField).value = formatNumberWithCommas(value);
             break;
-            
+
         case 'commission':
             value = Math.floor(value);
-            if (value < 0 || value > 999999) {
-                showToast('錯誤：請輸入有效推廣費用', true);
+            if (value < 0 || value > LIMITS.MAX_AMOUNT) {
+                showToast(`錯誤：推廣費用不可超過 ${formatNumberWithCommas(LIMITS.MAX_AMOUNT)}`, true);
                 return;
             }
             document.getElementById(currentInputField).value = formatNumberWithCommas(value);
             break;
 
         case 'monthlyCost':
-            if (value < 0 || value > 20) {
-                showToast('錯誤：資金成本應介於 0 與 20%', true);
+            if (value < 0 || value > LIMITS.MAX_FUNDING_COST) {
+                showToast(`錯誤：資金成本應介於 0 與 ${LIMITS.MAX_FUNDING_COST}%`, true);
                 return;
             }
-            value = Math.max(0, Math.min(20, value));
+            value = Math.max(0, Math.min(LIMITS.MAX_FUNDING_COST, value));
             document.getElementById(currentInputField).value = value.toFixed(4);
             break;
     }

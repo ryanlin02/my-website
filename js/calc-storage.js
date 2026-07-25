@@ -50,8 +50,13 @@ function restoreAutoData() {
                     document.getElementById('monthlyCost').value = '2';
                 }
                 
+                // 還原資料時不跳超標提示：若上次離開時就已超過門檻，
+                // 每次開啟 App 都跳一次會變成干擾。欄位紅字仍會照常顯示，
+                // 之後使用者自己把數值調到門檻以下再超過時才會再提示。
+                if (typeof ratioWarnShown !== 'undefined') ratioWarnShown = true;
+
                 if (typeof updateAllFields === 'function') updateAllFields();
-                
+
                 if (isInIframe) {
                     console.log(`iframe環境：已靜默恢復計算數據 (來源: ${dataSource})`);
                 } else {
@@ -191,12 +196,18 @@ function loadLoanToForm(id) {
     const loan = loanHistory.find(item => item.id === id);
     
     if (loan) {
-        document.getElementById('period').value = loan.period;
-        document.getElementById('rate').value = loan.rate;
-        document.getElementById('principal').value = formatNumberWithCommas(Math.round(parseFloat(loan.principal)));
-        document.getElementById('payment').value = formatNumberWithCommas(Math.round(parseFloat(loan.payment)));
-        document.getElementById('commission').value = formatNumberWithCommas(Math.round(parseFloat(loan.commission)));
-        
+        // 舊紀錄可能存有超出現行上限的數值，載入時一併夾在合法範圍內，
+        // 避免歷史資料把欄位帶到計算不出來的狀態。
+        const clampAmount = v => Math.max(0, Math.min(Math.round(parseFloat(v) || 0), LIMITS.MAX_AMOUNT));
+
+        document.getElementById('period').value =
+            Math.max(0, Math.min(parseFloat(loan.period) || 0, LIMITS.MAX_PERIOD));
+        document.getElementById('rate').value =
+            Math.max(0, Math.min(parseFloat(loan.rate) || 0, LIMITS.MAX_RATE));
+        document.getElementById('principal').value = formatNumberWithCommas(clampAmount(loan.principal));
+        document.getElementById('payment').value = formatNumberWithCommas(clampAmount(loan.payment));
+        document.getElementById('commission').value = formatNumberWithCommas(clampAmount(loan.commission));
+
         if (typeof calculatePayment === 'function') calculatePayment();
         if (typeof updateAllFields === 'function') updateAllFields();
         
