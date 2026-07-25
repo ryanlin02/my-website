@@ -509,6 +509,44 @@ function deleteAllInvoices() {
     showToast('所有發票記錄已刪除!');
 }
 
+/**
+ * 顯示提示訊息
+ *
+ * 【2026/07 新增】此函式原本完全不存在於發票頁。
+ * invoice-engine.js 有 5 處呼叫 showToast()，但發票頁只載入
+ * common-modals.js 與 invoice-engine.js，兩者都沒有定義它
+ * （它原本定義在計算頁專用的 calc-ui.js 裡）。
+ *
+ * 結果是「保存發票、刪除單筆、全部刪除、載入資料、未輸入金額提醒」
+ * 這五個動作都會拋出錯誤，提示訊息一個都不會出現。
+ *
+ * 所幸五個呼叫點都在實際動作完成之後才執行，所以存檔與刪除的
+ * 資料本身沒有受影響，只是使用者看不到任何確認訊息。
+ *
+ * 樣式沿用計算頁已證實正常運作的 .toast-message / .toast-error。
+ */
+function showToast(message, isError = false, duration = 2000) {
+    // 先移除仍在畫面上的舊提示，避免多則訊息互相重疊
+    const existing = document.querySelector('.toast-message');
+    if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    if (isError) toast.classList.add('toast-error');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        // 淡出動畫結束後，把元素真正從畫面上移除
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 500);
+    }, duration);
+}
+
 function showLimitNotification() {
     let notification = document.querySelector('.limit-notification');
     if (!notification) {

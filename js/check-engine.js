@@ -675,20 +675,39 @@ function saveCheckData() {
     showToast('支票計算結果已保存！');
 }
 
-function showToast(message, isError = false) {
-    let toast = document.getElementById('toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast';
-        toast.className = 'toast';
-        document.body.appendChild(toast);
+/**
+ * 顯示提示訊息
+ *
+ * 【2026/07 修正】舊版使用 .toast 與 .show 這兩個樣式名稱，
+ * 但全站 CSS 從來沒有定義過它們（CSS 裡只有 .toast-message / .toast-error）。
+ * 造成兩個問題：
+ *   1. 提示變成沒有樣式的普通區塊，直接接在頁尾下方
+ *   2. 兩秒後執行的「移除 .show」等於移除一個不存在的樣式，
+ *      所以提示永遠不會消失，會一直留在畫面最底部
+ *
+ * 改為沿用計算頁已證實正常運作的 .toast-message / .toast-error，
+ * 並且改成每次建立新元素、時間到就從畫面移除，確保一定會消失。
+ */
+function showToast(message, isError = false, duration = 2000) {
+    // 先移除仍在畫面上的舊提示，避免多則訊息互相重疊
+    const existing = document.querySelector('.toast-message');
+    if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
     }
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    if (isError) toast.classList.add('toast-error');
     toast.textContent = message;
-    toast.style.backgroundColor = isError ? 'rgba(231, 76, 60, 0.9)' : 'rgba(46, 204, 113, 0.9)';
-    toast.classList.add('show');
+    document.body.appendChild(toast);
+
     setTimeout(() => {
-        toast.classList.remove('show');
-    }, 2000);
+        toast.style.opacity = '0';
+        // 淡出動畫結束後，把元素真正從畫面上移除
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 500);
+    }, duration);
 }
 
 function showModal(title, content) {
