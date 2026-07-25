@@ -81,7 +81,7 @@ t('押票 = 1,000,000-200,000×3 = 400,000', val('deposit-amount')==='400,000', 
 t('  繳款大寫 = 貳拾萬 元整', text('payment-amount-chinese')==='貳拾萬 元整', text('payment-amount-chinese'));
 t('  押票大寫 = 肆拾萬 元整', text('deposit-amount-chinese')==='肆拾萬 元整', text('deposit-amount-chinese'));
 t('  底部卡片顯示', disp('.deposit-info-card')==='block');
-t('  卡片標題正確', text('deposit-amount-display')==='押票金額：400,000', text('deposit-amount-display'));
+t('  卡片標題正確', text('deposit-amount-display')==='尾款金額：400,000', text('deposit-amount-display'));
 
 console.log('\n=== A3 跨萬位補零（實際欄位驗證） ===');
 set('total-amount',3015000); set('payment-amount',1005000); set('check-count',2);
@@ -121,12 +121,13 @@ t('全域變數歸零', ev('[totalAmount,paymentAmount,checkCount,depositAmount,
 console.log('\n=== 迴歸：開票日期列表 ===');
 set('total-amount',1000000); set('payment-amount',200000); set('check-count',13);
 ev('startDate=new Date(2026,10,30);generateCheckList();');
-const rows=[...document.querySelectorAll('.check-list-table tbody tr')].filter(r=>!r.classList.contains('year-change-row'));
+const rows=[...document.querySelectorAll('.check-row')];
+const cell=(r,cls)=>r.querySelector('.'+cls).textContent.trim();
 t('13 張票產生 13 列', rows.length===13, String(rows.length));
-t('  第 1 列 = 115年11月30日', rows[0].children[1].textContent==='115年11月30日', rows[0].children[1].textContent);
-t('  第 4 列 2 月遇月底自動縮到 28 日', rows[3].children[1].textContent==='116年2月28日', rows[3].children[1].textContent);
+t('  第 1 列 = 115/11/30', cell(rows[0],'col-date').startsWith('115/11/30'), cell(rows[0],'col-date'));
+t('  第 4 列 2 月遇月底自動縮到 28 日', cell(rows[3],'col-date').startsWith('116/02/28'), cell(rows[3],'col-date'));
 t('  跨年分隔列出現 1 次', document.querySelectorAll('.year-change-row').length===1);
-t('  結束日期 = 116年11月30日', val('end-date').startsWith('116年11月30日'), val('end-date'));
+t('  尾款票日期 = 116年11月30日', val('end-date').startsWith('116年11月30日'), val('end-date'));
 
 console.log('\n=== 迴歸：歷史記錄存讀 ===');
 // 目前狀態：總額 1,000,000 / 繳款 200,000 / 13 張 → 押票 -1,400,000，屬不成立
@@ -140,7 +141,7 @@ t('金額成立時正常寫入 1 筆', hist.length===1, String(hist.length));
 t('  押票金額正確 (400,000)', hist[0]&&hist[0].depositAmount===400000, String(hist[0]&&hist[0].depositAmount));
 if($('historyPanel').style.display==='block') ev('toggleHistoryPanel()');
 ev('toggleHistoryPanel()');
-t('面板可開啟且看得到該筆', text('historyContent').includes('押票金額'), text('historyContent').slice(0,80));
+t('面板可開啟且看得到該筆', text('historyContent').includes('尾款金額'), text('historyContent').slice(0,80));
 
 console.log('\n=== 全站迴歸：計算頁鍵盤未受影響 ===');
 const dom2=new JSDOM(fs.readFileSync(ROOT+'/pages/calculator.html','utf8'),{url:'https://ryanlin02.github.io/my-website/pages/calculator.html',runScripts:'outside-only'});

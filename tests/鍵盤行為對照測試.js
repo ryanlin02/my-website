@@ -1,6 +1,7 @@
-const fs=require('fs'),cp=require('child_process'),vm=require('vm');
+const fs=require('fs');
 const {JSDOM}=require('jsdom');
-const orig=n=>cp.execSync('git --no-optional-locks show HEAD:js/'+n,{encoding:'utf8'});
+// 改版前的原版取自 tests/fixtures/（凍結的基準線，不依賴 git 歷史）
+const orig=n=>fs.readFileSync(require('path').join(__dirname,'fixtures',n.replace('.js','.改版前.js')),'utf8');
 
 // 建立三個獨立沙箱：改動前的計算頁、改動前的支票頁、改動後的共用模組
 function sandbox(src){

@@ -49,6 +49,7 @@ const CORE_ASSETS = [
     // 支票頁與發票頁模組（原本漏掉，導致離線時這兩頁開不起來）
     './js/check-engine.js',     // 支票試算引擎
     './js/invoice-engine.js',   // 發票轉換引擎
+    './css/check.css',          // 支票頁專用樣式（原內嵌於 check.html）
     './js/common-modals.js',    // 三頁共用的彈窗與數字小鍵盤（HTML 注入）
     './js/common-keypad.js',    // 計算頁與支票頁共用的鍵盤與彈窗邏輯（JS）
     './js/frame-guard.js',      // 四個功能頁共用的防護腳本

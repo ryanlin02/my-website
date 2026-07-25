@@ -1,0 +1,664 @@
+/* ============================================
+ * 重車貸款業務工具箱 - 支票頁專用樣式 (check.css)
+ * --------------------------------------------
+ * 【2026/07 新增 — 修正 B2】
+ * 這些樣式原本是 290 行內嵌在 pages/check.html 的 <style> 裡，
+ * 佔了整個 HTML 的六成，造成三個問題：
+ *   1. HTML 結構被樣式淹沒，改版時很難看出頁面到底有哪些區塊
+ *   2. 樣式與 calculator.css 互相打架，只能靠 !important 硬壓
+ *   3. 無法與 calculator.css 一起被瀏覽器快取
+ *
+ * 搬移時一併處理掉兩個結構性問題（見下方各段註解）：
+ *   - .chinese-row 不再套用 .row，6 個 !important 全部移除
+ *   - 表格首欄寬度不再誤套到年份分隔列
+ *
+ * 必須排在 calculator.css 之後載入。
+ * ============================================ */
+
+html, body {
+    padding-top: 0;
+
+    /* ------------------------------------------------------------
+     * 為什麼要覆寫 overflow-x
+     *
+     * calculator.css 對 html/body 設了 overflow-x: hidden。
+     * 當 overflow-x 是 hidden 而 overflow-y 是 visible 時，
+     * 瀏覽器會把 overflow-y 自動算成 auto —— body 因此變成一個捲動容器。
+     *
+     * position: sticky 是相對「最近的捲動祖先」定位的，
+     * 所以開立進度列會黏在 body 的捲動框裡，而那個框等於整份文件高度，
+     * 看起來就完全沒有固定效果。
+     *
+     * overflow-x: clip 一樣會裁掉水平溢出，但不會建立捲動容器，
+     * sticky 才能正常相對視窗固定。
+     *
+     * 兩行並列是漸進增強：不支援 clip 的舊瀏覽器會忽略第二行、
+     * 沿用 hidden（進度列不固定，但版面不會壞）。
+     * ------------------------------------------------------------ */
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+/* ============================================
+ * 現在時間
+ * --------------------------------------------
+ * 【2026/07】改為一般捲動，不再固定。
+ * 畫面上方只有一個固定位置，開票時「已開幾張」比「現在幾點」重要得多，
+ * 兩條都固定會吃掉約 100px，在手機上等於少看兩三列支票。
+ * 順帶解決舊版 top: 65px 的問題 —— 那個值是為計算頁的固定利率列留的，
+ * 支票頁沒有那一列，捲動時會在上方露出一條 65px 的空白。
+ * ============================================ */
+.time-display-wrapper {
+    position: relative;
+    height: auto;
+    margin: 18px 0 0 0;
+    z-index: 1;
+}
+
+/* 這是 check.css 唯一一處 !important，而且無法避免：
+ * calculator.css 的 .sticky-header 本身就寫了 position: sticky !important，
+ * 帶 !important 的宣告贏過任何選擇器權重，只能用 !important 才蓋得掉。
+ * 若哪天 calculator.css 那邊的 !important 拿掉了，這裡也可以一併拿掉。 */
+.time-display-wrapper .sticky-header {
+    position: static !important;
+}
+
+/* ============================================
+ * 金額群組外框
+ * --------------------------------------------
+ * 【2026/07】.amount-group 原本沒有任何樣式，形同不存在，
+ * 導致大寫金額與張數說明浮在框與框之間的空隙裡 ——
+ * 距離上下兩個框幾乎一樣遠，看不出它屬於誰。
+ * 這裡補上與計算頁 .input-button-group 相同的外框，
+ * 把輸入列與它的附屬說明綁成同一個視覺單位。
+ * ============================================ */
+.amount-group {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin: 4px 0;
+    padding: 1px 1px 3px;
+    background: var(--secondary-color);
+    box-shadow: 0 4px 8px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.amount-group .row {
+    background: transparent;
+    box-shadow: none;
+    margin: 2px 0;
+}
+
+/* ============================================
+ * 大寫金額顯示
+ * --------------------------------------------
+ * 【B2 修正】舊版 .chinese-row 同時掛著 .row，為了推翻 .row 的
+ * 背景、陰影、邊框、排列方式，一口氣用了 6 個 !important。
+ * 現在 HTML 已經把 .row 拿掉，這裡就是一組單純的樣式，
+ * 之後調整全站 .row 也不會再影響到這一塊。
+ * ============================================ */
+/* 內距移到子元素上，欄位空白時整行才能完全收起、不留空縫 */
+.chinese-row {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.chinese-display,
+.count-breakdown {
+    padding: 0 12px 2px 5px;
+}
+
+/* 沒有內容時整個收起來，避免外框底部留一條空白 */
+.chinese-display:empty,
+.count-breakdown:empty {
+    display: none;
+}
+
+.chinese-display {
+    color: #e6a15c;                    /* 單位：溫和琥珀金 */
+    font-size: 16px;
+    font-weight: bold;
+    text-align: right;
+    letter-spacing: 1px;
+}
+
+.chinese-digit {
+    color: #ffffff;                    /* 數字：極簡亮純白 */
+    font-weight: bold;
+    font-size: 17px;
+    margin: 0 1px;
+}
+
+/* 開票張數拆解說明：讓「含不含尾款票」不需要猜 */
+.count-breakdown {
+    font-size: 13px;
+    color: #9fb8c8;
+    text-align: right;
+    letter-spacing: 0.5px;
+    width: 100%;
+}
+
+.date-input {
+    width: 195px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    padding: 5px 4px;
+}
+
+/* ============================================
+ * 開票日期列表
+ * ============================================ */
+.check-list {
+    margin-top: 15px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 12px;
+    background-color: var(--secondary-color);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    overflow: hidden;
+    position: relative;
+}
+
+.check-list::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--button-orange), transparent);
+}
+
+.check-list-title {
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: var(--button-orange);
+    font-size: 18px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 156, 51, 0.3);
+    text-align: center;
+    position: relative;
+    letter-spacing: 1px;
+}
+
+.check-list-hint {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin: -6px 0 8px 0;
+}
+
+.check-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    table-layout: fixed;               /* 固定欄寬，50 列也不會因內容長短而跳動 */
+}
+
+.check-list-table th {
+    background-color: #3a3a3a;
+    padding: 8px 2px;
+    text-align: center;
+    border-bottom: 1px solid #555;
+    color: #fff;
+    font-size: 13px;
+    font-weight: normal;
+}
+
+.check-list-table td {
+    padding: 9px 2px;
+    text-align: center;
+    border-bottom: 1px solid rgba(68, 68, 68, 0.5);
+    color: #eee;
+    font-size: 14px;
+}
+
+/* 欄寬配置：手機 400px 扣掉外框後約 350px 可用 */
+.col-tick   { width: 30px; }
+.col-seq    { width: 30px; }
+.col-date   { width: auto; }
+.col-week   { width: 28px; }
+.col-amount { width: 76px; }
+.col-left   { width: 38px; }
+
+.check-list-table td.col-seq {
+    font-weight: bold;
+    color: var(--button-orange);
+}
+
+.check-list-table td.col-amount {
+    font-variant-numeric: tabular-nums;
+}
+
+/* 奇偶行雙色斑馬紋 */
+.check-list-table tr.row-0 {
+    background-color: rgba(60, 60, 60, 0.5);
+}
+
+.check-list-table tr.row-1 {
+    background-color: rgba(70, 70, 70, 0.5);
+}
+
+/* ============================================
+ * 逐張打勾
+ * --------------------------------------------
+ * 一邊跟客戶聊天一邊開 50 張票，最容易出事的是「看丟行」。
+ * 打勾把「現在開到哪一張」變成畫面上的既成事實。
+ * 整列都可點，手指不必瞄準小方框。
+ * ============================================ */
+.check-row {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tick-box {
+    display: inline-block;
+    width: 19px;
+    height: 19px;
+    line-height: 17px;
+    border: 1px solid #888;
+    border-radius: 4px;
+    font-size: 13px;
+    color: transparent;
+    vertical-align: middle;
+}
+
+.check-row.written .tick-box {
+    background-color: #1d9e75;
+    border-color: #1d9e75;
+    color: #ffffff;
+}
+
+/* 已開立的列整列淡化並劃線，一眼看得出進度停在哪裡 */
+.check-row.written td {
+    color: #7a7a7a;
+}
+
+.check-row.written td.col-seq {
+    color: #7a6a52;
+}
+
+.check-row.written td.col-date,
+.check-row.written td.col-amount,
+.check-row.written td.col-seq {
+    text-decoration: line-through;
+}
+
+/* 尾款票：整批裡唯一金額不同的一張，必須一眼認出來 */
+.check-list-table tr.final-check-row {
+    background-color: #4a3a5a;
+    border-top: 2px solid #7f77dd;
+}
+
+.final-check-row td {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.final-check-row td.col-seq {
+    color: #afa9ec;
+}
+
+.final-check-row td.col-amount {
+    color: #cecbf6;
+}
+
+.final-check-tag {
+    font-size: 11px;
+    font-weight: normal;
+    color: #afa9ec;
+    margin-top: 1px;
+}
+
+/* 當月天數不足而被往前調整的日期 */
+.date-adjusted {
+    font-size: 11px;
+    font-weight: normal;
+    color: #fac775;
+    margin-top: 1px;
+}
+
+/* ============================================
+ * 開立進度與已開立合計
+ * ============================================ */
+/* ------------------------------------------------------------
+ * 為什麼 top 不是 0
+ *
+ * 外殼 index.html 的兩個數字對不上：
+ *   .header-container { height: 60px }      標題列高 60px
+ *   .content-container { top: 45px }        iframe 卻從 45px 開始
+ * 所以 iframe 最上面的 15px 一直被標題列蓋住。
+ *
+ * 以前不會發現，是因為 .time-display-wrapper 有 margin-top: 18px
+ * 把內容推到重疊區以下。進度列一貼齊 iframe 頂端就會掉進這個死角，
+ * 文字上半被標題列切掉。
+ *
+ * 這裡讓它固定在 15px（= 60 − 45），上緣正好接在標題列底下。
+ * 那 15px 的區域反正被不透明的標題列蓋著，不會露出後面的內容。
+ *
+ * 根本解法是把 index.html 的 top 改成 60px 讓兩個數字一致，
+ * 但那會一併影響計算、發票、加油三頁的版面，需要重新確認過再動。
+ * ------------------------------------------------------------ */
+.write-progress {
+    display: none;
+    flex-direction: column;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 15px;
+    z-index: 100;
+    background-color: var(--secondary-color);
+    border-left: 3px solid var(--button-orange);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    margin-top: 10px;
+}
+
+.write-progress-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 9px 12px;
+}
+
+.write-progress-done {
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+.write-progress-done b {
+    font-size: 19px;
+}
+
+.write-progress-done .muted {
+    color: #999;
+}
+
+.write-progress-left {
+    font-size: 15px;
+    color: var(--button-orange);
+}
+
+.write-progress-left b {
+    font-size: 18px;
+}
+
+.write-progress.all-written {
+    border-left-color: #1d9e75;
+}
+
+.write-progress.all-written .write-progress-left {
+    color: #5dcaa5;
+}
+
+.write-progress.has-gap {
+    border-left-color: #ef9f27;
+}
+
+/* 漏開警示：正常往下開票時完全不出現 */
+.write-gap {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px 8px;
+    margin-top: -3px;
+    font-size: 13px;
+    color: #ef9f27;
+    cursor: pointer;
+}
+
+.write-gap-text b {
+    font-size: 15px;
+}
+
+.write-gap-action {
+    text-decoration: underline;
+    padding: 2px 0 2px 12px;
+}
+
+/* 「前往」跳轉後短暫高亮目標列 */
+.check-row.flash td {
+    animation: rowFlash 1.6s ease-out;
+}
+
+@keyframes rowFlash {
+    0%, 40% { background-color: rgba(239, 159, 39, 0.35); }
+    100%    { background-color: transparent; }
+}
+
+/* 已修改尚未儲存：放在保存按鈕正上方 */
+.unsaved-hint {
+    display: none;
+    text-align: center;
+    font-size: 13px;
+    color: #ef9f27;
+    background-color: rgba(239, 159, 39, 0.12);
+    border: 1px solid rgba(239, 159, 39, 0.35);
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 8px 0 0 0;
+}
+
+/* 多選項對話框的按鈕在窄螢幕改為直向堆疊，文字才不會被擠掉 */
+.choice-modal-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.choice-modal-footer .modal-btn {
+    flex: 1 1 100%;
+}
+
+.write-summary {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--secondary-color);
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-top: 8px;
+}
+
+.write-summary.matched {
+    border-color: #1d9e75;
+}
+
+.write-summary-label {
+    font-size: 12px;
+    color: #bbb;
+}
+
+.write-summary-value {
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-variant-numeric: tabular-nums;
+}
+
+.write-summary-note {
+    font-size: 13px;
+    color: var(--button-orange);
+    text-align: right;
+    max-width: 130px;
+}
+
+.write-summary.matched .write-summary-note {
+    color: #5dcaa5;
+}
+
+/* 年份標籤橫跨分隔線中軸 */
+.year-change-row {
+    background: transparent;
+    height: 24px;
+}
+
+.year-change-indicator {
+    position: relative;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 156, 51, 0.4), transparent);
+    margin: 12px 0;
+    text-align: center;
+}
+
+.year-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--secondary-color);
+    padding: 2px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--button-orange);
+    font-weight: bold;
+    border: 1px solid rgba(255, 156, 51, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+ * 押票（尾款票）結算卡片
+ * ============================================ */
+.deposit-info-card {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--button-orange);
+    border-radius: 8px;
+    padding: 14px;
+    margin: 15px 0 10px 0;
+    display: none;
+    text-align: center;
+    box-shadow: 0 4px 10px var(--shadow-color);
+}
+
+.deposit-amount-display {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+.deposit-chinese-display {
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--button-orange);
+    text-align: center;
+}
+
+.deposit-info-tip {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #eeeeee;
+    background-color: rgba(255, 156, 51, 0.15);
+    border-left: 3px solid var(--button-orange);
+    display: none;
+    text-align: left;
+}
+
+/* ============================================
+ * 日期選擇器
+ * ============================================ */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.date-picker {
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    padding: 15px;
+    width: 90%;
+    max-width: 320px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.date-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.date-picker-title {
+    font-weight: bold;
+    font-size: 18px;
+    color: var(--button-orange);
+}
+
+.date-picker-nav {
+    cursor: pointer;
+    padding: 5px 10px;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.date-picker-calendar {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.date-picker-calendar th {
+    padding: 8px;
+    color: #888;
+}
+
+.date-picker-calendar td {
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.date-picker-calendar td.selected {
+    background-color: var(--button-orange);
+    color: #fff;
+    font-weight: bold;
+}
+
+.date-picker-calendar td.today {
+    border: 1px solid var(--button-orange);
+}
+
+.date-picker-calendar td.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.date-picker-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.date-picker-button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.date-picker-button.confirm {
+    background-color: var(--button-orange);
+    color: #fff;
+}
+
+.date-picker-button.cancel {
+    background-color: #444;
+    color: #ccc;
+}

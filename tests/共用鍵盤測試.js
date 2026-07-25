@@ -44,14 +44,14 @@ for(const page of ['calculator.html','check.html']){
   // 3) 頁面專屬函式仍在
   const own = page==='calculator.html'
     ? ['submitCalculatorValue','calculatePayment','calculateRate','updateAllFields','toggleHistoryPanel',
-       'saveLoanData','loadHistoryData','loadLoanToForm','deleteLoan','confirmDeleteAll','openNoteEditor','saveNote',
+       'saveLoanData','loadHistoryData','loadLoanToForm','deleteLoan','confirmDeleteAll','openNoteEditor','saveLoanNote',
        'adjustPeriod','setPeriod','adjustRate','setRate','adjustCommission','setCommissionPercent',
        'adjustPrincipal','roundPayment','adjustPayment','clearAllFieldsExceptMonthlyCost','resetMonthlyCost',
        'clearField','clearCommission','restoreAutoData','PMT','RATE','formatNumberWithCommas']
     : ['submitCalculatorValue','calculateDepositAmount','generateCheckList','updateEndDateDisplay',
        'arabicToChineseNumber','renderChineseAmount','updateChineseDisplay','resetDepositDisplay',
        'toggleHistoryPanel','saveCheckData','loadCheckHistory','deleteCheckHistoryItem','confirmDeleteAll',
-       'openNoteEditor','saveNote','showDatePicker','updateDatePicker','setupDatePicker','clearAllInputs',
+       'openNoteEditor','saveCheckNote','showDatePicker','updateDatePicker','setupDatePicker','clearAllInputs',
        'formatNumber','formatDateToROC','updateCurrentDate'];
   const lostOwn=own.filter(f=>ev('typeof '+f)!=='function');
   t('頁面專屬函式全部健在 ('+own.length+' 個)', lostOwn.length===0, '缺少: '+lostOwn.join(', '));
@@ -101,6 +101,26 @@ for(const page of ['calculator.html','check.html']){
   ev('window.__c2=0; showConfirmModal("A","1",function(){window.__c2++;}); showConfirmModal("B","2",function(){window.__c2+=10;});');
   d.getElementById('confirmModalOk').click();
   t('  重複開啟不會累積舊 callback (應為 10)', w.__c2===10, String(w.__c2));
+
+  // 6b) 共用備註對話框（B3）
+  t('共用備註對話框函式可用', ev('typeof showNoteEditor')==='function' && ev('typeof closeNoteEditorDialog')==='function');
+  ev('window.__savedNote=null; showNoteEditor({title:"備註編輯", note:"原本的備註 <b> 與 \'引號\'", onSave:function(x){window.__savedNote=x;}});');
+  const noteModal=d.getElementById('noteEditorModal');
+  t('  對話框已建立', noteModal!==null);
+  t('  用的是不會被鍵盤遮擋的 note-editor-modal', noteModal.className==='note-editor-modal', noteModal.className);
+  t('  對齊方式為靠上（非垂直置中）', noteModal.style.alignItems==='flex-start', noteModal.style.alignItems);
+  t('  含有 < 與引號的備註不會破版', d.getElementById('noteEditorInput').value==='原本的備註 <b> 與 \'引號\'', d.getElementById('noteEditorInput').value);
+  d.getElementById('noteEditorInput').value='改過的備註  ';
+  noteModal.querySelector('[data-role="save"]').click();
+  t('  儲存會回傳修剪過的文字', w.__savedNote==='改過的備註', JSON.stringify(w.__savedNote));
+  t('  儲存後對話框移除', d.getElementById('noteEditorModal')===null);
+  ev('showNoteEditor({note:"x", onSave:function(){}});');
+  d.getElementById('noteEditorModal').querySelector('[data-role="cancel"]').click();
+  t('  取消會關閉且不觸發儲存', d.getElementById('noteEditorModal')===null);
+  ev('showNoteEditor({note:"a",onSave:function(){}}); showNoteEditor({note:"b",onSave:function(){}});');
+  t('  重複開啟不會殘留兩個對話框', d.querySelectorAll('#noteEditorModal, .note-editor-modal').length===1,
+    String(d.querySelectorAll('.note-editor-modal').length));
+  ev('closeNoteEditorDialog()');
 
   // 7) openCalculator 帶入現值 + 重設捲動提示
   const field = page==='calculator.html' ? 'principal' : 'total-amount';

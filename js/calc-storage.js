@@ -171,8 +171,8 @@ function loadHistoryData() {
 
                 <div class="history-note-container">
                     <div class="history-item-footer">
-                        <div class="history-note-preview ${loan.note ? '' : 'empty-note'}" onclick="openNoteEditor(${loan.id}, '${loan.note ? loan.note.replace(/'/g, "\\'") : ''}')">
-                            ${loan.note ? loan.note : '點擊添加備註'}
+                        <div class="history-note-preview ${loan.note ? '' : 'empty-note'}" onclick="openNoteEditor(${loan.id})">
+                            ${loan.note ? escapeHtml(loan.note) : '點擊添加備註'}
                         </div>
                         <div class="history-actions">
                             <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入計算</button>
@@ -261,79 +261,49 @@ function deleteAllLoans() {
 /**
  * 開啟備註編輯彈窗
  */
-function openNoteEditor(loanId, existingNote = '') {
-    const existingModal = document.getElementById('noteEditorModal');
-    if (existingModal) document.body.removeChild(existingModal);
-    
-    const noteEditorModal = document.createElement('div');
-    noteEditorModal.className = 'note-editor-modal';
-    noteEditorModal.id = 'noteEditorModal';
-    noteEditorModal.innerHTML = `
-        <div class="note-editor-content">
-            <h3>備註編輯</h3>
-            <textarea id="noteEditorInput" class="note-editor-input" placeholder="請輸入備註內容...">${existingNote}</textarea>
-            <div class="note-editor-buttons">
-                <button onclick="closeNoteEditor(false)" class="modal-btn modal-btn-secondary">取消</button>
-                <button onclick="saveNote(${loanId})" class="modal-btn modal-btn-primary">儲存</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(noteEditorModal);
-    noteEditorModal.style.display = 'flex';
-    
-    const noteInput = document.getElementById('noteEditorInput');
-    if (noteInput) noteInput.focus();
-    
-    noteEditorModal.addEventListener('click', function(event) {
-        if (event.target === this) closeNoteEditor();
-    });
-    
-    window.addEventListener('resize', adjustNoteEditorPosition);
-    adjustNoteEditorPosition();
-}
-
-function adjustNoteEditorPosition() {
-    const modal = document.getElementById('noteEditorModal');
-    if (!modal) return;
-    const windowHeight = window.innerHeight;
-    const viewportHeight = window.visualViewport ? window.visualViewport.height : windowHeight;
-    
-    if (viewportHeight < windowHeight * 0.8) {
-        modal.style.paddingTop = '180px';
-        modal.style.justifyContent = 'center';
-    } else {
-        modal.style.paddingTop = '180px';
-        modal.style.justifyContent = 'center';
-    }
-}
-
-function closeNoteEditor() {
-    const noteEditorModal = document.getElementById('noteEditorModal');
-    if (noteEditorModal) {
-        document.body.removeChild(noteEditorModal);
-    }
-    window.removeEventListener('resize', adjustNoteEditorPosition);
-}
-
 /**
- * 保存備註
+ * 開啟備註編輯視窗
+ *
+ * 【2026/07 修正 B3】
+ * 改用 common-keypad.js 的共用對話框，與支票頁共用同一套。
+ *
+ * 舊版的 adjustNoteEditorPosition() 其實有 bug：if 與 else 兩個分支
+ * 設定的值完全一樣（都是 paddingTop 180px），等於偵測鍵盤的判斷式
+ * 從來沒有起過作用。共用版本改用 visualViewport.height 實際計算
+ * 「扣掉鍵盤後的可視高度」再置中，這才是真的會隨鍵盤調整。
+ *
+ * 另外舊版把備註內容直接寫進 HTML 字串，內容含 < 或引號就會破版；
+ * 共用版本改用 textarea.value 指定，不會有這個問題。
  */
-function saveNote(loanId) {
-    const noteInput = document.getElementById('noteEditorInput');
-    if (!noteInput) return;
-    const newNote = noteInput.value.trim();
-    
-    let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-    const updatedHistory = loanHistory.map(loan => {
-        if (loan.id === loanId) {
-            return { ...loan, note: newNote };
+function openNoteEditor(loanId) {
+    // 【B3】備註內容改為在這裡自行查出，不再透過 onclick 屬性傳字串。
+    // 舊版是 onclick="openNoteEditor(id, '備註內容')"，只跳脫了單引號，
+    // 備註若含有雙引號或換行就會把 HTML 屬性整個切斷。
+    const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+    const loan = loanHistory.find(item => item.id === loanId);
+    if (!loan) return;
+
+    showNoteEditor({
+        title: '備註編輯',
+        note: loan.note || '',
+        onSave: function (newNote) {
+            saveLoanNote(loanId, newNote);
         }
-        return loan;
     });
-    
-    localStorage.setItem('loanHistory', JSON.stringify(updatedHistory));
-    closeNoteEditor();
+}
+
+function saveLoanNote(loanId, newNote) {
+    let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
+    const updatedHistory = loanHistory.map(loan =>
+        loan.id === loanId ? { ...loan, note: newNote } : loan
+    );
+
+    try {
+        localStorage.setItem('loanHistory', JSON.stringify(updatedHistory));
+    } catch (e) {
+        if (typeof showToast === 'function') showToast('備註儲存失敗，裝置儲存空間可能已滿', true);
+        return;
+    }
     loadHistoryData();
     if (typeof showToast === 'function') showToast('備註已儲存');
 }

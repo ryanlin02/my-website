@@ -33,298 +33,8 @@
     <!-- 引用全站通用樣式 -->
     <link rel="stylesheet" href="../css/calculator.css">
 
-    <!-- 支票頁面原貌復原與 5 大細節精準微調樣式 -->
-    <style>
-        html, body {
-            padding-top: 0 !important;
-        }
-
-        /* 1. 解決「現在時間」頂部被選單列遮擋問題 */
-        .time-display-wrapper {
-            position: relative;
-            height: auto;
-            margin: 18px 0 0 0 !important;
-            z-index: 1000;
-        }
-
-        /* 2. 大寫金額靠右對齊與高級雙色高亮樣式 */
-        .chinese-row {
-            margin-top: -2px;
-            margin-bottom: 6px;
-            padding: 2px 18px 2px 5px !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            display: flex !important;
-            justify-content: flex-end !important;
-            align-items: center !important;
-        }
-
-        .chinese-display {
-            color: #e6a15c; /* 單位：溫和琥珀金 */
-            font-size: 16px;
-            font-weight: bold;
-            text-align: right !important;
-            letter-spacing: 1px;
-        }
-
-        .chinese-digit {
-            color: #ffffff !important; /* 數字：極簡亮純白 */
-            font-weight: bold;
-            font-size: 17px;
-            margin: 0 1px;
-        }
-
-        .date-input {
-            width: 195px !important;
-            font-size: 15px !important;
-            font-weight: bold !important;
-            text-align: center !important;
-            padding: 5px 4px !important;
-        }
-
-        .check-list {
-            margin-top: 15px;
-            border: 1px solid #444;
-            border-radius: 10px;
-            padding: 12px;
-            background-color: var(--secondary-color);
-            box-shadow: 0 4px 10px var(--shadow-color);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .check-list::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(to right, transparent, var(--button-orange), transparent);
-        }
-
-        .check-list-title {
-            font-weight: bold;
-            margin-bottom: 12px;
-            color: var(--button-orange);
-            font-size: 18px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid rgba(255, 156, 51, 0.3);
-            text-align: center;
-            position: relative;
-            letter-spacing: 1px;
-        }
-
-        .check-list-table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .check-list-table th {
-            background-color: #3a3a3a;
-            padding: 10px 5px;
-            text-align: center;
-            border-bottom: 1px solid #555;
-            color: #fff;
-        }
-
-        .check-list-table td {
-            padding: 10px 5px;
-            text-align: center;
-            border-bottom: 1px solid rgba(68, 68, 68, 0.5);
-            color: #eee;
-        }
-
-        .check-list-table td:nth-child(1) {
-            font-weight: bold;
-            color: var(--button-orange);
-            width: 60px;
-        }
-
-        /* 奇偶行雙色斑馬紋樣式 */
-        .check-list-table tr.row-0 {
-            background-color: rgba(60, 60, 60, 0.5);
-        }
-
-        .check-list-table tr.row-1 {
-            background-color: rgba(70, 70, 70, 0.5);
-        }
-
-        .check-list-table tr:hover {
-            background-color: rgba(80, 80, 80, 0.8) !important;
-        }
-
-        /* 3. 年份標籤橫跨分隔線上中軸樣式 */
-        .year-change-row {
-            background: transparent !important;
-            height: 24px !important;
-        }
-
-        .year-change-indicator {
-            position: relative;
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(255, 156, 51, 0.4), transparent);
-            margin: 12px 0 !important;
-            text-align: center;
-        }
-
-        .year-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: var(--secondary-color);
-            padding: 2px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            color: var(--button-orange);
-            font-weight: bold;
-            border: 1px solid rgba(255, 156, 51, 0.4);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        /* 4. 強化押票金額醒目視覺 */
-        .deposit-info-card {
-            background-color: var(--secondary-color);
-            border: 1px solid var(--button-orange);
-            border-radius: 8px;
-            padding: 14px;
-            margin: 15px 0 10px 0;
-            display: none;
-            text-align: center;
-            box-shadow: 0 4px 10px var(--shadow-color);
-        }
-
-        .deposit-amount-display {
-            font-size: 20px !important;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-
-        .deposit-chinese-display {
-            font-size: 17px !important;
-            font-weight: bold;
-            color: var(--button-orange);
-            text-align: center !important;
-        }
-
-        .deposit-info-tip {
-            margin-top: 8px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #eeeeee;
-            background-color: rgba(255, 156, 51, 0.15);
-            border-left: 3px solid var(--button-orange);
-            display: none;
-            text-align: left;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .date-picker {
-            background-color: var(--primary-color);
-            border-radius: 10px;
-            padding: 15px;
-            width: 90%;
-            max-width: 320px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        .date-picker-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .date-picker-title {
-            font-weight: bold;
-            font-size: 18px;
-            color: var(--button-orange);
-        }
-
-        .date-picker-nav {
-            cursor: pointer;
-            padding: 5px 10px;
-            color: var(--text-color);
-            font-weight: bold;
-        }
-
-        .date-picker-calendar {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-        }
-
-        .date-picker-calendar th {
-            padding: 8px;
-            color: #888;
-        }
-
-        .date-picker-calendar td {
-            padding: 6px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .date-picker-calendar td.selected {
-            background-color: var(--button-orange);
-            color: #fff;
-            font-weight: bold;
-        }
-
-        .date-picker-calendar td.today {
-            border: 1px solid var(--button-orange);
-        }
-
-        .date-picker-calendar td.disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .date-picker-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .date-picker-button {
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .date-picker-button.confirm {
-            background-color: var(--button-orange);
-            color: #fff;
-        }
-
-        .date-picker-button.cancel {
-            background-color: #444;
-            color: #ccc;
-        }
-    </style>
+    <!-- 支票頁專用樣式（原本 290 行內嵌樣式已抽出，見 B2 修正說明） -->
+    <link rel="stylesheet" href="../css/check.css">
 
     <!--
         數字鍵盤選項（必須在 common-modals.js 之前設定）
@@ -368,41 +78,71 @@
             <span class="label">繳款金額</span>
             <input type="text" id="payment-amount" readonly onclick="openCalculator('payment-amount', '繳款金額')">
         </div>
-        <div class="row chinese-row">
+        <div class="chinese-row">
             <div id="payment-amount-chinese" class="chinese-display full-width"></div>
         </div>
     </div>
     
-    <div class="row">
-        <span class="label">開票張數</span>
-        <input type="text" id="check-count" readonly onclick="openCalculator('check-count', '開票張數')">
-    </div>
-    
+    <!-- 開票張數是「含尾款票」的總張數。欄位名稱沒講清楚的話，
+         業務若以為只要填月票張數就會少算一期，而且畫面上看不出異常 -->
     <div class="amount-group">
         <div class="row amount-row">
-            <span class="label">押票金額</span>
-            <input type="text" id="deposit-amount" readonly>
+            <span class="label">開票張數</span>
+            <input type="text" id="check-count" readonly onclick="openCalculator('check-count', '開票張數（含尾款票）')">
         </div>
-        <div class="row chinese-row">
+        <div class="chinese-row">
+            <div id="check-count-breakdown" class="count-breakdown"></div>
+        </div>
+    </div>
+
+    <div class="amount-group">
+        <div class="row amount-row">
+            <span class="label">尾款金額</span>
+            <input type="text" id="deposit-amount" class="readonly" readonly>
+        </div>
+        <div class="chinese-row">
             <div id="deposit-amount-chinese" class="chinese-display full-width"></div>
         </div>
     </div>
-    
+
     <div class="row">
         <span class="label">開始日期</span>
         <input type="text" id="start-date" class="date-input" readonly onclick="showDatePicker()">
     </div>
 
     <div class="row">
-        <span class="label">結束日期</span>
-        <input type="text" id="end-date" class="date-input" readonly>
+        <span class="label">尾款票日期</span>
+        <input type="text" id="end-date" class="date-input readonly" readonly>
     </div>
     
     <div class="divider-flow"></div>
     
+    <!-- 開立進度：固定在畫面頂端，捲到第 40 列也還看得到。
+         單行設計，只有偵測到中間漏開時才多出一行警示 -->
+    <div id="write-progress" class="write-progress">
+        <div class="write-progress-main">
+            <div class="write-progress-done">已開 <b id="progress-done">0</b> <span class="muted">/ <span id="progress-total">0</span> 張</span></div>
+            <div class="write-progress-left">還要開 <b id="progress-left">0</b> 張</div>
+        </div>
+        <div id="write-gap" class="write-gap" onclick="goToFirstUnwritten()">
+            <span class="write-gap-text">中間有 <b id="gap-count">0</b> 張未打勾</span>
+            <span class="write-gap-action">前往</span>
+        </div>
+    </div>
+
     <div class="check-list">
         <div class="check-list-title">開票日期列表</div>
+        <div class="check-list-hint">開好一張就點一下該列打勾</div>
         <div id="check-list-content"></div>
+    </div>
+
+    <!-- 已開立金額合計：驗證有沒有漏開或漏打勾 -->
+    <div id="write-summary" class="write-summary">
+        <div>
+            <div class="write-summary-label">已開立合計</div>
+            <div class="write-summary-value"><span id="written-sum">0</span> / <span id="written-sum-total">0</span></div>
+        </div>
+        <div class="write-summary-note" id="written-sum-note"></div>
     </div>
     
     <!-- 4. 底部押票結算卡片 (醒目大字) -->
@@ -414,8 +154,22 @@
     
     <div class="divider-flow"></div>
 
-    <!-- 5. 統一「清除全部輸入」按鈕樣式與計算頁面完全一致 -->
+    <!-- 換票那趟過去時：新的一批就是把尾款金額當總金額、尾款票日期當開始日期，
+         月付金額不變，只有張數要重問客戶。一個按鈕帶完，不必重打四個欄位 -->
     <div class="function-buttons bottom-buttons" style="margin-top: 10px;">
+        <div class="button-row">
+            <button id="continue-btn" onclick="continueFromDeposit()" style="width: 100%;">以尾款續開下一批</button>
+        </div>
+    </div>
+
+    <div class="divider-flow" style="margin: 6px 0;"></div>
+
+    <!-- 提示放在「保存計算」正上方 —— 那是要採取行動的地方。
+         放進度列會跟開票進度搶注意力 -->
+    <div id="unsaved-hint" class="unsaved-hint">已修改，尚未儲存</div>
+
+    <!-- 5. 統一「清除全部輸入」按鈕樣式與計算頁面完全一致 -->
+    <div class="function-buttons bottom-buttons">
         <div class="button-row">
             <button onclick="saveCheckData()">保存計算</button>
             <button onclick="toggleHistoryPanel()">歷史記錄</button>

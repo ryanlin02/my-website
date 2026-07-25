@@ -54,6 +54,22 @@ function vibrate() {
     }
 }
 
+/**
+ * 把使用者輸入的文字轉成可安全塞進 HTML 的字串
+ *
+ * 歷史記錄的備註是唯一由使用者自由輸入的內容，過去直接用樣板字串
+ * 拼進 innerHTML，備註只要含有 < 或引號就會破版。
+ */
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /* ------------------------------------------------------------
  * 彈窗開關
  * ------------------------------------------------------------ */
@@ -106,6 +122,64 @@ function showConfirmModal(title, content, onConfirm) {
 function hideConfirmModal() {
     const overlay = document.getElementById('confirmModalOverlay');
     if (overlay) overlay.style.display = 'none';
+}
+
+/**
+ * 多選項對話框
+ *
+ * 【2026/07 新增】既有的 showConfirmModal 只有「確定／取消」兩個按鈕，
+ * 但「這筆資料已變更，要覆蓋原紀錄還是另存新紀錄？」需要三個選項。
+ *
+ * @param {string} title
+ * @param {string} content              可含 HTML
+ * @param {Array}  choices              [{ label, primary, onSelect }]
+ *                                      primary 為 true 者套用主要按鈕樣式
+ */
+function showChoiceModal(title, content, choices) {
+    closeChoiceModal();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'choiceModalOverlay';
+
+    const buttons = (choices || []).map((choice, index) =>
+        `<button type="button" class="modal-btn ${choice.primary ? 'modal-btn-primary' : 'modal-btn-secondary'}" data-index="${index}">${choice.label}</button>`
+    ).join('');
+
+    overlay.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>${title || '請選擇'}</h3>
+                <button class="close-btn" type="button" data-role="close">×</button>
+            </div>
+            <div class="modal-content">${content || ''}</div>
+            <div class="modal-footer choice-modal-footer">${buttons}</div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.style.display = 'flex';
+
+    overlay.querySelectorAll('[data-index]').forEach(button => {
+        button.addEventListener('click', function () {
+            const choice = choices[Number(button.getAttribute('data-index'))];
+            closeChoiceModal();
+            if (choice && typeof choice.onSelect === 'function') choice.onSelect();
+        });
+    });
+
+    const close = () => closeChoiceModal();
+    overlay.querySelector('[data-role="close"]').addEventListener('click', close);
+    overlay.addEventListener('click', function (event) {
+        if (event.target === overlay) close();
+    });
+
+    vibrate();
+}
+
+function closeChoiceModal() {
+    const existing = document.getElementById('choiceModalOverlay');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 }
 
 /**
@@ -319,4 +393,129 @@ function updateCalculatorHistory() {
     } else {
         historyElement.classList.remove('has-overflow');
     }
+}
+
+/* ------------------------------------------------------------
+ * 備註編輯對話框（共用）
+ *
+ * 【2026/07 新增 — 修正 B3】
+ * 這是全站唯一一個會叫出手機鍵盤的元件，也是唯一一個有機會
+ * 違反「禁止手機呼叫鍵盤導致畫面排版大幅度移動或者是遮擋」的地方。
+ *
+ * 原本兩頁各有一套：
+ *   - 計算頁用 .note-editor-modal，align-items: flex-start + padding-top，
+ *     另外還有 adjustNoteEditorPosition() 監聽 visualViewport 動態調整
+ *   - 支票頁用 .modal-overlay，align-items: center（垂直置中）
+ *
+ * 支票頁那一套在手機上鍵盤一彈出，視窗會被推到螢幕外或被鍵盤蓋住，
+ * 看不到自己在打什麼、也點不到「儲存」。
+ * 過去因為歷史面板根本打不開（A1），這個問題碰不到；
+ * A1 修好之後它就變成天天會遇到的問題了。
+ *
+ * 現在兩頁共用這一套，並且用 visualViewport 把對話框固定在
+ * 「鍵盤上緣以上」的可視區域正中央，鍵盤收合後再還原。
+ * ------------------------------------------------------------ */
+
+// 目前開啟中的備註對話框狀態（同時只會有一個）
+let noteDialogState = null;
+
+/**
+ * 開啟備註編輯對話框
+ * @param {Object}   options
+ * @param {string}   options.title    對話框標題
+ * @param {string}   options.note     既有備註內容
+ * @param {Function} options.onSave   按下儲存時呼叫，參數為修剪過的備註文字
+ */
+function showNoteEditor(options) {
+    const config = options || {};
+    closeNoteEditorDialog();
+
+    const modal = document.createElement('div');
+    modal.className = 'note-editor-modal';
+    modal.id = 'noteEditorModal';
+    modal.innerHTML = `
+        <div class="note-editor-content">
+            <h3>${config.title || '備註編輯'}</h3>
+            <textarea id="noteEditorInput" class="note-editor-input" placeholder="請輸入備註內容..."></textarea>
+            <div class="note-editor-buttons">
+                <button type="button" class="modal-btn modal-btn-secondary" data-role="cancel">取消</button>
+                <button type="button" class="modal-btn modal-btn-primary" data-role="save">儲存</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // 用 value 指定而非寫進 HTML，避免備註內容中的 < 或引號破壞版面
+    const input = modal.querySelector('#noteEditorInput');
+    input.value = config.note || '';
+
+    modal.style.display = 'flex';
+
+    modal.querySelector('[data-role="cancel"]').addEventListener('click', closeNoteEditorDialog);
+    modal.querySelector('[data-role="save"]').addEventListener('click', function () {
+        const text = input.value.trim();
+        closeNoteEditorDialog();
+        if (typeof config.onSave === 'function') config.onSave(text);
+    });
+
+    // 點遮罩關閉
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) closeNoteEditorDialog();
+    });
+
+    const reposition = () => positionNoteEditor(modal);
+    noteDialogState = { modal, reposition };
+
+    window.addEventListener('resize', reposition);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', reposition);
+        window.visualViewport.addEventListener('scroll', reposition);
+    }
+
+    reposition();
+    input.focus();
+}
+
+/**
+ * 依照「扣掉鍵盤之後的實際可視高度」把對話框放到正中央
+ *
+ * visualViewport.height 在鍵盤彈出時會縮小，這是唯一可靠的方式
+ * 得知鍵盤佔掉多少空間。不支援的瀏覽器就退回固定上緣間距。
+ */
+function positionNoteEditor(modal) {
+    const content = modal.querySelector('.note-editor-content');
+    if (!content) return;
+
+    const viewport = window.visualViewport;
+    if (!viewport) {
+        modal.style.paddingTop = '90px';
+        modal.style.alignItems = 'flex-start';
+        return;
+    }
+
+    const visibleHeight = viewport.height;
+    const contentHeight = content.offsetHeight || 260;
+    // 至少留 12px 上緣間距，內容太高時優先保證頂部（標題與輸入框）看得到
+    const top = Math.max(12, viewport.offsetTop + (visibleHeight - contentHeight) / 2);
+
+    modal.style.alignItems = 'flex-start';
+    modal.style.paddingTop = top + 'px';
+}
+
+function closeNoteEditorDialog() {
+    if (!noteDialogState) {
+        // 也清掉可能殘留的舊節點（例如頁面重新載入前開著）
+        const stray = document.getElementById('noteEditorModal');
+        if (stray && stray.parentNode) stray.parentNode.removeChild(stray);
+        return;
+    }
+
+    const { modal, reposition } = noteDialogState;
+    window.removeEventListener('resize', reposition);
+    if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', reposition);
+        window.visualViewport.removeEventListener('scroll', reposition);
+    }
+    if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
+    noteDialogState = null;
 }

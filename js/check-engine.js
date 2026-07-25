@@ -23,6 +23,370 @@ let startDate = null;
 let selectedDate = null;
 let currentViewMonth = new Date();
 
+/* ------------------------------------------------------------
+ * 開立進度與歷史記錄連結
+ *
+ * writtenChecks      每一張票是否已經開立（打勾），索引對應流水號 -1
+ *
+ * linkedHistoryId    「表單內容與這筆紀錄完全一致」時才有值。
+ *                    有值代表打勾會即時寫回該筆紀錄（工作紀錄），
+ *                    也代表目前的進度是安全的、不會遺失。
+ *
+ * sourceHistoryId    資料最初是從哪一筆紀錄套用來的。
+ *                    即使之後改了張數導致連結中斷，這個值仍然保留，
+ *                    用來在保存時提供「覆蓋原紀錄」的選項。
+ *
+ * hasUnsavedChanges  套用紀錄後又改了計算內容，尚未決定要覆蓋或另存。
+ * ------------------------------------------------------------ */
+let writtenChecks = [];
+let linkedHistoryId = null;
+let sourceHistoryId = null;
+let hasUnsavedChanges = false;
+
+/* 自動暫存：防止 App 被系統回收時遺失開立進度。
+ * 定位是「意外遺失的防護網」而非正式紀錄 —— 真正要留的請按「保存計算」。
+ * 因此比照計算頁設 24 小時效期，隔天打開不會跳出前一天的資料。 */
+const CHECK_DRAFT_KEY = 'checkCalculatorDraft';
+const CHECK_DRAFT_MAX_HOURS = 24;
+
+/**
+ * 推算第 index 張支票的日期（index 從 0 起算）
+ *
+ * 每一張都以「開始日期的號數」為基準往後推月份，而不是拿上一張的
+ * 日期去加一個月 —— 否則遇到 2 月會滾雪球：1/31 → 2/28 → 3/28。
+ * 正確結果應該是 1/31 → 2/28 → 3/31。
+ * 當月沒有那個號數時（例如 2 月沒有 31 日）就取當月最後一天。
+ */
+function getCheckDate(start, index) {
+    if (!start || index < 0) return start;
+
+    const originalDay = start.getDate();
+    const date = new Date(start);
+    if (index > 0) {
+        date.setMonth(date.getMonth() + index, 1);
+        const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        date.setDate(Math.min(originalDay, lastDayOfMonth));
+    }
+    return date;
+}
+
+/**
+ * 這張票的日期有沒有因為當月天數不足而被往前調整
+ *
+ * 客戶若是每月 31 號，2 月會變 28、4 月會變 30。
+ * 業務照習慣順手寫 31 就錯了，所以清單上必須標出來。
+ */
+function isDateAdjusted(start, date) {
+    return !!(start && date && date.getDate() !== start.getDate());
+}
+
+/**
+ * 精簡日期格式 115/04/30
+ * 手機只有 400px 寬，「115年4月30日」太吃寬度，排不下金額欄
+ */
+function formatDateCompact(date) {
+    if (!date || isNaN(date.getTime())) return '—';
+    const rocYear = date.getFullYear() - 1911;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${rocYear}/${month}/${day}`;
+}
+
+/**
+ * 第 index 張支票的金額
+ * 前 n-1 張都是每期繳款金額，最後一張是尾款票
+ */
+function getCheckAmount(index) {
+    return (index === checkCount - 1) ? depositAmount : paymentAmount;
+}
+
+/**
+ * 把打勾狀態整理成長度正確的布林陣列
+ * 舊紀錄沒有這個欄位，張數改變時也要跟著調整長度
+ */
+function normalizeWrittenChecks(source, count) {
+    const total = Number(count) || 0;
+    const input = Array.isArray(source) ? source : [];
+    const result = [];
+    for (let i = 0; i < total; i++) {
+        result.push(input[i] === true);
+    }
+    return result;
+}
+
+function countWrittenChecks(item) {
+    if (!item || !Array.isArray(item.written)) return 0;
+    return item.written.filter(Boolean).length;
+}
+
+/**
+ * 以尾款續開下一批
+ *
+ * 換票流程：業務帶著尾款票回到客戶端，客戶收回尾款票、重新開下一批。
+ * 新的一批就是：
+ *   總金額   ← 這次的尾款金額（那就是剩下還沒開票的全部餘額）
+ *   開始日期 ← 這次的尾款票日期（那一期還沒繳，所以從那天接續）
+ *   繳款金額 ← 不變
+ *   開票張數 ← 清空，等業務問客戶「這次可以用幾張」再填
+ */
+function continueFromDeposit() {
+    vibrate();
+
+    if (!depositAmount || !paymentAmount || !checkCount || !startDate) {
+        showToast('請先完成這一批的計算，才能接續下一批', true);
+        return;
+    }
+
+    if (depositAmount <= paymentAmount) {
+        showToast('尾款金額已不大於一期繳款，這是最後一張票，不需要再續開', true);
+        return;
+    }
+
+    const nextStart = getCheckDate(startDate, checkCount - 1);   // 這次的尾款票日期
+    const nextTotal = depositAmount;
+
+    confirmDiscardProgress('開始新的一批', function () { askContinueFromDeposit(nextStart, nextTotal); });
+}
+
+function askContinueFromDeposit(nextStart, nextTotal) {
+    showConfirmModal(
+        '以尾款續開下一批',
+        `將以這一批的尾款作為下一批的總金額：<br><br>`
+        + `總金額：<b>${formatNumber(nextTotal)}</b><br>`
+        + `開始日期：<b>${formatDateToROC(nextStart)}</b><br>`
+        + `繳款金額：<b>${formatNumber(paymentAmount)}</b>（不變）<br><br>`
+        + `開票張數會清空，請重新輸入這次客戶願意提供的張數。`,
+        function () {
+            detachFromHistory();
+
+            totalAmount = nextTotal;
+            startDate = nextStart;
+            checkCount = 0;
+            depositAmount = 0;
+
+            const totalEl = document.getElementById('total-amount');
+            if (totalEl) totalEl.value = formatNumber(totalAmount);
+            const countEl = document.getElementById('check-count');
+            if (countEl) countEl.value = '';
+            const startEl = document.getElementById('start-date');
+            if (startEl) startEl.value = `${formatDateToROC(startDate)} ${getChineseWeekday(startDate)}`;
+
+            calculateDepositAmount();
+            generateCheckList();
+            updateCountBreakdown();
+            saveCheckDraft();
+
+            showToast('已帶入尾款，請輸入這次的開票張數');
+        }
+    );
+}
+
+/**
+ * 顯示「n 張月票 + 1 張尾款票」的拆解
+ * 讓「開票張數含不含尾款票」這件事在畫面上不需要猜
+ */
+function updateCountBreakdown() {
+    const el = document.getElementById('check-count-breakdown');
+    if (!el) return;
+
+    if (!checkCount) {
+        el.textContent = '';
+        return;
+    }
+    if (checkCount === 1) {
+        el.textContent = '僅 1 張尾款票';
+        return;
+    }
+    el.textContent = `${checkCount - 1} 張月票 ＋ 1 張尾款票`;
+}
+
+/**
+ * 計算內容被更動時的處理
+ *
+ * 【2026/07 修正】舊版只要改任何欄位就把打勾全部清空。這在實務上會出事：
+ * 業務已經開好並打勾 12 張，客戶臨時說「這次只給 15 張」，
+ * 一改張數 12 個勾全沒了 —— 但前 14 張的日期與金額其實一個字都沒變。
+ *
+ * 張數從 N 改成 M 時真正變動的只有兩個地方：
+ *   尾款票從第 N 張移到第 M 張，而且它的金額跟著變。
+ * 所以：
+ *   - 保留前 min(N, M) − 1 張的打勾（這些月票完全沒變）
+ *   - 清掉第 min(N, M) 張（身分從月票變尾款票或反過來，金額不同）
+ *   - 多出來的張數是新的，維持未打勾
+ *
+ * 其他欄位（繳款金額、開始日期、總金額）會讓整批的金額或日期改變，
+ * 打勾一律清空。這些欄位在開票中途幾乎不會被動到。
+ *
+ * @param {string} field 被更動的欄位 id；'check-count' 以外一律清空打勾
+ * @param {number} newCount 新的張數（僅 field 為 'check-count' 時有意義）
+ */
+function handleCalculationChanged(field, newCount) {
+    if (field === 'check-count') {
+        const keepCount = Math.max(0, Math.min(checkCount, Number(newCount) || 0) - 1);
+        writtenChecks = normalizeWrittenChecks(writtenChecks.slice(0, keepCount), newCount);
+    } else {
+        writtenChecks = [];
+    }
+
+    // 內容一改就跟原紀錄不同了，打勾不再即時寫回，改由保存時決定去向
+    if (sourceHistoryId !== null) hasUnsavedChanges = true;
+    linkedHistoryId = null;
+
+    updateUnsavedHint();
+}
+
+/**
+ * 完全切斷與歷史記錄的關係（換票、清空等「重新開始」的情境）
+ */
+function detachFromHistory() {
+    writtenChecks = [];
+    linkedHistoryId = null;
+    sourceHistoryId = null;
+    hasUnsavedChanges = false;
+    updateUnsavedHint();
+}
+
+/**
+ * 目前是否有「還沒被安全保存」的開立進度
+ *
+ * linkedHistoryId 有值時，每次打勾都會即時寫回歷史紀錄，進度是安全的。
+ * 沒有連結卻已經打了勾，就代表這些進度只存在畫面上。
+ */
+function hasUnsavedProgress() {
+    return linkedHistoryId === null && writtenChecks.some(Boolean);
+}
+
+/**
+ * 在會丟失開立進度的動作前先攔一下
+ * 沒有打勾就直接執行，避免變成每次都要多按一下的噪音
+ */
+function confirmDiscardProgress(actionLabel, onProceed) {
+    if (!hasUnsavedProgress()) {
+        onProceed();
+        return;
+    }
+
+    const done = writtenChecks.filter(Boolean).length;
+    showConfirmModal(
+        '尚未儲存',
+        `目前已打勾 <b>${done}</b> 張的開立進度尚未儲存，${actionLabel}後就會消失。<br><br>確定要繼續嗎？`,
+        onProceed
+    );
+}
+
+/**
+ * 更新「已修改，尚未儲存」提示
+ * 放在「保存計算」按鈕正上方 —— 那是要採取行動的地方
+ */
+function updateUnsavedHint() {
+    const hint = document.getElementById('unsaved-hint');
+    if (!hint) return;
+    hint.style.display = (sourceHistoryId !== null && hasUnsavedChanges) ? 'block' : 'none';
+}
+
+/* ------------------------------------------------------------
+ * 自動暫存
+ * ------------------------------------------------------------ */
+function saveCheckDraft() {
+    try {
+        if (!totalAmount && !paymentAmount && !checkCount && !startDate) {
+            localStorage.removeItem(CHECK_DRAFT_KEY);
+            return;
+        }
+        localStorage.setItem(CHECK_DRAFT_KEY, JSON.stringify({
+            totalAmount, paymentAmount, checkCount,
+            startDate: startDate ? startDate.toISOString() : null,
+            written: normalizeWrittenChecks(writtenChecks, checkCount),
+            linkedHistoryId, sourceHistoryId, hasUnsavedChanges,
+            timestamp: new Date().toISOString()
+        }));
+    } catch (e) { /* 暫存失敗不影響任何功能，安靜略過 */ }
+}
+
+function clearCheckDraft() {
+    try {
+        localStorage.removeItem(CHECK_DRAFT_KEY);
+    } catch (e) { /* 略過 */ }
+}
+
+function restoreCheckDraft() {
+    let draft;
+    try {
+        const raw = localStorage.getItem(CHECK_DRAFT_KEY);
+        if (!raw) return;
+        draft = JSON.parse(raw);
+    } catch (e) {
+        clearCheckDraft();
+        return;
+    }
+
+    const hours = (new Date() - new Date(draft.timestamp)) / 3600000;
+    if (!isFinite(hours) || hours >= CHECK_DRAFT_MAX_HOURS) {
+        clearCheckDraft();
+        return;
+    }
+
+    totalAmount = Number(draft.totalAmount) || 0;
+    paymentAmount = Number(draft.paymentAmount) || 0;
+    checkCount = Number(draft.checkCount) || 0;
+    startDate = draft.startDate ? new Date(draft.startDate) : null;
+    writtenChecks = normalizeWrittenChecks(draft.written, checkCount);
+    linkedHistoryId = (draft.linkedHistoryId === undefined) ? null : draft.linkedHistoryId;
+    sourceHistoryId = (draft.sourceHistoryId === undefined) ? null : draft.sourceHistoryId;
+    hasUnsavedChanges = draft.hasUnsavedChanges === true;
+
+    const totalEl = document.getElementById('total-amount');
+    if (totalEl) totalEl.value = totalAmount ? formatNumber(totalAmount) : '';
+    const payEl = document.getElementById('payment-amount');
+    if (payEl) payEl.value = paymentAmount ? formatNumber(paymentAmount) : '';
+    const countEl = document.getElementById('check-count');
+    if (countEl) countEl.value = checkCount ? formatNumber(checkCount) : '';
+    if (startDate) {
+        const startEl = document.getElementById('start-date');
+        if (startEl) startEl.value = `${formatDateToROC(startDate)} ${getChineseWeekday(startDate)}`;
+    }
+
+    updateCountBreakdown();
+    calculateDepositAmount();
+    generateCheckList();
+    updateUnsavedHint();
+}
+
+/* ------------------------------------------------------------
+ * 開票期間維持螢幕不休眠
+ *
+ * 手寫 50 張支票要好幾分鐘，中間還會跟客戶聊天。螢幕一直暗掉再解鎖
+ * 本身就是個分心來源，也容易在重新看畫面時看錯行。
+ * 只在「還有未開立的票」時啟用，全部開完就自動釋放。
+ * Wake Lock 不支援的瀏覽器（例如舊版 iOS Safari）會安靜略過。
+ * ------------------------------------------------------------ */
+let screenWakeLock = null;
+let wakeLockWanted = false;
+
+function updateScreenWakeLock(shouldKeepAwake) {
+    wakeLockWanted = !!shouldKeepAwake;
+
+    if (!('wakeLock' in navigator)) return;
+
+    if (wakeLockWanted) {
+        if (screenWakeLock) return;
+        navigator.wakeLock.request('screen').then(lock => {
+            screenWakeLock = lock;
+            lock.addEventListener('release', () => { screenWakeLock = null; });
+        }).catch(() => { /* 使用者拒絕或分頁不在前景，忽略即可 */ });
+    } else if (screenWakeLock) {
+        screenWakeLock.release().catch(() => {});
+        screenWakeLock = null;
+    }
+}
+
+// 切換到其他 App 再切回來時，系統會自動釋放 Wake Lock，需要重新取得
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && wakeLockWanted) {
+        updateScreenWakeLock(true);
+    }
+});
+
 /**
  * 把數字輸入器的結果寫回欄位
  *
@@ -33,6 +397,7 @@ function submitCalculatorValue() {
     if (!currentInputField) return;
     let value = parseFloat(calculatorValue);
     if (isNaN(value)) value = 0;
+
     
     /* 【2026/07 修正 A5】
      * 舊版三個欄位都只檢查上限，沒有檢查下限。
@@ -54,6 +419,7 @@ function submitCalculatorValue() {
                 showToast('錯誤：總金額不能超過9位數', true);
                 return;
             }
+            handleCalculationChanged('total-amount');
             document.getElementById(currentInputField).value = formatNumber(value);
             totalAmount = value;
             calculateDepositAmount();
@@ -71,6 +437,7 @@ function submitCalculatorValue() {
                 showToast('錯誤：繳款金額不能超過7位數', true);
                 return;
             }
+            handleCalculationChanged('payment-amount');
             document.getElementById(currentInputField).value = formatNumber(value);
             paymentAmount = value;
             calculateDepositAmount();
@@ -88,13 +455,16 @@ function submitCalculatorValue() {
                 showToast('錯誤：開票張數不能超過2位數', true);
                 return;
             }
+            handleCalculationChanged('check-count', value);
             document.getElementById(currentInputField).value = formatNumber(value);
             checkCount = value;
+            updateCountBreakdown();
             calculateDepositAmount();
             if (startDate) generateCheckList();
             break;
     }
     
+    saveCheckDraft();
     closeModal('numberInputModal');
     vibrate();
 }
@@ -120,6 +490,10 @@ function clearField(fieldId) {
 
 function clearAllInputs() {
     vibrate();
+    confirmDiscardProgress('清除全部輸入', doClearAllInputs);
+}
+
+function doClearAllInputs() {
     ['total-amount', 'payment-amount', 'check-count', 'deposit-amount', 'start-date', 'end-date'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
@@ -131,12 +505,24 @@ function clearAllInputs() {
     depositAmount = 0;
     startDate = null;
 
+    // 開立進度、歷史連結與暫存一併重置
+    detachFromHistory();
+    clearCheckDraft();
+
     // 大寫、底部卡片、提示文字統一交給 resetDepositDisplay() 清，
     // 避免像過去那樣「這裡清了三個、那裡漏了一個」而留下殘影
     resetDepositDisplay();
 
+    updateCountBreakdown();
+
     const listContent = document.getElementById('check-list-content');
     if (listContent) listContent.innerHTML = '';
+
+    const bar = document.getElementById('write-progress');
+    if (bar) bar.style.display = 'none';
+    const sumCard = document.getElementById('write-summary');
+    if (sumCard) sumCard.style.display = 'none';
+    updateScreenWakeLock(false);
 
     showToast('已清除所有欄位');
 }
@@ -227,7 +613,7 @@ function calculateDepositAmount() {
         // 而 arabicToChineseNumber 早期版本會用 Math.abs 把負號吃掉。
         depositAmount = 0;
         resetDepositDisplay();
-        showToast('錯誤：押票金額必須大於零，請檢查總金額、繳款金額與張數', true);
+        showToast('錯誤：尾款金額必須大於零，請檢查總金額、繳款金額與張數', true);
         return;
     }
 
@@ -237,7 +623,7 @@ function calculateDepositAmount() {
     updateChineseDisplay();
 
     const depDisp = document.getElementById('deposit-amount-display');
-    if (depDisp) depDisp.textContent = `押票金額：${formatNumber(depositAmount)}`;
+    if (depDisp) depDisp.textContent = `尾款金額：${formatNumber(depositAmount)}`;
 
     renderChineseAmount('deposit-amount-display-chinese', depositAmount);
 
@@ -247,10 +633,10 @@ function calculateDepositAmount() {
     const tipElement = document.getElementById('deposit-amount-tip');
     if (tipElement) {
         if (depositAmount < paymentAmount) {
-            tipElement.textContent = '押票金額小於繳款金額，請再次檢查金額。';
+            tipElement.textContent = '尾款金額小於一期繳款，請再次檢查金額與張數。';
             tipElement.style.display = 'block';
         } else if (depositAmount === paymentAmount) {
-            tipElement.textContent = '押票金額等於繳款金額，此為最後一張支票。';
+            tipElement.textContent = '尾款金額等於一期繳款，這是這筆貸款的最後一張票。';
             tipElement.style.display = 'block';
         } else {
             tipElement.textContent = '';
@@ -288,6 +674,11 @@ function generateCheckList() {
         listContent.innerHTML = '';
         const card = document.querySelector('.deposit-info-card');
         if (card) card.style.display = 'none';
+        const bar = document.getElementById('write-progress');
+        if (bar) bar.style.display = 'none';
+        const sumCard = document.getElementById('write-summary');
+        if (sumCard) sumCard.style.display = 'none';
+        updateScreenWakeLock(false);
         /* 【2026/07 修正 A7】
          * updateEndDateDisplay() 原本只寫在函式最後一行，這個 early return
          * 會整個跳過它，導致清空開票張數之後：列表消失了、卡片收起來了，
@@ -297,25 +688,30 @@ function generateCheckList() {
         return;
     }
     
+    // 張數變動時保留既有打勾狀態，只調整長度
+    writtenChecks = normalizeWrittenChecks(writtenChecks, checkCount);
+
     let html = '<table class="check-list-table">';
-    html += '<thead><tr><th>流水號</th><th>日期</th><th>星期</th><th>剩餘張數</th></tr></thead><tbody>';
-    
-    const originalDay = startDate.getDate();
+    html += '<thead><tr>'
+        + '<th class="col-tick"></th>'
+        + '<th class="col-seq">序</th>'
+        + '<th class="col-date">日期</th>'
+        + '<th class="col-week">週</th>'
+        + '<th class="col-amount">金額</th>'
+        + '<th class="col-left">剩餘</th>'
+        + '</tr></thead><tbody>';
+
     let currentYear = startDate.getFullYear();
-    
+
     for (let i = 0; i < checkCount; i++) {
-        let checkDate = new Date(startDate);
-        if (i > 0) {
-            checkDate.setMonth(checkDate.getMonth() + i, 1);
-            const lastDayOfMonth = new Date(checkDate.getFullYear(), checkDate.getMonth() + 1, 0).getDate();
-            const dayToSet = Math.min(originalDay, lastDayOfMonth);
-            checkDate.setDate(dayToSet);
-        }
-        
-        const newYear = checkDate.getFullYear() !== currentYear;
-        if (newYear) {
+        const checkDate = getCheckDate(startDate, i);
+        const isFinal = (i === checkCount - 1);
+        const isWritten = writtenChecks[i] === true;
+
+        // 跨年分隔列：民國年在 1 月 1 日換，寫錯年份是支票的典型錯誤
+        if (checkDate.getFullYear() !== currentYear) {
             html += `<tr class="year-change-row">
-                <td colspan="4">
+                <td colspan="6">
                     <div class="year-change-indicator">
                         <span class="year-text">${checkDate.getFullYear() - 1911}年</span>
                     </div>
@@ -323,22 +719,213 @@ function generateCheckList() {
             </tr>`;
             currentYear = checkDate.getFullYear();
         }
-        
-        const formattedDate = formatDateToROC(checkDate);
-        const weekday = getChineseWeekday(checkDate);
-        const remainingChecks = checkCount - i;
-        
-        html += `<tr class="row-${i % 2}">
-            <td>${i + 1}</td>
-            <td>${formattedDate}</td>
-            <td>${weekday}</td>
-            <td>${remainingChecks}</td>
+
+        const rowClasses = ['check-row', `row-${i % 2}`];
+        if (isFinal) rowClasses.push('final-check-row');
+        if (isWritten) rowClasses.push('written');
+
+        // 當月天數不足而被往前調整的日期要標出來，
+        // 否則業務照客戶「每月 31 號」的習慣順手寫 31 就錯了
+        const adjustedNote = isDateAdjusted(startDate, checkDate)
+            ? `<div class="date-adjusted">原 ${startDate.getDate()} 日</div>`
+            : '';
+
+        const finalNote = isFinal ? '<div class="final-check-tag">尾款票</div>' : '';
+
+        html += `<tr class="${rowClasses.join(' ')}" data-index="${i}" onclick="toggleCheckWritten(${i})">
+            <td class="col-tick"><span class="tick-box">${isWritten ? '✔' : ''}</span></td>
+            <td class="col-seq">${i + 1}</td>
+            <td class="col-date">${formatDateCompact(checkDate)}${adjustedNote}${finalNote}</td>
+            <td class="col-week">${getChineseWeekday(checkDate)}</td>
+            <td class="col-amount">${formatNumber(getCheckAmount(i))}</td>
+            <td class="col-left">${checkCount - i}</td>
         </tr>`;
     }
-    
+
     html += '</tbody></table>';
     listContent.innerHTML = html;
+
     updateEndDateDisplay();
+    updateWriteProgress();
+}
+
+/**
+ * 切換某一張票的「已開立」狀態
+ *
+ * 一邊跟客戶聊天一邊開 50 張票，最容易出事的不是算錯，而是「看丟行」——
+ * 講到一半被打斷，回頭時多寫一張或跳過一張。
+ * 靜態的「剩餘張數」欄要先知道自己在哪一列才有用，
+ * 打勾則是把「我現在開到哪」變成畫面上的既成事實，被打斷也不怕。
+ */
+function toggleCheckWritten(index) {
+    if (index < 0 || index >= checkCount) return;
+    vibrate();
+
+    writtenChecks = normalizeWrittenChecks(writtenChecks, checkCount);
+    writtenChecks[index] = !writtenChecks[index];
+
+    const row = document.querySelector(`.check-row[data-index="${index}"]`);
+    if (row) {
+        row.classList.toggle('written', writtenChecks[index]);
+        const tick = row.querySelector('.tick-box');
+        if (tick) tick.textContent = writtenChecks[index] ? '✔' : '';
+    }
+
+    updateWriteProgress();
+    persistWrittenChecks();
+}
+
+/**
+ * 更新頂部開立進度與底部合計
+ *
+ * 底部合計刻意用「已打勾的張數 × 該張金額」累加，而不是驗算
+ * 繳款 ×(n-1) + 尾款 = 總金額 —— 後者依公式恆等成立，
+ * 不管填什麼都會顯示相符，看起來像檢查其實什麼都檢查不到。
+ * 現在這個數字驗證的是「有沒有漏開、漏打勾」，那才是真的會出錯的地方。
+ */
+function updateWriteProgress() {
+    const bar = document.getElementById('write-progress');
+    if (!bar) return;
+
+    if (!checkCount || !startDate) {
+        bar.style.display = 'none';
+        return;
+    }
+
+    writtenChecks = normalizeWrittenChecks(writtenChecks, checkCount);
+    const done = writtenChecks.filter(Boolean).length;
+    const remaining = checkCount - done;
+
+    bar.style.display = 'flex';
+
+    const doneEl = document.getElementById('progress-done');
+    if (doneEl) doneEl.textContent = done;
+    const totalEl = document.getElementById('progress-total');
+    if (totalEl) totalEl.textContent = checkCount;
+    const leftEl = document.getElementById('progress-left');
+    if (leftEl) leftEl.textContent = remaining;
+
+    bar.classList.toggle('all-written', remaining === 0);
+
+    /* 漏開偵測
+     * 往下開票的過程中，下方本來就全是未打勾 —— 那不是漏開，是還沒開到。
+     * 真正的漏開是「已打勾的列之中夾著未打勾的列」，
+     * 也就是位置在「最後一個打勾」之上、卻還沒打勾的那些。
+     * 這樣正常往下開的時候完全不會誤報。 */
+    const gap = getWriteGapInfo();
+    const gapRow = document.getElementById('write-gap');
+    if (gapRow) {
+        if (gap.gapCount > 0) {
+            gapRow.style.display = 'flex';
+            const gapCountEl = document.getElementById('gap-count');
+            if (gapCountEl) gapCountEl.textContent = gap.gapCount;
+            bar.classList.add('has-gap');
+        } else {
+            gapRow.style.display = 'none';
+            bar.classList.remove('has-gap');
+        }
+    }
+
+    // 已開立金額合計
+    let writtenSum = 0;
+    for (let i = 0; i < checkCount; i++) {
+        if (writtenChecks[i]) writtenSum += getCheckAmount(i);
+    }
+
+    const sumCard = document.getElementById('write-summary');
+    if (sumCard) {
+        sumCard.style.display = done > 0 ? 'flex' : 'none';
+        sumCard.classList.toggle('matched', remaining === 0);
+    }
+    const sumEl = document.getElementById('written-sum');
+    if (sumEl) sumEl.textContent = formatNumber(writtenSum);
+    const sumTotalEl = document.getElementById('written-sum-total');
+    if (sumTotalEl) sumTotalEl.textContent = formatNumber(totalAmount);
+    const sumNote = document.getElementById('written-sum-note');
+    if (sumNote) {
+        sumNote.textContent = remaining === 0
+            ? '全部開立完成，金額與總金額相符'
+            : `還有 ${remaining} 張未開立`;
+    }
+
+    updateScreenWakeLock(remaining > 0);
+}
+
+/**
+ * 計算漏開資訊
+ * @returns {{gapCount:number, firstUnwritten:number}}
+ *   gapCount      「最後一個打勾」之上、卻還沒打勾的張數（真正跳過的）
+ *   firstUnwritten 順序上最前面一張未打勾的索引，供「前往」使用
+ */
+function getWriteGapInfo() {
+    let lastWritten = -1;
+    let firstUnwritten = -1;
+
+    for (let i = 0; i < checkCount; i++) {
+        if (writtenChecks[i]) lastWritten = i;
+        else if (firstUnwritten === -1) firstUnwritten = i;
+    }
+
+    let gapCount = 0;
+    for (let i = 0; i < lastWritten; i++) {
+        if (!writtenChecks[i]) gapCount++;
+    }
+
+    return { gapCount, firstUnwritten };
+}
+
+/**
+ * 捲動到第一張未打勾的支票
+ *
+ * 直接捲到畫面最頂端的話，目標列會被固定的進度列蓋住，
+ * 所以往下偏移進度列的高度，讓它剛好落在進度列正下方。
+ */
+function goToFirstUnwritten() {
+    vibrate();
+
+    const { firstUnwritten } = getWriteGapInfo();
+    if (firstUnwritten === -1) return;
+
+    const row = document.querySelector(`.check-row[data-index="${firstUnwritten}"]`);
+    if (!row) return;
+
+    /* 目標列要落在固定進度列的正下方。
+     * 偏移量 = 進度列的固定位置(top) + 它自己的高度 + 一點餘白。
+     * top 直接從樣式讀取，之後若調整 CSS 這裡會自動跟著對。 */
+    const bar = document.getElementById('write-progress');
+    let offset = 8;
+    if (bar) {
+        const stickyTop = parseFloat(getComputedStyle(bar).top) || 0;
+        offset += stickyTop + bar.offsetHeight;
+    }
+    const top = row.getBoundingClientRect().top + window.pageYOffset - offset;
+
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+
+    // 短暫高亮，讓使用者知道跳到哪一列了
+    row.classList.add('flash');
+    setTimeout(() => row.classList.remove('flash'), 1600);
+}
+
+/**
+ * 把打勾狀態寫回來源的歷史記錄，成為實際的開立工作紀錄
+ * 沒有來源（尚未保存的新試算）時就不寫，等按下「保存計算」再一起存
+ */
+function persistWrittenChecks() {
+    // 不論有沒有連結歷史紀錄，都先寫進暫存，避免 App 被系統回收時遺失
+    saveCheckDraft();
+
+    if (linkedHistoryId === null) return;
+
+    const checkHistory = readCheckHistory();
+    const index = checkHistory.findIndex(item => item.id === linkedHistoryId);
+    if (index === -1) {
+        linkedHistoryId = null;
+        return;
+    }
+
+    checkHistory[index].written = normalizeWrittenChecks(writtenChecks, checkCount);
+    writeCheckHistory(checkHistory);
 }
 
 /**
@@ -554,12 +1141,15 @@ function setupDatePicker() {
         confirmBtn.addEventListener('click', function() {
             vibrate();
             if (selectedDate) {
+                // 換了開始日期代表整批日期都變了，打勾一律清空
+                handleCalculationChanged('start-date');
                 startDate = selectedDate;
                 const formattedDate = formatDateToROC(startDate);
                 const weekday = getChineseWeekday(startDate);
                 const startEl = document.getElementById('start-date');
                 if (startEl) startEl.value = `${formattedDate} ${weekday}`;
                 generateCheckList();
+                saveCheckDraft();
             }
             closeModal('date-picker-overlay');
         });
@@ -587,29 +1177,89 @@ function saveCheckData() {
      * 卻仍然可以按下「保存計算」，把一筆押票金額為 0（舊版是負數）的
      * 紀錄存進歷史，日後載出來會是一筆看不出哪裡有問題的錯誤資料。 */
     if (!depositAmount || depositAmount <= 0) {
-        showToast('押票金額不成立，請先檢查總金額、繳款金額與張數', true);
+        showToast('尾款金額不成立，請先檢查總金額、繳款金額與張數', true);
         return;
     }
     
-    const checkDate = new Date();
-    const formattedDate = `${checkDate.getFullYear()}-${(checkDate.getMonth() + 1).toString().padStart(2, '0')}-${checkDate.getDate().toString().padStart(2, '0')}`;
     
-    const checkData = {
-        id: new Date().getTime(),
-        date: formattedDate,
-        totalAmount: totalAmount,
-        paymentAmount: paymentAmount,
-        checkCount: checkCount,
-        depositAmount: depositAmount,
-        startDate: startDate.toISOString(),
-        timestamp: new Date().toISOString(),
-        note: ''
-    };
-    
-    let checkHistory = JSON.parse(localStorage.getItem('checkHistory') || '[]');
-    checkHistory.push(checkData);
-    localStorage.setItem('checkHistory', JSON.stringify(checkHistory));
-    showToast('支票計算結果已保存！');
+    /* 資料來自某筆歷史紀錄、而且內容已經被改過（例如客戶臨時改張數）時，
+     * 讓使用者決定要覆蓋原紀錄還是另存新的一筆。
+     *
+     * 這個詢問刻意放在「保存計算」而不是「改張數的當下」——
+     * 業務改張數時人還在客戶面前、票也還沒開完，那時候問存檔沒有判斷依據，
+     * 而且模態視窗會打斷正在進行的手寫動作。 */
+    if (sourceHistoryId !== null && hasUnsavedChanges) {
+        const source = readCheckHistory().find(item => item.id === sourceHistoryId);
+        if (source) {
+            showChoiceModal(
+                '內容已變更',
+                `這筆資料來自 <b>${escapeHtml(source.date || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                + `原紀錄：${source.checkCount} 張 · 尾款 ${formatNumber(source.depositAmount)}<br>`
+                + `目前：${checkCount} 張 · 尾款 ${formatNumber(depositAmount)}`,
+                [
+                    { label: '覆蓋原紀錄', primary: true, onSelect: () => commitCheckData(sourceHistoryId) },
+                    { label: '另存為新紀錄', onSelect: () => commitCheckData(null) }
+                ]
+            );
+            return;
+        }
+        // 原紀錄已被刪除，直接另存
+    }
+
+    commitCheckData(null);
+}
+
+/**
+ * 實際寫入歷史記錄
+ * @param {number|null} overwriteId 有值代表覆蓋該筆，null 代表另存新紀錄
+ */
+function commitCheckData(overwriteId) {
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    const checkHistory = readCheckHistory();
+    const written = normalizeWrittenChecks(writtenChecks, checkCount);
+    let targetId = overwriteId;
+
+    if (overwriteId !== null) {
+        const index = checkHistory.findIndex(item => item.id === overwriteId);
+        if (index === -1) {
+            targetId = null;                      // 原紀錄不見了就改成另存
+        } else {
+            Object.assign(checkHistory[index], {
+                date: formattedDate,
+                totalAmount, paymentAmount, checkCount, depositAmount,
+                startDate: startDate.toISOString(),
+                timestamp: now.toISOString(),
+                written
+            });
+        }
+    }
+
+    if (targetId === null) {
+        // 同一毫秒內連按兩次會產生相同 id，刪除時會一次刪掉兩筆，故加上亂數
+        targetId = Date.now() * 1000 + Math.floor(Math.random() * 1000);
+        checkHistory.push({
+            id: targetId,
+            date: formattedDate,
+            totalAmount, paymentAmount, checkCount, depositAmount,
+            startDate: startDate.toISOString(),
+            timestamp: now.toISOString(),
+            note: '',
+            written
+        });
+    }
+
+    if (!writeCheckHistory(checkHistory)) return;
+
+    // 存檔後重新建立連結，之後打勾就會直接寫回這一筆
+    linkedHistoryId = targetId;
+    sourceHistoryId = targetId;
+    hasUnsavedChanges = false;
+    updateUnsavedHint();
+    saveCheckDraft();
+
+    showToast(overwriteId !== null ? '已覆蓋原紀錄' : '支票計算結果已保存！');
 }
 
 /* showToast / showModal / hideModal / showConfirmModal / hideConfirmModal
@@ -643,50 +1293,193 @@ function toggleHistoryPanel() {
     }
 }
 
+/**
+ * 載入歷史記錄面板
+ *
+ * 【2026/07 改版】舊版用了四個全站 CSS 根本沒有定義的 class：
+ *   .no-history（實際是 .no-data）、.note-btn（實際是 .detail-btn）、
+ *   .history-note-display（實際是 .history-note-preview），
+ *   以及沒有 .history-list 外層容器、details 沒有用
+ *   .history-detail-item / .detail-label / .detail-value 結構。
+ * 結果是整個面板幾乎沒有樣式、五個項目擠在兩欄 grid 裡排版錯亂。
+ * 這裡改為與計算頁（calc-storage.js 的 loadHistoryData）完全相同的結構。
+ *
+ * 同時新增「套用資料」按鈕 —— 這是業務到客戶端開票時的主要入口：
+ * 開啟頁面 → 歷史記錄 → 套用先前算好的那一筆 → 照著清單開票。
+ */
 function loadCheckHistory() {
     const historyContent = document.getElementById('historyContent');
     if (!historyContent) return;
-    const checkHistory = JSON.parse(localStorage.getItem('checkHistory') || '[]');
-    
+
+    const checkHistory = readCheckHistory();
+
     if (checkHistory.length === 0) {
-        historyContent.innerHTML = '<div class="no-history">暫無歷史記錄</div>';
+        historyContent.innerHTML = '<p class="no-data">尚無支票計算記錄</p>';
         return;
     }
-    
-    let html = '';
-    checkHistory.reverse().forEach(item => {
-        const itemStartDate = new Date(item.startDate);
-        const formattedStartDate = formatDateToROC(itemStartDate);
-        
+
+    // 依儲存時間新到舊排序（舊版只是把陣列 reverse，遇到舊資料順序會亂）
+    checkHistory.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+
+    let html = '<div class="history-list">';
+
+    checkHistory.forEach(item => {
+        const start = new Date(item.startDate);
+        const total = Number(item.checkCount) || 0;
+        const done = countWrittenChecks(item);
+
+        // 開立進度徽章：沿用計算頁 .history-header-rate 的樣式位置
+        let progressText;
+        if (total > 0 && done >= total) {
+            progressText = `已開立完成 ${total} 張`;
+        } else if (done > 0) {
+            progressText = `開立中 ${done} / ${total} 張`;
+        } else {
+            progressText = `${total} 張 · 尚未開立`;
+        }
+
         html += `
-        <div class="history-item">
-            <div class="history-item-header">
-                <span class="history-date">${item.date}</span>
-                <div class="history-actions">
-                    <button onclick="openNoteEditor(${item.id})" class="note-btn">備註</button>
-                    <button onclick="deleteCheckHistoryItem(${item.id})" class="delete-btn">刪除</button>
+            <div class="history-item" data-check-id="${item.id}">
+                <div class="history-item-header">
+                    <div class="history-date">${escapeHtml(item.date || '')}</div>
+                    <div class="history-header-rate">${progressText}</div>
                 </div>
-            </div>
-            <div class="history-details">
-                <div><span>總金額：</span>${formatNumber(item.totalAmount)} 元</div>
-                <div><span>每期繳款：</span>${formatNumber(item.paymentAmount)} 元</div>
-                <div><span>開票張數：</span>${item.checkCount} 張</div>
-                <div><span>押票金額：</span>${formatNumber(item.depositAmount)} 元</div>
-                <div><span>開始日期：</span>${formattedStartDate}</div>
-            </div>
-            ${item.note ? `<div class="history-note-display"><strong>備註：</strong>${item.note}</div>` : ''}
-        </div>`;
+
+                <div class="history-details">
+                    <div class="history-detail-item">
+                        <span class="detail-label">總金額</span>
+                        <span class="detail-value">${formatNumber(item.totalAmount)}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">每期繳款</span>
+                        <span class="detail-value">${formatNumber(item.paymentAmount)}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">開票張數</span>
+                        <span class="detail-value">${total} 張</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">尾款金額</span>
+                        <span class="detail-value">${formatNumber(item.depositAmount)}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">首張日期</span>
+                        <span class="detail-value">${formatDateCompact(start)}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">尾款票日期</span>
+                        <span class="detail-value">${formatDateCompact(getCheckDate(start, total - 1))}</span>
+                    </div>
+                </div>
+
+                <div class="history-note-container">
+                    <div class="history-item-footer">
+                        <div class="history-note-preview ${item.note ? '' : 'empty-note'}" onclick="openNoteEditor(${item.id})">
+                            ${item.note ? escapeHtml(item.note) : '點擊添加備註'}
+                        </div>
+                        <div class="history-actions">
+                            <button class="detail-btn" onclick="loadCheckToForm(${item.id})">套用資料</button>
+                            <button class="delete-btn" onclick="deleteCheckHistoryItem(${item.id})">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
     });
-    
+
+    html += '</div>';
     historyContent.innerHTML = html;
+}
+
+/**
+ * 把歷史記錄套用回表單
+ *
+ * 這是業務實際到客戶端開票的入口：把先前算好的那一筆完整還原，
+ * 包含已經打勾的開立進度，接著就能照著清單一張一張開。
+ */
+function loadCheckToForm(id) {
+    vibrate();
+
+    const item = readCheckHistory().find(entry => entry.id === id);
+    if (!item) {
+        showToast('找不到這筆記錄', true);
+        return;
+    }
+
+    // 有未儲存的打勾進度時先確認，避免業務辛苦點的 12 個勾被靜默丟掉
+    confirmDiscardProgress('套用其他紀錄', function () { applyCheckRecord(item); });
+}
+
+function applyCheckRecord(item) {
+    const id = item.id;
+
+    totalAmount = Number(item.totalAmount) || 0;
+    paymentAmount = Number(item.paymentAmount) || 0;
+    checkCount = Number(item.checkCount) || 0;
+    startDate = item.startDate ? new Date(item.startDate) : null;
+
+    // 記住資料來源，之後打勾會直接寫回這筆紀錄，成為實際的開立工作紀錄
+    linkedHistoryId = id;
+    sourceHistoryId = id;
+    hasUnsavedChanges = false;
+    writtenChecks = normalizeWrittenChecks(item.written, checkCount);
+
+    const totalEl = document.getElementById('total-amount');
+    if (totalEl) totalEl.value = totalAmount ? formatNumber(totalAmount) : '';
+    const payEl = document.getElementById('payment-amount');
+    if (payEl) payEl.value = paymentAmount ? formatNumber(paymentAmount) : '';
+    const countEl = document.getElementById('check-count');
+    if (countEl) countEl.value = checkCount ? formatNumber(checkCount) : '';
+
+    if (startDate) {
+        const startEl = document.getElementById('start-date');
+        if (startEl) startEl.value = `${formatDateToROC(startDate)} ${getChineseWeekday(startDate)}`;
+    }
+
+    updateCountBreakdown();
+    calculateDepositAmount();
+    generateCheckList();
+
+    const historyPanel = document.getElementById('historyPanel');
+    if (historyPanel) historyPanel.style.display = 'none';
+
+    showToast('已套用歷史資料');
+}
+
+/**
+ * 讀取歷史記錄（統一入口，順便擋掉資料損毀的情況）
+ */
+function readCheckHistory() {
+    try {
+        const raw = JSON.parse(localStorage.getItem('checkHistory') || '[]');
+        return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+/**
+ * 寫入歷史記錄
+ * @returns {boolean} 是否成功（無痕模式或容量已滿時會失敗）
+ */
+function writeCheckHistory(history) {
+    try {
+        localStorage.setItem('checkHistory', JSON.stringify(history));
+        return true;
+    } catch (e) {
+        showToast('儲存失敗，裝置儲存空間可能已滿', true);
+        return false;
+    }
 }
 
 function deleteCheckHistoryItem(id) {
     vibrate();
     showConfirmModal('刪除確認', '確定要刪除這筆歷史紀錄嗎？', function() {
-        let checkHistory = JSON.parse(localStorage.getItem('checkHistory') || '[]');
-        checkHistory = checkHistory.filter(item => item.id !== id);
-        localStorage.setItem('checkHistory', JSON.stringify(checkHistory));
+        const checkHistory = readCheckHistory().filter(item => item.id !== id);
+        if (!writeCheckHistory(checkHistory)) return;
+        // 刪掉的若正是目前套用中的那筆，就切斷連結，避免打勾寫回不存在的紀錄
+        if (linkedHistoryId === id) linkedHistoryId = null;
+        if (sourceHistoryId === id) { sourceHistoryId = null; hasUnsavedChanges = false; }
+        updateUnsavedHint();
         loadCheckHistory();
         showToast('歷史紀錄已刪除');
     });
@@ -695,70 +1488,51 @@ function deleteCheckHistoryItem(id) {
 function confirmDeleteAll() {
     vibrate();
     showConfirmModal('全刪確認', '確定要刪除所有歷史紀錄嗎？此操作無法恢復。', function() {
-        localStorage.removeItem('checkHistory');
+        try {
+            localStorage.removeItem('checkHistory');
+        } catch (e) { /* 移除失敗不影響畫面，繼續往下重繪 */ }
+        linkedHistoryId = null;
+        sourceHistoryId = null;
+        hasUnsavedChanges = false;
+        updateUnsavedHint();
         loadCheckHistory();
         showToast('所有歷史紀錄已刪除');
     });
 }
 
+/**
+ * 開啟備註編輯視窗
+ *
+ * 【2026/07 修正 B3】
+ * 舊版自己 new 了一個 .modal-overlay（垂直置中）來裝 <textarea>，
+ * 手機鍵盤一彈出就會把視窗推走或蓋住，看不到輸入框也點不到儲存。
+ * 現在改用 common-keypad.js 的共用對話框，它會依 visualViewport
+ * 把視窗固定在鍵盤上緣以上的可視區域。
+ */
 function openNoteEditor(checkId) {
     vibrate();
-    const checkHistory = JSON.parse(localStorage.getItem('checkHistory') || '[]');
-    const checkItem = checkHistory.find(item => item.id === checkId);
-    
+    const checkItem = readCheckHistory().find(item => item.id === checkId);
     if (!checkItem) return;
-    
-    let noteEditorModal = document.getElementById('noteEditorModal');
-    if (!noteEditorModal) {
-        noteEditorModal = document.createElement('div');
-        noteEditorModal.id = 'noteEditorModal';
-        noteEditorModal.className = 'modal-overlay';
-        document.body.appendChild(noteEditorModal);
-    }
-    
-    noteEditorModal.innerHTML = `
-        <div class="modal-container">
-            <div class="modal-header">
-                <h3>編輯備註</h3>
-                <button onclick="closeNoteEditor()" class="close-btn">×</button>
-            </div>
-            <div class="modal-content">
-                <textarea id="noteInput" class="note-editor-input" placeholder="請輸入備註內容...">${checkItem.note || ''}</textarea>
-            </div>
-            <div class="modal-footer">
-                <button onclick="closeNoteEditor()" class="modal-btn modal-btn-secondary">取消</button>
-                <button onclick="saveNote(${checkId})" class="modal-btn modal-btn-primary">儲存</button>
-            </div>
-        </div>
-    `;
-    
-    noteEditorModal.style.display = 'flex';
+
+    showNoteEditor({
+        title: '編輯備註',
+        note: checkItem.note || '',
+        onSave: function (noteText) {
+            saveCheckNote(checkId, noteText);
+        }
+    });
 }
 
-function closeNoteEditor() {
+function saveCheckNote(checkId, noteText) {
     vibrate();
-    const noteEditorModal = document.getElementById('noteEditorModal');
-    if (noteEditorModal) {
-        noteEditorModal.style.display = 'none';
-    }
-}
+    const checkHistory = readCheckHistory();
+    const index = checkHistory.findIndex(item => item.id === checkId);
+    if (index === -1) return;
 
-function saveNote(checkId) {
-    vibrate();
-    const noteInput = document.getElementById('noteInput');
-    if (!noteInput) return;
-    
-    const noteText = noteInput.value.trim();
-    let checkHistory = JSON.parse(localStorage.getItem('checkHistory') || '[]');
-    const checkIndex = checkHistory.findIndex(item => item.id === checkId);
-    
-    if (checkIndex !== -1) {
-        checkHistory[checkIndex].note = noteText;
-        localStorage.setItem('checkHistory', JSON.stringify(checkHistory));
-        closeNoteEditor();
-        loadCheckHistory();
-        showToast('備註已更新');
-    }
+    checkHistory[index].note = noteText;
+    if (!writeCheckHistory(checkHistory)) return;
+    loadCheckHistory();
+    showToast('備註已更新');
 }
 
 // 初始化頁面事件與定時器
@@ -766,4 +1540,13 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCurrentDate();
     setInterval(updateCurrentDate, 1000);
     setupDatePicker();
+
+    // 還原自動暫存（24 小時內），避免 App 被系統回收時遺失開立進度
+    restoreCheckDraft();
+    updateUnsavedHint();
+});
+
+// 切到背景前把現況寫進暫存，這是最容易被系統回收的時機
+document.addEventListener('visibilitychange', function () {
+    if (document.hidden) saveCheckDraft();
 });
