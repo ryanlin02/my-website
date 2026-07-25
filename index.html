@@ -762,6 +762,80 @@
             opacity: 1;                                 /* 完全不透明 */
         }
 
+        /* ============================================
+        * 新版本提示條
+        * --------------------------------------------
+        * 設計原則：絕不遮擋操作區、絕不打斷輸入。
+        * 貼齊畫面最底部，高度壓到最低，不理它就自然消失於下次開啟。
+        * ============================================ */
+
+        .update-bar {
+            position: fixed;                            /* 固定在畫面底部 */
+            bottom: 0;                                  /* 貼齊底部 */
+            left: 50%;                                  /* 水平置中 */
+            transform: translateX(-50%) translateY(100%); /* 初始藏在畫面外 */
+            width: 100%;                                /* 滿寬度 */
+            max-width: 400px;                           /* 與全站一致的寬度上限 */
+            box-sizing: border-box;                     /* 邊框盒模型 */
+            background-color: var(--secondary-color);   /* 次要背景色 */
+            border-top: 2px solid var(--accent-color);  /* 頂部橘色細線 */
+            padding: 8px 12px;                          /* 內距壓到最低 */
+            /* iPhone 底部 Home 指示條的安全距離 */
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+            display: flex;                              /* 彈性佈局 */
+            align-items: center;                        /* 垂直置中 */
+            justify-content: space-between;             /* 兩端對齊 */
+            gap: 8px;                                   /* 元素間距 */
+            z-index: 1200;                              /* 高於標題列，低於全螢幕彈窗 */
+            transition: transform var(--transition-fast); /* 滑入滑出動畫 */
+        }
+
+        /* 顯示狀態 */
+        .update-bar.show {
+            transform: translateX(-50%) translateY(0);   /* 滑入畫面 */
+        }
+
+        /* 提示文字 */
+        .update-bar-text {
+            color: var(--text-color);                   /* 白色文字 */
+            font-size: var(--font-size-sm);            /* 小字體 */
+            flex: 1;                                    /* 佔據剩餘空間 */
+            line-height: 1.3;                           /* 行高 */
+        }
+
+        /* 版本號強調 */
+        .update-bar-version {
+            color: var(--accent-color);                 /* 橘色 */
+            font-weight: bold;                          /* 粗體 */
+        }
+
+        /* 立即更新按鈕 */
+        .update-bar-btn {
+            background-color: var(--accent-color);      /* 橘色背景 */
+            color: #333333;                             /* 深色文字 */
+            border: none;                               /* 無邊框 */
+            border-radius: var(--border-radius-sm);     /* 小圓角 */
+            padding: 6px 12px;                          /* 內距 */
+            font-size: var(--font-size-sm);            /* 小字體 */
+            font-family: inherit;                       /* 繼承字體 */
+            font-weight: bold;                          /* 粗體 */
+            cursor: pointer;                            /* 指標樣式 */
+            flex-shrink: 0;                             /* 不縮小 */
+            white-space: nowrap;                        /* 不換行 */
+        }
+
+        /* 稍後再說（關閉）按鈕 */
+        .update-bar-close {
+            background: none;                           /* 無背景 */
+            border: none;                               /* 無邊框 */
+            color: var(--text-muted);                   /* 淡化顏色 */
+            font-size: 18px;                            /* 字體大小 */
+            line-height: 1;                             /* 行高 */
+            padding: 4px 6px;                           /* 內距 */
+            cursor: pointer;                            /* 指標樣式 */
+            flex-shrink: 0;                             /* 不縮小 */
+        }
+
     </style>
 </head>
 
@@ -896,6 +970,17 @@
         </div>
     </div>
 
+    <!-- ============================================
+    * 新版本提示條（預設隱藏，偵測到新版才滑出）
+    * ============================================ -->
+    <div class="update-bar" id="updateBar">
+        <span class="update-bar-text">
+            已有新版本 <span class="update-bar-version" id="updateBarVersion"></span>
+        </span>
+        <button class="update-bar-btn" id="updateBarApply">立即更新</button>
+        <button class="update-bar-close" id="updateBarClose" aria-label="稍後再說">✕</button>
+    </div>
+
     <!-- 說明頁面iframe -->
     <iframe class="instruction-iframe" id="instructionIframe"></iframe>
 
@@ -980,7 +1065,10 @@
             
             // 初始化導航功能
             initializeNavigation();
-            
+
+            // 初始化新版本提示條的按鈕
+            initUpdateBar();
+
             // 註冊Service Worker (PWA功能)
             registerServiceWorker();
             
@@ -1180,42 +1268,158 @@
         // PWA Service Worker註冊
         // ============================================
         
+        /* ------------------------------------------------------------
+         * 【2026/07 改寫】更新機制整併
+         *
+         * 舊版同時存在三套機制互相打架：
+         *   1. sw.js 安裝完就無條件強制接管
+         *   2. 這裡偵測到接管 → 自動整頁重新載入
+         *   3. 這裡同時又跳 confirm('發現新版本，是否立即更新？')
+         * 造成「按了取消結果還是重整」，且有機率在使用者輸入到一半時發生。
+         *
+         * 改為單一流程：偵測到新版 → 底部滑出小提示條（不擋任何操作）。
+         * 使用者不理它 → 下次完全關閉 App 後自然生效。
+         * 使用者點「立即更新」→ 才套用並重新載入。
+         *
+         * 【安全設計】整頁重新載入只有一條路徑，而且必須先經過
+         * userRequestedUpdate 這個旗標。沒有使用者點擊，絕不會重整。
+         * ------------------------------------------------------------ */
+
+        // 使用者是否主動要求更新（唯一允許重新載入的條件）
+        let userRequestedUpdate = false;
+
+        // 等待中的新版本 Service Worker
+        let waitingWorker = null;
+
         function registerServiceWorker() {
-            // 檢查瀏覽器是否支持Service Worker
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('sw.js')
-                        .then(function(registration) {
-                            console.log('Service Worker 註冊成功:', registration.scope);
-                            
-                            // 檢查是否有新版本的Service Worker
-                            registration.addEventListener('updatefound', function() {
-                                console.log('🔄 發現新版本Service Worker');
-                                const newWorker = registration.installing;
-                                
-                                newWorker.addEventListener('statechange', function() {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        // 有新版本可用，提示用戶重新載入
-                                        console.log('✅ 新版本已準備就緒');
-                                        
-                                        // 自動更新到新版本
-                                        if (confirm('發現新版本，是否立即更新？')) {
-                                            newWorker.postMessage({ type: 'SKIP_WAITING' });
-                                            window.location.reload();
-                                        }
-                                    }
-                                });
+            if (!('serviceWorker' in navigator)) {
+                console.log('此瀏覽器不支援 Service Worker，略過註冊');
+                return;
+            }
+
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('Service Worker 註冊成功:', registration.scope);
+
+                        // 情況一：頁面載入時就已經有等待中的新版本
+                        if (registration.waiting && navigator.serviceWorker.controller) {
+                            showUpdateBar(registration.waiting);
+                        }
+
+                        // 情況二：使用期間偵測到新版本
+                        registration.addEventListener('updatefound', function() {
+                            const newWorker = registration.installing;
+                            if (!newWorker) return;
+
+                            console.log('🔄 發現新版本 Service Worker，安裝中…');
+
+                            newWorker.addEventListener('statechange', function() {
+                                // controller 存在代表這是「更新」而非「首次安裝」，
+                                // 首次安裝不需要提示使用者。
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('✅ 新版本已就緒，顯示提示條');
+                                    showUpdateBar(newWorker);
+                                }
                             });
-                        })
-                        .catch(function(error) {
-                            console.log('Service Worker 註冊失敗:', error);
                         });
-                    
-                    // 監聽Service Worker控制權變更
-                    navigator.serviceWorker.addEventListener('controllerchange', function() {
-                        console.log('🔄 Service Worker已更新，重新載入頁面');
-                        window.location.reload();
+                    })
+                    .catch(function(error) {
+                        console.log('Service Worker 註冊失敗:', error);
                     });
+
+                // 控制權變更 → 只有在使用者主動要求時才重新載入
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                    if (!userRequestedUpdate) {
+                        // 非使用者要求（例如首次安裝時的接管），保持安靜不動作
+                        console.log('Service Worker 接管，但非使用者要求，不重新載入');
+                        return;
+                    }
+                    console.log('🔄 使用者要求的更新已套用，重新載入頁面');
+                    window.location.reload();
+                });
+            });
+        }
+
+        /**
+         * 顯示新版本提示條
+         * @param {ServiceWorker} worker 等待中的新版本
+         */
+        function showUpdateBar(worker) {
+            waitingWorker = worker;
+
+            const bar = document.getElementById('updateBar');
+            if (!bar) return;
+
+            // 向新版本詢問它的版本號，顯示給使用者看
+            requestWorkerVersion(worker, function(version) {
+                const versionSpan = document.getElementById('updateBarVersion');
+                if (versionSpan && version) versionSpan.textContent = 'v' + version;
+            });
+
+            bar.classList.add('show');
+
+            if (typeof trackEvent === 'function') {
+                trackEvent('update_available', { current_page: currentPage });
+            }
+        }
+
+        /**
+         * 隱藏提示條
+         */
+        function hideUpdateBar() {
+            const bar = document.getElementById('updateBar');
+            if (bar) bar.classList.remove('show');
+        }
+
+        /**
+         * 向 Service Worker 詢問版本號
+         */
+        function requestWorkerVersion(worker, callback) {
+            try {
+                const channel = new MessageChannel();
+                channel.port1.onmessage = function(event) {
+                    if (event.data && event.data.type === 'VERSION_INFO') {
+                        callback(event.data.version);
+                    }
+                };
+                worker.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
+            } catch (e) {
+                // 拿不到版本號不影響更新功能，安靜略過
+            }
+        }
+
+        /**
+         * 綁定提示條的兩個按鈕
+         */
+        function initUpdateBar() {
+            const applyBtn = document.getElementById('updateBarApply');
+            const closeBtn = document.getElementById('updateBarClose');
+
+            if (applyBtn) {
+                applyBtn.addEventListener('click', function() {
+                    if (!waitingWorker) return;
+
+                    // 標記為使用者主動要求，這是允許重新載入的唯一條件
+                    userRequestedUpdate = true;
+
+                    applyBtn.textContent = '更新中…';
+                    applyBtn.disabled = true;
+
+                    if (typeof trackEvent === 'function') {
+                        trackEvent('update_applied', { method: 'user_click' });
+                    }
+
+                    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    hideUpdateBar();
+                    if (typeof trackEvent === 'function') {
+                        trackEvent('update_dismissed', { method: 'user_close' });
+                    }
                 });
             }
         }

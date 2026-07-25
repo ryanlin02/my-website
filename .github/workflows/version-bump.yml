@@ -1,0 +1,59 @@
+name: 推送後自動遞增版本號
+
+# 只有這些檔案變動時才遞增版本號。
+# data/（油價自動更新）與 *.md（說明文件）刻意排除：
+# 油價走「網路優先」策略，不需要靠版本號更新；文件變動也不影響 App。
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'js/**'
+      - 'css/**'
+      - 'pages/**'
+      - 'instructions/**'
+      - 'about/**'
+      - 'icons/**'
+      - 'index.html'
+      - '404.html'
+      - 'sw.js'
+  workflow_dispatch: # 支援在 GitHub 頁面上手動觸發
+
+permissions:
+  contents: write
+
+# 避免多次推送同時執行造成版本號打架
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 檢出專案程式碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 執行版本號遞增
+        id: bump
+        run: python3 scripts/bump-version.py
+
+      - name: 自動提交新版本號
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add sw.js manifest.json
+          if git diff --staged --quiet; then
+            echo "版本號無變更，跳過 Commit"
+          else
+            # [skip ci] 讓這次 commit 不會再觸發這個流程，避免無限迴圈
+            git commit -m "chore(version): 自動遞增版本號至 ${{ steps.bump.outputs.new_version }} [skip ci]"
+            git push
+          fi

@@ -129,6 +129,11 @@ function initCommonModals() {
 
 /**
  * 注入全站通用頁尾 (Global Footer)
+ *
+ * 【2026/07 修改】版本號原本寫死為 v2.5.0，與 sw.js、manifest.json
+ * 三處互相矛盾且都不反映真實狀態。改為向 Service Worker 詢問
+ * 「目前手機上實際跑的是哪一版」，這樣你就能打開 App 看一眼頁尾，
+ * 直接跟 GitHub 上的版本號比對，確認手機是不是已經更新。
  */
 function renderGlobalFooter() {
     if (document.getElementById('globalAppFooter')) return;
@@ -136,10 +141,52 @@ function renderGlobalFooter() {
     footerElement.id = 'globalAppFooter';
     footerElement.className = 'global-app-footer';
     footerElement.innerHTML = `
-        <div class="footer-title">重車貸款業務工具箱 • v2.5.0</div>
+        <div class="footer-title">重車貸款業務工具箱 <span id="appVersionLabel"></span></div>
         <div class="footer-copyright">© 2026 Fleet Loan Toolkit. All rights reserved.</div>
     `;
     document.body.appendChild(footerElement);
+
+    showAppVersion();
+}
+
+/**
+ * 向 Service Worker 詢問實際運作中的版本號並顯示於頁尾
+ * 取不到時（例如未安裝 PWA、或瀏覽器不支援）就不顯示版本號，
+ * 頁尾其餘內容維持正常，不會因此出錯。
+ */
+function showAppVersion() {
+    const label = document.getElementById('appVersionLabel');
+    if (!label) return;
+
+    if (!('serviceWorker' in navigator)) return;
+
+    const ask = function () {
+        const controller = navigator.serviceWorker.controller;
+        if (!controller) return false;
+
+        try {
+            const channel = new MessageChannel();
+
+            channel.port1.onmessage = function (event) {
+                if (event.data && event.data.type === 'VERSION_INFO' && event.data.version) {
+                    label.textContent = '• v' + event.data.version;
+                }
+            };
+
+            controller.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
+            return true;
+        } catch (e) {
+            // 取不到版本號不影響任何功能，安靜略過
+            return false;
+        }
+    };
+
+    // 首次安裝當下 controller 可能還沒接管，等就緒後再問一次
+    if (!ask()) {
+        navigator.serviceWorker.ready.then(function () {
+            setTimeout(ask, 300);
+        }).catch(function () { /* 略過 */ });
+    }
 }
 
 // 自動監聽與載入注入

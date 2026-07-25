@@ -1185,8 +1185,11 @@
 
         async function loadFuelPrices() {
             try {
-                // 讀取全自動更新的 JSON 資料，加入時間戳記防快取
-                const response = await fetch('../data/fuel-prices.json?v=' + new Date().getTime());
+                // 讀取全自動更新的 JSON 資料
+                // 註：舊版在網址後加時間戳（?v=...）防快取，但每個時間戳都是不同網址，
+                //     Service Worker 會把每一次都各存一份，用久了會撐爆快取。
+                //     改用 no-cache 標註：網址固定，只有一筆快取被反覆覆蓋。
+                const response = await fetch('../data/fuel-prices.json', { cache: 'no-cache' });
                 if (!response.ok) throw new Error('HTTP status ' + response.status);
                 fuelPricesData = await response.json();
             } catch (err) {

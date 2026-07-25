@@ -13,33 +13,62 @@
 // Service Worker 配置和版本管理
 // ============================================
 
-// 版本號和快取名稱 - 更新版本號時會自動清理舊快取
-// 【重要】每次修改 JS 或 CSS 後，這個版本號一定要往上加一號，
-// 否則使用者手機會繼續使用舊版快取，你的修改不會生效。
-const CACHE_VERSION = 'v1.0.3';
-const CACHE_NAME = `xiaopenyou-tools-${CACHE_VERSION}`;
+/* ============================================================
+ * 版本號
+ * ------------------------------------------------------------
+ * 【請勿手動修改】這一行由 GitHub Actions 自動遞增（每次 +0.01）。
+ * 規則：4.24 → 4.25 → ... → 4.99 → 5.00 → 5.01
+ * 版本號一變，Service Worker 就會重新安裝並抓取全新的檔案。
+ * ============================================================ */
+const CACHE_VERSION = '4.24';
+const CACHE_NAME = `xiaopenyou-tools-v${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
+// 註：data/fuel-prices.json 刻意不列入，它需要的是最新資料而非離線備份，
+//     改由下方的「網路優先」策略處理。
 const CORE_ASSETS = [
     './',                        // 主頁面（相對路徑）
     './index.html',             // 主頁面（明確路徑）
     './manifest.json',          // PWA配置檔案
+    './404.html',               // 404錯誤頁面
+
+    // 功能頁面
     './pages/calculator.html',  // 計算機頁面
     './pages/check.html',       // 支票頁面
     './pages/invoice.html',     // 發票頁面
     './pages/gas.html',         // 加油頁面
+
+    // 樣式
     './css/calculator.css',     // 計算機專用樣式
+
+    // 計算頁模組
     './js/calc-engine.js',      // 計算引擎
     './js/calc-storage.js',     // 數據持久化模組
     './js/calc-ui.js',          // UI 交互控制模組
+
+    // 支票頁與發票頁模組（原本漏掉，導致離線時這兩頁開不起來）
+    './js/check-engine.js',     // 支票試算引擎
+    './js/invoice-engine.js',   // 發票轉換引擎
+    './js/common-modals.js',    // 三頁共用的彈窗與數字小鍵盤
+
+    // 工具說明頁（原本漏掉）
+    './instructions/calculator_instruction.html',
+    './instructions/check_instruction.html',
+    './instructions/invoice_instruction.html',
+    './instructions/gas_instruction.html',
+
+    // 關於頁（原本漏掉）
+    './about/privacy-policy.html',
+    './about/terms-of-service.html',
+
+    // 圖示
     './icons/icon-192.png',     // 小圖標
-    './icons/icon-512.png',     // 大圖標
-    './404.html'                // 404錯誤頁面
+    './icons/icon-512.png'      // 大圖標
 ];
 
-// 可選快取檔案 - 這些檔案會在有機會時被快取
-const OPTIONAL_ASSETS = [
-    // 可以在這裡添加其他資源檔案
+// 需要「永遠拿最新」的資料路徑（例如每週更新的油價）
+const NETWORK_FIRST_PATHS = [
+    '/data/'
 ];
 
 // 不需要快取的URL模式 - 這些請求會直接從網路獲取
@@ -59,24 +88,47 @@ const EXCLUDE_PATTERNS = [
  * 預先快取核心檔案確保離線功能
  */
 self.addEventListener('install', event => {
-    console.log('🔧 Service Worker: 開始安裝', CACHE_VERSION);
-    
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('💾 Service Worker: 開始預先快取核心檔案');
-                return cache.addAll(CORE_ASSETS);
-            })
-            .then(() => {
-                console.log('✅ Service Worker: 核心檔案快取完成');
-                // 強制啟用新的Service Worker
-                return self.skipWaiting();
-            })
-            .catch(error => {
-                console.error('❌ Service Worker: 快取核心檔案時發生錯誤:', error);
-            })
-    );
+    console.log('🔧 Service Worker: 開始安裝 v' + CACHE_VERSION);
+
+    event.waitUntil(precacheCoreAssets());
+
+    // 【刻意不呼叫 self.skipWaiting()】
+    // 舊版在這裡無條件強制接管，會造成使用者正在輸入時整頁突然重整。
+    // 改為等待使用者主動點擊「立即更新」，或下次完全關閉 App 後才接管。
 });
+
+/**
+ * 預先快取核心檔案
+ *
+ * 舊版使用 cache.addAll()，只要其中一個檔案失敗就整批失敗，
+ * 而且錯誤被 catch 吞掉不會顯示 —— 等於離線功能可能早就壞了卻沒人知道。
+ * 改為逐一抓取：單一檔案失敗不影響其他檔案，並明確記錄是哪一個失敗。
+ *
+ * 另外加上 cache: 'reload'，強制繞過瀏覽器自己的 HTTP 快取。
+ * GitHub Pages 會回應「10 分鐘內可直接使用舊版」，不加這個標註的話，
+ * 就算版本號變了也可能拿到舊檔案。
+ */
+async function precacheCoreAssets() {
+    const cache = await caches.open(CACHE_NAME);
+    console.log(`💾 Service Worker: 開始預先快取 ${CORE_ASSETS.length} 個核心檔案`);
+
+    const failed = [];
+
+    await Promise.all(CORE_ASSETS.map(async url => {
+        try {
+            await cache.add(new Request(url, { cache: 'reload' }));
+        } catch (error) {
+            failed.push(url);
+            console.warn('⚠️ Service Worker: 預快取失敗 →', url, error);
+        }
+    }));
+
+    if (failed.length === 0) {
+        console.log(`✅ Service Worker: ${CORE_ASSETS.length} 個核心檔案全部快取完成`);
+    } else {
+        console.error(`❌ Service Worker: 有 ${failed.length} 個檔案快取失敗，離線功能可能不完整：`, failed);
+    }
+}
 
 /**
  * Service Worker 啟用事件
@@ -114,7 +166,13 @@ self.addEventListener('fetch', event => {
     if (request.method !== 'GET') {
         return;
     }
-    
+
+    // 資料檔（油價）走網路優先：永遠拿最新，沒網路才用上次抓到的
+    if (isNetworkFirstPath(url)) {
+        event.respondWith(networkFirstStrategy(request));
+        return;
+    }
+
     event.respondWith(
         cacheFirstStrategy(request)
             .catch(() => networkFallback(request))
@@ -122,32 +180,77 @@ self.addEventListener('fetch', event => {
 });
 
 /**
+ * 判斷是否為需要「永遠拿最新」的路徑
+ */
+function isNetworkFirstPath(url) {
+    return NETWORK_FIRST_PATHS.some(p => url.pathname.includes(p));
+}
+
+/**
+ * 網路優先策略 (Network First)
+ *
+ * 用於油價這類每週更新的資料。舊版在網址後面加時間戳（?v=1753...）來防快取，
+ * 但每個時間戳都是不同網址，Service Worker 會把每一次都各存一份，
+ * 用久了會累積上千筆一模一樣的資料把快取撐爆。
+ *
+ * 改用這個策略後：永遠只有 1 筆快取，每次抓到新的就覆蓋。
+ */
+async function networkFirstStrategy(request) {
+    const cache = await caches.open(CACHE_NAME);
+
+    try {
+        const networkResponse = await fetch(request, { cache: 'no-cache' });
+        if (networkResponse.ok) {
+            // 覆蓋既有的那一筆，不會新增
+            cache.put(request, networkResponse.clone());
+            return networkResponse;
+        }
+        throw new Error('HTTP ' + networkResponse.status);
+    } catch (error) {
+        // 沒網路時用上次抓到的資料，功能不中斷
+        const cachedResponse = await cache.match(request);
+        if (cachedResponse) {
+            console.log('📴 Service Worker: 離線，使用上次抓到的資料:', request.url);
+            return cachedResponse;
+        }
+        throw error;
+    }
+}
+
+/**
  * Service Worker 訊息處理
  * 處理來自主頁面的訊息，如手動更新請求
  */
 self.addEventListener('message', event => {
-    const { type, data } = event.data;
-    
+    // 防呆：訊息格式不符時直接忽略，避免整個處理器拋錯
+    if (!event.data || typeof event.data !== 'object') return;
+
+    const { type } = event.data;
+    const replyPort = (event.ports && event.ports[0]) ? event.ports[0] : null;
+
     switch (type) {
         case 'SKIP_WAITING':
-            // 強制更新Service Worker
+            // 立即接管並套用新版本。
+            // 這是唯一會觸發強制接管的路徑，且只在使用者主動點擊
+            // 畫面上的「立即更新」之後才會被呼叫。
+            console.log('👉 Service Worker: 收到使用者的立即更新要求');
             self.skipWaiting();
             break;
             
         case 'GET_VERSION':
-            // 回傳目前版本號
-            event.ports[0].postMessage({
-                type: 'VERSION_INFO',
-                version: CACHE_VERSION
-            });
+            // 回傳目前版本號（供頁尾與更新提示條顯示）
+            if (replyPort) {
+                replyPort.postMessage({
+                    type: 'VERSION_INFO',
+                    version: CACHE_VERSION
+                });
+            }
             break;
-            
+
         case 'CLEAR_CACHE':
             // 清理所有快取
             clearAllCaches().then(() => {
-                event.ports[0].postMessage({
-                    type: 'CACHE_CLEARED'
-                });
+                if (replyPort) replyPort.postMessage({ type: 'CACHE_CLEARED' });
             });
             break;
             
