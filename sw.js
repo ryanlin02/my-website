@@ -50,6 +50,7 @@ const CORE_ASSETS = [
     './js/check-engine.js',     // 支票試算引擎
     './js/invoice-engine.js',   // 發票轉換引擎
     './js/common-modals.js',    // 三頁共用的彈窗與數字小鍵盤
+    './js/frame-guard.js',      // 四個功能頁共用的防護腳本
 
     // 工具說明頁（原本漏掉）
     './instructions/calculator_instruction.html',
@@ -269,8 +270,12 @@ self.addEventListener('message', event => {
  */
 async function cacheFirstStrategy(request) {
     const cache = await caches.open(CACHE_NAME);
-    const cachedResponse = await cache.match(request);
-    
+
+    // ignoreSearch：讓桌面捷徑帶的 ?page=check 這類參數也能命中同一份快取，
+    // 否則離線時從捷徑啟動會找不到已快取的首頁。
+    const isDocument = (request.mode === 'navigate' || request.destination === 'document');
+    const cachedResponse = await cache.match(request, { ignoreSearch: isDocument });
+
     // 針對HTML頁面使用網路優先策略，確保內容即時更新
     if (request.destination === 'document' || request.url.includes('.html')) {
         try {
@@ -324,9 +329,12 @@ async function networkFallback(request) {
         console.log('🔌 Service Worker: 網路不可用，使用離線模式');
         
         // 如果是頁面請求，回傳主頁面
+        // 注意：必須用相對路徑（相對於 sw.js 所在的 /my-website/），
+        // 用 '/' 會指到網域根目錄，在 GitHub Pages 上永遠找不到。
         if (request.mode === 'navigate') {
             const cache = await caches.open(CACHE_NAME);
-            return cache.match('/') || cache.match('/index.html');
+            const fallback = await cache.match('./index.html') || await cache.match('./');
+            if (fallback) return fallback;
         }
         
         throw error;

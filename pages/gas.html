@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>油資折讓試算工具</title>
 
+    <!-- 功能頁防護：被直接開啟時導回外殼，避免繞過安裝引導（必須放在最前面） -->
+    <script src="../js/frame-guard.js"></script>
+
     <!-- 將以下程式碼加入每個 iframe 頁面的 <head> 標籤內 -->
     <!-- calculator.html, check.html, gas.html, invoice.html -->
 
@@ -221,12 +224,22 @@
         }
         
         /* ===== 主體樣式 ===== */
+        html {
+            height: 100%;  /* 讓下方 body 的 min-height: 100% 有依據 */
+
+            /* 內頁捲到頂／底時不要把捲動傳給外層外殼，避免出現兩層滑動的錯覺。
+             * 注意：這行只能寫在 html，絕對不能加到 body。
+             * 寫在 body 上會把「滾輪事件往上傳到捲動層」的路徑一起擋掉，
+             * 導致整頁完全捲不動（已實測確認）。 */
+            overscroll-behavior-y: contain;
+        }
+
         body {
             /* 使用與支票工具相同的字體設定 */
             font-family: "Microsoft JhengHei", Arial, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);  /* 改用 --text-color 變數 */
-            min-height: 100vh;
+            min-height: 100%;  /* 改用 % 避免 iOS 上 100vh 被網址列切掉 */
             overflow-x: hidden;
             /* 新增與支票工具一致的設定 */
             margin: 0 auto;

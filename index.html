@@ -263,19 +263,33 @@
             box-sizing: border-box;                         /* 使用邊框盒模型 */
         }
         
+        /* 外層文件完全鎖死，不允許捲動
+         * 目的：消除「外殼」與「iframe 內頁」兩層捲動互相干擾的問題
+         * 實際的捲動一律交給 iframe 內部處理 */
+        html {
+            height: 100%;                                     /* 滿高度 */
+            overflow: hidden;                                 /* 外層不捲動 */
+            overscroll-behavior: none;                        /* 關閉整頁橡皮筋回彈（iOS/Android） */
+            background-color: var(--primary-color);          /* 回彈時露出的底色一致 */
+        }
+
         body {
             width: 100%;                                      /* 滿寬度 */
             max-width: 400px;                                 /* 最大寬度限制 */
             margin: 0 auto;                                   /* 水平居中 */
             position: relative;                               /* 相對定位 */
-            overflow-x: hidden;                               /* 隱藏水平捲軸 */
+            overflow: hidden;                                 /* 外層不捲動（水平垂直皆鎖） */
+            /* 這裡刻意不寫 overscroll-behavior：
+             * 它已經寫在上面的 html，會自動套用到整個視窗。
+             * 若又加在 body，會把捲動事件往上傳的路徑擋掉，
+             * 造成主選單之類的內部區塊捲不動。 */
             -webkit-text-size-adjust: 100%;                   /* 防止字體縮放 */
             padding: 0 3px;                                   /* 左右小內距 */
             background-color: var(--primary-color);          /* 背景色 */
             color: var(--text-color);                         /* 文字顏色 */
             font-family: "Microsoft JhengHei", Arial, sans-serif; /* 字體設定 */
             box-sizing: border-box;                           /* 邊框盒模型 */
-            height: 100vh;                                    /* 視窗滿高度 */
+            height: 100%;                                     /* 改用 100%：避免 iOS 上 100vh 被網址列切掉 */
             padding-top: 0;                                   /* 頂部無內距 */
             -webkit-user-select: none;                        /* 禁止選取（iOS） */
             -moz-user-select: none;                           /* 禁止選取（Firefox） */
@@ -406,7 +420,7 @@
             transform: translateX(-50%);                     /* 水平居中對齊 */
             width: 100%;                                     /* 滿寬度 */
             max-width: 400px;                               /* 最大寬度限制 */
-            height: calc(100vh - 60px);                     /* 剩餘高度 */
+            height: calc(100% - 60px);                      /* 剩餘高度（改用 % 避免 iOS 上 100vh 被網址列切掉） */
             border: none;                                    /* 無邊框 */
             overflow: hidden;                                /* 隱藏溢出 */
         }
@@ -1049,7 +1063,71 @@
             'invoice': 'pages/invoice.html',               // 發票頁面
             'gas': 'pages/gas.html'                        // 加油頁面
         };
-        
+
+        // ============================================
+        // 頁面狀態記憶
+        // 讓「重新整理」或「從桌面捷徑啟動」時回到正確的頁面
+        // ============================================
+
+        const PAGE_STORAGE_KEY = 'toolbox:lastPage';        // 儲存目前頁面用的 key
+
+        /**
+         * 決定開啟時應該顯示哪一頁
+         * 優先順序：網址參數 ?page= → 網址 #hash → 上次使用的頁面 → 預設計算頁
+         * @returns {string} 頁面名稱
+         */
+        function resolveInitialPage() {
+            try {
+                // 1. 桌面長按捷徑會帶 ?page=check 這種參數
+                const fromQuery = new URLSearchParams(window.location.search).get('page');
+                if (fromQuery && pageMapping[fromQuery]) return fromQuery;
+
+                // 2. 重新整理時網址上會留著 #invoice 這種錨點
+                const fromHash = (window.location.hash || '').replace('#', '');
+                if (fromHash && pageMapping[fromHash]) return fromHash;
+
+                // 3. 應用程式被系統關掉後重開，讀上次停留的頁面
+                const fromStorage = localStorage.getItem(PAGE_STORAGE_KEY);
+                if (fromStorage && pageMapping[fromStorage]) return fromStorage;
+            } catch (error) {
+                console.warn('讀取頁面狀態失敗，改用預設頁面', error);
+            }
+            return 'calculator';                            // 都讀不到就回計算頁
+        }
+
+        /**
+         * 記住目前所在頁面（同時寫入網址 hash 與 localStorage）
+         * @param {string} pageName 頁面名稱
+         */
+        function rememberCurrentPage(pageName) {
+            // 寫入本地儲存：應用程式被關掉再開也記得
+            try {
+                localStorage.setItem(PAGE_STORAGE_KEY, pageName);
+            } catch (error) {
+                // 無痕模式或儲存空間已滿時會失敗，忽略即可
+            }
+
+            // 更新網址 hash：使用 replaceState，避免在返回鍵歷史裡累積大量紀錄
+            try {
+                history.replaceState(null, '', window.location.pathname + '#' + pageName);
+            } catch (error) {
+                // 部分環境不支援 History API，忽略即可
+            }
+        }
+
+        /**
+         * 開啟時還原到正確的頁面
+         */
+        function restoreInitialPage() {
+            const initialPage = resolveInitialPage();
+
+            if (initialPage !== currentPage) {
+                switchPage(initialPage);                    // 切到目標頁（內部會呼叫 rememberCurrentPage）
+            } else {
+                rememberCurrentPage(initialPage);           // 已經在目標頁，只需同步網址與儲存狀態
+            }
+        }
+
         // ============================================
         // 頁面載入完成後初始化
         // ============================================
@@ -1080,8 +1158,9 @@
         // PWA 安裝引導畫面控制
         // ============================================
 
-        // 初始化安裝引導畫面
-        initializeInstallPrompt();
+        // 立即還原到上次所在的頁面
+        // 放在這裡（而不是 DOMContentLoaded）是為了避免畫面先閃一下計算頁再跳走
+        restoreInitialPage();
 
         /**
          * 初始化 PWA 安裝引導畫面
@@ -1237,7 +1316,10 @@
             
             // 更新目前頁面變數
             currentPage = pageName;
-            
+
+            // 記住目前頁面：重新整理或重開應用程式時才能回到這一頁
+            rememberCurrentPage(pageName);
+
             // 更新導航按鈕狀態
             updateNavigationState(pageName);
             
