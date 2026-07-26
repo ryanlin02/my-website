@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=400, user-scalable=no, initial-scale=1, maximum-scale=1">
+    <title>發票開立小幫手（測試版）</title>
+
+    <!-- 測試版說明：
+         這是新版發票頁的本地測試檔，刻意不套 frame-guard，
+         方便直接用瀏覽器開啟檢視。確認沒問題後再併回 invoice.html 並加回防護。 -->
+
+    <link rel="stylesheet" href="../css/invoice-new.css">
+</head>
+<body>
+
+<!-- ===================================================================
+     固定頂列
+     稅別已固定為應稅 5%（實務上重車租賃不會遇到零稅率或免稅），
+     省下來的橫向空間拿來放存檔與歷史，兩者捲到哪裡都點得到。
+     =================================================================== -->
+<div class="top-bar">
+    <div class="seg-row">
+        <div class="seg seg-type" id="segType">
+            <button data-v="3" class="active">三聯式</button>
+            <button data-v="2">二聯式</button>
+        </div>
+        <button class="bar-btn" id="btnSaveRec">存檔</button>
+        <button class="bar-btn" id="btnHistory">歷史</button>
+    </div>
+</div>
+
+<!-- ===================================================================
+     買受人
+     二聯式（開給個人）沒有統編，切換時整列隱藏，不留空位佔版面。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>買受人</span>
+        <span class="hint" id="buyerHint">開給公司行號</span>
+    </div>
+
+    <div class="fld" id="rowTaxId">
+        <span class="lbl">統編</span>
+        <div class="box num empty" id="fTaxId" data-ph="8 碼">8 碼</div>
+        <span class="tax-id-state" id="taxIdState"></span>
+    </div>
+
+    <div class="fld">
+        <span class="lbl">抬頭</span>
+        <div class="box empty" id="fTitle" data-ph="點此輸入公司名稱">點此輸入公司名稱</div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     品項明細
+     每筆拆成兩行（品名 / 數量×單價=金額），
+     擠成一行會讓每個可點區域小到 40px 以下，手指按不準。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>品項明細</span>
+        <span class="hint" id="itemHint">單價為未稅</span>
+    </div>
+
+    <div id="itemList"></div>
+
+    <button class="add-item" id="btnAddItem">＋ 新增品項</button>
+</div>
+
+<!-- ===================================================================
+     金額
+     大寫採「格位式」：發票上「億仟佰拾萬仟佰拾元」是印好的，
+     手寫只填每格前面的數字，用不到的高位要劃掉。
+     這裡的呈現刻意和擬真圖一模一樣，兩邊對照不會看錯。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>金額</span>
+        <span class="hint">點總計可由含稅價反推</span>
+    </div>
+
+    <div class="sum-row" id="rowSales">
+        <span class="k">銷售額（未稅）</span>
+        <span class="v" id="vSales">0</span>
+    </div>
+    <div class="sum-row" id="rowTax">
+        <span class="k" id="kTax">營業稅額 5%</span>
+        <span class="v" id="vTax">0</span>
+    </div>
+    <div class="sum-row total" id="rowTotal">
+        <span class="k">總計（含稅）</span>
+        <span class="v" id="vTotal">0</span>
+    </div>
+
+    <div class="upper-slots" id="vUpper"></div>
+    <div class="upper-note">灰底劃掉的格子不用寫，其餘每格都要填一個數字</div>
+</div>
+
+<!-- ===================================================================
+     擬真發票預覽
+     依實際三聯式發票重畫。SVG 內的日期是可點的熱區。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>發票範例</span>
+        <span class="hint">點日期可改，點其他地方放大</span>
+    </div>
+    <div class="preview-wrap" id="previewWrap"></div>
+</div>
+
+<div class="acts">
+    <button class="act primary" id="btnZoom">放大看</button>
+    <button class="act" id="btnShare">分享</button>
+    <button class="act" id="btnSave">存圖</button>
+    <button class="act" id="btnReset">清除</button>
+</div>
+
+<div class="divider-flow"></div>
+
+<!-- ===================================================================
+     全螢幕放大
+     可用區域是橫的就直接鋪滿，是直的（手機直握）才轉 90 度。
+     用長寬比判斷而不是判斷裝置，平板與轉向都能自動正確。
+     =================================================================== -->
+<div class="zoom-overlay" id="zoomOverlay">
+    <div class="zoom-stage" id="zoomStage">
+        <div class="zoom-paper" id="zoomPaper"></div>
+    </div>
+    <div class="zoom-bar">
+        <button id="zRotate">旋轉</button>
+        <button id="zOut">－</button>
+        <button id="zIn">＋</button>
+        <button id="zFit">符合</button>
+        <button class="close" id="zClose">關閉</button>
+    </div>
+</div>
+
+<!-- ===================================================================
+     歷史記錄
+     一行一筆：日期、抬頭、總計。點一下整張載回來繼續編輯或再分享一次。
+     =================================================================== -->
+<div class="sheet" id="histSheet">
+    <div class="sheet-head">
+        <span class="t">歷史記錄</span>
+        <div class="sheet-acts">
+            <button id="histClear">全部刪除</button>
+            <button class="x" id="histClose">×</button>
+        </div>
+    </div>
+    <div class="sheet-body" id="histBody"></div>
+</div>
+
+<!-- ===================================================================
+     日期選擇
+     預設今天，需要補開或補寫前幾天的發票時才會動到。
+     =================================================================== -->
+<div class="pad-modal" id="dateModal">
+    <div class="pad-panel">
+        <div class="pad-head">
+            <span class="t">發票日期（民國）</span>
+            <button class="x" id="dateClose">×</button>
+        </div>
+        <div class="date-row">
+            <div class="date-cell">
+                <span class="dl">年</span>
+                <button class="dstep" data-f="y" data-d="-1">－</button>
+                <span class="dv" id="dY">115</span>
+                <button class="dstep" data-f="y" data-d="1">＋</button>
+            </div>
+            <div class="date-cell">
+                <span class="dl">月</span>
+                <button class="dstep" data-f="m" data-d="-1">－</button>
+                <span class="dv" id="dM">7</span>
+                <button class="dstep" data-f="m" data-d="1">＋</button>
+            </div>
+            <div class="date-cell">
+                <span class="dl">日</span>
+                <button class="dstep" data-f="d" data-d="-1">－</button>
+                <span class="dv" id="dD">26</span>
+                <button class="dstep" data-f="d" data-d="1">＋</button>
+            </div>
+        </div>
+        <div class="date-btns">
+            <button id="dateToday">回到今天</button>
+            <button class="ok" id="dateOk">確定</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     文字輸入彈窗（抬頭 / 品名）
+     底層被遮罩蓋住，系統鍵盤彈出時只有這個面板會移動。
+     =================================================================== -->
+<div class="txt-modal" id="txtModal">
+    <div class="txt-panel" id="txtPanel">
+        <h3 id="txtTitle">輸入</h3>
+        <div class="chips-label" id="chipsLabel">常用（點一下直接填入）</div>
+        <div class="chips" id="txtChips"></div>
+        <input type="text" id="txtInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="txt-btns">
+            <button id="txtCancel">取消</button>
+            <button class="ok" id="txtOk">確定</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     自製數字鍵盤
+     金額、數量、統編全部走這裡，永遠不會叫出系統鍵盤。
+     =================================================================== -->
+<div class="pad-modal" id="padModal">
+    <div class="pad-panel">
+        <div class="pad-head">
+            <span class="t" id="padTitle">輸入金額</span>
+            <button class="x" id="padClose">×</button>
+        </div>
+        <div class="pad-disp" id="padDisp">0</div>
+        <div class="pad-sub" id="padSub"></div>
+        <div class="pad-grid" id="padGrid"></div>
+    </div>
+</div>
+
+<script src="../js/invoice-new-engine.js"></script>
+</body>
+</html>

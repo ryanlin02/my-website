@@ -1,0 +1,804 @@
+/**
+ * 發票開立小幫手 - 新版樣式（測試版）
+ *
+ * 設計前提：
+ *  1. 手機直式、可視寬度約 394px（body max-width 400px，左右各 3px padding）
+ *  2. 版面緊湊，主要功能「填寫發票範例」放在最上方，捲動距離越短越好
+ *  3. 數字欄位一律走自製鍵盤，不呼叫系統鍵盤
+ *  4. 文字欄位（抬頭、品名）允許系統鍵盤，但一律關在彈窗裡，
+ *     由 visualViewport 定位，底層頁面完全不重排
+ */
+
+:root {
+    --primary-color: #333333;
+    --secondary-color: #4a4a4a;
+    --text-color: #ffffff;
+    --border-color: #555555;
+    --hover-color: #666666;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --button-orange: #ff9c33;
+    --button-blue: #33b5e5;
+    --ok-green: #4caf50;
+    --err-red: #ff6b6b;
+    --field-bg: #222222;
+}
+
+html, body {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    padding: 0 3px !important;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-family: "Microsoft JhengHei", "PingFang TC", "Heiti TC", Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+body { padding-bottom: 12px !important; }
+
+/* ===================================================================
+   1. 固定頂列：發票種類 + 稅別
+   兩者都是「一眼要看到、隨時要能切」的東西，所以釘在頂端不隨捲動消失。
+   合併成一列是為了省下垂直空間 —— 這是整頁最貴的資源。
+   =================================================================== */
+.top-bar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    background: var(--primary-color);
+    padding: 6px 0 5px;
+    margin: 0 0 5px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+}
+
+.seg-row { display: flex; gap: 5px; }
+
+.seg {
+    display: flex;
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 2px;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+
+.seg.seg-type { flex: 1; }
+
+/* 頂列右側的存檔與歷史。捲到第 10 列也還點得到，
+   不必為了存一筆檔案先滑回頁面底部 */
+.bar-btn {
+    flex: 0 0 58px;
+    padding: 8px 0;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.bar-btn:active { background-color: var(--button-orange); border-color: var(--button-orange); }
+
+.seg button {
+    flex: 1;
+    padding: 6px 0;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color .2s ease, color .2s ease;
+    white-space: nowrap;
+}
+
+.seg button.active {
+    background-color: var(--button-orange);
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(255, 156, 51, .4);
+}
+
+/* ===================================================================
+   2. 卡片與欄位
+   =================================================================== */
+.card {
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    padding: 7px;
+    margin: 0 0 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
+    box-sizing: border-box;
+}
+
+.card-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--button-orange);
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-title .hint {
+    font-size: 11px;
+    font-weight: normal;
+    color: #9a9a9a;
+}
+
+.fld {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.fld:last-child { margin-bottom: 0; }
+
+/* nowrap 是必要的：標籤一旦折行，整列高度會變成兩倍，
+   同一張卡片裡的欄位就對不齊了 */
+.fld > .lbl {
+    flex: 0 0 40px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    padding-right: 6px;
+    color: #e2e2e2;
+    white-space: nowrap;
+}
+
+/* 所有可點欄位長得一樣，使用者不用去分辨哪個能點 */
+.box {
+    flex: 1;
+    min-width: 0;
+    height: 34px;
+    padding: 0 8px;
+    background-color: var(--field-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    font-size: 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.box.num { justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.box.empty { color: #777777; font-size: 13px; }
+.box:active { border-color: var(--button-orange); }
+
+/* 唯讀（系統算出來的）欄位刻意不給邊框高亮，避免使用者以為可以點 */
+.box.ro {
+    cursor: default;
+    background-color: #1b1b1b;
+    color: #d8d8d8;
+    border-style: dashed;
+}
+
+/* 統編檢查碼狀態燈 —— 打錯當場就看得到，不用等開完才發現 */
+.tax-id-state {
+    flex: 0 0 auto;
+    width: 22px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 34px;
+}
+.tax-id-state.ok  { color: var(--ok-green); }
+.tax-id-state.bad { color: var(--err-red); }
+
+/* ===================================================================
+   3. 品項明細
+   一列拆成兩行：第一行品名（可能很長，例如帶車號），
+   第二行 數量 × 單價 = 金額。硬擠成一行會讓每格都小到點不準。
+   =================================================================== */
+.item {
+    background-color: #3d3d3d;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.item-head { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+
+.item-no {
+    flex: 0 0 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #ffffff;
+    background: var(--button-orange);
+    border-radius: 50%;
+}
+
+.item-del {
+    flex: 0 0 28px;
+    height: 30px;
+    border: 1px solid #7a4a4a;
+    background: transparent;
+    color: var(--err-red);
+    border-radius: 6px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+.item-del:active { background: rgba(255, 107, 107, .2); }
+
+.item-calc { display: flex; align-items: center; gap: 3px; }
+
+.item-calc .mini-lbl {
+    font-size: 11px;
+    color: #a8a8a8;
+    flex: 0 0 auto;
+}
+
+.item-calc .box { height: 30px; font-size: 14px; padding: 0 6px; }
+.item-calc .qty { flex: 0 0 48px; }
+.item-calc .up  { flex: 1 1 0; }
+.item-calc .amt { flex: 1.15 1 0; }
+
+.item-calc .op {
+    flex: 0 0 auto;
+    font-size: 13px;
+    color: var(--button-orange);
+    font-weight: bold;
+}
+
+.add-item {
+    width: 100%;
+    padding: 7px 0;
+    background: transparent;
+    color: var(--button-blue);
+    border: 1px dashed var(--button-blue);
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.add-item:active { background: rgba(51, 181, 229, .18); }
+
+/* ===================================================================
+   4. 金額結果
+   =================================================================== */
+.sum-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 2px;
+    font-size: 14px;
+}
+
+.sum-row .k { color: #c9c9c9; }
+.sum-row .v { font-weight: bold; font-variant-numeric: tabular-nums; }
+
+.sum-row.total {
+    border-top: 1px solid var(--border-color);
+    margin-top: 3px;
+    padding-top: 5px;
+    font-size: 17px;
+}
+.sum-row.total .k { color: var(--button-orange); font-weight: bold; }
+.sum-row.total .v { color: var(--button-orange); font-size: 19px; }
+
+.sum-row.muted .k, .sum-row.muted .v { color: #8e8e8e; }
+
+/* 中文大寫（格位式）
+   ------------------------------------------------------------
+   真實發票上「億 仟 佰 拾 萬 仟 佰 拾 元」這九個單位字是印好的，
+   手寫只是在每個單位前面補一個數字，而且用不到的高位要劃掉。
+   這裡刻意做成和擬真圖一樣的九宮格，業務兩邊對照不會看錯。
+   注意「零拾」那種格子也要寫零，跟一般大寫寫法不同。 */
+.upper-slots {
+    margin-top: 5px;
+    display: flex;
+    background-color: var(--field-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 7px;
+    overflow: hidden;
+    min-height: 42px;
+}
+
+.uslot {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: 5px 0;
+    border-right: 1px solid #3a3a3a;
+    position: relative;
+}
+.uslot:last-child { border-right: none; }
+
+.uslot b {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--button-orange);
+}
+.uslot i {
+    font-style: normal;
+    font-size: 14px;
+    color: #9a9a9a;
+}
+
+/* 用不到的高位：整格壓暗並劃掉，跟發票上「把多餘單位劃線刪除」一致 */
+.uslot.off { background-color: #1a1a1a; }
+.uslot.off i { color: #5a5a5a; }
+.uslot.off::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 50%;
+    height: 2px;
+    background: #7a7a7a;
+}
+
+.upper-note {
+    font-size: 11px;
+    color: #8e8e8e;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* ===================================================================
+   5. 動作列
+   =================================================================== */
+.acts { display: flex; gap: 4px; margin: 6px 0 5px; }
+
+.act {
+    flex: 1;
+    padding: 10px 0;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.act:active { background-color: var(--button-orange); border-color: var(--button-orange); }
+.act.primary { background-color: var(--button-orange); border-color: var(--button-orange); }
+
+/* ===================================================================
+   6. 擬真發票預覽
+   SVG 天生可縮放，縮到 394px 寬也不會糊。預覽只是讓業務確認
+   「哪一格填什麼」，看細節請進放大模式。
+   =================================================================== */
+.preview-wrap {
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+}
+.preview-wrap svg { display: block; width: 100%; height: auto; }
+
+/* SVG 裡的可點熱區（目前只有日期） */
+.preview-wrap [data-hot], .zoom-paper [data-hot] { cursor: pointer; }
+
+/* 全螢幕放大：橫式旋轉，把手機的長邊拿來當發票的寬邊 */
+.zoom-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #1a1a1a;
+    z-index: 4000;
+}
+.zoom-overlay.show { display: block; }
+
+.zoom-stage {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zoom-paper {
+    background: #ffffff;
+    transform-origin: center center;
+    flex: 0 0 auto;
+}
+.zoom-paper svg { display: block; }
+
+.zoom-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    gap: 5px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(34, 34, 34, .94);
+    border-top: 1px solid var(--border-color);
+}
+
+.zoom-bar button {
+    flex: 1;
+    padding: 9px 0;
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.zoom-bar button.close { background: var(--button-orange); border-color: var(--button-orange); }
+
+/* ===================================================================
+   7. 文字輸入彈窗（抬頭 / 品名）
+   關鍵：整個底層被 fixed 遮罩蓋住，系統鍵盤彈出時只有這個彈窗會動，
+   主畫面的排版一格都不會位移。定位交給 JS 讀 visualViewport。
+   =================================================================== */
+.txt-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .72);
+    z-index: 5000;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 60px;
+    box-sizing: border-box;
+}
+.txt-modal.show { display: flex; }
+
+.txt-panel {
+    width: min(360px, calc(100vw - 24px));
+    background: var(--secondary-color);
+    border: 2px solid var(--button-orange);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .55);
+    box-sizing: border-box;
+}
+
+.txt-panel h3 {
+    margin: 0 0 7px;
+    font-size: 14px;
+    color: var(--button-orange);
+}
+
+.txt-panel input[type="text"] {
+    width: 100%;
+    height: 40px;
+    padding: 0 10px;
+    background: var(--field-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    font-size: 16px; /* 低於 16px 時 iOS 會自動放大整頁，務必保持 */
+    box-sizing: border-box;
+}
+.txt-panel input[type="text"]:focus {
+    outline: none;
+    border-color: var(--button-orange);
+}
+
+/* 常用詞快選：點一下就填好並關閉，九成情況不必叫鍵盤 */
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+
+.chip {
+    padding: 6px 9px;
+    background: #3d3d3d;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.chip:active { background: var(--button-orange); border-color: var(--button-orange); }
+
+.chips-label { font-size: 11px; color: #9a9a9a; margin-bottom: 4px; }
+
+.txt-btns { display: flex; gap: 6px; margin-top: 9px; }
+.txt-btns button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    background: var(--secondary-color);
+    color: var(--text-color);
+}
+.txt-btns button.ok { background: var(--button-orange); border-color: var(--button-orange); }
+
+/* ===================================================================
+   8. 自製數字鍵盤（金額 / 數量 / 統編）
+   沿用發票頁既有的「阿拉伯數字 + 國字大寫」雙標示，
+   業務按鍵的同時就在複習大寫怎麼寫。
+   =================================================================== */
+.pad-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .72);
+    z-index: 5000;
+    align-items: flex-end;
+    justify-content: center;
+}
+.pad-modal.show { display: flex; }
+
+.pad-panel {
+    width: 100%;
+    max-width: 400px;
+    background: var(--secondary-color);
+    border-radius: 12px 12px 0 0;
+    border-top: 2px solid var(--button-orange);
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
+}
+
+.pad-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.pad-head .t { font-size: 13px; font-weight: bold; color: var(--button-orange); }
+.pad-head .x {
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 6px;
+}
+
+.pad-disp {
+    background: var(--field-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 6px 10px;
+    text-align: right;
+    font-size: 24px;
+    min-height: 34px;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.pad-sub {
+    text-align: right;
+    font-size: 12px;
+    color: #9a9a9a;
+    min-height: 16px;
+    margin-bottom: 6px;
+    padding-right: 4px;
+}
+
+.pad-grid { display: flex; flex-direction: column; gap: 4px; }
+.pad-line { display: flex; gap: 4px; }
+
+.key {
+    flex: 1;
+    height: 46px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 9px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+}
+.key:active { background-color: var(--button-orange); color: #ffffff; transform: scale(.96); }
+.key:active .fc, .key:active .an { color: #ffffff; }
+
+.key .an { font-size: 22px; }
+.key .fc { font-size: 16px; color: var(--button-orange); }
+
+.key.fn  { font-size: 15px; color: var(--button-blue); border-color: var(--button-blue); }
+.key.ok  { background-color: var(--button-orange); border-color: var(--button-orange); font-size: 16px; font-weight: bold; }
+.key.op  { font-size: 19px; color: var(--button-orange); font-weight: bold; }
+
+/* ===================================================================
+   9. 歷史記錄
+   一行一筆（日期／抬頭／總計），一個畫面看得到十幾筆。
+   點一下整張載回來，不必重新輸入。
+   =================================================================== */
+.sheet {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--primary-color);
+    z-index: 4500;
+    flex-direction: column;
+}
+.sheet.show { display: flex; }
+
+.sheet-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 10px calc(10px);
+    background: var(--secondary-color);
+    border-bottom: 2px solid var(--button-orange);
+}
+.sheet-head .t { font-size: 15px; font-weight: bold; color: var(--button-orange); }
+.sheet-acts { display: flex; align-items: center; gap: 6px; }
+.sheet-acts button {
+    padding: 6px 10px;
+    background: transparent;
+    color: var(--err-red);
+    border: 1px solid #7a4a4a;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.sheet-acts button.x {
+    color: #dddddd;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0 4px;
+}
+
+.sheet-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 6px;
+}
+
+.hrec {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 8px;
+    margin-bottom: 5px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    cursor: pointer;
+}
+.hrec:active { border-color: var(--button-orange); }
+
+.hrec .hd { flex: 0 0 62px; font-size: 11px; color: #9a9a9a; line-height: 1.3; }
+.hrec .hd .hy { display: block; color: var(--button-blue); font-weight: bold; font-size: 12px; }
+.hrec .hn {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 13px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.hrec .hn .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 4px;
+    margin-right: 4px;
+    border-radius: 3px;
+    background: #3d3d3d;
+    color: #bbbbbb;
+}
+.hrec .ht {
+    flex: 0 0 auto;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--button-orange);
+    font-variant-numeric: tabular-nums;
+}
+.hrec .hx {
+    flex: 0 0 24px;
+    color: var(--err-red);
+    font-size: 17px;
+    text-align: center;
+    padding: 4px 0;
+}
+
+.sheet-empty { text-align: center; color: #7a7a7a; font-size: 13px; padding: 40px 0; }
+
+/* ===================================================================
+   10. 日期選擇
+   加減鍵而不是滾輪，是因為實務上幾乎都是「今天」或「往前一兩天」，
+   點兩下就到了，比捲滾輪快也不會滑過頭。
+   =================================================================== */
+.date-row { display: flex; gap: 6px; margin-bottom: 10px; }
+
+.date-cell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: var(--field-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 3px;
+}
+.date-cell .dl { font-size: 11px; color: #9a9a9a; }
+.date-cell .dv {
+    min-width: 34px;
+    text-align: center;
+    font-size: 19px;
+    font-weight: bold;
+    color: var(--button-orange);
+    font-variant-numeric: tabular-nums;
+}
+.dstep {
+    width: 30px;
+    height: 30px;
+    background: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+.dstep:active { background: var(--button-orange); }
+
+.date-btns { display: flex; gap: 6px; }
+.date-btns button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    background: var(--secondary-color);
+    color: var(--text-color);
+}
+.date-btns button.ok { background: var(--button-orange); border-color: var(--button-orange); }
+
+/* ===================================================================
+   11. 提示訊息
+   =================================================================== */
+.toast-message {
+    position: fixed;
+    left: 50%;
+    bottom: 70px;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, .94);
+    color: #ffffff;
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    z-index: 9000;
+    border: 1px solid var(--button-orange);
+    transition: opacity .4s ease;
+    max-width: 88%;
+    text-align: center;
+}
+.toast-message.toast-error { border-color: var(--err-red); }
+
+.divider-flow {
+    position: relative;
+    height: 2px;
+    background: linear-gradient(90deg, var(--secondary-color) 0%, var(--button-orange) 50%, var(--secondary-color) 100%);
+    margin: 5px 0;
+    overflow: hidden;
+}

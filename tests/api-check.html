@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>統編查詢可行性測試</title>
+<style>
+:root{--bg:#333;--card:#4a4a4a;--bd:#555;--org:#ff9c33;--blue:#33b5e5;--ok:#4caf50;--err:#ff6b6b;}
+*{box-sizing:border-box}
+body{margin:0;padding:12px;background:var(--bg);color:#fff;
+     font-family:"Microsoft JhengHei","PingFang TC",Arial,sans-serif;font-size:15px;line-height:1.5;
+     max-width:760px;margin:0 auto;}
+h1{font-size:19px;color:var(--org);margin:6px 0 4px}
+.lead{font-size:13px;color:#bbb;margin:0 0 14px}
+.warn{background:#4a3a20;border:1px solid var(--org);border-radius:8px;padding:10px;font-size:13px;margin-bottom:14px}
+.warn b{color:var(--org)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 4px;color:var(--org)}
+.card .why{font-size:12.5px;color:#bbb;margin:0 0 10px}
+.url{font-size:11px;color:#8fb8d0;word-break:break-all;background:#222;padding:6px 8px;border-radius:6px;margin-bottom:10px}
+button{background:var(--card);color:#fff;border:1px solid var(--bd);border-radius:8px;
+       padding:10px 16px;font-size:14px;font-weight:bold;cursor:pointer}
+button.go{background:var(--org);border-color:var(--org)}
+button:disabled{opacity:.5}
+.res{margin-top:10px;font-size:13px;background:#222;border:1px solid var(--bd);
+     border-radius:8px;padding:10px;white-space:pre-wrap;word-break:break-all;min-height:22px}
+.res:empty{display:none}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-weight:bold;font-size:12px;margin-right:6px}
+.tag.ok{background:var(--ok);color:#fff}
+.tag.no{background:var(--err);color:#fff}
+.tag.wait{background:#666;color:#fff}
+input[type=text]{width:100%;padding:10px;background:#222;color:#fff;border:1px solid var(--bd);
+                 border-radius:8px;font-size:16px;margin-bottom:8px}
+.sum{background:#222;border:2px solid var(--org);border-radius:10px;padding:12px;font-size:14px}
+.sum h2{margin:0 0 8px;font-size:15px;color:var(--org)}
+.sum div{margin-bottom:5px}
+code{background:#222;padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+
+<h1>統編查詢可行性測試</h1>
+<p class="lead">測試瀏覽器能不能從這個網站直接呼叫政府開放資料。這決定「輸入統編自動帶出公司名稱」做不做得成。</p>
+
+<div class="warn">
+<b>重要：必須從 GitHub Pages 的網址開啟才有效。</b><br>
+用「檔案總管／Finder 直接點開 html 檔」測出來的結果不算數，因為那時候的來源是 <code>file://</code>，
+瀏覽器的跨來源規則完全不同。<br><br>
+正確網址：<code id="expect">https://ryanlin02.github.io/my-website/tests/api-check.html</code><br>
+<span id="origin"></span>
+</div>
+
+<!-- ===== 測試 1 ===== -->
+<div class="card">
+  <h2>測試 1｜統編查公司名稱（經濟部商業司）</h2>
+  <p class="why">這是「輸入統編自動帶出抬頭」的主力來源。免申請金鑰、免後端。<br>
+     用台積電的統編 22099131 當樣本，回傳正確才算過。</p>
+  <div class="url" id="u1"></div>
+  <button class="go" onclick="t1()">執行測試 1</button>
+  <div class="res" id="r1"></div>
+</div>
+
+<!-- ===== 測試 2 ===== -->
+<div class="card">
+  <h2>測試 2｜營業稅籍資料檔（財政部）</h2>
+  <p class="why">全國營業人清單，<b>含行號</b>，每日更新。若測試 1 過不了，或想做離線查詢，
+     就得靠這個檔。這裡只讀開頭幾 KB 就中斷，不會真的把整份下載下來。<br>
+     順便量出檔案總大小，用來評估離線方案值不值得做。</p>
+  <div class="url" id="u2"></div>
+  <button class="go" onclick="t2()">執行測試 2</button>
+  <div class="res" id="r2"></div>
+</div>
+
+<!-- ===== 測試 3 ===== -->
+<div class="card">
+  <h2>測試 3｜自己輸入統編試查</h2>
+  <p class="why">測試 1 過了之後，用你手邊真實的客戶統編試幾筆，看看查得到幾家。
+     特別是<b>行號（獨資、合夥）</b>——商業司這支 API 只收錄公司，行號很可能查不到，
+     這是決定能不能實際上線的關鍵。</p>
+  <input type="text" id="q" inputmode="numeric" maxlength="8" placeholder="輸入 8 碼統一編號">
+  <button onclick="t3()">查詢</button>
+  <div class="res" id="r3"></div>
+</div>
+
+<div class="sum">
+  <h2>測完請把這段回報給我</h2>
+  <div id="sum">尚未執行任何測試</div>
+</div>
+
+<script>
+const API1 = 'https://data.gcis.nat.gov.tw/od/data/api/5F64D864-61CB-4D0D-8AD9-492047CC1EA6';
+const CSV2 = 'https://eip.fia.gov.tw/data/BGMOPEN1.csv';
+const q1 = no => API1 + '?%24format=json&%24filter=Business_Accounting_NO%20eq%20' + no;
+
+document.getElementById('u1').textContent = q1('22099131');
+document.getElementById('u2').textContent = CSV2;
+
+// 先確認使用者是不是從對的網址開啟，否則整份測試沒有意義
+(function(){
+  const el = document.getElementById('origin');
+  if (location.protocol === 'file:') {
+    el.innerHTML = '<b style="color:#ff6b6b">⚠ 你現在是用 file:// 開啟，測試結果不準，請改用上面的網址。</b>';
+  } else {
+    el.innerHTML = '目前來源：<code>' + location.origin + '</code>';
+  }
+})();
+
+const state = {};
+function show(id, tag, cls, body){
+  document.getElementById(id).innerHTML =
+    '<span class="tag ' + cls + '">' + tag + '</span>' + body;
+  paintSum();
+}
+function esc(s){ return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+
+async function t1(){
+  show('r1','測試中','wait','正在連線…');
+  try{
+    const t0 = performance.now();
+    const res = await fetch(q1('22099131'));
+    const ms = Math.round(performance.now() - t0);
+    if(!res.ok){ state.t1='HTTP '+res.status; show('r1','失敗','no','HTTP ' + res.status + '（連得到但伺服器拒絕）'); return; }
+    const data = await res.json();
+    if(Array.isArray(data) && data.length && data[0].Company_Name){
+      state.t1 = '通過 ' + ms + 'ms';
+      show('r1','通過','ok',
+        '耗時 ' + ms + ' ms\n公司名稱：' + esc(data[0].Company_Name) +
+        '\n狀態：' + esc(data[0].Company_Status_Desc || '') +
+        '\n\n→ CORS 沒問題，線上查詢可以做。');
+    } else {
+      state.t1 = '連得到但無資料';
+      show('r1','異常','no','連得到，但回傳內容不是預期格式：\n' + esc(JSON.stringify(data).slice(0,300)));
+    }
+  }catch(e){
+    // fetch 因 CORS 被擋時，錯誤訊息一律是籠統的 TypeError，這是瀏覽器的安全設計
+    state.t1 = '被擋（' + e.name + '）';
+    show('r1','失敗','no',
+      e.name + '：' + esc(e.message) +
+      '\n\n→ 多半是 CORS 被擋（瀏覽器基於安全考量不會說明細節）。\n' +
+      '　 也可能是網路不通，請確認手機有訊號後再測一次。\n' +
+      '　 若確定是 CORS，靜態網站就沒辦法直接查，只能走離線方案。');
+  }
+}
+
+async function t2(){
+  show('r2','測試中','wait','正在連線…');
+  try{
+    const t0 = performance.now();
+    // 不加自訂 header，避免觸發 preflight 讓測試結果失真
+    const res = await fetch(CSV2);
+    const ms = Math.round(performance.now() - t0);
+    if(!res.ok){ state.t2='HTTP '+res.status; show('r2','失敗','no','HTTP ' + res.status); return; }
+
+    const len = res.headers.get('content-length');
+    const reader = res.body.getReader();
+    const chunk = await reader.read();        // 只讀第一塊
+    reader.cancel();                          // 立刻中斷，不下載整份
+
+    const head = new TextDecoder('utf-8').decode(chunk.value).split('\n').slice(0,3).join('\n');
+    const mb = len ? (len/1048576).toFixed(1) + ' MB' : '（伺服器未提供大小）';
+    state.t2 = '通過，檔案 ' + mb;
+    show('r2','通過','ok',
+      '耗時 ' + ms + ' ms\n檔案大小：' + mb +
+      '\n\n開頭三行：\n' + esc(head.slice(0,400)) +
+      '\n\n→ 這個檔抓得到，離線方案可行。');
+  }catch(e){
+    state.t2 = '被擋（' + e.name + '）';
+    show('r2','失敗','no',
+      e.name + '：' + esc(e.message) +
+      '\n\n→ 多半是 CORS 被擋。離線方案就得改成「我先下載處理好、放進網站」，\n' +
+      '　 不能由瀏覽器直接抓原始檔。');
+  }
+}
+
+async function t3(){
+  const no = (document.getElementById('q').value || '').trim();
+  if(!/^\d{8}$/.test(no)){ show('r3','格式錯','no','統一編號必須是 8 位數字'); return; }
+  show('r3','查詢中','wait','正在連線…');
+  try{
+    const res = await fetch(q1(no));
+    if(!res.ok){ show('r3','失敗','no','HTTP ' + res.status); return; }
+    const data = await res.json();
+    if(Array.isArray(data) && data.length && data[0].Company_Name){
+      show('r3','查到了','ok',
+        '公司名稱：' + esc(data[0].Company_Name) +
+        '\n狀態：' + esc(data[0].Company_Status_Desc || '') +
+        '\n負責人：' + esc(data[0].Responsible_Name || '') +
+        '\n地址：' + esc(data[0].Company_Location || ''));
+    } else {
+      show('r3','查無','no',
+        '這支 API 查不到 ' + no + '。\n' +
+        '若這是行號（獨資、合夥），查不到是正常的——商業司這支只收錄「公司」。\n' +
+        '請記下有幾筆查不到，這個比例會決定線上查詢實不實用。');
+    }
+  }catch(e){
+    show('r3','失敗','no', e.name + '：' + esc(e.message));
+  }
+}
+
+function paintSum(){
+  const parts = [];
+  parts.push('<div>來源網址：<code>' + (location.protocol === 'file:' ? 'file://（無效）' : location.origin) + '</code></div>');
+  parts.push('<div>瀏覽器：<code>' + esc(navigator.userAgent.slice(0,90)) + '</code></div>');
+  parts.push('<div>測試 1（統編查公司）：<b>' + (state.t1 || '未執行') + '</b></div>');
+  parts.push('<div>測試 2（稅籍資料檔）：<b>' + (state.t2 || '未執行') + '</b></div>');
+  document.getElementById('sum').innerHTML = parts.join('');
+}
+paintSum();
+</script>
+</body>
+</html>
