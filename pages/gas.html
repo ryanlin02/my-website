@@ -212,13 +212,16 @@
         <button class="clear-button" onclick="clearCalculation()">清除</button>
     </div>
 
-    <!-- 本週油價對照表區塊 -->
+    <!-- 本週油價對照表區塊
+         【2026/07 階段 5 版面壓縮】
+         原本上方有一列標題「本週油品單價對照表」＋「點擊油品單價計算」提示標籤，
+         連同分隔線與間距共佔 40px。兩者都已移除：
+           - 標題：業務每天用，不需要被告知這張表是什麼
+           - 提示：改由價格本身做成色塊（見 .price-val 樣式），
+                   一看就知道可以點，比用文字說明更直接
+         表頭三欄與油品全名、更新時間註記都刻意保留 —— 它們都是單行，
+         不影響高度，但少了會看不出哪一欄是哪家油商。 -->
         <div class="price-checker-container">
-            <div class="price-checker-header">
-                <div class="price-checker-title">本週油品單價對照表</div>
-                <div class="price-update-tag">點擊油品單價計算</div>
-            </div>
-            
             <div class="fuel-price-table-wrapper">
                 <table class="fuel-price-table">
                     <thead>

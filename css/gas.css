@@ -569,40 +569,45 @@ body {
     }
 }
 
-/* ===== 本週油價對照表樣式 ===== */
+/* ===== 本週油價對照表樣式 =====
+ *
+ * 【2026/07 階段 5 版面壓縮：整塊 319px → 246px】
+ *
+ * 為什麼要壓：這個網站是給業務在客戶面前用手機快速試算的，
+ * 畫面能少滑一次就少一次。輸入區早就壓到 3px 內距、4px 邊距了，
+ * 這張表卻還用 16px 容器內距、16px 標題、11px 儲存格內距，
+ * 一塊佔掉整頁近四成高度。
+ *
+ * 壓縮的原則：只動「非點擊目標」的部分。
+ *   移除  標題列（標題 + 提示標籤 + 分隔線 + 間距）  −40px
+ *   縮小  容器內距 16 → 8                          −16px
+ *   縮小  容器上邊距 12 → 8                         −4px
+ *   縮小  表頭內距 10 → 5（表頭不是點擊目標）          −10px
+ *   縮小  註記上邊距 8 → 5                          −3px
+ *
+ * 【列高刻意維持 39px 不動】
+ * 量測過全站的觸控目標：中／塑快速鍵 24px、快速調整鍵 26px、
+ * 輸入列 32px、清除鍵 35px、油價表儲存格 39px、計算機按鍵 50px。
+ * 這張表已經是除了計算機以外最大的觸控目標，沒有放大的必要，
+ * 也絕對不能再縮 —— 業務是在客戶面前站著點的，按錯就要重來。
+ *
+ * 【價格改成色塊的理由】
+ * 舊版靠一個「點擊油品單價計算」的文字標籤告訴使用者可以點。
+ * 改成有外框、圓角、底色的色塊之後，價格本身就長得像按鈕，
+ * 不需要文字說明。省下標籤的高度，可用性反而更好。
+ *
+ * 注意：onclick 仍然掛在 <td> 上而不是色塊上。
+ *       視覺上色塊約 32px，但實際可點範圍是整格 39px ——
+ *       手指按到色塊外緣的空白處也算點到，容錯範圍更大。
+ *       改動時請不要把 onclick 移到色塊裡面。
+ * ------------------------------------------------------------ */
 .price-checker-container {
-    margin-top: var(--spacing-lg);
+    margin-top: var(--spacing-md);
     border-radius: var(--radius-md);
     background-color: var(--secondary-color);
-    padding: 16px;
+    padding: var(--spacing-md);
     box-shadow: 0 4px 12px var(--shadow-color);
     border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.price-checker-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 8px;
-}
-
-.price-checker-title {
-    font-size: 16px;
-    color: var(--text-color);
-    font-weight: 600;
-}
-
-.price-update-tag {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.85);
-    background: rgba(0, 0, 0, 0.25);
-    padding: 4px 10px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fuel-price-table-wrapper {
@@ -625,13 +630,14 @@ body {
     background-color: #1a1a1a;
     color: #ff9c33;
     font-weight: 600;
-    padding: 10px 8px;
+    padding: 5px 8px;
     border-bottom: 1px solid var(--border-color);
     white-space: nowrap;
 }
 
+/* 油品名稱欄：純文字、不可點 */
 .fuel-price-table td {
-    padding: 11px 8px;
+    padding: 4px 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     white-space: nowrap;
 }
@@ -640,37 +646,56 @@ body {
     border-bottom: none;
 }
 
-.price-val {
+/* 價格欄：整格都是點擊範圍，內距縮小讓色塊自己撐出列高 */
+.fuel-price-table td.price-val {
+    padding: 4px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* 色塊本身。display:block 讓它撐滿整格寬度，
+   手指往左右按也還在同一個 <td> 的點擊範圍內 */
+.price-val .price-chip {
+    display: block;
+    padding: 6px 2px;
+    border-radius: 4px;
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    user-select: none;
+    border: 1px solid;
+    transition: all 0.15s ease;
 }
 
-.price-val:hover {
-    opacity: 0.85;
-    text-decoration: underline;
-}
-
-.price-val:active {
+.price-val:active .price-chip {
     transform: scale(0.95);
 }
 
-.price-val.cpc {
-    color: #33b5e5;
+/* 台灣中油：藍色系，與「中」快速鍵同色 */
+.price-val.cpc .price-chip {
+    color: #5cc9f5;
+    background-color: rgba(51, 181, 229, 0.12);
+    border-color: #33b5e5;
 }
 
-.price-val.formosa {
-    color: #52b788;
+/* 台塑石油：綠色系，與「塑」快速鍵同色 */
+.price-val.formosa .price-chip {
+    color: #6fd3a3;
+    background-color: rgba(82, 183, 136, 0.12);
+    border-color: #52b788;
 }
 
 .table-footnote {
-    margin-top: 8px;
+    margin-top: 5px;
     font-size: 11px;
     color: rgba(255, 255, 255, 0.6);
     text-align: right;
     line-height: 1.4;
+}
+
+/* 離線時的更新時間註記：用警示色標出「這不是最新油價」 */
+.table-footnote.is-offline {
+    color: #ff9c33;
 }
 
 /* ===== 底部緩衝區域樣式 ===== */

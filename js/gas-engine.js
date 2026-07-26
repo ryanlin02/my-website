@@ -117,8 +117,17 @@ async function loadFuelPrices() {
         fuelPricesData = await response.json();
     } catch (err) {
         console.warn('讀取 data/fuel-prices.json 失敗，使用預設靜態資料', err);
+
+        // 【這裡的 updatedDateStr 一定要標明「不是最新」】
+        // 舊版寫「即時數據」，業務會誤以為看到的是本週油價，
+        // 拿一個寫死在程式裡的舊價格去跟客戶談。
+        //
+        // 補充：這條路其實很少走到。sw.js 對 data/ 用的是「網路優先 +
+        // 執行時快取」，沒網路時會拿上次成功抓到的真實油價。
+        // 只有「從來沒成功抓過油價 + 目前又離線」才會落到這組寫死的值。
         fuelPricesData = {
-            updatedDateStr: '即時數據',
+            updatedDateStr: '無法連線，以下為預設參考價（非最新）',
+            isOffline: true,
             prices: {
                 cpc: { name: '台灣中油', diesel: 28.8, unleaded92: 29.8, unleaded95: 31.3, unleaded98: 33.3 },
                 formosa: { name: '台塑石油', diesel: 28.6, unleaded92: 29.8, unleaded95: 31.3, unleaded98: 33.3 }
@@ -159,9 +168,16 @@ function renderFuelPricesUI(data) {
     }
 
     // 3. 更新表格下方最後更新時間
+    //    離線時改用警示色（橘），讓業務一眼看出這不是本週油價
     const footnote = document.getElementById('tableFootnote');
     if (footnote && data.updatedDateStr) {
-        footnote.textContent = `* 最後更新時間：${data.updatedDateStr}`;
+        if (data.isOffline) {
+            footnote.textContent = `* ${data.updatedDateStr}`;
+            footnote.classList.add('is-offline');
+        } else {
+            footnote.textContent = `* 最後更新時間：${data.updatedDateStr}`;
+            footnote.classList.remove('is-offline');
+        }
     }
 
     // 4. 動態繪製「本週油品單價對照表」
@@ -180,13 +196,18 @@ function renderFuelPricesUI(data) {
         const cpcVal = cpc[item.key];
         const formVal = formosa[item.key];
 
-        // 第二個參數是 GA4 的來源標記，用來分辨「從對照表帶入」與「按中/塑快速鍵」
+        // 【onclick 掛在 <td> 而不是 .price-chip 上】
+        // 色塊視覺約 32px，整格是 39px。掛在 td 上的話，
+        // 手指按到色塊外緣的空白處也算點到，容錯範圍更大 ——
+        // 業務是在客戶面前站著點的，別把可點範圍縮到只有色塊。
+        //
+        // 第二個參數是 GA4 的來源標記，用來分辨「從對照表帶入」與「按中／塑快速鍵」
         const cpcTd = cpcVal
-            ? `<td class="price-val cpc" onclick="setDieselPrice(${cpcVal}, 'table_cpc_${item.key}')" title="點擊帶入 ${item.label} 中油價格 $${cpcVal.toFixed(1)}">$${cpcVal.toFixed(1)}</td>`
+            ? `<td class="price-val cpc" onclick="setDieselPrice(${cpcVal}, 'table_cpc_${item.key}')" title="點擊帶入 ${item.label} 中油價格 $${cpcVal.toFixed(1)}"><span class="price-chip">$${cpcVal.toFixed(1)}</span></td>`
             : `<td>-</td>`;
 
         const formTd = formVal
-            ? `<td class="price-val formosa" onclick="setDieselPrice(${formVal}, 'table_formosa_${item.key}')" title="點擊帶入 ${item.label} 台塑價格 $${formVal.toFixed(1)}">$${formVal.toFixed(1)}</td>`
+            ? `<td class="price-val formosa" onclick="setDieselPrice(${formVal}, 'table_formosa_${item.key}')" title="點擊帶入 ${item.label} 台塑價格 $${formVal.toFixed(1)}"><span class="price-chip">$${formVal.toFixed(1)}</span></td>`
             : `<td>-</td>`;
 
         html += `
@@ -240,7 +261,7 @@ function openCalculator(inputId) {
     } else {
         // 根據不同輸入框設定初始值
         if (inputId === 'dieselPrice' || inputId === 'discountAmount') {
-            // 保留小數（超級柴油和折扣金額）
+            // 保留小數（油品單價和折扣金額）
             calcExpression = parseFloat(currentValue).toString();
         } else {
             // 只取整數（每月油錢和每月油量）
@@ -356,7 +377,8 @@ function confirmCalculation() {
         const field = document.getElementById(currentInput);
         
         if (currentInput === 'dieselPrice') {
-            // 超級柴油：限制為正數，保留1位小數
+            // 油品單價：限制為正數，保留1位小數
+            // （欄位 id 沿用 dieselPrice，但現在可帶入 92/95/98 汽油價，不限柴油）
             result = Math.max(0, result);
             result = Math.round(result * 10) / 10;
             field.value = result.toFixed(1);

@@ -292,12 +292,24 @@ async function main() {
     t('fallback 台塑柴油 = 28.6', ev('fuelPricesData.prices.formosa.diesel') === 28.6,
         String(ev('fuelPricesData.prices.formosa.diesel')));
     t('表格仍能繪出', d.querySelectorAll('#fuelPriceTableBody tr').length === 4);
-    // 階段 5-1：目前 fallback 的 updatedDateStr 是「即時數據」，
-    // 業務會誤以為看到的是最新油價。應改為明確標示非最新。
-    xt('離線註記應標明「非最新」而不是「即時數據」',
+    // 階段 5-1：舊版 fallback 寫「即時數據」，業務會誤以為是最新油價
+    t('離線註記已標明「非最新」，不再寫「即時數據」',
         !d.getElementById('tableFootnote').textContent.includes('即時數據'),
-        '階段 5-1', d.getElementById('tableFootnote').textContent);
+        d.getElementById('tableFootnote').textContent);
+    t('  註記明確寫出無法連線與非最新',
+        /非最新/.test(d.getElementById('tableFootnote').textContent),
+        d.getElementById('tableFootnote').textContent);
+    t('  且套上警示色 class（is-offline）',
+        d.getElementById('tableFootnote').classList.contains('is-offline'));
+
+    // 回到正常連線，註記要恢復成一般樣式
     ev("window.__fetchMode='ok';");
+    ev('loadFuelPrices();');
+    await new Promise(r => setImmediate(r));
+    t('恢復連線後註記回到正常樣式',
+        !d.getElementById('tableFootnote').classList.contains('is-offline') &&
+        d.getElementById('tableFootnote').textContent.includes('最後更新時間'),
+        d.getElementById('tableFootnote').textContent);
 
     console.log('\n=== 13. DOM 結構不變式（階段 1-2 移除多餘 </div> 前後都必須成立）===');
     t('#timeDisplay 的父層是 .time-display-wrapper',
@@ -523,7 +535,84 @@ async function main() {
     t('頁面被隱藏（rAF 不回呼）時，時鐘不會持續運算',
         ev('window.__rafCalls') === 1, `rAF 被呼叫 ${ev('window.__rafCalls')} 次`);
 
-    console.log('\n=== 18. 設計理念底線：欄位不可喚起系統鍵盤 ===');
+    console.log('\n=== 18. 油價對照表版面壓縮（階段 5）===');
+
+    const gasCss = fs.readFileSync(path.join(R, 'css/gas.css'), 'utf8');
+    const cssRule = sel => {
+        const m = gasCss.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\{([^}]*)\\}'));
+        return m ? m[1] : '';
+    };
+    const cssPx = (sel, prop) => {
+        const m = cssRule(sel).match(new RegExp('(?<![\\w-])' + prop + '\\s*:\\s*([^;]+);'));
+        if (!m) return null;
+        let v = m[1].split('/*')[0].trim()
+            .replace('var(--spacing-xs)', '2px').replace('var(--spacing-sm)', '4px')
+            .replace('var(--spacing-md)', '8px').replace('var(--spacing-lg)', '12px');
+        return parseInt(v, 10);
+    };
+
+    // ── 標題列已移除 ──
+    t('標題「本週油品單價對照表」已移除', !htmlCode.includes('本週油品單價對照表'));
+    t('提示標籤「點擊油品單價計算」已移除', !htmlCode.includes('點擊油品單價計算'));
+    t('  .price-checker-header 已從 HTML 移除', !htmlCode.includes('price-checker-header'));
+
+    // ── 說明文字必須保留（Ryan 明確要求）──
+    // 這幾個都是單行、不影響高度，但少了會看不出哪一欄是哪家油商
+    ['油品種類', '台灣中油', '台塑石油'].forEach(txt => {
+        t(`表頭保留「${txt}」`, htmlCode.includes(txt));
+    });
+    ['92 無鉛汽油', '95 無鉛汽油 (+)', '98 無鉛汽油', '超級柴油'].forEach(txt => {
+        t(`油品全名保留「${txt}」`, mainScript.includes(txt));
+    });
+    t('價格保留 $ 符號', mainScript.includes('>$${'));
+    t('更新時間註記保留完整文字', mainScript.includes('最後更新時間'));
+
+    // ── 價格色塊 ──
+    const chip = rows[0] && rows[0].querySelector('td.price-val .price-chip');
+    t('價格外層包了 .price-chip 色塊', chip !== null && chip !== undefined);
+    t('  色塊內含價格文字', chip && chip.textContent === '$29.8', chip && chip.textContent);
+    t('  色塊有外框（讓使用者看出可點）',
+        cssRule('.price-val .price-chip').includes('border:'));
+    t('  色塊有底色', cssRule('.price-val.cpc .price-chip').includes('background-color'));
+    t('  色塊為 display:block（撐滿整格寬度）',
+        cssRule('.price-val .price-chip').includes('display: block'));
+
+    // ── 可點範圍必須留在 td，不能縮到色塊上 ──
+    // 色塊視覺約 32px、整格 39px。掛在 td 上手指按到色塊外緣也算點到。
+    const cpcCell = rows[0].querySelector('td.price-val.cpc');
+    t('onclick 掛在 <td> 上（可點範圍 = 整格）',
+        cpcCell.hasAttribute('onclick'));
+    t('  onclick 沒有被移到 .price-chip 上（否則可點範圍會縮小）',
+        !chip.hasAttribute('onclick'));
+    t('  td.price-val 有 cursor:pointer', cssRule('.fuel-price-table td.price-val').includes('cursor'));
+
+    // ── 油品名稱欄不可點（點「92」無法判斷要帶入哪一家）──
+    const labelCell = rows[0].querySelector('td');
+    t('油品名稱欄不可點', !labelCell.hasAttribute('onclick') &&
+        !labelCell.classList.contains('price-val'));
+
+    // ── 高度預算 ──
+    // 依 CSS 推算整塊高度。列高刻意維持不變，壓縮只來自非點擊區域。
+    const rowH = cssPx('.fuel-price-table td.price-val', 'padding') * 2
+        + cssPx('.price-val .price-chip', 'padding') * 2 + 18 + 1;
+    const blockH = cssPx('.price-checker-container', 'margin-top')
+        + cssPx('.price-checker-container', 'padding') * 2
+        + 2                                                    // wrapper 上下框線
+        + cssPx('.fuel-price-table th', 'padding') * 2 + 17 + 1 // 表頭
+        + rowH * 4                                             // 四列油品
+        + cssPx('.table-footnote', 'margin-top') + 15;         // 註記
+    t(`每列高度維持 39px 左右（實測 ${rowH}px，不得低於 36px）`,
+        rowH >= 36 && rowH <= 42, `${rowH}px`);
+    t(`整塊高度壓到 260px 以內（實測 ${blockH}px，原本 319px）`,
+        blockH <= 260, `${blockH}px`);
+    t('  容器內距已從 16px 壓到 8px',
+        cssPx('.price-checker-container', 'padding') === 8,
+        `${cssPx('.price-checker-container', 'padding')}px`);
+    t('  表頭內距已從 10px 壓到 5px',
+        cssPx('.fuel-price-table th', 'padding') === 5,
+        `${cssPx('.fuel-price-table th', 'padding')}px`);
+
+    console.log('\n=== 19. 設計理念底線：欄位不可喚起系統鍵盤 ===');
     ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'].forEach(id => {
         t(`${id} 為 readonly（不會跳系統鍵盤）`, d.getElementById(id).hasAttribute('readonly'));
     });
