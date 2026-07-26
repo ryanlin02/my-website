@@ -239,10 +239,10 @@
             <div class="table-footnote" id="tableFootnote">* 最後更新時間：載入中...</div>
         </div>
 
-    <!-- 底部緩衝區域 - 避免內容被手機螢幕底部遮擋 -->
-    <div class="bottom-buffer-container">
-    </div>
-    
+    <!-- 底部留白與版本號由 js/common-footer.js 注入的頁尾負責。
+         原本這裡有一個空的 .bottom-buffer-container 只為了撐出底部空間，
+         頁尾本身的下方留白已足夠，那個空 div 已移除。 -->
+
     <!-- 計算機彈出視窗 -->
     <div id="calculatorModal" class="calculator-modal">
         <div class="calculator-container">
@@ -290,5 +290,6 @@
     
     <!-- 加油頁試算引擎（原內嵌於本檔，2026/07 階段 2 拆出） -->
     <script src="../js/gas-engine.js"></script>
+    <script src="../js/common-footer.js"></script>
 </body>
 </html>

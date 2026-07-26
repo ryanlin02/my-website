@@ -632,15 +632,25 @@ async function main() {
 
     // 主題變數存在的意義就是「改一個地方就好」。內文若還有同值的硬寫死色碼，
     // 改主題色時就會漏掉那幾處。
+    //
+    // 【刻意允許的例外】
+    // 有些色值只是「剛好一樣」，語意上完全無關，硬要改用變數反而是錯的：
+    // 頁尾版權文字是 #666666，而 --hover-color 也剛好是 #666666。
+    // 若有人把 --hover-color 改成別的顏色，頁尾版權文字**不應該**跟著變。
+    // 這種情況維持寫死才正確 —— 除非願意為它另立一個語意正確的 token，
+    // 但那又會變成「同值不同名」，是階段 6 剛清掉的問題。
+    const intentionalHardcoded = {
+        '#666666': '頁尾版權文字，與 --hover-color 同值但語意無關'
+    };
     const themeHex = {};
     for (const m of rootBlock.matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8})/g)) {
         themeHex[m[2].toLowerCase()] = m[1];
     }
     const bodyCss = cssNoComment.slice(cssNoComment.indexOf('}', cssNoComment.indexOf(':root')) + 1);
     const strayHex = [...new Set([...bodyCss.matchAll(/#[0-9a-fA-F]{3,8}/g)].map(m => m[0].toLowerCase()))]
-        .filter(h => themeHex[h])
+        .filter(h => themeHex[h] && !intentionalHardcoded[h])
         .map(h => `${h} 應改用 ${themeHex[h]}`);
-    t('內文沒有與主題變數同值的硬寫死色碼',
+    t('內文沒有與主題變數同值的硬寫死色碼（例外已列冊）',
         strayHex.length === 0, strayHex.join('; '));
 
     // 同值不同名的 token 會讓人改了一個忘了另一個
@@ -682,7 +692,57 @@ async function main() {
         t(`  ${page} 沒有失效的 CSS 變數`, bad.length === 0, bad.join(', '));
     });
 
-    console.log('\n=== 20. 設計理念底線：欄位不可喚起系統鍵盤 ===');
+    console.log('\n=== 20. 外殼版面與頁尾（2026/07 兩個 bug 修正）===');
+
+    // ── 外殼標題列與 iframe 起點必須對齊 ──
+    // 這兩個數字對不上時，每一頁的最上面都會被標題列蓋掉一截。
+    // 發票頁的歷史記錄面板是 position:fixed; inset:0，緊貼 iframe 頂端，
+    // 所以只有它明顯看得出「歷史記錄」標題被切掉。
+    const shell = fs.readFileSync(path.join(R, 'index.html'), 'utf8');
+    const headerH = parseFloat((shell.match(/\.header-container\s*\{[^}]*height:\s*(\d+)px/) || [])[1]);
+    const contentTop = parseFloat((shell.match(/\.content-container\s*\{[^}]*top:\s*(\d+)px/) || [])[1]);
+    t(`外殼標題列 ${headerH}px 與 iframe 起點 ${contentTop}px 完全對齊（重疊 0px）`,
+        headerH === contentTop, `header=${headerH} content=${contentTop}`);
+
+    // ── 頁尾：四頁都要有，且只能有一份實作 ──
+    ['calculator.html', 'check.html', 'invoice.html', 'gas.html'].forEach(p => {
+        const src = fs.readFileSync(path.join(R, 'pages', p), 'utf8');
+        t(`  ${p} 有載入 common-footer.js`, src.includes('js/common-footer.js'));
+    });
+
+    const footerJs = fs.readFileSync(path.join(R, 'js/common-footer.js'), 'utf8');
+    t('common-footer.js 有 renderGlobalFooter 與 showAppVersion',
+        /function renderGlobalFooter/.test(footerJs) && /function showAppVersion/.test(footerJs));
+    t('  且會自動注入（不需各頁呼叫）', footerJs.includes('DOMContentLoaded'));
+
+    // 這是本次修正的重點：showAppVersion 原本在 common-modals.js 與
+    // invoice-engine.js 各有一份逐字重複的拷貝，而加油頁兩份都拿不到。
+    ['js/common-modals.js', 'js/invoice-engine.js', 'js/gas-engine.js'].forEach(f => {
+        const src = fs.readFileSync(path.join(R, f), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .split('\n').filter(l => !l.trim().startsWith('//')).join('\n');
+        t(`  ${f} 已無重複的 showAppVersion 實作`,
+            !/function\s+showAppVersion/.test(src));
+    });
+
+    t('invoice.html 已移除寫死的 <footer>',
+        !/<footer class="global-app-footer">/.test(
+            fs.readFileSync(path.join(R, 'pages/invoice.html'), 'utf8')));
+    t('sw.js 已預快取 common-footer.js',
+        fs.readFileSync(path.join(R, 'sw.js'), 'utf8').includes("'./js/common-footer.js'"));
+
+    // 頁尾樣式必須存在，否則注入了也看不到
+    // 註：一律用去註解後的 cssNoComment 比對。用原始 gasCss 的話，
+    //     說明「原本有 .bottom-buffer-container」的註解會被算成還在用。
+    ['global-app-footer', 'footer-title', 'footer-copyright'].forEach(c => {
+        t(`  gas.css 有 .${c} 樣式`, cssNoComment.includes('.' + c));
+    });
+
+    // 頁尾取代了原本那個只為撐出底部空間的空 div
+    t('已移除空的 .bottom-buffer-container（改由頁尾提供底部留白）',
+        !htmlCode.includes('bottom-buffer-container') && !cssNoComment.includes('.bottom-buffer-container'));
+
+    console.log('\n=== 21. 設計理念底線：欄位不可喚起系統鍵盤 ===');
     ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'].forEach(id => {
         t(`${id} 為 readonly（不會跳系統鍵盤）`, d.getElementById(id).hasAttribute('readonly'));
     });

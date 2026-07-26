@@ -1508,47 +1508,15 @@ function bind() {
     });
 }
 
-/**
- * 頁尾顯示實際運作中的版本號
- *
- * 直接問 Service Worker 目前用的是哪一版，業務就能自己確認手機上的
- * PWA 有沒有更新到最新版。取不到就不顯示，不影響任何功能。
- */
-function showAppVersion() {
-    const label = $('appVersionLabel');
-    if (!label || !('serviceWorker' in navigator)) return;
+/* 註：頁尾的版本號顯示已於 2026/07 移到 js/common-footer.js，
+ *     原本這裡有一份與 common-modals.js 逐字重複的 showAppVersion()。 */
 
-    const ask = function () {
-        const controller = navigator.serviceWorker.controller;
-        if (!controller) return false;
-        try {
-            const channel = new MessageChannel();
-            channel.port1.onmessage = function (event) {
-                if (event.data && event.data.type === 'VERSION_INFO' && event.data.version) {
-                    label.textContent = '• v' + event.data.version;
-                }
-            };
-            controller.postMessage({ type: 'GET_VERSION' }, [channel.port2]);
-            return true;
-        } catch (e) {
-            return false;   // 取不到版本號不影響任何功能，安靜略過
-        }
-    };
-
-    // 首次安裝當下 controller 可能還沒接管，等就緒後再問一次
-    if (!ask()) {
-        navigator.serviceWorker.ready
-            .then(function () { setTimeout(ask, 300); })
-            .catch(function () { /* 略過 */ });
-    }
-}
 
 /* ============================================================
    啟動
    ============================================================ */
 document.addEventListener('DOMContentLoaded', function () {
     bind();
-    showAppVersion();
 
     // 探一次統編索引是否存在。還沒建置就自動休眠，頁面其他功能完全不受影響。
     if (window.TaxIdLookup) window.TaxIdLookup.probe();

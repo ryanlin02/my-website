@@ -255,14 +255,14 @@
 </div>
 
 <!-- 頁尾
-     其他頁是由 common-modals.js 注入的，但那支同時會塞進一整組計算機彈窗，
-     那些彈窗靠 calculator.css 才會隱藏。這頁沒載 calculator.css（會跟本頁的
-     .row / .toast-message 打架），載進來反而整組露在畫面上，所以直接寫死。 -->
-<footer class="global-app-footer">
-    <div class="footer-title">重車貸款業務工具箱 <span id="appVersionLabel"></span></div>
-    <div class="footer-copyright">© 2026 Fleet Loan Toolkit. All rights reserved.</div>
-</footer>
+     原本這裡寫死一段 <footer>，因為當時頁尾綁在 common-modals.js 裡，
+     而那支會連帶塞進一整組計算機彈窗（那些彈窗靠 calculator.css 才會隱藏，
+     這頁沒載 calculator.css，載進來反而整組露在畫面上）。
 
+     2026/07 已把頁尾拆成獨立的 js/common-footer.js，不再夾帶任何彈窗，
+     所以這頁改為與其他三頁一致：載入該檔案即自動注入。 -->
+
+<script src="../js/common-footer.js"></script>
 <script src="../js/taxid-lookup.js"></script>
 <script src="../js/invoice-engine.js"></script>
 </body>

@@ -327,29 +327,28 @@ html, body {
  * 開立進度與已開立合計
  * ============================================ */
 /* ------------------------------------------------------------
- * 為什麼 top 不是 0
+ * 為什麼 top 是 0（2026/07 更新）
  *
- * 外殼 index.html 的兩個數字對不上：
+ * 這裡原本是 top: 15px，那是一個補償值。當時外殼 index.html 的
+ * 兩個數字對不上：
  *   .header-container { height: 60px }      標題列高 60px
  *   .content-container { top: 45px }        iframe 卻從 45px 開始
- * 所以 iframe 最上面的 15px 一直被標題列蓋住。
+ * iframe 最上面 15px 被標題列蓋住，進度列一貼齊頂端就掉進死角、
+ * 文字上半被切掉，所以往下推 15px 避開。
  *
- * 以前不會發現，是因為 .time-display-wrapper 有 margin-top: 18px
- * 把內容推到重疊區以下。進度列一貼齊 iframe 頂端就會掉進這個死角，
- * 文字上半被標題列切掉。
+ * 那個根因已經修掉了（index.html 的 top 改為 60px，與標題列同高），
+ * 重疊變成 0，補償值也必須跟著歸零 —— 否則進度列會白白低 15px。
  *
- * 這裡讓它固定在 15px（= 60 − 45），上緣正好接在標題列底下。
- * 那 15px 的區域反正被不透明的標題列蓋著，不會露出後面的內容。
- *
- * 根本解法是把 index.html 的 top 改成 60px 讓兩個數字一致，
- * 但那會一併影響計算、發票、加油三頁的版面，需要重新確認過再動。
+ * 【這個值必須等於「標題列高度 − iframe 起點」】
+ * tests/版面樣式測試.js 會從 index.html 讀出那兩個數字算出重疊高度，
+ * 再比對這裡的 top。外殼之後若又調整，測試會立刻抓到。
  * ------------------------------------------------------------ */
 .write-progress {
     display: none;
     flex-direction: column;
     position: -webkit-sticky;
     position: sticky;
-    top: 15px;
+    top: 0;
     z-index: 100;
     background-color: var(--secondary-color);
     border-left: 3px solid var(--button-orange);

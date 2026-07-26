@@ -81,11 +81,12 @@
     --font-size-calculator: 20px;
     --input-width: 95px;            /* 統一所有輸入框寬度 */
 
-    /* 間距與圓角 - 調整為更緊湊的設計 */
+    /* 間距與圓角 - 調整為更緊湊的設計
+     * 註：--spacing-lg (12px) 已於 2026/07 移除。它原本只被
+     *     .bottom-buffer-container 使用，而那個空 div 已被頁尾取代。 */
     --spacing-xs: 2px;
     --spacing-sm: 4px;
     --spacing-md: 8px;
-    --spacing-lg: 12px;
     --radius-sm: 8px;
     --radius-md: 12px;
 }
@@ -714,19 +715,39 @@ body {
     color: var(--button-orange);
 }
 
-/* ===== 底部緩衝區域樣式 ===== */
-.bottom-buffer-container {
-    margin-top: var(--spacing-lg);          /* 與油價查詢框架的間距 */
-    padding: var(--spacing-lg) var(--spacing-md); /* 上下左右內邊距 */
-    text-align: center;                     /* 文字置中對齊 */
-    background-color: transparent;          /* 透明背景，不干擾整體設計 */
+/* ===== 全站通用頁尾 =====
+ *
+ * 【2026/07 新增】
+ * 加油頁原本完全沒有頁尾，業務看不到版本號，無法自己確認手機上的
+ * PWA 有沒有更新到最新版。原因是頁尾當時綁在 common-modals.js 裡，
+ * 而加油頁有自己的鍵盤、不載入那支。頁尾已拆成 js/common-footer.js。
+ *
+ * 樣式與 calculator.css、invoice.css 的頁尾一致。
+ * padding 底部留 80px 是為了避開手機螢幕底部的系統列。
+ *
+ * 註：這一併取代了原本的 .bottom-buffer-container ——
+ *     那是一個空的 <div>，唯一作用就是撐出底部空間避免被系統列遮擋。
+ *     現在頁尾自己就有足夠的下方留白，那個空 div 已移除。
+ * ------------------------------------------------------------ */
+.global-app-footer {
+    text-align: center;
+    padding: 20px 10px 80px;
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 156, 51, 0.2);
 }
 
-/* 針對較小螢幕調整底部緩衝區域 */
-@media (max-width: 360px) {
-    .bottom-buffer-container {
-        padding: var(--spacing-md) var(--spacing-sm); /* 小螢幕時減少內邊距 */
-    }   
+.footer-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #888888;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.footer-copyright {
+    font-size: 11px;
+    color: #666666;
+    letter-spacing: 0.3px;
 }
 
 /* ===== 輸入欄位按鈕組樣式 ===== */
