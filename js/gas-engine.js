@@ -22,6 +22,29 @@ let currentInput = ''; // 當前輸入的欄位ID
 let calcExpression = ''; // 計算機運算式
 let lastResult = '0'; // 上次計算結果
 let lastModifiedField = ''; // 最後修改的欄位
+let hasResultsShown = false; // 結果區是否已有數字（用來判斷「完成一次試算」的時機）
+
+/* ===== GA4 事件回報（白名單）=====
+ *
+ * 【2026/07 階段 3】
+ * 舊版在 gas.html 用 querySelectorAll('button') 給全部 39 顆按鈕
+ * 綁上 click 追蹤，其中 22 顆是計算機按鍵。業務算一筆按十幾下，
+ * 就送出十幾個 button_click —— 報表被雜訊淹沒，也白耗行動網路流量。
+ *
+ * 改為只回報四種有商業意義的操作：
+ *   fuel_price_selected  選定油品單價（快速按鈕或油價表）
+ *   discount_calculated  完成一次有效試算（三個結果欄位都算出來）
+ *   calculation_cleared  按下清除
+ *   page_specific_load   頁面載入
+ *
+ * trackEvent 定義在 gas.html 的 GA4 區塊。本檔案被測試環境單獨載入時
+ * 不會有那個區塊，所以一定要做存在性檢查，否則整支引擎會拋 ReferenceError。
+ * ------------------------------------------------------------ */
+function trackGasEvent(eventName, parameters = {}) {
+    if (typeof trackEvent === 'function') {
+        trackEvent(eventName, parameters);
+    }
+}
 
 /* ===== 震動回饋函數 ===== */
 function vibrate(duration = 10) {
@@ -64,11 +87,13 @@ function initGasPage() {
     // 初始化時間顯示
     updateCurrentDate();
 
-    // 設定定時器，每秒更新當前時間
-    setInterval(updateCurrentDate, 1000);
+    // 啟動時鐘（頁面被隱藏時會自動停止，見 startClock 的說明）
+    startClock();
 
     // 全自動載入最新每週油價（自動更新中/塑按鈕與對照表）
     loadFuelPrices();
+
+    trackGasEvent('page_specific_load', { feature: 'gas_calculator' });
 }
 
 // 腳本可能在 DOMContentLoaded 之前或之後才載入完成，兩種情況都要能正確啟動
@@ -115,13 +140,13 @@ function renderFuelPricesUI(data) {
     const btnFormosa = document.getElementById('btnFormosaDiesel');
 
     if (btnCpc && cpc.diesel) {
-        btnCpc.setAttribute('onclick', `setDieselPrice(${cpc.diesel})`);
+        btnCpc.setAttribute('onclick', `setDieselPrice(${cpc.diesel}, 'quick_cpc')`);
         btnCpc.title = `中油超級柴油 $${cpc.diesel.toFixed(1)}`;
         btnCpc.textContent = '中';
     }
 
     if (btnFormosa && formosa.diesel) {
-        btnFormosa.setAttribute('onclick', `setDieselPrice(${formosa.diesel})`);
+        btnFormosa.setAttribute('onclick', `setDieselPrice(${formosa.diesel}, 'quick_formosa')`);
         btnFormosa.title = `台塑超級柴油 $${formosa.diesel.toFixed(1)}`;
         btnFormosa.textContent = '塑';
     }
@@ -155,12 +180,13 @@ function renderFuelPricesUI(data) {
         const cpcVal = cpc[item.key];
         const formVal = formosa[item.key];
 
-        const cpcTd = cpcVal 
-            ? `<td class="price-val cpc" onclick="setDieselPrice(${cpcVal})" title="點擊帶入 ${item.label} 中油價格 $${cpcVal.toFixed(1)}">$${cpcVal.toFixed(1)}</td>`
+        // 第二個參數是 GA4 的來源標記，用來分辨「從對照表帶入」與「按中/塑快速鍵」
+        const cpcTd = cpcVal
+            ? `<td class="price-val cpc" onclick="setDieselPrice(${cpcVal}, 'table_cpc_${item.key}')" title="點擊帶入 ${item.label} 中油價格 $${cpcVal.toFixed(1)}">$${cpcVal.toFixed(1)}</td>`
             : `<td>-</td>`;
 
-        const formTd = formVal 
-            ? `<td class="price-val formosa" onclick="setDieselPrice(${formVal})" title="點擊帶入 ${item.label} 台塑價格 $${formVal.toFixed(1)}">$${formVal.toFixed(1)}</td>`
+        const formTd = formVal
+            ? `<td class="price-val formosa" onclick="setDieselPrice(${formVal}, 'table_formosa_${item.key}')" title="點擊帶入 ${item.label} 台塑價格 $${formVal.toFixed(1)}">$${formVal.toFixed(1)}</td>`
             : `<td>-</td>`;
 
         html += `
@@ -175,20 +201,26 @@ function renderFuelPricesUI(data) {
     tableBody.innerHTML = html;
 }
 
-/* ===== 快速設定油品單價函數 ===== */
-function setDieselPrice(price) {
+/* ===== 快速設定油品單價函數 =====
+ * @param {number} price  要帶入的單價
+ * @param {string} source GA4 來源標記（quick_cpc / table_cpc_diesel …）
+ *                        不傳的話代表是 HTML 裡的靜態預設按鈕
+ * ------------------------------------------------------------ */
+function setDieselPrice(price, source = 'quick_default') {
     // 震動回饋
     vibrate(10);
-    
+
     // 設定油品單價欄位的值
     const dieselPriceField = document.getElementById('dieselPrice');
     dieselPriceField.value = price.toFixed(1); // 保留一位小數
-    
+
     // 記錄最後修改的欄位
     lastModifiedField = 'dieselPrice';
-    
+
     // 更新所有相關計算
     updateCalculations();
+
+    trackGasEvent('fuel_price_selected', { price: price, source: source });
 }
 
 /* ===== 開啟計算機函數 ===== */
@@ -415,11 +447,25 @@ function updateCalculations() {
         // 計算每年節省金額（每月節省 × 12個月）
         const yearlySaving = monthlySaving * 12;
         document.getElementById('yearlySaving').value = formatNumberWithCommas(yearlySaving);
+
+        // GA4：只在「從沒有結果變成有結果」的那一刻回報一次。
+        // updateCalculations() 幾乎每個操作都會呼叫，
+        // 不做這個狀態轉換判斷的話，調一次折扣就送一個事件，又變成雜訊。
+        if (!hasResultsShown) {
+            hasResultsShown = true;
+            trackGasEvent('discount_calculated', {
+                diesel_price: dieselPrice,
+                discount_amount: discountAmount,
+                monthly_volume: monthlyVolume,
+                yearly_saving: yearlySaving
+            });
+        }
     } else {
         // 資料不足或折扣為 0 時必須清空，否則會殘留上一次的計算結果
         document.getElementById('discountedExpense').value = '';
         document.getElementById('monthlySaving').value = '';
         document.getElementById('yearlySaving').value = '';
+        hasResultsShown = false;
     }
 }
 
@@ -438,6 +484,11 @@ function clearCalculation() {
     
     // 重置最後修改的欄位記錄
     lastModifiedField = '';
+
+    // 結果區已清空，下次算出結果時要能再回報一次
+    hasResultsShown = false;
+
+    trackGasEvent('calculation_cleared');
 }
 
 /* ===== 移除千分位符號函數 ===== */
@@ -462,6 +513,50 @@ function updateCurrentDate() {
     // 組合時間字串
     const timeString = `${rocYear}年${month}月${date}日 星期${day} ${hours}:${minutes}:${seconds}`;
     document.getElementById('current-date').textContent = timeString;
+}
+
+/* ===== 時鐘：頁面看不到的時候自動停 =====
+ *
+ * 【問題】
+ * 舊版是 setInterval(updateCurrentDate, 1000)。index.html 切換頁面用的是
+ * display:none / block，iframe 並不會被卸載 —— 所以四個頁面的時鐘會同時
+ * 在背景空轉，每秒各做一次 Date 運算與 DOM 寫入。業務整天開著這個 App，
+ * 那是白燒電池。
+ *
+ * 【為什麼不用 document.hidden】
+ * 那個只反映「整個瀏覽器分頁」是否在前景。iframe 被父頁面 display:none
+ * 藏起來時，裡面的 document.hidden 在 Chrome 仍然是 false，判斷不出來。
+ *
+ * 【改用 requestAnimationFrame 的理由】
+ * rAF 的回呼只在瀏覽器「真的要繪製這個文件」時才執行。
+ * display:none 的 iframe 不會被繪製，回呼自然完全停止 —— 不需要任何
+ * 來自父頁面的通知，也不必改 index.html（那會連帶影響其他三頁）。
+ * 分頁被切到背景時 rAF 同樣會停，順便把那個情況也一起解決了。
+ *
+ * rAF 大約每秒 60 次，但我們只需要每秒更新一次，
+ * 所以先比對秒數有沒有變，只有變了才寫 DOM。
+ * 一秒 60 次的「讀時間 + 比大小」成本遠低於 1 次 DOM 寫入，
+ * 而頁面看不到的時候是 0 次。
+ * ------------------------------------------------------------ */
+function startClock() {
+    // 測試環境或極舊瀏覽器沒有 rAF 時，退回 setInterval
+    if (typeof requestAnimationFrame !== 'function') {
+        setInterval(updateCurrentDate, 1000);
+        return;
+    }
+
+    let lastSecond = -1;
+
+    function tick() {
+        const second = Math.floor(Date.now() / 1000);
+        if (second !== lastSecond) {
+            lastSecond = second;
+            updateCurrentDate();
+        }
+        requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
 }
 
 /* ===== 每月油錢快速調整功能 =====

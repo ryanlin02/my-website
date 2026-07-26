@@ -73,8 +73,25 @@ for (const f of scripts) {
 
 /* 拆檔守門：HTML 裡不該再有內嵌樣式或內嵌邏輯 */
 const leftoverStyle = /<style[\s>]/.test(html);
-// GA4 追蹤區塊仍在 head 內嵌（階段 3 才處理），所以允許 1 個；超過就是有東西沒搬出去
+// GA4 追蹤區塊仍在 head 內嵌（那是刻意保留的，與 check/invoice 一致）
 const inlineScriptCount = (html.match(/<script>/g) || []).length;
+
+/* ------------------------------------------------------------
+ * 去掉註解後的程式碼，供「某段程式碼是否已移除」的守門測試使用。
+ *
+ * 【為什麼需要這個】
+ * 本專案的註解習慣是把「為什麼移除某段程式碼」寫在原地，
+ * 所以註解裡經常含有被移除程式碼的原文，例如：
+ *     // 舊版是 setInterval(updateCurrentDate, 1000)。
+ * 直接搜尋原始碼會把註解也算進去，誤判成「還沒移除」。
+ * ------------------------------------------------------------ */
+function stripJsComments(src) {
+    return src
+        .replace(/\/\*[\s\S]*?\*\//g, '')          // 區塊註解
+        .split('\n')
+        .filter(l => !l.trim().startsWith('//'))   // 整行註解
+        .join('\n');
+}
 
 /* ------------------------------------------------------------
  * 假的 fetch：讓油價載入走得通，也能模擬離線
@@ -129,11 +146,11 @@ async function main() {
     await new Promise(r => setImmediate(r));   // 等 loadFuelPrices 的 promise 走完
 
     t('自動帶入中油柴油單價 28.8', v('dieselPrice') === '28.8', v('dieselPrice'));
-    t('「中」按鈕的 onclick 已動態更新',
-        d.getElementById('btnCpcDiesel').getAttribute('onclick') === 'setDieselPrice(28.8)',
+    t('「中」按鈕的 onclick 已動態更新（含 GA4 來源標記）',
+        d.getElementById('btnCpcDiesel').getAttribute('onclick') === "setDieselPrice(28.8, 'quick_cpc')",
         d.getElementById('btnCpcDiesel').getAttribute('onclick'));
-    t('「塑」按鈕的 onclick 已動態更新',
-        d.getElementById('btnFormosaDiesel').getAttribute('onclick') === 'setDieselPrice(28.6)',
+    t('「塑」按鈕的 onclick 已動態更新（含 GA4 來源標記）',
+        d.getElementById('btnFormosaDiesel').getAttribute('onclick') === "setDieselPrice(28.6, 'quick_formosa')",
         d.getElementById('btnFormosaDiesel').getAttribute('onclick'));
     t('表格下方顯示最後更新時間',
         d.getElementById('tableFootnote').textContent.includes('2026/07/24'),
@@ -257,8 +274,8 @@ async function main() {
     t('第 4 列為超級柴油', rows[3] && rows[3].textContent.includes('超級柴油'), rows[3] && rows[3].textContent.trim());
     const cpc92 = rows[0] && rows[0].querySelector('td.price-val.cpc');
     t('92 中油價格顯示 $29.8', cpc92 && cpc92.textContent === '$29.8', cpc92 && cpc92.textContent);
-    t('  且可點擊帶入（onclick 已掛上）',
-        cpc92 && cpc92.getAttribute('onclick') === 'setDieselPrice(29.8)',
+    t('  且可點擊帶入（onclick 含價格與 GA4 來源標記）',
+        cpc92 && cpc92.getAttribute('onclick') === "setDieselPrice(29.8, 'table_cpc_unleaded92')",
         cpc92 && cpc92.getAttribute('onclick'));
     // jsdom 的 runScripts:'outside-only' 不會執行 inline onclick，改直接呼叫驗證帶入邏輯
     ev('setDieselPrice(29.8)');
@@ -387,7 +404,126 @@ async function main() {
     t('  且有處理腳本晚於 DOMContentLoaded 載入的情況',
         mainScript.includes('readyState'));
 
-    console.log('\n=== 17. 設計理念底線：欄位不可喚起系統鍵盤 ===');
+    console.log('\n=== 17. GA4 瘦身與時鐘守門（階段 3）===');
+
+    // ── 已移除的有害追蹤 ──
+    // 註：一定要先去掉 HTML 註解才能檢查。gas.html 裡有一大段註解在說明
+    //     「這些追蹤為什麼被移除」，那段文字本身就含有這些關鍵字，
+    //     不去註解的話會誤判成「還沒移除」。
+    const htmlCode = html.replace(/<!--[\s\S]*?-->/g, '');
+
+    // 全按鈕追蹤是最大的雜訊源：計算機 22 顆鍵每按一下就送一個事件
+    t('已移除 querySelectorAll(\'button\') 全按鈕追蹤',
+        !/querySelectorAll\(['"]button['"]\)/.test(htmlCode));
+    t('已移除未 throttle 的滾動深度追蹤',
+        !htmlCode.includes('scroll_depth') && !/addEventListener\(['"]scroll['"]/.test(htmlCode));
+    t('已移除長按偵測（加油頁沒有長按功能）',
+        !htmlCode.includes('long_press') && !/addEventListener\(['"]touchstart['"]/.test(htmlCode));
+    t('已移除 beforeunload（iframe 不卸載，數據無意義）',
+        !htmlCode.includes('beforeunload'));
+    t('已移除 form_submit（加油頁沒有任何 <form>）',
+        !htmlCode.includes('form_submit') && !htmlCode.includes('<form'));
+    t('已移除 iframe_loaded postMessage（index.html 沒有監聽者）',
+        !htmlCode.includes('iframe_loaded'));
+
+    // ── GA4 區塊應與 check / invoice 同構 ──
+    const gaBlock = (html.match(/<script>([\s\S]*?)<\/script>/) || ['', ''])[1];
+    t('GA4 區塊已精簡到 30 行以內（原本 151 行）',
+        gaBlock.trim().split('\n').length < 30, `${gaBlock.trim().split('\n').length} 行`);
+    t('  仍保有 gtag 初始化', gaBlock.includes("gtag('config'"));
+    t('  仍保有 trackEvent 函式', gaBlock.includes('function trackEvent'));
+    t('  已移除 console.log 事件輸出（與 check/invoice 一致）',
+        !gaBlock.includes('console.log'));
+
+    // ── 白名單事件 ──
+    const whitelist = ['fuel_price_selected', 'discount_calculated',
+        'calculation_cleared', 'page_specific_load'];
+    whitelist.forEach(e => {
+        t(`白名單事件 ${e} 有被回報`, mainScript.includes(`'${e}'`));
+    });
+    t('trackGasEvent 有做存在性檢查（測試環境無 GA4 時不能拋錯）',
+        /typeof trackEvent === ['"]function['"]/.test(mainScript));
+
+    // 實際驗證：安裝假的 trackEvent，確認事件真的送得出來而且沒有雜訊
+    ev(`
+        window.__events = [];
+        window.trackEvent = function(name, params){ window.__events.push({name:name, params:params||{}}); };
+    `);
+    reset();
+    ev("window.__events = [];");
+    ev("setDieselPrice(28.8, 'quick_cpc')");
+    let evs = ev('JSON.stringify(window.__events)');
+    t('選定單價會送出 fuel_price_selected',
+        JSON.parse(evs).some(e => e.name === 'fuel_price_selected'), evs);
+    t('  且帶上來源標記',
+        JSON.parse(evs).some(e => e.params.source === 'quick_cpc'), evs);
+
+    ev("window.__events = [];");
+    viaKeypad('monthlyExpense', 28800);
+    ev('setDiscountAmount(0.5)');
+    evs = ev('JSON.stringify(window.__events)');
+    t('完成試算會送出 discount_calculated',
+        JSON.parse(evs).filter(e => e.name === 'discount_calculated').length === 1, evs);
+
+    // 這是白名單設計的重點：調整折扣不該每次都送事件
+    ev("window.__events = [];");
+    ev('setDiscountAmount(0.6)');
+    ev('setDiscountAmount(0.7)');
+    ev('adjustDiscountAmount(0.1)');
+    evs = ev('JSON.stringify(window.__events)');
+    t('連續調整折扣三次，不會重複送 discount_calculated（避免雜訊）',
+        JSON.parse(evs).filter(e => e.name === 'discount_calculated').length === 0, evs);
+
+    ev("window.__events = [];");
+    ev('clearCalculation()');
+    evs = ev('JSON.stringify(window.__events)');
+    t('清除會送出 calculation_cleared',
+        JSON.parse(evs).some(e => e.name === 'calculation_cleared'), evs);
+
+    // 清除後重新算一次，應該要能再送一次（狀態有正確重置）
+    ev("window.__events = [];");
+    ev('setDieselPrice(28.8)');
+    viaKeypad('monthlyExpense', 28800);
+    ev('setDiscountAmount(0.5)');
+    evs = ev('JSON.stringify(window.__events)');
+    t('清除後重新試算，能再送一次 discount_calculated',
+        JSON.parse(evs).filter(e => e.name === 'discount_calculated').length === 1, evs);
+
+    // 計算機按鍵絕對不能產生任何事件（這是階段 3 的核心目的）
+    ev("window.__events = [];");
+    ev("openCalculator('monthlyExpense');");
+    ['1', '2', '3', '0', '00'].forEach(k => ev(`calcInput('${k}')`));
+    ev('calcBackspace(); calcClear(); closeCalculator();');
+    evs = ev('JSON.stringify(window.__events)');
+    t('按 8 下計算機按鍵不產生任何 GA4 事件',
+        JSON.parse(evs).length === 0, `送出了 ${JSON.parse(evs).length} 個事件：${evs}`);
+
+    // ── 時鐘 ──
+    t('時鐘改用 requestAnimationFrame（頁面隱藏時自動停止）',
+        mainScript.includes('requestAnimationFrame'));
+    // setInterval 只准出現在「不支援 rAF」的退路裡，且只有那一處
+    const intervalCalls = (stripJsComments(mainScript).match(/setInterval\(/g) || []).length;
+    t('  setInterval 只剩 1 處（rAF 的退路）',
+        intervalCalls === 1, `出現 ${intervalCalls} 次`);
+    t('  有為不支援 rAF 的環境保留 setInterval 退路',
+        mainScript.includes('typeof requestAnimationFrame'));
+    t('  只在秒數變化時才寫 DOM', mainScript.includes('lastSecond'));
+
+    // 實際驗證 rAF 停止時時鐘就不動（模擬 iframe 被 display:none 藏起來）
+    ev(`
+        window.__rafCalls = 0;
+        window.__rafPaused = true;
+        window.requestAnimationFrame = function(cb){
+            window.__rafCalls++;
+            if (!window.__rafPaused && window.__rafCalls < 5) cb();
+            return window.__rafCalls;
+        };
+    `);
+    ev('startClock();');
+    t('頁面被隱藏（rAF 不回呼）時，時鐘不會持續運算',
+        ev('window.__rafCalls') === 1, `rAF 被呼叫 ${ev('window.__rafCalls')} 次`);
+
+    console.log('\n=== 18. 設計理念底線：欄位不可喚起系統鍵盤 ===');
     ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'].forEach(id => {
         t(`${id} 為 readonly（不會跳系統鍵盤）`, d.getElementById(id).hasAttribute('readonly'));
     });

@@ -8,162 +8,54 @@
     <!-- 功能頁防護：被直接開啟時導回外殼，避免繞過安裝引導（必須放在最前面） -->
     <script src="../js/frame-guard.js"></script>
 
-    <!-- 將以下程式碼加入每個 iframe 頁面的 <head> 標籤內 -->
-    <!-- calculator.html, check.html, gas.html, invoice.html -->
-
     <!-- Google Analytics 4 追蹤代碼 -->
+    <!-- ============================================================
+         【2026/07 階段 3 大幅精簡：151 行 → 22 行】
+
+         這個區塊原本比其他三頁多了 130 行，都是有害無益的追蹤：
+
+         1. querySelectorAll('button') 無條件綁 click 追蹤
+            加油頁有 39 顆按鈕，其中計算機佔 22 顆。
+            業務算一筆要按十幾下，就送出十幾個 button_click 事件 ——
+            GA4 報表被按鍵雜訊淹沒，看不出真正有意義的操作，
+            還白耗業務在外面的行動網路流量。
+            改為在 js/gas-engine.js 裡只追蹤四種有商業意義的操作。
+
+         2. 滾動深度追蹤（未 throttle 的 scroll 監聽）
+            每一次滾動事件都讀 document.body.scrollHeight，
+            那會強制瀏覽器重新計算版面（reflow），是明確的卡頓來源。
+
+         3. 長按偵測
+            每次 touchstart 都開一個 500ms timer，但加油頁沒有任何長按功能。
+
+         4. beforeunload
+            index.html 是用 display:none 切換 iframe、頁面根本不會卸載，
+            這個事件的觸發時機不可靠，收到的數據沒有意義。
+
+         5. form_submit 與 iframe_loaded
+            加油頁沒有任何 <form>；iframe_loaded 也沒有任何監聽者
+            （index.html 的 message 監聽只處理隱私權與服務條款頁的關閉請求）。
+
+         現在這個區塊與 check.html、invoice.html 完全同構。
+         ============================================================ -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
     <script>
-        // 檢查是否在 iframe 中
         const isInIframe = window !== window.parent;
-        
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        
-        // 取得當前頁面名稱
+
         const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
-        
-        // 初始化 GA4
         gtag('config', 'G-XE5XMQR0Z1', {
-            page_title: `貸款業務工具箱 - ${getPageTitle(currentPageName)}`,
+            page_title: `貸款業務工具箱 - 加油計算`,
             page_location: window.location.href,
-            page_path: window.location.pathname,
-            custom_map: {
-                'dimension3': 'is_iframe',
-                'dimension4': 'page_type'
-            }
+            page_path: window.location.pathname
         });
-        
-        // 頁面標題對應
-        function getPageTitle(pageName) {
-            const titles = {
-                'calculator': '計算機',
-                'check': '支票計算',
-                'invoice': '發票計算',
-                'gas': '加油計算'
-            };
-            return titles[pageName] || pageName;
-        }
-        
-        /**
-        * 發送自訂事件到 GA4
-        * @param {string} eventName - 事件名稱
-        * @param {object} parameters - 事件參數
-        */
+
         function trackEvent(eventName, parameters = {}) {
-            // 加入頁面資訊
             parameters.page_type = currentPageName;
             parameters.is_iframe = isInIframe;
-            
             gtag('event', eventName, parameters);
-            console.log('GA4 Event (iframe):', eventName, parameters);
-        }
-        
-        // ============================================
-        // 加油頁面專用追蹤 (gas.html)
-        // ============================================
-        
-        if (currentPageName === 'gas') {
-            document.addEventListener('DOMContentLoaded', function() {
-                // 追蹤加油計算
-                trackEvent('page_specific_load', {
-                    feature: 'gas_calculator'
-                });
-                
-                // 根據實際功能添加更多追蹤
-            });
-        }
-        
-        // ============================================
-        // 通用互動追蹤
-        // ============================================
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // 追蹤所有按鈕點擊
-            document.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', function() {
-                    trackEvent('button_click', {
-                        button_text: this.textContent.trim(),
-                        button_id: this.id,
-                        button_class: this.className
-                    });
-                });
-            });
-            
-            // 追蹤表單提交
-            document.querySelectorAll('form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    trackEvent('form_submit', {
-                        form_id: this.id,
-                        form_name: this.name
-                    });
-                });
-            });
-            
-            // 追蹤滾動深度
-            let maxScrollDepth = 0;
-            let scrollTracked = {};
-            
-            window.addEventListener('scroll', function() {
-                const scrollDepth = Math.round((window.scrollY + window.innerHeight) / document.body.scrollHeight * 100);
-                
-                // 追蹤 25%, 50%, 75%, 100% 的滾動深度
-                [25, 50, 75, 100].forEach(threshold => {
-                    if (scrollDepth >= threshold && !scrollTracked[threshold]) {
-                        scrollTracked[threshold] = true;
-                        trackEvent('scroll_depth', {
-                            depth_percentage: threshold
-                        });
-                    }
-                });
-                
-                maxScrollDepth = Math.max(maxScrollDepth, scrollDepth);
-            });
-            
-            // 頁面卸載時追蹤最大滾動深度
-            window.addEventListener('beforeunload', function() {
-                trackEvent('page_unload', {
-                    max_scroll_depth: maxScrollDepth,
-                    time_on_page: Math.round(performance.now() / 1000)
-                });
-            });
-            
-            // 追蹤複製操作
-            document.addEventListener('copy', function() {
-                trackEvent('content_copy', {
-                    selection_length: window.getSelection().toString().length
-                });
-            });
-            
-            // 追蹤長按操作（移動裝置）
-            let touchTimer;
-            document.addEventListener('touchstart', function(e) {
-                touchTimer = setTimeout(function() {
-                    trackEvent('long_press', {
-                        target_element: e.target.tagName,
-                        target_class: e.target.className
-                    });
-                }, 500);
-            });
-            
-            document.addEventListener('touchend', function() {
-                clearTimeout(touchTimer);
-            });
-        });
-        
-        // ============================================
-        // 與父頁面通訊（如果需要）
-        // ============================================
-        
-        if (isInIframe) {
-            // 向父頁面報告載入完成
-            window.addEventListener('load', function() {
-                window.parent.postMessage({
-                    type: 'iframe_loaded',
-                    page: currentPageName
-                }, '*');
-            });
         }
     </script>
 
