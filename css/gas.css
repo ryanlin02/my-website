@@ -21,52 +21,73 @@
  *       改檔名的話 sw.js 要一起改，否則離線時整頁會沒有樣式。
  * ============================================ */
 
-/* ===== 主題外觀集中管理區 ===== */
+/* ===== 主題外觀集中管理區 =====
+ *
+ * 【2026/07 階段 6 整理】
+ * 這個區塊原本的用意是「改主題色只要改這裡一個地方」，
+ * 但實際上 CSS 內文有 7 處直接寫死色碼繞過它，
+ * 導致 --button-blue、--error-color 等變數掛在這裡卻沒人引用，
+ * 而真正生效的是散落各處的 #33b5e5。改主題色要改兩個地方，
+ * 而且很容易漏掉其中一處。
+ *
+ * 已把所有「與本區塊同值」的硬寫死色碼改回引用變數
+ * （展開 var() 比對過 75 個選擇器，解析結果完全相同，零視覺變化），
+ * 並刪掉下列兩類 token：
+ *
+ *   同值不同名（兩個名字指同一個值，改一個忘另一個就會不一致）：
+ *     --background-color  #333333  與 --primary-color 同值   → 統一用 --primary-color
+ *     --surface-color     #4a4a4a  與 --secondary-color 同值 → 統一用 --secondary-color
+ *     --display-bg        #222222  與 --input-bg 同值        → 統一用 --input-bg
+ *
+ *   宣告了但從來沒用過：
+ *     --radius-lg、--shadow-sm、--shadow-md、--shadow-lg
+ *     --font-size-title（20px，與 --font-size-calculator 同值）
+ *     --font-size-label、--font-size-input、--font-size-button
+ *
+ * 【字級變數為什麼是刪掉而不是拿來用】
+ * 它們宣告的值與實際使用的值對不起來，留著會誤導人：
+ *     --font-size-label 寫 15px，但 .input-label 實際是 16px
+ *     --font-size-input 寫 17px，但 .input-field 實際是 16px
+ *     --font-size-button 寫 16px，但 .quick-price-btn 實際是 15px
+ * 若要把字級也集中管理，得先決定每個元件該用多大 —— 那是會改變
+ * 畫面的設計工作，不屬於死碼清理，已記在「修改計劃-加油頁.md」。
+ *
+ * 仍保留的獨有色值（沒有對應變數，維持寫死）：
+ *   #888888 #444444（快速鍵的暗色文字與邊框）
+ *   #ff7a2a #ff6820（橘色按鈕的 hover / active）
+ *   #42a373 #339560（綠色按鈕的 hover / active）
+ *   #606060 #505050 #404040（計算機按鍵層次）
+ *   #1a1a1a（表頭底色）  #5cc9f5 #6fd3a3（油價色塊文字）  #bcbcbc
+ * ------------------------------------------------------------ */
 :root {
     /* ========== 主題色彩系統 ========== */
     /* 基礎色彩 - 與貸款試算工具統一風格 */
-    --primary-color: #333333;       /* 主要背景色（深灰） */
-    --secondary-color: #4a4a4a;     /* 次要背景色（中灰） */
+    --primary-color: #333333;       /* 主要背景色（深灰）＝ body 背景 */
+    --secondary-color: #4a4a4a;     /* 次要背景色（中灰）＝ 各欄位與卡片底色 */
     --button-orange: #ff9c33;       /* 橘色按鈕（功能強調） */
-    --button-blue: #33b5e5;         /* 藍色按鈕（次要功能） */
-    
+    --button-blue: #33b5e5;         /* 藍色（台灣中油油價） */
+
     /* 文字色彩 */
     --text-color: #ffffff;          /* 主要文字色（白色） */
     --border-color: #555555;        /* 邊框顏色 */
     --hover-color: #666666;         /* 懸停顏色 */
     --shadow-color: rgba(0, 0, 0, 0.3); /* 陰影顏色（與支票工具一致）*/
-    
-    /* 保留原有但調整的顏色 */
-    --background-color: #333333;    /* 調整為與支票工具一致的背景色 */
-    --surface-color: #4a4a4a;       /* 調整為與支票工具一致的表面色 */
-    --display-bg: #222222;          /* 輸入框背景色（與支票工具一致）*/
-    --success-color: #52b788;       /* 保留成功綠色 */
-    --error-color: #e74c3c;         /* 調整為與支票工具一致的錯誤紅色 */
-    --input-bg: #222222;
-    
-    /* 字體大小 - 保持不變 */
-    --font-size-title: 20px;
-    --font-size-label: 15px;
-    --font-size-input: 17px;
+
+    --success-color: #52b788;       /* 綠色（台塑石油油價） */
+    --input-bg: #222222;            /* 輸入框與表格底色 */
+
+    /* 字體大小 */
     --font-size-unit: 14px;
-    --input-width: 95px;          /* 新增：統一所有輸入框寬度 */
-    --font-size-button: 16px;
     --font-size-calculator: 20px;
-    
-    /* 間距與圓角 - 保持不變 */
+    --input-width: 95px;            /* 統一所有輸入框寬度 */
+
     /* 間距與圓角 - 調整為更緊湊的設計 */
-    --spacing-xs: 2px;    /* 從 4px 改為 2px - 極小間距 */
-    --spacing-sm: 4px;    /* 從 6px 改為 4px - 小間距 */
-    --spacing-md: 8px;    /* 從 10px 改為 8px - 中間距 */
-    --spacing-lg: 12px;   /* 從 16px 改為 12px - 大間距 */
+    --spacing-xs: 2px;
+    --spacing-sm: 4px;
+    --spacing-md: 8px;
+    --spacing-lg: 12px;
     --radius-sm: 8px;
     --radius-md: 12px;
-    --radius-lg: 16px;
-    
-    /* 陰影 - 保持不變 */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 /* ===== 全域樣式重置 ===== */
@@ -90,7 +111,7 @@ html {
 body {
     /* 使用與支票工具相同的字體設定 */
     font-family: "Microsoft JhengHei", Arial, sans-serif;
-    background-color: var(--background-color);
+    background-color: var(--primary-color);
     color: var(--text-color);  /* 改用 --text-color 變數 */
     min-height: 100%;  /* 改用 % 避免 iOS 上 100vh 被網址列切掉 */
     overflow-x: hidden;
@@ -179,15 +200,6 @@ body {
     min-width: 50px;
 }
 
-/* 單位文字容器 - 確保與按鈕組對齊 */
-.unit-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 70px;  /* 與價格按鈕容器相同寬度 */
-    flex-shrink: 0;
-}
-
 /* ===== 快速價格選擇按鈕樣式 ===== */
 .quick-price-btn {
     /* 統一快速按鈕樣式 - 與貸款試算工具一致 */
@@ -233,22 +245,12 @@ body {
     transform: translateY(-50%);           /* 新增：完成垂直置中 */
 }
 
-/* ===== 統一的按鈕組容器樣式 ===== */
-.button-group-container {
-    /* 所有按鈕組的統一容器樣式 */
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-xs);                 /* 使用最小間距變數 */
-    margin: 2px 0;                          /* 減少上下邊距 */
-    padding: 2px 5px;                       /* 統一內邊距 */
-}
-
 /* ===== 清除按鈕樣式 ===== */
 .clear-button {
     width: 100%;
     padding: 8px 0;
     background-color: var(--secondary-color);
-    color: #ffffff;
+    color: var(--text-color);
     border: 1px solid var(--button-orange);
     border-radius: 6px;
     font-size: 16px;
@@ -420,7 +422,7 @@ body {
 
 /* ===== 計算機顯示螢幕樣式 ===== */
 .calculator-display {
-    background-color: var(--display-bg);    /* 深黑色背景 */
+    background-color: var(--input-bg);      /* 深黑色背景 */
     border: 2px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--spacing-md);
@@ -432,7 +434,7 @@ body {
     align-items: center;
     justify-content: flex-end;
     word-break: break-all;
-    color: var(--text-primary);             /* 白色文字 */
+    color: var(--text-color);               /* 白色文字 */
     font-weight: 300;                       /* 較細的字體 */
 }
 
@@ -455,15 +457,29 @@ body {
     min-height: 50px;
 }
 
-/* 數字按鈕樣式 */
+/* 數字按鈕樣式
+ *
+ * 【2026/07 階段 6 修正一個從一開始就存在的 bug】
+ * 這三行原本引用 var(--text-primary) 與 var(--button-hover)，
+ * 但這兩個變數從來沒有被宣告過（gas.css 與 calculator.css 都沒有）。
+ * CSS 遇到未宣告的變數時，整條宣告會失效：
+ *
+ *   color: var(--text-primary)            → 變成繼承，剛好繼承到白色，看不出異常
+ *   background-color: var(--button-hover) → 變成 transparent，
+ *                                           數字鍵一被按到就整顆變透明
+ *
+ * 手機沒有滑鼠 hover，但觸控裝置點擊後常會套用 :hover，
+ * 所以業務按數字鍵時會看到按鍵閃一下變透明。
+ * 改用已宣告的 --text-color 與 --hover-color。
+ * ------------------------------------------------------------ */
 .calc-button.number {
     background-color: var(--primary-color); /* 深灰色背景 */
-    color: var(--text-primary);
+    color: var(--text-color);
     border: 1px solid var(--border-color);
 }
 
 .calc-button.number:hover {
-    background-color: var(--button-hover);
+    background-color: var(--hover-color);
 }
 
 .calc-button.number:active {
@@ -615,7 +631,7 @@ body {
     overflow-x: auto;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-color);
-    background: #222222;
+    background: var(--input-bg);
 }
 
 .fuel-price-table {
@@ -628,7 +644,7 @@ body {
 
 .fuel-price-table th {
     background-color: #1a1a1a;
-    color: #ff9c33;
+    color: var(--button-orange);
     font-weight: 600;
     padding: 5px 8px;
     border-bottom: 1px solid var(--border-color);
@@ -675,14 +691,14 @@ body {
 .price-val.cpc .price-chip {
     color: #5cc9f5;
     background-color: rgba(51, 181, 229, 0.12);
-    border-color: #33b5e5;
+    border-color: var(--button-blue);
 }
 
 /* 台塑石油：綠色系，與「塑」快速鍵同色 */
 .price-val.formosa .price-chip {
     color: #6fd3a3;
     background-color: rgba(82, 183, 136, 0.12);
-    border-color: #52b788;
+    border-color: var(--success-color);
 }
 
 .table-footnote {
@@ -695,7 +711,7 @@ body {
 
 /* 離線時的更新時間註記：用警示色標出「這不是最新油價」 */
 .table-footnote.is-offline {
-    color: #ff9c33;
+    color: var(--button-orange);
 }
 
 /* ===== 底部緩衝區域樣式 ===== */
@@ -763,7 +779,7 @@ body {
 .quick-adjust-buttons button:hover {
     /* 懸停效果 */
     background-color: rgba(255, 156, 51, 0.15);
-    color: #ffffff;
+    color: var(--text-color);
     transform: translateY(-1px);
 }
 

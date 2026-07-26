@@ -706,23 +706,8 @@ function setDiscountAmount(amount) {
     updateCalculations();
 }
 
-/* ===== 驗證並格式化每月油錢輸入 =====
- * 【目前沒有任何呼叫者】
- * 原本只被那份重複定義的 updateCalculations() 使用，
- * 階段 1-1 把重複的函式刪掉之後，這裡就變成孤兒了。
- * 沒有立刻刪除是為了讓階段 1 的改動範圍只限於 bug 修復，
- * 已登記在「修改計劃-加油頁.md」的階段 6（死碼清理）。
- * 若要新增油錢輸入驗證，請先確認是否該沿用這支而不是再寫一份。
- * ------------------------------------------------------------ */
-function validateMonthlyExpense(value) {
-    // 移除所有非數字字符
-    let cleanValue = String(value).replace(/[^0-9]/g, '');
-    
-    // 轉換為數字
-    let numValue = parseInt(cleanValue) || 0;
-    
-    // 確保為正整數（最小值為0）
-    numValue = Math.max(0, Math.floor(numValue));
-    
-    return numValue;
-}
+/* 註：這裡原本有一支 validateMonthlyExpense()，只被那份重複定義的
+ *     updateCalculations() 使用。階段 1-1 刪掉重複函式後它就沒有呼叫者了，
+ *     階段 6 一併移除。
+ *     現在油錢的驗證由 updateCalculations() 裡的
+ *     parseInt(removeThousandsSeparator(...)) || 0 負責，行為等價。 */

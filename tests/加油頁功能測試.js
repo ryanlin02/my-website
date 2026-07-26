@@ -612,7 +612,77 @@ async function main() {
         cssPx('.fuel-price-table th', 'padding') === 5,
         `${cssPx('.fuel-price-table th', 'padding')}px`);
 
-    console.log('\n=== 19. 設計理念底線：欄位不可喚起系統鍵盤 ===');
+    console.log('\n=== 19. 死碼與主題變數守門（階段 6）===');
+
+    const cssNoComment = gasCss.replace(/\/\*[\s\S]*?\*\//g, '');
+    const rootBlock = (cssNoComment.match(/:root\s*\{([^}]*)\}/) || ['', ''])[1];
+    const declaredVars = new Set([...rootBlock.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+    const referencedVars = new Set([...cssNoComment.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]));
+
+    // 這一項最重要：CSS 遇到未宣告的變數會讓「整條宣告」失效，而且不會報錯。
+    // gas.css 曾經引用 --text-primary 與 --button-hover 兩個從未宣告的變數，
+    // 導致計算機數字鍵一被按到就變透明，這個 bug 從第一版就在，沒人發現。
+    const undeclared = [...referencedVars].filter(v => !declaredVars.has(v));
+    t('沒有引用未宣告的 CSS 變數（否則該宣告會靜默失效）',
+        undeclared.length === 0, undeclared.join(', '));
+
+    const unusedVars = [...declaredVars].filter(v => !referencedVars.has(v));
+    t('沒有宣告卻沒人使用的 CSS 變數',
+        unusedVars.length === 0, unusedVars.join(', '));
+
+    // 主題變數存在的意義就是「改一個地方就好」。內文若還有同值的硬寫死色碼，
+    // 改主題色時就會漏掉那幾處。
+    const themeHex = {};
+    for (const m of rootBlock.matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8})/g)) {
+        themeHex[m[2].toLowerCase()] = m[1];
+    }
+    const bodyCss = cssNoComment.slice(cssNoComment.indexOf('}', cssNoComment.indexOf(':root')) + 1);
+    const strayHex = [...new Set([...bodyCss.matchAll(/#[0-9a-fA-F]{3,8}/g)].map(m => m[0].toLowerCase()))]
+        .filter(h => themeHex[h])
+        .map(h => `${h} 應改用 ${themeHex[h]}`);
+    t('內文沒有與主題變數同值的硬寫死色碼',
+        strayHex.length === 0, strayHex.join('; '));
+
+    // 同值不同名的 token 會讓人改了一個忘了另一個
+    const valueToNames = {};
+    for (const m of rootBlock.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
+        const v = m[2].trim();
+        (valueToNames[v] = valueToNames[v] || []).push(m[1]);
+    }
+    // 間距與圓角剛好同值是合理的（--spacing-md 與 --radius-sm 都是 8px），
+    // 只檢查色彩類的 token 有沒有重複命名
+    const dupColors = Object.entries(valueToNames)
+        .filter(([v, names]) => v.startsWith('#') && names.length > 1)
+        .map(([v, names]) => `${v}: ${names.join(' / ')}`);
+    t('沒有同值不同名的色彩 token', dupColors.length === 0, dupColors.join('; '));
+
+    // ── 已刪除的死碼 ──
+    ['.button-group-container', '.unit-container'].forEach(c => {
+        t(`死 class ${c} 已刪除`, !cssNoComment.includes(c));
+    });
+    t('孤兒函式 validateMonthlyExpense() 已刪除',
+        !/function\s+validateMonthlyExpense/.test(mainScript));
+
+    // ── 全站 CSS 都不該有失效的變數 ──
+    // 這個 bug 類型不限於加油頁，順手把四頁都守住
+    const sheetsByPage = {
+        'calculator.html': ['calculator.css'],
+        'check.html': ['calculator.css', 'check.css'],
+        'invoice.html': ['invoice.css'],
+        'gas.html': ['gas.css']
+    };
+    Object.entries(sheetsByPage).forEach(([page, sheets]) => {
+        let declared = new Set(), referenced = new Set();
+        sheets.forEach(s => {
+            const c = fs.readFileSync(path.join(R, 'css', s), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+            [...c.matchAll(/(--[\w-]+)\s*:/g)].forEach(m => declared.add(m[1]));
+            [...c.matchAll(/var\(\s*(--[\w-]+)/g)].forEach(m => referenced.add(m[1]));
+        });
+        const bad = [...referenced].filter(v => !declared.has(v));
+        t(`  ${page} 沒有失效的 CSS 變數`, bad.length === 0, bad.join(', '));
+    });
+
+    console.log('\n=== 20. 設計理念底線：欄位不可喚起系統鍵盤 ===');
     ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'].forEach(id => {
         t(`${id} 為 readonly（不會跳系統鍵盤）`, d.getElementById(id).hasAttribute('readonly'));
     });
