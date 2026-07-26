@@ -1,0 +1,774 @@
+/* ============================================
+ * 重車貸款業務工具箱 - 加油頁專用樣式 (gas.css)
+ * --------------------------------------------
+ * 【2026/07 階段 2】
+ * 這些樣式原本是 752 行內嵌在 pages/gas.html 的 <style> 裡。
+ * 加油頁是四個功能頁中最後一個還沒拆檔的，拆出來的理由與
+ * check.css / invoice.css 相同：
+ *   1. HTML 結構被樣式淹沒（1727 行裡有 1330 行是 CSS + JS）
+ *   2. 改主題色要在兩個地方各改一次
+ *   3. 無法與其他頁面的樣式一起被瀏覽器快取
+ *
+ * 【這次搬移刻意「只搬不改」】
+ * 本檔與 calculator.css 有 8 個同名選擇器
+ * (#timeDisplay / .sticky-header / .divider-flow / .time-display-wrapper /
+ *  .time-label / .input-button-group / .calculator-display / .calculator-buttons)
+ * 與 31 個重複的 CSS 變數。但兩邊的數值不一定相同，
+ * 合併會改變視覺，因此留到「修改計劃-加油頁.md」的階段 5-4 逐一比對。
+ * 這一步的目標只有一個：搬完之後畫面長得完全一樣。
+ *
+ * 注意：本檔案已登記在 sw.js 的預快取清單，
+ *       改檔名的話 sw.js 要一起改，否則離線時整頁會沒有樣式。
+ * ============================================ */
+
+/* ===== 主題外觀集中管理區 ===== */
+:root {
+    /* ========== 主題色彩系統 ========== */
+    /* 基礎色彩 - 與貸款試算工具統一風格 */
+    --primary-color: #333333;       /* 主要背景色（深灰） */
+    --secondary-color: #4a4a4a;     /* 次要背景色（中灰） */
+    --button-orange: #ff9c33;       /* 橘色按鈕（功能強調） */
+    --button-blue: #33b5e5;         /* 藍色按鈕（次要功能） */
+    
+    /* 文字色彩 */
+    --text-color: #ffffff;          /* 主要文字色（白色） */
+    --border-color: #555555;        /* 邊框顏色 */
+    --hover-color: #666666;         /* 懸停顏色 */
+    --shadow-color: rgba(0, 0, 0, 0.3); /* 陰影顏色（與支票工具一致）*/
+    
+    /* 保留原有但調整的顏色 */
+    --background-color: #333333;    /* 調整為與支票工具一致的背景色 */
+    --surface-color: #4a4a4a;       /* 調整為與支票工具一致的表面色 */
+    --display-bg: #222222;          /* 輸入框背景色（與支票工具一致）*/
+    --success-color: #52b788;       /* 保留成功綠色 */
+    --error-color: #e74c3c;         /* 調整為與支票工具一致的錯誤紅色 */
+    --input-bg: #222222;
+    
+    /* 字體大小 - 保持不變 */
+    --font-size-title: 20px;
+    --font-size-label: 15px;
+    --font-size-input: 17px;
+    --font-size-unit: 14px;
+    --input-width: 95px;          /* 新增：統一所有輸入框寬度 */
+    --font-size-button: 16px;
+    --font-size-calculator: 20px;
+    
+    /* 間距與圓角 - 保持不變 */
+    /* 間距與圓角 - 調整為更緊湊的設計 */
+    --spacing-xs: 2px;    /* 從 4px 改為 2px - 極小間距 */
+    --spacing-sm: 4px;    /* 從 6px 改為 4px - 小間距 */
+    --spacing-md: 8px;    /* 從 10px 改為 8px - 中間距 */
+    --spacing-lg: 12px;   /* 從 16px 改為 12px - 大間距 */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    
+    /* 陰影 - 保持不變 */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== 全域樣式重置 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ===== 主體樣式 ===== */
+html {
+    height: 100%;  /* 讓下方 body 的 min-height: 100% 有依據 */
+
+    /* 內頁捲到頂／底時不要把捲動傳給外層外殼，避免出現兩層滑動的錯覺。
+     * 注意：這行只能寫在 html，絕對不能加到 body。
+     * 寫在 body 上會把「滾輪事件往上傳到捲動層」的路徑一起擋掉，
+     * 導致整頁完全捲不動（已實測確認）。 */
+    overscroll-behavior-y: contain;
+}
+
+body {
+    /* 使用與支票工具相同的字體設定 */
+    font-family: "Microsoft JhengHei", Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);  /* 改用 --text-color 變數 */
+    min-height: 100%;  /* 改用 % 避免 iOS 上 100vh 被網址列切掉 */
+    overflow-x: hidden;
+    /* 新增與支票工具一致的設定 */
+    margin: 0 auto;
+    max-width: 400px;  /* 限制最大寬度與支票工具一致 */
+    padding: 0 3px;    /* 添加左右邊距 */
+}
+
+/* ===== 主要內容區域 ===== */
+.container {
+    padding: calc(0px);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* ===== 輸入欄位橫向排版 - 修改版 ===== */
+.input-row {
+    /* 調整為與貸款試算工具一致的樣式 */
+    background-color: var(--secondary-color);
+    border-radius: 4px;
+    padding: 3px;                           /* 保持 3px 內距 */
+    margin: 4px 0;                          /* 保持上下 4px 間距 */
+    box-shadow: 0 4px 8px var(--shadow-color); /* 保持陰影效果 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);                 /* 使用變數控制內部間距 */
+    transition: all 0.3s ease;
+    position: relative;
+    transform-origin: left;
+    will-change: transform;
+    min-height: 32px;                       /* 新增：設定最小高度確保一致性 */
+}
+
+/* ===== 欄位標題樣式 - 靠右對齊輸入框 ===== */
+.input-label {
+    font-size: 16px;                        /* 統一使用 16px */
+    color: var(--text-color);               /* 使用變數控制顏色 */
+    font-weight: normal;                    /* 使用正常字重 */
+    flex-shrink: 0;
+    margin-right: 8px;                      /* 從 0 改為 8px */
+    width: 75px;                            /* 新增：固定寬度確保對齊 */
+    text-align: right;                      /* 新增：右對齊 */
+}
+
+/* ===== 輸入框容器 - 用於置中對齊 ===== */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-width: 180px;              /* 新增：統一右側區域最小寬度 */
+    justify-content: flex-start;   /* 新增：左對齊內容 */
+    position: relative;            /* 新增：為絕對定位做準備 */
+}
+
+/* ===== 輸入框樣式 - 調整寬度 ===== */
+.input-field {
+    width: var(--input-width);              /* 修改：使用統一的寬度變數 */
+    background-color: var(--input-bg);      /* 使用變數而非硬編碼顏色 */
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 5px var(--spacing-sm);         /* 使用變數控制內邊距 */
+    font-size: 16px;
+    text-align: right;
+    outline: none;
+    transition: all 0.3s ease;
+    color: var(--text-color);
+    cursor: pointer;
+    margin-right: 10px;                     /* 新增：與單位文字的間距 */
+    flex-shrink: 0;                         /* 新增：防止輸入框被壓縮 */
+}
+
+.input-field:focus {
+    /* 調整聚焦樣式與支票工具一致 */
+    border-color: var(--button-orange);
+    box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.2);
+    transform: scale(1.02);  /* 輕微放大效果 */
+}
+
+/* ===== 單位樣式 - 顯示在輸入框右側 ===== */
+.input-unit {
+    font-size: var(--font-size-unit);
+    color: var(--text-color);  /* 修正：使用已定義的變數 */
+    flex-shrink: 0;
+    min-width: 50px;
+}
+
+/* 單位文字容器 - 確保與按鈕組對齊 */
+.unit-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;  /* 與價格按鈕容器相同寬度 */
+    flex-shrink: 0;
+}
+
+/* ===== 快速價格選擇按鈕樣式 ===== */
+.quick-price-btn {
+    /* 統一快速按鈕樣式 - 與貸款試算工具一致 */
+    padding: 3px 8px;                       /* 調整內邊距 */
+    background-color: var(--secondary-color);
+    color: #888888;                         /* 使用較暗的文字色 */
+    border: 1px solid #444444;              /* 使用較暗的邊框 */
+    border-radius: 4px;
+    font-size: 15px;                        /* 從 13px 改為 15px */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto;                            /* 改為自動寬度 */
+    min-width: 35px;                        /* 設定最小寬度 */
+    opacity: 0.8;
+    flex-shrink: 0;
+    margin: 0 2px;                          /* 新增：按鈕間距 */
+}
+
+/* 滑鼠懸停時的效果 */
+.quick-price-btn:hover {
+    background-color: var(--hover-color);  /* 懸停時背景色變亮 */
+    opacity: 1;                            /* 完全不透明 */
+    transform: scale(1.05);                /* 輕微放大 */
+}
+
+/* 按下按鈕時的效果 */
+.quick-price-btn:active {
+    transform: scale(0.95);                /* 按下時縮小 */
+    opacity: 0.9;                          /* 略微透明 */
+}
+
+/* ===== 快速價格按鈕容器樣式 ===== */
+.price-buttons-container {
+    display: flex;                         /* 使用彈性盒子布局 */
+    justify-content: center;
+    gap: 2px;                              /* 兩個按鈕之間的間距 */
+    min-width: 70px;                      /* 最小寬度70px（與單位容器相同） */
+    align-items: center;                   /* 垂直置中對齊 */
+    flex-shrink: 0;                        /* 防止容器被壓縮 */
+    position: absolute;                    /* 新增：絕對定位 */
+    right: 0;                             /* 新增：固定在右側 */
+    top: 50%;                             /* 新增：垂直置中 */
+    transform: translateY(-50%);           /* 新增：完成垂直置中 */
+}
+
+/* ===== 統一的按鈕組容器樣式 ===== */
+.button-group-container {
+    /* 所有按鈕組的統一容器樣式 */
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xs);                 /* 使用最小間距變數 */
+    margin: 2px 0;                          /* 減少上下邊距 */
+    padding: 2px 5px;                       /* 統一內邊距 */
+}
+
+/* ===== 清除按鈕樣式 ===== */
+.clear-button {
+    width: 100%;
+    padding: 8px 0;
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border: 1px solid var(--button-orange);
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-top: var(--spacing-sm);          /* 使用變數控制間距 */
+    position: relative;
+    overflow: hidden;
+}
+
+.clear-button:hover {
+    background-color: var(--button-orange);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.clear-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== 時間顯示欄位樣式 - 從支票試算工具複製 ===== */
+.time-display-wrapper {
+    position: relative;                    /* 相對定位 */
+    height: auto;                          /* 自動高度 */
+    margin: 4px 0;                         /* 修改：與其他欄位相同的上下邊距 */
+    padding-top: 12px;                     /* 新增：增加與螢幕頂端的距離 */
+    z-index: 1000;                         /* 設定層級確保在最上方 */
+}
+
+.sticky-header {
+    position: -webkit-sticky !important;   /* Safari瀏覽器相容性 */
+    position: sticky !important;           /* 黏性定位 */
+    top: 10px;                             /* 修改：從頂部往下 10px，增加與螢幕頂端距離 */
+    background: var(--secondary-color);    /* 使用統一的次要背景色 */
+    padding: 3px;                          /* 修改：與輸入欄位相同的內部間距 */
+    border-radius: 4px;                    /* 圓角邊框 */
+    box-shadow: 0 4px 8px var(--shadow-color);  /* 修改：與輸入欄位相同的陰影效果 */
+    animation: fadeIn 0.8s ease-out;       /* 淡入動畫 */
+    transition: all 0.3s ease;            /* 過渡動畫 */
+    z-index: 999;                          /* 層級設定 */
+    width: 100%;                           /* 新增：確保寬度與其他欄位一致 */
+    box-sizing: border-box;               /* 新增：確保 padding 包含在寬度內 */
+}
+
+#timeDisplay {
+    margin: 4px 0;                         /* 修改：與輸入欄位相同的上下邊距 */
+    font-size: 15px;                       /* 字體大小 */
+    background: var(--secondary-color);    /* 背景顏色 */
+    color: var(--text-color);              /* 文字顏色 */
+    padding: 8px;                          /* 修改：與輸入欄位相同的內部間距 */
+    border-radius: 4px;                    /* 圓角邊框 */
+    box-shadow: 0 4px 8px var(--shadow-color);  /* 修改：與輸入欄位相同的陰影效果 */
+    animation: fadeIn 0.8s ease-out;       /* 淡入動畫 */
+    transition: all 0.3s ease;            /* 過渡效果 */
+    position: relative;                    /* 相對定位，為動畫線條做準備 */
+    overflow: hidden;                      /* 隱藏超出邊界的內容 */
+    display: flex;                         /* 新增：使用彈性盒子布局 */
+    align-items: center;                   /* 新增：垂直置中對齊 */
+    justify-content: center;               /* 新增：水平置中對齊 */
+    gap: var(--spacing-sm);                /* 新增：與輸入欄位相同的間距變數 */
+    transform-origin: left;                /* 新增：變形起點設為左側 */
+    will-change: transform;                /* 新增：優化動畫效能 */
+}
+
+/* 時間顯示上方的動畫線條 */
+#timeDisplay::before {
+    content: '';                           /* 空內容 */
+    position: absolute;                    /* 絕對定位 */
+    top: 0;                               /* 位於頂部 */
+    left: -100%;                          /* 初始位置在左側外部 */
+    width: 100%;                          /* 寬度100% */
+    height: 2px;                          /* 高度2像素 */
+    background: linear-gradient(90deg, transparent, var(--button-orange), transparent);  /* 漸層背景 */
+    animation: timelineSlide 3s linear infinite;  /* 滑動動畫，3秒循環 */
+}
+
+/* 動畫線條滑動效果 */
+@keyframes timelineSlide {
+    0% { left: -100%; }                   /* 開始位置：左側外部 */
+    100% { left: 100%; }                  /* 結束位置：右側外部 */
+}
+
+.time-label {
+    font-weight: bold;                     /* 粗體字 */
+    margin-right: 10px;                    /* 右邊距 */
+    color: var(--button-orange);          /* 橘色文字 */
+    flex-shrink: 0;                        /* 新增：防止文字被壓縮 */
+}
+
+/* 淡入動畫效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }  /* 從透明且向下偏移開始 */
+    to { opacity: 1; transform: translateY(0); }       /* 到完全顯示且回到原位 */
+}
+
+/* ===== 動畫分隔線樣式 - 從支票試算工具複製 ===== */
+.divider-flow {
+    position: relative;                    /* 相對定位 */
+    height: 2px;                          /* 高度2像素 */
+    background: linear-gradient(90deg,     /* 水平漸層背景 */
+        var(--secondary-color) 0%,        /* 開始：次要背景色 */
+        var(--button-orange) 50%,         /* 中間：橘色 */
+        var(--secondary-color) 100%);     /* 結束：次要背景色 */
+    margin: 4px 0;                        /* 上下邊距4像素 */
+    overflow: hidden;                     /* 隱藏超出邊界的內容 */
+}
+
+/* 分隔線上的流光效果 */
+.divider-flow::after {
+    content: '';                          /* 空內容 */
+    position: absolute;                   /* 絕對定位 */
+    top: 0;                              /* 位於頂部 */
+    left: -100%;                         /* 初始位置在左側外部 */
+    width: 100%;                         /* 寬度100% */
+    height: 100%;                        /* 高度100% */
+    background: linear-gradient(90deg,    /* 流光漸層效果 */
+        transparent,                      /* 透明開始 */
+        rgba(255, 156, 51, 0.8),         /* 半透明橘色 */
+        transparent);                     /* 透明結束 */
+    animation: flowLight 3s linear infinite;  /* 從 ease-in-out 改為 linear */
+}
+
+/* 流光動畫效果 */
+@keyframes flowLight {
+    0% { 
+        left: -100%;                        /* 使用 left 屬性而非 transform */
+    }
+    100% { 
+        left: 100%;                         /* 與貸款試算工具一致 */
+    }
+}
+
+/* ===== 計算機彈出視窗樣式 ===== */
+.calculator-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8); /* 更深的遮罩層 */
+    z-index: 200;
+    animation: fadeIn 0.3s ease;
+}
+
+.calculator-modal.active {
+    display: flex;
+    align-items: center;  /* 從 flex-end 改為 center，讓內容垂直置中 */
+    justify-content: center;
+}
+
+/* ===== 計算機容器樣式 ===== */
+.calculator-container {
+    /* 調整為與支票工具的數字輸入器一致 */
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    padding: 15px;
+    width: 90%;
+    max-width: 350px;  /* 縮小最大寬度 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeInScale 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid var(--button-orange);  /* 橘色邊框 */
+}
+
+/* ===== 計算機顯示螢幕樣式 ===== */
+.calculator-display {
+    background-color: var(--display-bg);    /* 深黑色背景 */
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    font-size: 24px;
+    text-align: right;
+    margin-bottom: var(--spacing-md);
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    word-break: break-all;
+    color: var(--text-primary);             /* 白色文字 */
+    font-weight: 300;                       /* 較細的字體 */
+}
+
+/* ===== 計算機按鈕網格樣式 ===== */
+.calculator-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-sm);
+}
+
+/* ===== 計算機按鈕樣式 ===== */
+.calc-button {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-calculator);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    min-height: 50px;
+}
+
+/* 數字按鈕樣式 */
+.calc-button.number {
+    background-color: var(--primary-color); /* 深灰色背景 */
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.calc-button.number:hover {
+    background-color: var(--button-hover);
+}
+
+.calc-button.number:active {
+    background-color: var(--border-color);
+    transform: scale(0.95);
+}
+
+/* 運算符按鈕樣式 */
+.calc-button.operator {
+    background-color: var(--secondary-color); /* 橘色背景 */
+    color: white;
+    font-weight: bold;
+}
+
+.calc-button.operator:hover {
+    background-color: #ff7a2a;
+}
+
+.calc-button.operator:active {
+    background-color: #ff6820;
+    transform: scale(0.95);
+}
+
+/* 確認按鈕樣式 */
+.calc-button.confirm {
+    background-color: var(--success-color);
+    color: white;
+    grid-column: span 2;
+    font-weight: bold;
+}
+
+.calc-button.confirm:hover {
+    background-color: #42a373;
+}
+
+.calc-button.confirm:active {
+    background-color: #339560;
+    transform: scale(0.95);
+}
+
+/* 取消按鈕樣式 */
+.calc-button.cancel {
+    background-color: #606060;              /* 中灰色背景 */
+    color: white;
+    grid-column: span 2;
+}
+
+.calc-button.cancel:hover {
+    background-color: #505050;
+}
+
+.calc-button.cancel:active {
+    background-color: #404040;
+    transform: scale(0.95);
+}
+
+/* ===== 動畫效果 ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* 新增縮放淡入動畫 */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ===== 響應式設計 ===== */
+@media (max-width: 360px) {
+    .input-label {
+        font-size: 13px;
+    }
+    
+    .input-field {
+        width: 100px;
+        font-size: 15px;
+        padding: var(--spacing-xs) var(--spacing-xs);
+    }
+    
+    .input-unit {
+        font-size: 12px;
+        min-width: 45px;
+    }
+}
+
+/* ===== 本週油價對照表樣式 ===== */
+.price-checker-container {
+    margin-top: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    background-color: var(--secondary-color);
+    padding: 16px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-checker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+}
+
+.price-checker-title {
+    font-size: 16px;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.price-update-tag {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fuel-price-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: #222222;
+}
+
+.fuel-price-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.fuel-price-table th {
+    background-color: #1a1a1a;
+    color: #ff9c33;
+    font-weight: 600;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.fuel-price-table td {
+    padding: 11px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    white-space: nowrap;
+}
+
+.fuel-price-table tr:last-child td {
+    border-bottom: none;
+}
+
+.price-val {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.price-val:hover {
+    opacity: 0.85;
+    text-decoration: underline;
+}
+
+.price-val:active {
+    transform: scale(0.95);
+}
+
+.price-val.cpc {
+    color: #33b5e5;
+}
+
+.price-val.formosa {
+    color: #52b788;
+}
+
+.table-footnote {
+    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: right;
+    line-height: 1.4;
+}
+
+/* ===== 底部緩衝區域樣式 ===== */
+.bottom-buffer-container {
+    margin-top: var(--spacing-lg);          /* 與油價查詢框架的間距 */
+    padding: var(--spacing-lg) var(--spacing-md); /* 上下左右內邊距 */
+    text-align: center;                     /* 文字置中對齊 */
+    background-color: transparent;          /* 透明背景，不干擾整體設計 */
+}
+
+/* 針對較小螢幕調整底部緩衝區域 */
+@media (max-width: 360px) {
+    .bottom-buffer-container {
+        padding: var(--spacing-md) var(--spacing-sm); /* 小螢幕時減少內邊距 */
+    }   
+}
+
+/* ===== 輸入欄位按鈕組樣式 ===== */
+.input-button-group {
+    /* 輸入欄位與按鈕的組合容器 */
+    border: 1px solid var(--border-color);  /* 新增：外框線 */
+    border-radius: 8px;                     /* 從 4px 改為 8px */
+    margin: 4px 0;
+    padding: 1px;                           /* 從 3px 改為 1px */
+    background: var(--secondary-color);
+    box-shadow: 0 4px 8px var(--shadow-color);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+/* 組內的輸入行樣式調整 */
+.input-button-group .input-row {
+    background: transparent;                /* 透明背景 */
+    box-shadow: none;                       /* 移除陰影 */
+    margin: 2px 0;                          /* 減少間距 */
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+/* ===== 快速調整按鈕樣式 ===== */
+.quick-adjust-buttons {
+    /* 按鈕組容器 */
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 5px;
+    gap: 4px;
+}
+
+.quick-adjust-buttons button {
+    /* 統一按鈕樣式 - 參考貸款試算工具設計 */
+    flex: 1;
+    min-width: 40px;
+    padding: 4px 2px;
+    background-color: var(--secondary-color);
+    color: #bcbcbc;
+    border: 1px solid var(--button-orange);
+    border-radius: 4px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.9;
+}
+
+.quick-adjust-buttons button:hover {
+    /* 懸停效果 */
+    background-color: rgba(255, 156, 51, 0.15);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.quick-adjust-buttons button:active {
+    /* 點擊效果 */
+    transform: translateY(1px);
+    background-color: rgba(255, 156, 51, 0.3);
+}
+
+/* 新增：油品單價專用輸入容器 - 確保與其他欄位對齊 */
+.diesel-price-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-width: 180px;              /* 與其他輸入容器相同寬度 */
+    justify-content: flex-start;   /* 左對齊內容 */
+    position: relative;            /* 為按鈕絕對定位做準備 */
+}
+
+/* 油品單價輸入框 - 確保與其他欄位垂直對齊 */
+.diesel-price-wrapper .input-field {
+    width: var(--input-width);    /* 使用統一寬度變數 */
+    margin-right: 80px;           /* 為右側按鈕預留空間 */
+}
+
+/* 油品單價的快速按鈕組 - 絕對定位避免影響對齊 */
+.diesel-price-wrapper .price-buttons-container {
+    position: absolute;           /* 絕對定位 */
+    right: -5px;                 /* 距離右邊10px */
+    top: 50%;                    /* 垂直置中 */
+    transform: translateY(-50%); /* 完成垂直置中 */
+    min-width: 60px;             /* 按鈕組寬度 */
+}
