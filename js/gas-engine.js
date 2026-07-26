@@ -17,10 +17,11 @@
  * 注意：本檔案已登記在 sw.js 的預快取清單。
  * ------------------------------------------------------------ */
 
-/* ===== 全域變數 ===== */
-let currentInput = ''; // 當前輸入的欄位ID
-let calcExpression = ''; // 計算機運算式
-let lastResult = '0'; // 上次計算結果
+/* ===== 全域變數 =====
+ * 註：currentInput / calcExpression / lastResult 三個變數已於 2026/07 移除，
+ *     它們是自有計算機的狀態。改用共用鍵盤後，對應的狀態改由
+ *     js/common-keypad.js 的 currentInputField / calculatorValue 管理。
+ * ------------------------------------------------------------ */
 let lastModifiedField = ''; // 最後修改的欄位
 let hasResultsShown = false; // 結果區是否已有數字（用來判斷「完成一次試算」的時機）
 
@@ -46,13 +47,10 @@ function trackGasEvent(eventName, parameters = {}) {
     }
 }
 
-/* ===== 震動回饋函數 ===== */
-function vibrate(duration = 10) {
-    // 檢查瀏覽器是否支援震動 API
-    if ('vibrate' in navigator) {
-        navigator.vibrate(duration);
-    }
-}
+/* 註：震動回饋 vibrate() 已於 2026/07 移除，改用 js/common-keypad.js 那一支。
+ *     兩支同名函式會互相覆蓋（後載入的贏），本檔載在後面，
+ *     等於會把共用鍵盤的手感偷偷改掉。共用版已改為可帶參數
+ *     vibrate(duration = 30)，本頁原本用的 5／10／15／20 毫秒全部照用。 */
 
 /* ===== 初始化函數 =====
  *
@@ -67,21 +65,21 @@ function vibrate(duration = 10) {
  * 整頁會變成完全不能操作。
  * ------------------------------------------------------------ */
 function initGasPage() {
-    // 為可編輯的輸入框添加點擊事件
-    // 這四個欄位可以點擊開啟計算機介面
-    const editableFields = ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'];
-    editableFields.forEach(fieldId => {
+    /* 四個可編輯欄位點一下就開共用鍵盤。
+     * 第二個參數是彈窗標題，讓業務在鍵盤蓋住畫面時仍知道自己在填哪一欄 ——
+     * 這是共用鍵盤比舊版自有鍵盤好的地方，舊版標題是寫死的。 */
+    const editableFields = {
+        dieselPrice: '油品單價（元/公升）',
+        monthlyExpense: '每月油錢（元）',
+        monthlyVolume: '每月油量（公升）',
+        discountAmount: '折扣金額（元/公升）'
+    };
+    Object.keys(editableFields).forEach(fieldId => {
         const field = document.getElementById(fieldId);
-        field.addEventListener('click', function() {
-            openCalculator(fieldId); // 開啟計算機並傳入欄位ID
+        if (!field) return;
+        field.addEventListener('click', function () {
+            openCalculator(fieldId, editableFields[fieldId]);
         });
-    });
-    
-    // 點擊計算機外部區域（遮罩層）關閉計算機
-    document.getElementById('calculatorModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeCalculator();
-        }
     });
 
     // 初始化時間顯示
@@ -244,165 +242,69 @@ function setDieselPrice(price, source = 'quick_default') {
     trackGasEvent('fuel_price_selected', { price: price, source: source });
 }
 
-/* ===== 開啟計算機函數 ===== */
-function openCalculator(inputId) {
-    vibrate(); // 添加震動回饋
-    currentInput = inputId; // 記錄當前操作的輸入框ID
-    const modal = document.getElementById('calculatorModal');
-    const display = document.getElementById('calcDisplay');
-    
-    // 取得當前輸入框的值（移除千分位符號）
-    const fieldValue = document.getElementById(inputId).value;
-    let currentValue = removeThousandsSeparator(fieldValue);
-    
-    // 如果欄位是空的或為0，設定為0
-    if (!currentValue || currentValue === '0') {
-        calcExpression = '0';
-    } else {
-        // 根據不同輸入框設定初始值
-        if (inputId === 'dieselPrice' || inputId === 'discountAmount') {
-            // 保留小數（油品單價和折扣金額）
-            calcExpression = parseFloat(currentValue).toString();
-        } else {
-            // 只取整數（每月油錢和每月油量）
-            calcExpression = parseInt(currentValue).toString();
-        }
-    }
-    
-    display.textContent = calcExpression;
-    modal.classList.add('active'); // 顯示計算機視窗
-}
+/* ===== 鍵盤輸入回寫 =====
+ *
+ * 【2026/07 階段 4：加油頁改用共用鍵盤】
+ * 這裡原本有一整套自有計算機：openCalculator / closeCalculator /
+ * calcInput / calcClear / calcBackspace / calcEquals / confirmCalculation
+ * 共 7 個函式 147 行，外加 gas.html 的 43 行鍵盤 HTML 與 gas.css 的 18 條樣式。
+ *
+ * 那套鍵盤把運算式交給 new Function 求值，所以它有運算優先順序；
+ * 而共用鍵盤當時沒有 —— 同一個 App 裡有兩台答案不同的計算機
+ * （1000+2000×3 在加油頁得 7000、在計算頁得 9000）。
+ * 先讓共用鍵盤取得優先順序（見 js/common-keypad.js），
+ * 再把這頁遷移過來，兩件事就一起解決了。
+ *
+ * 現在鍵盤的開啟、按鍵、運算、關閉全部由共用模組負責，
+ * 本頁只需要實作這一支「把結果寫回欄位」—— 與計算頁的
+ * calc-ui.js 和支票頁的 check-engine.js 是同一個模式。
+ *
+ * 共用鍵盤把使用者算完的值放在全域 calculatorValue，
+ * 要寫入哪個欄位放在 currentInputField（都宣告在 common-keypad.js）。
+ * ------------------------------------------------------------ */
+function submitCalculatorValue() {
+    if (!currentInputField) return;
 
-/* ===== 關閉計算機函數 ===== */
-function closeCalculator() {
-    vibrate(10); // 震動回饋
-    const modal = document.getElementById('calculatorModal');
-    modal.classList.remove('active');
-    calcExpression = '';
-    currentInput = '';
-}
+    let value = parseFloat(calculatorValue);
+    if (isNaN(value)) value = 0;
 
-/* ===== 計算機輸入函數 ===== */
-function calcInput(value) {
-    vibrate(5); // 輕微震動回饋
-    
-    // 如果當前顯示為0且輸入不是小數點，則替換而不是追加
-    if (calcExpression === '0' && value !== '.') {
-        calcExpression = value;
-    } else {
-        // 防止連續輸入運算符
-        const lastChar = calcExpression.slice(-1);
-        const operators = ['+', '-', '*', '/'];
-        
-        // 如果連續輸入運算符，不執行任何動作
-        if (operators.includes(value) && operators.includes(lastChar)) {
-            return;
-        }
-        
-        // 處理小數點輸入
-        if (value === '.') {
-            // 將運算式按運算符分割，取最後一部分
-            const parts = calcExpression.split(/[\+\-\*\/]/);
-            const currentPart = parts[parts.length - 1];
-            // 如果當前部分已包含小數點，不再添加
-            if (currentPart.includes('.')) {
-                return;
-            }
-            // 如果當前部分為空或最後是運算符，自動補0
-            if (currentPart === '' || operators.includes(lastChar)) {
-                calcExpression += '0';
-            }
-        }
-        
-        calcExpression += value;
-    }
-    
-    // 更新計算機顯示
-    document.getElementById('calcDisplay').textContent = calcExpression;
-}
+    const field = document.getElementById(currentInputField);
+    if (!field) return;
 
-/* ===== 計算機清除函數 ===== */
-function calcClear() {
-    vibrate(10); // 震動回饋
-    calcExpression = '0';
-    document.getElementById('calcDisplay').textContent = '0';
-}
-
-/* ===== 計算機退格函數 ===== */
-function calcBackspace() {
-    vibrate(5); // 輕微震動回饋
-    if (calcExpression.length > 1) {
-        calcExpression = calcExpression.slice(0, -1);
-    } else {
-        calcExpression = '0';
-    }
-    document.getElementById('calcDisplay').textContent = calcExpression;
-}
-
-/* ===== 計算機等於函數 ===== */
-function calcEquals() {
-    vibrate(10); // 震動回饋
-    try {
-        // 使用 Function 建立安全的計算環境
-        const result = new Function('return ' + calcExpression)();
-        lastResult = result.toString();
-        calcExpression = lastResult;
-        document.getElementById('calcDisplay').textContent = lastResult;
-    } catch (e) {
-        document.getElementById('calcDisplay').textContent = '錯誤';
-        calcExpression = '0';
-    }
-}
-
-/* ===== 確認計算結果函數 ===== */
-function confirmCalculation() {
-    vibrate(15); // 較強的震動回饋，表示確認動作
-    try {
-        // 如果沒有輸入任何內容，使用0
-        if (!calcExpression || calcExpression === '') {
-            calcExpression = '0';
-        }
-        
-        // 計算最終結果
-        let result;
-        try {
-            // 使用 Function 建立安全的計算環境
-            result = new Function('return ' + calcExpression)();
-        } catch (e) {
-            // 如果計算失敗，直接使用當前顯示的值
-            result = parseFloat(calcExpression) || 0;
-        }
-        
-        // 根據不同輸入框處理結果
-        const field = document.getElementById(currentInput);
-        
-        if (currentInput === 'dieselPrice') {
-            // 油品單價：限制為正數，保留1位小數
+    switch (currentInputField) {
+        case 'dieselPrice':
+            // 油品單價：不可為負，保留 1 位小數
             // （欄位 id 沿用 dieselPrice，但現在可帶入 92/95/98 汽油價，不限柴油）
-            result = Math.max(0, result);
-            result = Math.round(result * 10) / 10;
-            field.value = result.toFixed(1);
-        } else if (currentInput === 'discountAmount') {
-            // 折扣金額：0-5之間，保留1位小數
-            result = Math.max(0, Math.min(5, result));
-            result = Math.round(result * 10) / 10;
-            field.value = result.toFixed(1);
-        } else if (currentInput === 'monthlyExpense' || currentInput === 'monthlyVolume') {
-            // 每月油錢和油量：正整數，添加千分位符號
-            result = Math.max(0, Math.round(result));
-            field.value = formatNumberWithCommas(result);
-        }
-        
-        // 記錄最後修改的欄位
-        lastModifiedField = currentInput;
-        
-        // 關閉計算機並更新所有相關計算
-        closeCalculator();
-        updateCalculations();
-    } catch (e) {
-        alert('計算錯誤，請重新輸入');
-        console.error('計算錯誤:', e);
+            value = Math.max(0, Math.round(value * 10) / 10);
+            field.value = value.toFixed(1);
+            break;
+
+        case 'discountAmount':
+            // 折扣金額：夾在 0～5 元，保留 1 位小數
+            // 上限 5 是業務常識 —— 每公升折超過 5 元不可能，
+            // 出現那種數字幾乎都是手誤多按一位。
+            if (value > 5) showToast('折扣金額上限為 5.0 元/公升', true);
+            value = Math.max(0, Math.min(5, Math.round(value * 10) / 10));
+            field.value = value.toFixed(1);
+            break;
+
+        case 'monthlyExpense':
+        case 'monthlyVolume':
+            // 每月油錢與油量：正整數 + 千分位
+            value = Math.max(0, Math.round(value));
+            field.value = formatNumberWithCommas(value);
+            break;
+
+        default:
+            return;
     }
+
+    // 記錄最後修改的欄位，updateCalculations() 靠它決定推算方向
+    lastModifiedField = currentInputField;
+
+    closeModal('numberInputModal');
+    updateCalculations();
+    vibrate(15);
 }
 
 /* ===== 更新所有計算函數 =====

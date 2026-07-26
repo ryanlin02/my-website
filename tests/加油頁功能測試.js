@@ -62,18 +62,34 @@ if (!scripts.includes('gas-engine.js')) {
     process.exit(1);
 }
 
-// mainScript 供後面的原始碼守門測試使用
+/* 共用鍵盤的選項寫在 gas.html 的內嵌 <script> 裡（必須早於 common-modals.js
+ * 執行，所以不能外部化）。jsdom 用 runScripts:'outside-only' 不會執行內嵌腳本，
+ * 這裡從 HTML 把那一段抓出來自己跑一次 —— 直接讀真實設定，
+ * 而不是在測試裡另外寫一份，兩邊才不會各說各話。 */
+const optBlock = (html.match(/<script>\s*(window\.KEYPAD_OPTIONS[\s\S]*?)<\/script>/) || [])[1];
+if (optBlock) ev(optBlock);
+
+// mainScript 供後面的原始碼守門測試使用（只含加油頁自己的引擎，不含共用模組）
 let mainScript = '';
 for (const f of scripts) {
-    // indirect eval 下 let 不會留在全域，換成 var 才能跨 eval 呼叫
-    const src = fs.readFileSync(path.join(R, 'js', f), 'utf8').replace(/^let /gm, 'var ');
-    mainScript += src;
+    // indirect eval 下 let / const 不會留在全域，換成 var 才能跨 eval 呼叫
+    const src = fs.readFileSync(path.join(R, 'js', f), 'utf8')
+        .replace(/^let /gm, 'var ').replace(/^const /gm, 'var ');
+    if (f === 'gas-engine.js') mainScript = src;
     ev(src);
 }
 
+// 共用鍵盤的 DOM 由 common-modals.js 注入。jsdom 建構完成時 readyState
+// 已是 loading 之外的狀態，自動注入不一定跑到，這裡明確補一次。
+ev('if (!document.getElementById("numberInputModal")) initCommonModals();');
+
 /* 拆檔守門：HTML 裡不該再有內嵌樣式或內嵌邏輯 */
 const leftoverStyle = /<style[\s>]/.test(html);
-// GA4 追蹤區塊仍在 head 內嵌（那是刻意保留的，與 check/invoice 一致）
+/* 內嵌 <script> 允許 2 個，兩個都是刻意保留的：
+ *   1. head 的 GA4 追蹤區塊（與 check.html / invoice.html 同構）
+ *   2. body 尾端的 window.KEYPAD_OPTIONS 設定，必須在 common-modals.js
+ *      載入之前執行，所以只能內嵌
+ * 超過 2 個就代表有邏輯沒搬出去。 */
 const inlineScriptCount = (html.match(/<script>/g) || []).length;
 
 /* ------------------------------------------------------------
@@ -128,9 +144,11 @@ const xt = (n, c, stage, e = '') => {
 };
 
 const v = id => d.getElementById(id).value;
-// 走真實路徑：開鍵盤 → 填運算式 → 按確認
+/* 走真實路徑：開共用鍵盤 → 填值 → 按確認輸入
+ * 2026/07 階段 4 之後改用共用鍵盤，狀態變數是 calculatorValue / currentInputField，
+ * 回寫由本頁實作的 submitCalculatorValue() 負責。 */
 const viaKeypad = (id, val) =>
-    ev(`openCalculator(${JSON.stringify(id)});calcExpression=${JSON.stringify(String(val))};confirmCalculation();`);
+    ev(`openCalculator(${JSON.stringify(id)},'t');calculatorValue=${JSON.stringify(String(val))};submitCalculatorValue();`);
 // 回到乾淨狀態：清空六欄，並把單價設回 28.8
 const reset = () => { ev('clearCalculation();'); ev('setDieselPrice(28.8);'); };
 
@@ -321,9 +339,11 @@ async function main() {
     t('.price-checker-container 是 body 的直接子元素',
         d.querySelector('.price-checker-container').parentNode === d.body,
         d.querySelector('.price-checker-container').parentNode.nodeName);
-    t('#calculatorModal 是 body 的直接子元素',
-        d.getElementById('calculatorModal').parentNode === d.body,
-        d.getElementById('calculatorModal').parentNode.nodeName);
+    // 階段 4 之後鍵盤由 common-modals.js 注入，id 是 numberInputModal
+    t('共用鍵盤 #numberInputModal 已注入',
+        d.getElementById('numberInputModal') !== null);
+    t('  自有的 #calculatorModal 已不存在（已改用共用鍵盤）',
+        d.getElementById('calculatorModal') === null);
     t('四個可輸入欄位都在 .container 內',
         ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount']
             .every(id => d.querySelector('.container').contains(d.getElementById(id))));
@@ -349,7 +369,7 @@ async function main() {
         adjBody.includes('lastModifiedField'), '未設定');
 
     // 每一個會改動輸入欄位的入口都必須設 lastModifiedField，否則方向會判斷錯
-    ['setDieselPrice', 'confirmCalculation', 'adjustMonthlyExpense',
+    ['setDieselPrice', 'submitCalculatorValue', 'adjustMonthlyExpense',
         'adjustDiscountAmount', 'setDiscountAmount'].forEach(fn => {
             const start = mainScript.indexOf('function ' + fn);
             const next = mainScript.indexOf('\nfunction ', start + 1);
@@ -386,8 +406,8 @@ async function main() {
 
     console.log('\n=== 16. 拆檔守門（階段 2）===');
     t('gas.html 已無內嵌 <style> 區塊', !leftoverStyle, '仍有 <style>');
-    t('gas.html 內嵌 <script> 只剩 GA4 那一個',
-        inlineScriptCount === 1, `有 ${inlineScriptCount} 個`);
+    t('gas.html 內嵌 <script> 只剩 GA4 與 KEYPAD_OPTIONS 兩個',
+        inlineScriptCount === 2, `有 ${inlineScriptCount} 個`);
     t('gas.html 有載入 css/gas.css',
         /<link rel="stylesheet" href="\.\.\/css\/gas\.css">/.test(html));
     t('gas.html 有載入 js/gas-engine.js', scripts.includes('gas-engine.js'));
@@ -502,12 +522,15 @@ async function main() {
         JSON.parse(evs).filter(e => e.name === 'discount_calculated').length === 1, evs);
 
     // 計算機按鍵絕對不能產生任何事件（這是階段 3 的核心目的）
+    // 階段 4 之後按鍵函式來自共用鍵盤
     ev("window.__events = [];");
-    ev("openCalculator('monthlyExpense');");
-    ['1', '2', '3', '0', '00'].forEach(k => ev(`calcInput('${k}')`));
-    ev('calcBackspace(); calcClear(); closeCalculator();');
+    ev("openCalculator('monthlyExpense','t');");
+    [1, 2, 3, 0].forEach(k => ev(`calculatorInput(${k})`));
+    ev("calculatorAppend('00');");
+    ev('calculatorBackspace(); calculatorOperation("+"); calculatorEquals(); calculatorClear();');
+    ev("closeModal('numberInputModal');");
     evs = ev('JSON.stringify(window.__events)');
-    t('按 8 下計算機按鍵不產生任何 GA4 事件',
+    t('按 9 下共用鍵盤按鍵不產生任何 GA4 事件',
         JSON.parse(evs).length === 0, `送出了 ${JSON.parse(evs).length} 個事件：${evs}`);
 
     // ── 時鐘 ──
@@ -742,7 +765,79 @@ async function main() {
     t('已移除空的 .bottom-buffer-container（改由頁尾提供底部留白）',
         !htmlCode.includes('bottom-buffer-container') && !cssNoComment.includes('.bottom-buffer-container'));
 
-    console.log('\n=== 21. 設計理念底線：欄位不可喚起系統鍵盤 ===');
+    console.log('\n=== 21. 共用鍵盤遷移守門（階段 4）===');
+
+    // ── 自有鍵盤已完全移除 ──
+    ['openCalculator', 'closeCalculator', 'calcInput', 'calcClear',
+        'calcBackspace', 'calcEquals', 'confirmCalculation'].forEach(fn => {
+            t(`  自有鍵盤函式 ${fn}() 已移除`,
+                !new RegExp('function\\s+' + fn + '\\s*\\(').test(stripJsComments(mainScript)));
+        });
+    t('自有 vibrate() 已移除（改用共用版，避免同名覆蓋鍵盤手感）',
+        !/function\s+vibrate\s*\(/.test(stripJsComments(mainScript)));
+    t('gas.css 已無鍵盤樣式（統一由 keypad.css 提供）',
+        !['calc-button', 'calculator-modal', 'calculator-container']
+            .some(c => cssNoComment.includes('.' + c)));
+
+    // ── 已接上共用鍵盤 ──
+    t('已載入 common-keypad.js', scripts.includes('common-keypad.js'));
+    t('已載入 common-modals.js', scripts.includes('common-modals.js'));
+    t('  common-keypad 必須排在 common-modals 之前（let 宣告順序）',
+        scripts.indexOf('common-keypad.js') < scripts.indexOf('common-modals.js'));
+    t('已載入 css/keypad.css', /<link rel="stylesheet" href="\.\.\/css\/keypad\.css">/.test(html));
+    t('  keypad.css 排在 gas.css 之前（讓頁面樣式可覆寫）',
+        html.indexOf('css/keypad.css') < html.indexOf('css/gas.css'));
+    t('sw.js 已預快取 keypad.css',
+        fs.readFileSync(path.join(R, 'sw.js'), 'utf8').includes("'./css/keypad.css'"));
+    t('本頁實作了 submitCalculatorValue()',
+        /function\s+submitCalculatorValue\s*\(/.test(mainScript));
+
+    // ── 加速鍵設定 ──
+    t('已設定 00 加速鍵（每月油錢動輒數十萬）',
+        /KEYPAD_OPTIONS\s*=\s*\{[^}]*accelerators:\s*\['00'\]/.test(html));
+    t('  鍵盤上真的有 00 鍵',
+        [...d.querySelectorAll('.calculator-buttons button')]
+            .some(b => (b.getAttribute('onclick') || '').includes("calculatorAppend('00')")));
+    t('  小數點鍵保留（單價與折扣需要小數）',
+        [...d.querySelectorAll('.calculator-buttons button')]
+            .some(b => (b.getAttribute('onclick') || '').includes('calculatorDecimal')));
+
+    // 最後一列格位總和必須是 4，否則鍵盤會破格
+    const kbBtns = [...d.querySelectorAll('.calculator-buttons button')];
+    const zeroIdx = kbBtns.findIndex(b => b.className.includes('zero-btn'));
+    const spanSum = kbBtns.slice(zeroIdx).reduce((a, b) => {
+        const m = (b.getAttribute('style') || '').match(/span (\d+)/);
+        return a + (m ? +m[1] : 1);
+    }, 0);
+    t(`  最後一列格位總和 = 4（實測 ${spanSum}）`, spanSum === 4, String(spanSum));
+
+    // ── 四組欄位規則仍然生效（遷移最容易掉的東西）──
+    reset();
+    viaKeypad('dieselPrice', 29);
+    t('欄位規則：單價 29 → 29.0（1 位小數）', v('dieselPrice') === '29.0', v('dieselPrice'));
+    viaKeypad('dieselPrice', -5);
+    t('欄位規則：單價負數夾到 0.0', v('dieselPrice') === '0.0', v('dieselPrice'));
+    ev('setDieselPrice(28.8)');
+    viaKeypad('discountAmount', 8);
+    t('欄位規則：折扣 8 夾到 5.0', v('discountAmount') === '5.0', v('discountAmount'));
+    viaKeypad('monthlyExpense', 1234567);
+    t('欄位規則：油錢加千分位 1,234,567', v('monthlyExpense') === '1,234,567', v('monthlyExpense'));
+    viaKeypad('monthlyVolume', 4321);
+    t('欄位規則：油量加千分位 4,321', v('monthlyVolume') === '4,321', v('monthlyVolume'));
+
+    // ── 運算優先順序（A1 的成果，加油頁遷移後必須維持）──
+    // 舊的自有鍵盤是用 new Function 求值所以本來就正確，
+    // 遷移後若共用鍵盤沒有優先順序，這頁會從正確退化成錯誤。
+    reset();
+    ev("openCalculator('monthlyExpense','t');");
+    [1, 0, 0, 0].forEach(k => ev(`calculatorInput(${k})`));
+    ev('calculatorOperation("+");');
+    [2, 0, 0, 0].forEach(k => ev(`calculatorInput(${k})`));
+    ev('calculatorOperation("*"); calculatorInput(3); calculatorEquals(); submitCalculatorValue();');
+    t('運算優先順序：1000+2000×3 → 7,000（不是 9,000）',
+        v('monthlyExpense') === '7,000', v('monthlyExpense'));
+
+    console.log('\n=== 22. 設計理念底線：欄位不可喚起系統鍵盤 ===');
     ['dieselPrice', 'monthlyExpense', 'monthlyVolume', 'discountAmount'].forEach(id => {
         t(`${id} 為 readonly（不會跳系統鍵盤）`, d.getElementById(id).hasAttribute('readonly'));
     });

@@ -59,6 +59,9 @@
         }
     </script>
 
+    <!-- 鍵盤與彈窗元件樣式（三頁共用，必須排在頁面樣式之前讓頁面可覆寫） -->
+    <link rel="stylesheet" href="../css/keypad.css">
+
     <!-- 加油頁專用樣式（原內嵌於本檔，2026/07 階段 2 拆出） -->
     <link rel="stylesheet" href="../css/gas.css">
 </head>
@@ -243,51 +246,21 @@
          原本這裡有一個空的 .bottom-buffer-container 只為了撐出底部空間，
          頁尾本身的下方留白已足夠，那個空 div 已移除。 -->
 
-    <!-- 計算機彈出視窗 -->
-    <div id="calculatorModal" class="calculator-modal">
-        <div class="calculator-container">
-            <!-- 計算機顯示螢幕 -->
-            <div class="calculator-display" id="calcDisplay">0</div>
-            
-            <!-- 計算機按鈕網格 -->
-            <div class="calculator-buttons">
-                <!-- 第一排按鈕 -->
-                <button class="calc-button operator" onclick="calcClear()">C</button>
-                <button class="calc-button operator" onclick="calcBackspace()">←</button>
-                <button class="calc-button operator" onclick="calcInput('/')">÷</button>
-                <button class="calc-button operator" onclick="calcInput('*')">×</button>
-                
-                <!-- 第二排按鈕 -->
-                <button class="calc-button number" onclick="calcInput('7')">7</button>
-                <button class="calc-button number" onclick="calcInput('8')">8</button>
-                <button class="calc-button number" onclick="calcInput('9')">9</button>
-                <button class="calc-button operator" onclick="calcInput('-')">−</button>
-                
-                <!-- 第三排按鈕 -->
-                <button class="calc-button number" onclick="calcInput('4')">4</button>
-                <button class="calc-button number" onclick="calcInput('5')">5</button>
-                <button class="calc-button number" onclick="calcInput('6')">6</button>
-                <button class="calc-button operator" onclick="calcInput('+')">+</button>
-                
-                <!-- 第四排按鈕 -->
-                <button class="calc-button number" onclick="calcInput('1')">1</button>
-                <button class="calc-button number" onclick="calcInput('2')">2</button>
-                <button class="calc-button number" onclick="calcInput('3')">3</button>
-                <button class="calc-button operator" onclick="calcEquals()">=</button>
-                
-                <!-- 第五排按鈕 -->
-                <button class="calc-button number" onclick="calcInput('0')">0</button>
-                <button class="calc-button number" onclick="calcInput('00')">00</button>
-                <button class="calc-button number" onclick="calcInput('.')">.</button>
-                <button class="calc-button operator" onclick="calcBackspace()">⌫</button>
-                
-                <!-- 確認與取消按鈕 -->
-                <button class="calc-button confirm" onclick="confirmCalculation()">確認</button>
-                <button class="calc-button cancel" onclick="closeCalculator()">取消</button>
-            </div>
-        </div>
-    </div>
-    
+    <!-- 鍵盤與彈窗的 DOM 由 js/common-modals.js 動態注入，本檔不需要寫。
+         原本這裡有 43 行自有計算機 HTML，2026/07 階段 4 改用共用鍵盤後移除。 -->
+
+    <!-- 共用鍵盤選項：加油頁四個欄位有兩個要小數（單價、折扣），所以小數點保留。
+         加上 00 加速鍵 —— 每月油錢動輒數十萬，一位一位按 0 太慢也容易按錯。
+         必須在載入 common-modals.js 之前設定。 -->
+    <script>
+        window.KEYPAD_OPTIONS = { accelerators: ['00'] };
+    </script>
+
+    <!-- 共用鍵盤：common-keypad.js 必須排在 common-modals.js 之前，
+         它以 let 宣告鍵盤共用狀態，需先完成宣告 -->
+    <script src="../js/common-keypad.js"></script>
+    <script src="../js/common-modals.js"></script>
+
     <!-- 加油頁試算引擎（原內嵌於本檔，2026/07 階段 2 拆出） -->
     <script src="../js/gas-engine.js"></script>
     <script src="../js/common-footer.js"></script>

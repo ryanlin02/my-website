@@ -70,9 +70,22 @@ let calculatorTokens = [];                 // 例：[1000, '+', 2000, '*']
 /* ------------------------------------------------------------
  * 觸覺回饋
  * ------------------------------------------------------------ */
-function vibrate() {
+/**
+ * 觸覺回饋
+ *
+ * @param {number} duration 震動毫秒數。預設 30 是鍵盤按鍵的手感，
+ *                          計算頁與支票頁的所有呼叫都不帶參數。
+ *
+ * 【為什麼要可帶參數】
+ * 加油頁原本自己有一支 vibrate(duration = 10)，用 5／10／15／20 毫秒
+ * 區分「輕按數字」「切換欄位」「確認」「清除」四種力道。
+ * 它改用共用鍵盤後兩支同名函式會互相覆蓋（後載入的贏），
+ * 而 gas-engine.js 載在後面，等於會把鍵盤的手感偷偷改成 10 毫秒。
+ * 讓這支接受參數，兩邊的手感就都能保留，也不需要同名函式打架。
+ */
+function vibrate(duration = 30) {
     if (navigator.vibrate) {
-        navigator.vibrate(30);
+        navigator.vibrate(duration);
     }
 }
 
@@ -281,6 +294,34 @@ function calculatorInput(num) {
     }
     const display = document.getElementById('calculatorDisplay');
     if (display) display.textContent = calculatorValue;
+    vibrate();
+}
+
+/**
+ * 整數加速鍵（00 / 000 / 萬）
+ *
+ * 由 window.KEYPAD_OPTIONS.accelerators 決定要顯示哪幾顆（見 common-modals.js）。
+ *
+ * 【為什麼不直接用 calculatorInput('00')】
+ * calculatorInput 對 '0' 的處理是「取代」而不是「附加」，
+ * 傳入多位數會得到 '00' 這種值。而且值還是 0 的時候按 00 沒有意義 ——
+ * 業務要的是「在已經打好的數字後面補零」，不是產生一串零。
+ *
+ * @param {string} digits 要附加的零，例如 '00'、'000'、'0000'
+ */
+function calculatorAppend(digits) {
+    if (calculatorWaitingForSecondValue) {
+        calculatorValue = '0';
+        calculatorWaitingForSecondValue = false;
+    }
+
+    // 目前還是 0 就不動作：按 00 得到 000 只會讓人以為壞了
+    if (calculatorValue !== '0') {
+        calculatorValue += digits;
+        const display = document.getElementById('calculatorDisplay');
+        if (display) display.textContent = calculatorValue;
+    }
+
     vibrate();
 }
 

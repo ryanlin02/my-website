@@ -153,7 +153,17 @@ dom2.window.eval(fs.readFileSync(ROOT+'/js/common-modals.js','utf8'));
 dom2.window.eval('initCommonModals()');
 const keys2=[...dom2.window.document.querySelectorAll('.calculator-buttons button')].map(b=>b.getAttribute('onclick'));
 t('計算頁仍有小數點鍵', keys2.some(k=>k&&k.includes('calculatorDecimal')));
-t('計算頁 0 鍵維持 span 2 (未加 inline style)', dom2.window.document.querySelector('.zero-btn').style.gridColumn==='', dom2.window.document.querySelector('.zero-btn').style.gridColumn);
+/* 2026/07：最後一列的格位改由 common-modals.js 依「小數點 + 加速鍵」的數量計算，
+ * 一律內嵌 grid-column。這裡改為驗證「算出來的 span 仍是 2」——
+ * 也就是支票頁的 decimal:false 與加油頁的 00 加速鍵都沒有影響到計算頁。 */
+t('計算頁 0 鍵維持 span 2', dom2.window.document.querySelector('.zero-btn').style.gridColumn==='span 2', dom2.window.document.querySelector('.zero-btn').style.gridColumn);
+/* 最後一列的格位總和必須正好是 4，否則鍵盤會破格 */
+{
+  const btns2=[...dom2.window.document.querySelectorAll('.calculator-buttons button')];
+  const zi=btns2.findIndex(b=>b.className.includes('zero-btn'));
+  const sum=btns2.slice(zi).reduce((a,b)=>{const m=(b.getAttribute('style')||'').match(/span (\d+)/);return a+(m?+m[1]:1);},0);
+  t('  計算頁最後一列格位總和 = 4', sum===4, String(sum));
+}
 t('計算頁鍵數不變 (18)', keys2.length===18, String(keys2.length));
 
 console.log('\n========================================');

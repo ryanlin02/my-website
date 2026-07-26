@@ -22,7 +22,7 @@
  * ============================================================ */
 // 發票頁全面改版（擬真發票範例、品項明細、格位式大寫）。
 // 版本號一定要跟著改，否則已安裝 PWA 的手機會繼續吃舊快取裡的發票頁。
-const CACHE_VERSION = '4.46';
+const CACHE_VERSION = '4.47';
 const CACHE_NAME = `xiaopenyou-tools-v${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
@@ -41,6 +41,7 @@ const CORE_ASSETS = [
     './pages/gas.html',         // 加油頁面
 
     // 樣式
+    './css/keypad.css',         // 數字鍵盤與彈窗元件樣式（三頁共用）
     './css/calculator.css',     // 計算機專用樣式
 
     // 計算頁模組

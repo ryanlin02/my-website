@@ -23,22 +23,44 @@ function initCommonModals() {
      * 用法：在載入本檔案之前設定
      *     window.KEYPAD_OPTIONS = { decimal: false };
      * 未設定時預設維持顯示，計算頁行為完全不變。
+     *
+     * ------------------------------------------------------------
+     * 【2026/07 新增：整數加速鍵 accelerators】
+     *
+     * 這行業的金額幾乎都是整萬整千：貸款本金 100 萬、支票金額、
+     * 加油頁的每月油錢動輒數十萬。一位一位按 0 很慢也容易多按少按。
+     * 發票頁自己那套鍵盤早就有 000 與「萬」兩顆加速鍵，實務上很有用，
+     * 這裡把同樣的能力做成設定。
+     *
+     * 用法（同樣要在載入本檔案之前設定）：
+     *     window.KEYPAD_OPTIONS = { accelerators: ['00'] };
+     *     window.KEYPAD_OPTIONS = { accelerators: ['000', '0000'] };
+     * 按鍵文字自動產生：'0000' 會顯示成「萬」，其餘直接顯示位數。
      * ------------------------------------------------------------ */
     const keypadOptions = window.KEYPAD_OPTIONS || {};
     const showDecimal = keypadOptions.decimal !== false;
+    const accelerators = Array.isArray(keypadOptions.accelerators) ? keypadOptions.accelerators : [];
 
-    // 不顯示小數點時，讓 0 鍵補上空出來的格子，鍵盤不會破格
-    const lastRowHtml = showDecimal
-        ? `<button onclick="calculatorInput(0)" class="number-btn zero-btn">
+    /* 最後一列的格位分配
+     *
+     * 鍵盤是 4 欄。這一列固定會有 0 與 =，中間可能還有小數點與加速鍵。
+     * 讓 0 鍵吸收剩下的格數，就不會破格 —— 而且沒有加速鍵時算出來的
+     * span 剛好等於原本寫死的值（有小數點 2 格、沒小數點 3 格），
+     * 所以計算頁與支票頁的排版完全不變。
+     */
+    const tailKeys = accelerators.length + (showDecimal ? 1 : 0) + 1;   // 加速鍵 + 小數點 + 等號
+    const zeroSpan = Math.max(1, 4 - tailKeys);
+
+    const acceleratorHtml = accelerators.map(a =>
+        `<button onclick="calculatorAppend('${a}')" class="function">${a === '0000' ? '萬' : a}</button>`
+    ).join('\n                ');
+
+    const lastRowHtml = `<button onclick="calculatorInput(0)" class="number-btn zero-btn" style="grid-column: span ${zeroSpan};">
                     <div class="arabic-number">0</div>
                     <div class="financial-char">零</div>
                 </button>
-                <button onclick="calculatorDecimal()" class="function">.</button>
-                <button onclick="calculatorEquals()" class="equals">=</button>`
-        : `<button onclick="calculatorInput(0)" class="number-btn zero-btn" style="grid-column: span 3;">
-                    <div class="arabic-number">0</div>
-                    <div class="financial-char">零</div>
-                </button>
+                ${acceleratorHtml}
+                ${showDecimal ? `<button onclick="calculatorDecimal()" class="function">.</button>` : ''}
                 <button onclick="calculatorEquals()" class="equals">=</button>`;
 
     const modalWrapper = document.createElement('div');
