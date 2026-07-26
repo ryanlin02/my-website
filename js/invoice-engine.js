@@ -838,8 +838,16 @@ function padKey(k) {
             vibrate([50, 30, 50]);
             return;
         }
-        pad.buf = (pad.buf === '0' ? '' : pad.buf) + k;
+        // 統編是「編號」不是「數字」，開頭的 0 有意義（例：04595257 台積電），
+        // 所以只有金額、數量這類真正的數值才吃掉前導零。
+        pad.buf = (pad.mode !== 'taxid' && pad.buf === '0' ? '' : pad.buf) + k;
         vibrate(30);
+
+        // 打到第 3 碼時就先把對應的稅籍分片抓下來，
+        // 等使用者按完 8 碼，抬頭幾乎是同時就跳出來的
+        if (pad.mode === 'taxid' && pad.buf.length === 3 && window.TaxIdLookup) {
+            window.TaxIdLookup.prefetch(pad.buf);
+        }
     }
     updatePad();
 }
@@ -1041,6 +1049,26 @@ function rememberCustomer() {
 function lookupByTaxId(taxId) {
     const hit = loadJSON(LS_CUSTOMERS, []).find(c => c.taxId === taxId);
     return hit ? hit.title : '';
+}
+
+/* 名冊查不到時，再去查財政部稅籍索引（data/taxid/ 的離線分片）。
+   查到就自動填抬頭。整段是非同步的，但不會卡住畫面：
+   使用者可以照常繼續打字，名字跳出來只是「順手幫你填好」。 */
+function autoFillTitleFromIndex(taxId) {
+    if (!global_TaxIdLookup() || state.title) return;
+    const asked = taxId;                       // 記住當下這一組，避免慢回應蓋掉新輸入
+    window.TaxIdLookup.lookup(taxId).then(name => {
+        if (!name) return;
+        if (state.taxId !== asked || state.title) return;   // 使用者已經改了，就別動他
+        state.title = name;
+        rememberCustomer();                    // 下次同一組統編改走本地名冊，完全離線
+        showToast('已帶出公司抬頭：' + name);
+        render();
+    });
+}
+
+function global_TaxIdLookup() {
+    return typeof window !== 'undefined' && window.TaxIdLookup && !window.TaxIdLookup.disabled;
 }
 
 function lookupByTitle(title) {
@@ -1276,9 +1304,15 @@ function bind() {
                     if (!validateTaxId(state.taxId)) {
                         showToast('統編檢查碼不符，請再確認一次', true, 2800);
                     } else if (!state.title) {
-                        // 名冊裡有的話直接帶出抬頭，省掉重打
+                        // 先查本地名冊：回頭客最多、而且是同步的，抬頭馬上就出來
                         const t = lookupByTaxId(state.taxId);
-                        if (t) { state.title = t; showToast('已帶出上次的抬頭：' + t); }
+                        if (t) {
+                            state.title = t;
+                            showToast('已帶出上次的抬頭：' + t);
+                        } else {
+                            // 名冊沒有才去翻稅籍索引（非同步，不擋畫面）
+                            autoFillTitleFromIndex(state.taxId);
+                        }
                     }
                 }
                 render();
@@ -1515,6 +1549,9 @@ function showAppVersion() {
 document.addEventListener('DOMContentLoaded', function () {
     bind();
     showAppVersion();
+
+    // 探一次統編索引是否存在。還沒建置就自動休眠，頁面其他功能完全不受影響。
+    if (window.TaxIdLookup) window.TaxIdLookup.probe();
 
     // 從分享連結進來的話，直接還原成同一張發票
     const m = location.hash.match(/inv=([A-Za-z0-9_-]+)/);

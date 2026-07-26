@@ -51,6 +51,7 @@ const CORE_ASSETS = [
     // 支票頁與發票頁模組（原本漏掉，導致離線時這兩頁開不起來）
     './js/check-engine.js',     // 支票試算引擎
     './js/invoice-engine.js',   // 發票開立引擎
+    './js/taxid-lookup.js',     // 統編離線查詢（分片索引本身不預快取，用到才抓）
     './css/check.css',          // 支票頁專用樣式（原內嵌於 check.html）
     './css/invoice.css',        // 發票頁專用樣式（發票頁不吃 calculator.css）
     './js/common-modals.js',    // 三頁共用的彈窗與數字小鍵盤（HTML 注入）
@@ -75,6 +76,14 @@ const CORE_ASSETS = [
 // 需要「永遠拿最新」的資料路徑（例如每週更新的油價）
 const NETWORK_FIRST_PATHS = [
     '/data/'
+];
+
+// 從「網路優先」中排除的路徑。
+// data/taxid/ 是統編索引分片：一個月才更新一次，而且業務在外面
+// 收訊不穩，抓過的分片留著離線也能查，比每次都硬要拿最新有用得多。
+// 所以它走「快取優先」，內容過期由 CACHE_VERSION 換版時整批汰換。
+const NETWORK_FIRST_EXCEPTIONS = [
+    '/data/taxid/'
 ];
 
 // 不需要快取的URL模式 - 這些請求會直接從網路獲取
@@ -189,6 +198,7 @@ self.addEventListener('fetch', event => {
  * 判斷是否為需要「永遠拿最新」的路徑
  */
 function isNetworkFirstPath(url) {
+    if (NETWORK_FIRST_EXCEPTIONS.some(p => url.pathname.includes(p))) return false;
     return NETWORK_FIRST_PATHS.some(p => url.pathname.includes(p));
 }
 

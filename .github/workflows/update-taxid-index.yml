@@ -1,0 +1,65 @@
+name: 每月 1 日 04:00 統編索引自動更新
+
+# 把財政部「全國營業(稅籍)登記資料集」下載下來，切成分片放進 data/taxid/，
+# 讓發票頁可以在完全沒有後端的情況下，用統編查出公司抬頭。
+#
+# 為什麼是每月而不是每天：
+#   索引約 40MB、上千個檔案。跑太頻繁 git 歷史會膨脹得很快，
+#   而公司名稱本來就很少變動，一個月更新一次綽綽有餘。
+
+on:
+  schedule:
+    # 台灣時間每月 1 日 04:00（UTC 為每月 1 日 20:00 的前一天，這裡取 UTC 1 日 20:00）
+    - cron: '0 20 1 * *'
+  workflow_dispatch: # 第一次建置索引時，到 GitHub Actions 頁面手動按一次執行
+
+permissions:
+  contents: write
+
+# 同時只跑一個，避免手動觸發撞到排程觸發造成 push 衝突
+concurrency:
+  group: taxid-index
+  cancel-in-progress: false
+
+jobs:
+  build-taxid-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: 檢出專案程式碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: 先跑自我測試（解析邏輯壞掉就不要浪費時間下載）
+        run: python3 scripts/build-taxid-index.py --self-test
+
+      - name: 下載財政部稅籍資料並建置分片索引
+        run: python3 scripts/build-taxid-index.py
+
+      - name: 檢查產出是否合理
+        run: |
+          COUNT=$(python3 -c "import json;print(json.load(open('data/taxid/meta.json'))['count'])")
+          SHARDS=$(ls data/taxid/*.json | wc -l)
+          echo "索引筆數：$COUNT　分片數：$SHARDS"
+          if [ "$COUNT" -lt 500000 ]; then
+            echo "::error::索引筆數異常偏低，中止提交"
+            exit 1
+          fi
+
+      - name: 自動提交與推送最新索引
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A data/taxid
+          if git diff --staged --quiet; then
+            echo "統編索引無變更，跳過 Commit"
+          else
+            COUNT=$(python3 -c "import json;print(json.load(open('data/taxid/meta.json'))['count'])")
+            git commit -m "auto(taxid): 更新統一編號離線索引（$COUNT 筆） [skip ci]"
+            git push
+          fi

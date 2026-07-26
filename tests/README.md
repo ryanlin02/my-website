@@ -9,6 +9,8 @@
 ```bash
 node tests/大寫金額測試.js
 node tests/invoice/verify.js
+node tests/invoice/統編查詢測試.js
+python3 scripts/build-taxid-index.py --self-test
 ```
 
 ### 需要先安裝 jsdom（模擬瀏覽器環境）
@@ -23,6 +25,7 @@ node tests/支票進度與存檔測試.js
 node tests/版面樣式測試.js
 node tests/鍵盤行為對照測試.js
 node tests/invoice/頁面載入測試.js
+node tests/invoice/統編自動帶入測試.js
 ```
 
 發票頁的測試自成一個資料夾 `tests/invoice/`，另有一份說明見 `tests/invoice/README.md`。
@@ -43,6 +46,8 @@ node tests/invoice/頁面載入測試.js
 | `支票進度與存檔測試.js` | 是 | 改張數時保留有效打勾、漏開偵測與前往、只打勾 vs 改計算的分野、保存時覆蓋或另存、未儲存進度攔阻、自動暫存與 24 小時效期 |
 | `版面樣式測試.js` | 是 | CSS 層級的守門：sticky 祖先鏈上不能有捲動容器、金額群組外框、空值收起規則、表格固定欄寬、!important 只准一處 |
 | `鍵盤行為對照測試.js` | 是 | 把「改動前」的兩份鍵盤實作與「改動後」的共用模組放進三個獨立沙箱，用 4 萬組隨機操作序列比對狀態是否完全一致 |
+| `invoice/統編查詢測試.js` | 否 | `js/taxid-lookup.js` 單元測試：查得到/查不到、分片 404、離線、索引未建置自動休眠、同分片不重複下載、5xx 與壞掉的 JSON |
+| `invoice/統編自動帶入測試.js` | 是 | 端對端：自製鍵盤按 8 碼 → 查索引 → 自動填抬頭 → 寫進本地名冊。同時釘住「統編前導零不可被吃掉」 |
 
 ---
 
@@ -76,6 +81,15 @@ node tests/invoice/頁面載入測試.js
   客戶改口只給 15 張。前 14 張的日期與金額其實完全沒變，
   打勾必須保留下來 —— 舊版會把 12 個勾全部清空，
   而且不會有任何錯誤訊息，業務得憑記憶重點一次。
+
+- **改到 `js/common-keypad.js` 或發票頁的 `padKey()`** → 一定要跑 `invoice/統編自動帶入測試.js`
+
+  鍵盤對金額做「前導零正規化」（打 `0` 再打 `4` 會變成 `4`），
+  但統一編號是編號不是數值，`04595257`（台積電）開頭那個 0 有意義，被吃掉就整組作廢。
+  這個錯誤不會有任何報錯，只會讓某些客戶的統編怎麼打都打不對。
+
+- **改到 `scripts/build-taxid-index.py` 的分片規則** → `PREFIX_LEN` 必須與
+  `js/taxid-lookup.js` 裡的同名常數一起改，兩邊對不上會變成全部查不到。
 
 - **改到 `css/` 底下任何檔案** → 一定要跑 `版面樣式測試.js`
 
