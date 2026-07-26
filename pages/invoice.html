@@ -2,8 +2,10 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover 是必要的：少了它，CSS 裡的 env(safe-area-inset-*)
-         一律回傳 0，底部彈出的鍵盤最後一排就會被 iPhone 的 home indicator 壓到 -->
+    <!-- viewport-fit=cover 讓 CSS 的 env(safe-area-inset-*) 能取到實際值。
+         正常情況這頁是嵌在 index.html 的 iframe 裡，安全區距只對最外層文件有效，
+         所以這裡其實取不到值；留著是為了這頁被單獨開啟時（放大檢視的底部工具列）
+         仍能避開 iPhone 底部的 home indicator。 -->
     <meta name="viewport" content="width=400, user-scalable=no, initial-scale=1, maximum-scale=1, viewport-fit=cover">
     <title>發票開立小幫手</title>
 

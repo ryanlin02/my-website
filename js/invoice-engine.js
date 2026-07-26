@@ -866,39 +866,17 @@ function openText(opts) {
     $('txtChips').innerHTML = chips.map(c => `<span class="chip">${esc(c)}</span>`).join('');
 
     $('txtModal').classList.add('show');
-    positionText();
 
-    window.addEventListener('resize', positionText);
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', positionText);
-        window.visualViewport.addEventListener('scroll', positionText);
-    }
-
+    // 定位完全交給 CSS（靠上），不再用 JS 算。
+    // 這頁跑在 iframe 裡，iOS 的 visualViewport 不會隨鍵盤縮小，
+    // 用它算位置反而會把輸入框推到鍵盤底下去。
     setTimeout(() => $('txtInput').focus(), 50);
     vibrate(30);
-}
-
-function positionText() {
-    const modal = $('txtModal');
-    const panel = $('txtPanel');
-    if (!modal.classList.contains('show')) return;
-
-    const vv = window.visualViewport;
-    if (!vv) { modal.style.paddingTop = '60px'; return; }
-
-    // vv.height 在鍵盤彈出時會縮小，這是唯一可靠地得知鍵盤高度的方法
-    const ph = panel.offsetHeight || 240;
-    modal.style.paddingTop = Math.max(10, vv.offsetTop + (vv.height - ph) / 2) + 'px';
 }
 
 function closeText() {
     $('txtModal').classList.remove('show');
     $('txtInput').blur();
-    window.removeEventListener('resize', positionText);
-    if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', positionText);
-        window.visualViewport.removeEventListener('scroll', positionText);
-    }
     txtState = null;
 }
 

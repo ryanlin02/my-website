@@ -44,14 +44,22 @@ body { padding-bottom: 12px !important; }
    兩者都是「一眼要看到、隨時要能切」的東西，所以釘在頂端不隨捲動消失。
    合併成一列是為了省下垂直空間 —— 這是整頁最貴的資源。
    =================================================================== */
+/*
+ * 為什麼是 16px 而不是 0：
+ * 外殼 index.html 的 .header-container 高 60px、固定在頂端，
+ * 但裝 iframe 的 .content-container 是從 top:45px 開始 ——
+ * 也就是 iframe 最上面 15px 永遠被壓在外殼標題列底下。
+ * 少了這個位移，這排按鈕的上半截會被切掉（實機才看得出來）。
+ * sticky 的 top 與 margin-top 要一致，否則捲動時會跳一下。
+ */
 .top-bar {
     position: -webkit-sticky;
     position: sticky;
-    top: 0;
+    top: 16px;
     z-index: 900;
     background: var(--primary-color);
     padding: 6px 0 5px;
-    margin: 0 0 5px;
+    margin: 16px 0 5px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
 }
 
@@ -462,7 +470,9 @@ body { padding-bottom: 12px !important; }
     bottom: 0;
     display: flex;
     gap: 5px;
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    /* 第二個參數是 fallback：舊瀏覽器不支援 env() 時，
+       整段 calc() 會失效導致沒有 padding，加上 0px 才安全 */
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
     background: rgba(34, 34, 34, .94);
     border-top: 1px solid var(--border-color);
 }
@@ -485,6 +495,16 @@ body { padding-bottom: 12px !important; }
    關鍵：整個底層被 fixed 遮罩蓋住，系統鍵盤彈出時只有這個彈窗會動，
    主畫面的排版一格都不會位移。定位交給 JS 讀 visualViewport。
    =================================================================== */
+/*
+ * 這是整頁唯一會叫出系統鍵盤的地方，所以刻意「靠上」而不是置中。
+ *
+ * 原本用 visualViewport 算置中位置，但這頁是跑在 index.html 的 iframe 裡，
+ * iOS 的 visualViewport 在 iframe 內不會隨鍵盤縮小 —— 算出來的「中間」
+ * 其實是整個頁面的中間，鍵盤一彈出就把輸入框蓋住了（實機才發現）。
+ *
+ * 靠上放就不必知道鍵盤有多高：鍵盤永遠從下方長出來，
+ * 頂端 12px 的位置在任何裝置、任何鍵盤高度下都不會被蓋到。
+ */
 .txt-modal {
     display: none;
     position: fixed;
@@ -493,13 +513,16 @@ body { padding-bottom: 12px !important; }
     z-index: 5000;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 60px;
+    padding: 12px;
     box-sizing: border-box;
 }
 .txt-modal.show { display: flex; }
 
 .txt-panel {
-    width: min(360px, calc(100vw - 24px));
+    width: 100%;
+    max-width: 360px;
+    max-height: calc(100% - 24px);
+    overflow-y: auto;
     background: var(--secondary-color);
     border: 2px solid var(--button-orange);
     border-radius: 10px;
@@ -565,41 +588,38 @@ body { padding-bottom: 12px !important; }
    沿用發票頁既有的「阿拉伯數字 + 國字大寫」雙標示，
    業務按鍵的同時就在複習大寫怎麼寫。
    =================================================================== */
+/*
+ * 數字鍵盤與月曆一律置中，不貼底。
+ *
+ * 原本貼底是想讓拇指好按，但實機測下來有兩個問題：
+ *   1. 手機底部形狀不一（圓角、home indicator），貼底容易被切到或壓到
+ *   2. 這頁是跑在 iframe 裡的，iframe 底部不等於螢幕底部，貼底反而更難預測
+ * 置中在各種裝置上的表現一致得多，而且鍵盤本身已經夠大，不差那幾公分。
+ */
 .pad-modal {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, .72);
     z-index: 5000;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 .pad-modal.show { display: flex; }
 
 .pad-panel {
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
+    margin: auto;
     background: var(--secondary-color);
-    border-radius: 12px 12px 0 0;
-    border-top: 2px solid var(--button-orange);
-    /* 底部要加上 safe-area，否則最後一排按鍵會被 iPhone 的 home indicator 壓到。
-       這需要 viewport meta 有 viewport-fit=cover 才會生效。 */
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-radius: 12px;
+    border: 2px solid var(--button-orange);
+    padding: 10px 8px;
     box-sizing: border-box;
-}
-
-/* 寬螢幕（桌機、平板橫放）改置中。
-   貼底是為了手機拇指好按，在大螢幕上反而顯得很怪，
-   而且滑鼠要移動一大段距離才點得到。 */
-@media (min-width: 620px) {
-    .pad-modal { align-items: center; }
-    .pad-panel {
-        border-radius: 12px;
-        border: 2px solid var(--button-orange);
-        padding-bottom: 10px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, .5);
-    }
-    .zoom-bar { padding-bottom: 10px; }
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .55);
 }
 
 .pad-head {
