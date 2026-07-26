@@ -496,14 +496,14 @@ body { padding-bottom: 12px !important; }
    主畫面的排版一格都不會位移。定位交給 JS 讀 visualViewport。
    =================================================================== */
 /*
- * 這是整頁唯一會叫出系統鍵盤的地方，所以刻意「靠上」而不是置中。
+ * 這是整頁唯一會叫出系統鍵盤的地方。
  *
- * 原本用 visualViewport 算置中位置，但這頁是跑在 index.html 的 iframe 裡，
- * iOS 的 visualViewport 在 iframe 內不會隨鍵盤縮小 —— 算出來的「中間」
- * 其實是整個頁面的中間，鍵盤一彈出就把輸入框蓋住了（實機才發現）。
+ * 垂直位置由 JS 的 positionText() 動態設定 padding-top，放在
+ * 「外殼標題列以下、鍵盤以上」的正中間。
+ * 為什麼不能純用 CSS：鍵盤有多高只有最外層文件知道，
+ * 而這頁是跑在 iframe 裡的。詳見 invoice-engine.js 的 outerViewport()。
  *
- * 靠上放就不必知道鍵盤有多高：鍵盤永遠從下方長出來，
- * 頂端 12px 的位置在任何裝置、任何鍵盤高度下都不會被蓋到。
+ * 這裡的 padding-top 只是 JS 還沒跑之前的保險值。
  */
 .txt-modal {
     display: none;
@@ -513,7 +513,7 @@ body { padding-bottom: 12px !important; }
     z-index: 5000;
     align-items: flex-start;
     justify-content: center;
-    padding: 12px;
+    padding: 20px 12px 12px;
     box-sizing: border-box;
 }
 .txt-modal.show { display: flex; }

@@ -21,9 +21,10 @@ ${pick('validateTaxId')}
 ${pick('calc')}
 ${pick('rocYearCN')}
 ${pick('periodCN')}
-return {upperSlots,validateTaxId,calc,periodCN,setState:o=>Object.assign(state,o)};`)();
+${pick('computeModalTop')}
+return {upperSlots,validateTaxId,calc,periodCN,computeModalTop,setState:o=>Object.assign(state,o)};`)();
 
-const {upperSlots,validateTaxId,calc,periodCN,setState}=mod;
+const {upperSlots,validateTaxId,calc,periodCN,computeModalTop,setState}=mod;
 let pass=0,fail=0;
 const eq=(a,b,l)=>{ if(a===b)pass++; else {fail++;console.log('  FAIL',l,'got',JSON.stringify(a),'want',JSON.stringify(b));} };
 
@@ -97,6 +98,37 @@ console.log('=== 9. 發票本期別（雙月一期，印在發票上）===');
  [{y:115,m:1,d:5}, '一一五年　一、二月份'],
  [{y:115,m:12,d:31},'一一五年　十一、十二月份']
 ].forEach(([d,w])=>eq(periodCN(d),w,`${d.y}/${d.m}`));
+
+
+console.log('=== 10. 文字彈窗定位：必須同時避開外殼標題列與鍵盤 ===');
+/**
+ * 這頁嵌在 index.html 的 iframe 裡：
+ *   外殼標題列高 60px、固定在頂端
+ *   iframe 從 top:45px 開始 → iframe 最上面 15px 是被壓住的
+ * 鍵盤高度只有最外層文件知道（同源，可讀 parent.visualViewport）。
+ * 以下數值皆為 CSS px，取自實機常見的 iPhone 直式尺寸。
+ */
+const MIN_TOP = 20, FRAME_TOP = 45, PANEL = 240;
+const cases = [
+  // [外層可見高度, 情境說明]
+  [890, '沒有鍵盤'],
+  [430, '注音鍵盤展開'],
+  [380, '鍵盤加候選字列'],
+  [300, '極端：可見範圍很小'],
+];
+cases.forEach(([vh, label]) => {
+  const top = computeModalTop(vh, FRAME_TOP, PANEL, MIN_TOP);
+  const screenTop = FRAME_TOP + top;              // 換算成整個畫面的座標
+  eq(top >= MIN_TOP, true, label + ' 頂端沒有被標題列壓住（top=' + top.toFixed(1) + '）');
+  eq(screenTop >= 60, true, label + ' 面板起點在標題列(60px)之下（screenTop=' + screenTop.toFixed(1) + '）');
+  // 空間夠時，整個面板都要在鍵盤之上
+  if (vh - FRAME_TOP - PANEL - 12 >= MIN_TOP) {
+    eq(screenTop + PANEL <= vh, true, label + ' 面板底部沒有被鍵盤蓋住');
+  }
+});
+// 沒有 visualViewport 可用時要退回安全值，不能回傳 0 或 NaN
+eq(computeModalTop(0, FRAME_TOP, PANEL, MIN_TOP), MIN_TOP, '取不到視窗高度時退回最小安全值');
+eq(Number.isFinite(computeModalTop(890, 45, 240, 20)), true, '回傳值必須是有限數');
 
 console.log('');
 console.log(fail===0?`✓ 全部通過（${pass} 項）`:`✗ 通過 ${pass}／失敗 ${fail}`);

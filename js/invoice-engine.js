@@ -866,17 +866,94 @@ function openText(opts) {
     $('txtChips').innerHTML = chips.map(c => `<span class="chip">${esc(c)}</span>`).join('');
 
     $('txtModal').classList.add('show');
+    positionText();
 
-    // 定位完全交給 CSS（靠上），不再用 JS 算。
-    // 這頁跑在 iframe 裡，iOS 的 visualViewport 不會隨鍵盤縮小，
-    // 用它算位置反而會把輸入框推到鍵盤底下去。
-    setTimeout(() => $('txtInput').focus(), 50);
+    // 鍵盤彈出／收起時外層視窗會改變高度，跟著重算位置
+    const vv = outerViewport();
+    if (vv) {
+        vv.addEventListener('resize', positionText);
+        vv.addEventListener('scroll', positionText);
+    }
+    window.addEventListener('resize', positionText);
+
+    setTimeout(() => { $('txtInput').focus(); positionText(); }, 60);
     vibrate(30);
+}
+
+/**
+ * 取得「看得到鍵盤高度」的那個 visualViewport
+ *
+ * 關鍵：這頁平常是嵌在 index.html 的 iframe 裡，而 iframe 自己的
+ * visualViewport 不會隨鍵盤縮小 —— 鍵盤是蓋在最外層文件上的。
+ * 但兩邊同源（都在 ryanlin02.github.io），所以可以直接讀外層那一個，
+ * 它的 height 在鍵盤彈出時會確實變小。這是在 iframe 裡唯一
+ * 能精確得知鍵盤佔掉多少空間的方法，不必靠猜。
+ *
+ * 跨來源或單獨開啟這頁時會取不到，退回自己的 visualViewport。
+ */
+function outerViewport() {
+    try {
+        if (window.parent !== window && window.parent.visualViewport) {
+            return window.parent.visualViewport;
+        }
+    } catch (e) {
+        // 跨來源存取會拋錯，安靜退回
+    }
+    return window.visualViewport || null;
+}
+
+/** 彈窗距 iframe 頂端至少要留的空間。
+ *  外殼標題列高 60px，但 iframe 從 45px 開始 ——
+ *  iframe 最上面 15px 永遠被壓住，20px 才安全。 */
+const MODAL_MIN_TOP = 20;
+
+/**
+ * 算出彈窗該距 iframe 頂端多遠（純運算，與 DOM 無關，方便測試）
+ *
+ * @param vvHeight    外層可見高度（鍵盤彈出時會變小）
+ * @param frameTop    iframe 在外層畫面上的起始 y
+ * @param panelHeight 彈窗高度
+ * @returns 距 iframe 頂端的距離
+ *
+ * 目標是放在「外殼標題列以下、鍵盤以上」那塊區域的正中間。
+ * 空間真的不夠時優先保證頂端看得見（標題與輸入框在上半部），
+ * 底部溢出的部分由彈窗自己捲動。
+ */
+function computeModalTop(vvHeight, frameTop, panelHeight, minTop) {
+    if (!vvHeight) return minTop;
+    const visible = vvHeight - frameTop;
+    return Math.max(minTop, Math.min((visible - panelHeight) / 2, visible - panelHeight - 12));
+}
+
+function positionText() {
+    const modal = $('txtModal');
+    const panel = $('txtPanel');
+    if (!modal || !panel || !modal.classList.contains('show')) return;
+
+    const vv = outerViewport();
+    if (!vv || !vv.height) { modal.style.paddingTop = MODAL_MIN_TOP + 'px'; return; }
+
+    // iframe 在外層畫面上的起始位置，用來把外層座標換算成 iframe 內座標
+    let frameTop = 0;
+    try {
+        if (window.frameElement) frameTop = window.frameElement.getBoundingClientRect().top;
+    } catch (e) { /* 跨來源時取不到，當作 0 */ }
+
+    modal.style.paddingTop =
+        computeModalTop(vv.height, frameTop, panel.offsetHeight || 240, MODAL_MIN_TOP) + 'px';
 }
 
 function closeText() {
     $('txtModal').classList.remove('show');
     $('txtInput').blur();
+
+    const vv = outerViewport();
+    if (vv) {
+        vv.removeEventListener('resize', positionText);
+        vv.removeEventListener('scroll', positionText);
+    }
+    window.removeEventListener('resize', positionText);
+
     txtState = null;
 }
 
