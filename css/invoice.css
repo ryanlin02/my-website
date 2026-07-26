@@ -1,5 +1,5 @@
 /**
- * 發票開立小幫手 - 新版樣式（測試版）
+ * 發票開立小幫手 - 樣式
  *
  * 設計前提：
  *  1. 手機直式、可視寬度約 394px（body max-width 400px，左右各 3px padding）
@@ -186,16 +186,25 @@ body { padding-bottom: 12px !important; }
 }
 
 /* 統編檢查碼狀態燈 —— 打錯當場就看得到，不用等開完才發現 */
+/* 檢查碼的 ✓／✕ 疊在輸入框內側右邊。
+   放在框外面會夾在統編與日期之間變成一小條，兩邊都黏得很緊。 */
+.box-wrap { flex: 1; min-width: 0; position: relative; display: flex; }
+.box-wrap .box { flex: 1; padding-right: 26px; }
+
 .tax-id-state {
-    flex: 0 0 auto;
-    width: 22px;
-    text-align: center;
+    position: absolute;
+    right: 8px;
+    top: 0;
     font-size: 15px;
     font-weight: bold;
     line-height: 34px;
+    pointer-events: none;
 }
 .tax-id-state.ok  { color: var(--ok-green); }
 .tax-id-state.bad { color: var(--err-red); }
+
+.box.date { flex: 0 0 104px; font-size: 14px; justify-content: center; }
+.lbl2     { flex: 0 0 34px !important; }
 
 /* ===================================================================
    3. 品項明細
@@ -294,6 +303,33 @@ body { padding-bottom: 12px !important; }
 .sum-row.total .k { color: var(--button-orange); font-weight: bold; }
 .sum-row.total .v { color: var(--button-orange); font-size: 19px; }
 
+/* 可點的總計：外觀比照其他輸入欄位，並掛一個「⇄ 反推」標記。
+   少了這個提示，使用者不會發現這裡能由含稅價回推未稅。 */
+.sum-row.tappable { cursor: pointer; }
+
+.sum-row .rev {
+    margin-left: auto;
+    margin-right: 8px;
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--button-blue);
+    border: 1px solid var(--button-blue);
+    border-radius: 10px;
+    padding: 2px 7px;
+    white-space: nowrap;
+}
+
+.sum-row .box-look {
+    background-color: var(--field-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 3px 9px;
+    min-width: 130px;
+    text-align: right;
+}
+.sum-row.tappable:active .box-look { border-color: var(--button-orange); }
+.sum-row.tappable:active .rev { background: var(--button-blue); color: #fff; }
+
 .sum-row.muted .k, .sum-row.muted .v { color: #8e8e8e; }
 
 /* 中文大寫（格位式）
@@ -391,7 +427,6 @@ body { padding-bottom: 12px !important; }
 .preview-wrap svg { display: block; width: 100%; height: auto; }
 
 /* SVG 裡的可點熱區（目前只有日期） */
-.preview-wrap [data-hot], .zoom-paper [data-hot] { cursor: pointer; }
 
 /* 全螢幕放大：橫式旋轉，把手機的長邊拿來當發票的寬邊 */
 .zoom-overlay {
@@ -547,8 +582,24 @@ body { padding-bottom: 12px !important; }
     background: var(--secondary-color);
     border-radius: 12px 12px 0 0;
     border-top: 2px solid var(--button-orange);
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    /* 底部要加上 safe-area，否則最後一排按鍵會被 iPhone 的 home indicator 壓到。
+       這需要 viewport meta 有 viewport-fit=cover 才會生效。 */
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
+}
+
+/* 寬螢幕（桌機、平板橫放）改置中。
+   貼底是為了手機拇指好按，在大螢幕上反而顯得很怪，
+   而且滑鼠要移動一大段距離才點得到。 */
+@media (min-width: 620px) {
+    .pad-modal { align-items: center; }
+    .pad-panel {
+        border-radius: 12px;
+        border: 2px solid var(--button-orange);
+        padding-bottom: 10px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, .5);
+    }
+    .zoom-bar { padding-bottom: 10px; }
 }
 
 .pad-head {
@@ -720,45 +771,72 @@ body { padding-bottom: 12px !important; }
 .sheet-empty { text-align: center; color: #7a7a7a; font-size: 13px; padding: 40px 0; }
 
 /* ===================================================================
-   10. 日期選擇
-   加減鍵而不是滾輪，是因為實務上幾乎都是「今天」或「往前一兩天」，
-   點兩下就到了，比捲滾輪快也不會滑過頭。
+   10. 日期選擇（月曆）
+   原本用加減鍵，但要把「日」從 26 改到 3 得按二十幾下。
+   月曆一格一天，點一下就到，補開前幾天的發票時差很多。
    =================================================================== */
-.date-row { display: flex; gap: 6px; margin-bottom: 10px; }
-
-.date-cell {
-    flex: 1;
+.cal-nav {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 4px;
-    background: var(--field-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 6px 3px;
+    margin-bottom: 6px;
 }
-.date-cell .dl { font-size: 11px; color: #9a9a9a; }
-.date-cell .dv {
-    min-width: 34px;
-    text-align: center;
-    font-size: 19px;
-    font-weight: bold;
-    color: var(--button-orange);
-    font-variant-numeric: tabular-nums;
-}
-.dstep {
-    width: 30px;
-    height: 30px;
+.cal-nav button {
+    flex: 0 0 38px;
+    height: 34px;
     background: var(--secondary-color);
-    color: var(--text-color);
+    color: var(--button-blue);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 7px;
     font-size: 16px;
     line-height: 1;
     cursor: pointer;
     padding: 0;
 }
-.dstep:active { background: var(--button-orange); }
+.cal-nav button:active { background: var(--button-blue); color: #fff; }
+.cal-title {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--button-orange);
+    font-variant-numeric: tabular-nums;
+}
+
+.cal-week { display: flex; margin-bottom: 3px; }
+.cal-week span {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    color: #9a9a9a;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 10px;
+}
+.cal-grid .d {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--field-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    font-size: 15px;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+.cal-grid .d.blank { background: transparent; border-color: transparent; cursor: default; }
+.cal-grid .d.today { border-color: var(--button-blue); color: var(--button-blue); font-weight: bold; }
+.cal-grid .d.sel {
+    background: var(--button-orange);
+    border-color: var(--button-orange);
+    color: #fff;
+    font-weight: bold;
+}
 
 .date-btns { display: flex; gap: 6px; }
 .date-btns button {
@@ -801,4 +879,30 @@ body { padding-bottom: 12px !important; }
     background: linear-gradient(90deg, var(--secondary-color) 0%, var(--button-orange) 50%, var(--secondary-color) 100%);
     margin: 5px 0;
     overflow: hidden;
+}
+
+/* ===================================================================
+   12. 通用頁尾
+   由 common-modals.js 注入。這頁沒有載入 calculator.css（會與本檔的
+   .row / .toast-message 等選擇器打架），所以頁尾樣式在這裡自帶一份。
+   =================================================================== */
+.global-app-footer {
+    text-align: center;
+    padding: 16px 10px 20px;
+    margin-top: 12px;
+    border-top: 1px solid rgba(255, 156, 51, 0.2);
+}
+
+.footer-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #888888;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.footer-copyright {
+    font-size: 11px;
+    color: #666666;
+    letter-spacing: 0.3px;
 }

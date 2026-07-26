@@ -2,8 +2,10 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=400, user-scalable=no, initial-scale=1, maximum-scale=1">
-    <title>發票金額轉換工具</title>
+    <!-- viewport-fit=cover 是必要的：少了它，CSS 裡的 env(safe-area-inset-*)
+         一律回傳 0，底部彈出的鍵盤最後一排就會被 iPhone 的 home indicator 壓到 -->
+    <meta name="viewport" content="width=400, user-scalable=no, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <title>發票開立小幫手</title>
 
     <!-- 功能頁防護：被直接開啟時導回外殼，避免繞過安裝引導（必須放在最前面） -->
     <script src="../js/frame-guard.js"></script>
@@ -15,14 +17,14 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        
+
         const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
         gtag('config', 'G-XE5XMQR0Z1', {
-            page_title: `貸款業務工具箱 - 發票計算`,
+            page_title: `貸款業務工具箱 - 發票開立`,
             page_location: window.location.href,
             page_path: window.location.pathname
         });
-        
+
         function trackEvent(eventName, parameters = {}) {
             parameters.page_type = currentPageName;
             parameters.is_iframe = isInIframe;
@@ -30,631 +32,235 @@
         }
     </script>
 
-    <!-- 引用全站通用樣式 -->
-    <link rel="stylesheet" href="../css/calculator.css">
-
-    <!-- 發票頁面原版 CSS 樣式 (100% 視覺與結構保留) -->
-    <style>
-    :root {
-        --primary-color: #333333;
-        --secondary-color: #4a4a4a;
-        --text-color: #ffffff;
-        --border-color: #555555;
-        --hover-color: #666666;
-        --shadow-color: rgba(0, 0, 0, 0.3);
-        --button-orange: #ff9c33;
-        --button-blue: #33b5e5;
-    }
-    
-    html, body {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-        position: relative;
-        overflow-x: hidden;
-        -webkit-text-size-adjust: 100%;
-        padding: 0 3px !important;
-        background-color: #333333;
-        color: var(--text-color);
-        font-family: "Microsoft JhengHei", Arial, sans-serif;
-        box-sizing: border-box;
-    }
-    
-    .row {
-        margin: 4px 0;
-        display: flex;
-        align-items: center;
-        background: var(--secondary-color);
-        padding: 3px;
-        border-radius: 4px;
-        box-shadow: 0 4px 8px var(--shadow-color);
-        position: relative;
-    }
-
-    .label {
-        width: 120px;
-        margin-right: 15px;
-        text-align: right;
-        font-weight: 600;
-        color: var(--text-color);
-    }
-    
-    input {
-        width: 100%;
-        padding: 6px 8px;
-        margin-bottom: 0;
-        background-color: #222222;
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        box-sizing: border-box;
-        touch-action: manipulation;
-        height: 36px;
-        text-align: right;
-    }
-    
-    input:focus {
-        outline: none;
-        border-color: var(--button-orange);
-        box-shadow: 0 0 0 3px rgba(255, 156, 51, 0.2);
-    }
-    
-    .result {
-        width: 100%;
-        padding: 6px 8px;
-        margin-bottom: 0;
-        background-color: #222222;
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 16px;
-        position: relative;
-        overflow: hidden;
-        box-sizing: border-box;
-        min-height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        text-align: right;
-    }
-
-    .result::after {
-        content: attr(data-placeholder);
-        opacity: 0.5;
-        position: absolute;
-        top: 50%;
-        right: 10px;
-        transform: translateY(-50%);
-        color: #888888;
-        font-size: 16px;
-        white-space: nowrap;
-        pointer-events: none;
-    }
-
-    .result:not(:empty)::after {
-        display: none;
-    }
-
-    #financialResult {
-        padding: 6px 8px;
-        background-color: #222222;
-        border: 2px solid var(--border-color);
-        font-size: 21px;
-        height: auto;
-        min-height: 42px;
-        max-height: 76px;
-        overflow-y: auto;
-        overflow-x: auto;
-        white-space: normal;
-        word-wrap: break-word;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-        font-family: monospace;
-        box-sizing: border-box;
-        display: block;
-        text-align: right;
-        line-height: 1.2;
-    }
-    
-    .container, .keyboard-container {
-        background-color: var(--secondary-color);
-        border-radius: 10px;
-        padding: 10px;
-        margin: 4px 0;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        position: relative;
-        overflow: visible;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    .keyboard-container {
-        padding: 12px 10px;
-    }
-
-    .result-group-horizontal {
-        display: flex;
-        align-items: center;
-        margin-bottom: 4px;
-        width: 100%;
-    }
-    
-    .result-group-horizontal label {
-        width: 60px;
-        margin-right: 0px;
-        margin-bottom: 0;
-        text-align: right;
-        padding-right: 5px;
-        font-weight: bold;
-        color: var(--button-orange);
-        flex-shrink: 0;
-    }
-
-    .result-group-horizontal label:empty {
-        width: 0;
-        padding-right: 0;
-        margin-right: 0;
-    }
-    
-    .calculator-keyboard {
-        width: 100%;
-        margin: 4px 0;
-        touch-action: manipulation;
-        padding: 0;
-    }
-    
-    .keyboard-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 4px;
-    }
-    
-    .calc-btn {
-        flex: 1;
-        margin: 0 5px;
-        padding: 8px 5px;
-        font-size: 24px;
-        background-color: var(--secondary-color);
-        color: var(--text-color);
-        border: 2px solid var(--border-color);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        height: 50px;
-        min-height: 45px;
-        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
-    }
-
-    .calc-btn.active {
-        transform: scale(0.95) translateY(1px);
-    }
-    
-    .result-group-horizontal input {
-        flex: 1 !important;
-        width: 100% !important;
-        height: 36px !important;
-        padding: 6px 8px !important;
-        margin: 0 !important;
-        background-color: #222222 !important;
-        color: var(--text-color) !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 8px !important;
-        font-size: 16px !important;
-        box-sizing: border-box !important;
-        text-align: right !important;
-    }
-    
-    .number-btn, .calc-number-btn {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    .number-btn:active, .calc-number-btn:active {
-        background-color: var(--button-orange) !important;
-        color: white !important;
-    }
-
-    .number-btn:active .arabic-number,
-    .number-btn:active .financial-char,
-    .calc-number-btn:active .arabic-number,
-    .calc-number-btn:active .financial-char {
-        color: white !important;
-    }
-    
-    .arabic-number {
-        font-size: 24px !important;
-        margin-right: 8px !important;
-    }
-    
-    .financial-char {
-        font-size: 20px !important;
-        color: var(--button-orange) !important;
-    }
-    
-    .clear-btn, .backspace-btn {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 20px;
-    }
-    
-    .clear-btn {
-        background-color: var(--secondary-color);
-        color: var(--button-blue);
-        border: 1px solid var(--button-blue);
-    }
-    
-    .clear-btn:active {
-        background-color: var(--button-blue);
-        color: white;
-    }
-
-    .clear-btn:hover {
-        background-color: rgba(51, 181, 229, 0.2);
-        border-color: var(--button-blue);
-        color: white;
-    }
-    
-    .divider-flow {
-        position: relative;
-        height: 2px;
-        background: linear-gradient(90deg, 
-            var(--secondary-color) 0%,
-            var(--button-orange) 50%,
-            var(--secondary-color) 100%);
-        margin: 4px 0;
-        overflow: hidden;
-    }
-    
-    .divider-flow::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg,
-            transparent,
-            rgba(255, 156, 51, 0.8),
-            transparent);
-        animation: flowLight 3s ease-in-out infinite;
-    }
-
-    .time-display-wrapper {
-        position: relative;
-        height: auto;
-        margin: 18px 0px 0px 0px;
-        z-index: 1000;
-    }
-
-    .sticky-header {
-        position: -webkit-sticky !important;
-        position: sticky !important;
-        top: 0;
-        background: var(--secondary-color);
-        padding: 8px;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px var(--shadow-color);
-        z-index: 999;
-        width: calc(100% - 16px);
-        margin: 0 auto;
-    }
-
-    .time-label {
-        font-weight: bold;
-        margin-right: 10px;
-        color: var(--button-orange);
-    }
-
-    .action-buttons {
-        display: flex;
-        justify-content: space-between;
-        margin: 4px 0;
-        padding: 0;
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .action-btn {
-        flex: 1;
-        margin: 0 2px;
-        padding: 12px 0;
-        background-color: var(--secondary-color);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 16px;
-        font-weight: bold;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .action-btn:hover {
-        background-color: var(--button-orange);
-        border-color: var(--button-orange);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .keyboard-switch-container {
-        margin: 4px 0;
-        width: 100%;
-    }
-
-    .keyboard-switch {
-        display: flex;
-        background-color: var(--secondary-color);
-        border-radius: 10px;
-        padding: 3px;
-        border: 1px solid var(--border-color);
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    .switch-btn {
-        flex: 1;
-        padding: 8px 0;
-        border: none;
-        background: transparent;
-        color: var(--text-color);
-        font-weight: bold;
-        font-size: 15px;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-
-    .switch-btn.active {
-        background-color: var(--button-orange);
-        color: #ffffff;
-        box-shadow: 0 2px 6px rgba(255, 156, 51, 0.4);
-    }
-
-    .operator-btn {
-        font-weight: bold;
-    }
-
-    .special-operator {
-        color: var(--button-orange);
-    }
-
-    .calc-equals {
-        background-color: var(--button-orange);
-        color: white;
-    }
-
-    .financial-digit {
-        color: #FFBE7A;
-        display: inline;
-    }
-
-    .limit-notification {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        background-color: rgba(51, 51, 51, 0.95);
-        color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        z-index: 9999;
-        text-align: center;
-        transition: transform 0.3s ease-out;
-        border: 2px solid var(--button-orange);
-        max-width: 80%;
-    }
-
-    .limit-notification.show {
-        transform: translate(-50%, -50%) scale(1);
-    }
-    </style>
-
-    <!-- 引用全站通用組件與發票邏輯 JS -->
-    <script src="../js/common-modals.js"></script>
-    <script src="../js/invoice-engine.js"></script>
+    <link rel="stylesheet" href="../css/invoice.css">
 </head>
 <body>
-    <div class="time-display-wrapper">
-        <div id="timeDisplay" class="sticky-header">
-            <div style="display: flex; justify-content: center; width: 100%;">
-                <span class="time-label">現在時間</span>
-                <span id="currentTime"></span>
-            </div>
+
+<!-- ===================================================================
+     固定頂列
+     稅別已固定為應稅 5%（實務上重車租賃不會遇到零稅率或免稅），
+     省下來的橫向空間拿來放存檔與歷史，兩者捲到哪裡都點得到。
+     =================================================================== -->
+<div class="top-bar">
+    <div class="seg-row">
+        <div class="seg seg-type" id="segType">
+            <button data-v="3" class="active">三聯式</button>
+            <button data-v="2">二聯式</button>
         </div>
+        <button class="bar-btn" id="btnSaveRec">存檔</button>
+        <button class="bar-btn" id="btnHistory">歷史</button>
     </div>
-    
-    <div class="container">
-        <div class="content-wrapper">
-            <div class="result-group-horizontal">
-                <label style="color: var(--button-orange); font-weight: bold;">總金額</label>
-                <input type="tel" id="arabicNumber" placeholder="請輸入金額" oninput="updateResults()" inputmode="none" autocomplete="off" readonly>
-            </div>
-            
-            <div class="result-group-horizontal">
-                <label>未稅</label>
-                <div class="result" id="preTaxAmount"></div>
-            </div>
-            
-            <div class="result-group-horizontal">
-                <label>稅金</label>
-                <div class="result" id="taxAmount"></div>
-            </div>
-            
-            <div class="result-group-horizontal">
-                <label>中文</label>
-                <div class="result" id="traditionalResult" data-placeholder="這裡會顯示轉換後的中文數字"></div>
-            </div>
-            
-            <div class="result-group-horizontal">
-                <label></label>
-                <div class="result" id="financialResult" data-placeholder="這裡會顯示轉換後的國字大寫"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 鍵盤切換按鈕列 -->
-    <div class="keyboard-switch-container">
-        <div class="keyboard-switch">
-            <button id="direct-input-btn" class="switch-btn active">直接輸入</button>
-            <button id="calculator-btn" class="switch-btn">計算機</button>
-        </div>
+</div>
+
+<!-- ===================================================================
+     買受人
+     二聯式（開給個人）沒有統編，切換時整列隱藏，不留空位佔版面。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>買受人</span>
+        <span class="hint" id="buyerHint">開給公司行號</span>
     </div>
 
-    <!-- 原始的數字鍵盤（直接輸入模式） -->
-    <div id="direct-input-keyboard" class="keyboard-container">
-        <div class="calculator-keyboard">
-            <div class="keyboard-row">
-                <button class="calc-btn number-btn" onclick="appendNumber(7)">
-                    <div class="arabic-number">7</div>
-                    <div class="financial-char">柒</div>
-                </button>
-                <button class="calc-btn number-btn" onclick="appendNumber(8)">
-                    <div class="arabic-number">8</div>
-                    <div class="financial-char">捌</div>
-                </button>
-                <button class="calc-btn number-btn" onclick="appendNumber(9)">
-                    <div class="arabic-number">9</div>
-                    <div class="financial-char">玖</div>
-                </button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn number-btn" onclick="appendNumber(4)">
-                    <div class="arabic-number">4</div>
-                    <div class="financial-char">肆</div>
-                </button>
-                <button class="calc-btn number-btn" onclick="appendNumber(5)">
-                    <div class="arabic-number">5</div>
-                    <div class="financial-char">伍</div>
-                </button>
-                <button class="calc-btn number-btn" onclick="appendNumber(6)">
-                    <div class="arabic-number">6</div>
-                    <div class="financial-char">陸</div>
-                </button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn number-btn" onclick="appendNumber(1)">
-                    <div class="arabic-number">1</div>
-                    <div class="financial-char">壹</div>
-                </button>
-                <button class="calc-btn number-btn" onclick="appendNumber(2)">
-                    <div class="arabic-number">2</div>
-                    <div class="financial-char">貳</div>
-                </button>
-                <button class="calc-btn number-btn" onclick="appendNumber(3)">
-                    <div class="arabic-number">3</div>
-                    <div class="financial-char">參</div>
-                </button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn clear-btn" onclick="clearInput()">清除</button>
-                <button class="calc-btn number-btn" onclick="appendNumber(0)">
-                    <div class="arabic-number">0</div>
-                    <div class="financial-char">零/拾</div>
-                </button>
-                <button class="calc-btn backspace-btn" onclick="backspace()">退回</button>
-            </div>
+    <!-- 統編只有 8 碼，佔滿整行是浪費。右半留給日期。
+         檢查碼的 ✓／✕ 直接疊在輸入框內側 —— 放外面會夾在兩個欄位中間，
+         擠成一小條又跟日期黏在一起。 -->
+    <div class="fld" id="rowTaxId">
+        <span class="lbl">統編</span>
+        <div class="box-wrap">
+            <div class="box num empty" id="fTaxId" data-ph="8 碼">8 碼</div>
+            <span class="tax-id-state" id="taxIdState"></span>
         </div>
+        <span class="lbl lbl2">日期</span>
+        <div class="box num date" id="fDate">115/07/26</div>
     </div>
 
-    <!-- 計算機鍵盤（計算機模式） -->
-    <div id="calculator-keyboard" class="keyboard-container" style="display: none;">
-        <div class="calculator-display" style="background:#222; border:1px solid var(--border-color); border-radius:6px; padding:10px 15px; margin-bottom:15px; text-align:right; font-size:24px; color:#fff; height:36px; display:flex; align-items:center; justify-content:flex-end;">
-            <div id="calculator-expression">0</div>
-        </div>
-        <div class="calculator-keyboard">
-            <div class="keyboard-row">
-                <button class="calc-btn operator-btn" onclick="calcClear()">C</button>
-                <button class="calc-btn operator-btn special-operator" onclick="calcTaxAddition()" style="font-size: 20px;">稅外加</button>
-                <button class="calc-btn operator-btn special-operator" onclick="calcClear()" style="font-size: 18px;">AC</button>
-                <button class="calc-btn operator-btn special-operator" onclick="calcAddOperator('/')">/</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(7)">
-                    <div class="arabic-number">7</div>
-                    <div class="financial-char">柒</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(8)">
-                    <div class="arabic-number">8</div>
-                    <div class="financial-char">捌</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(9)">
-                    <div class="arabic-number">9</div>
-                    <div class="financial-char">玖</div>
-                </button>
-                <button class="calc-btn operator-btn special-operator" onclick="calcAddOperator('*')">×</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(4)">
-                    <div class="arabic-number">4</div>
-                    <div class="financial-char">肆</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(5)">
-                    <div class="arabic-number">5</div>
-                    <div class="financial-char">伍</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(6)">
-                    <div class="arabic-number">6</div>
-                    <div class="financial-char">陸</div>
-                </button>
-                <button class="calc-btn operator-btn special-operator" onclick="calcAddOperator('-')">－</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(1)">
-                    <div class="arabic-number">1</div>
-                    <div class="financial-char">壹</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(2)">
-                    <div class="arabic-number">2</div>
-                    <div class="financial-char">貳</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(3)">
-                    <div class="arabic-number">3</div>
-                    <div class="financial-char">參</div>
-                </button>
-                <button class="calc-btn operator-btn special-operator" onclick="calcAddOperator('+')">＋</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="calc-btn backspace-btn" onclick="calcBackspace()">退回</button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber(0)">
-                    <div class="arabic-number">0</div>
-                    <div class="financial-char">零</div>
-                </button>
-                <button class="calc-btn calc-number-btn" onclick="calcAddNumber('.')">.</button>
-                <button class="calc-btn operator-btn calc-equals" onclick="calcEvaluate()">＝</button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="action-buttons">
-        <button class="action-btn" id="saveInvoice" onclick="saveInvoiceData()">保存發票</button>
-        <button class="action-btn" id="viewHistory" onclick="toggleHistoryPanel()">歷史記錄</button>
+    <!-- 二聯式沒有統編，這時日期改放這一列，版面不會空一塊 -->
+    <div class="fld" id="rowDateOnly" style="display:none">
+        <span class="lbl">日期</span>
+        <div class="box num" id="fDate2">115/07/26</div>
     </div>
 
-    <!-- 歷史記錄面板 -->
-    <div id="historyPanel" class="history-panel">
-        <div class="history-header">
-            <div class="header-left">
-                <h2>發票歷史記錄</h2>
-            </div>
-            <div class="header-right">
-                <button class="delete-all-btn" onclick="confirmDeleteAll()">全部刪除</button>
-            </div>
-            <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
-        </div>
-        <div id="historyContent" class="history-content"></div>
+    <div class="fld">
+        <span class="lbl">抬頭</span>
+        <div class="box empty" id="fTitle" data-ph="點此輸入公司名稱">點此輸入公司名稱</div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     品項明細
+     每筆拆成兩行（品名 / 數量×單價=金額），
+     擠成一行會讓每個可點區域小到 40px 以下，手指按不準。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>品項明細</span>
+        <span class="hint" id="itemHint">單價為未稅</span>
     </div>
 
-    <div class="divider-flow"></div>
+    <div id="itemList"></div>
 
-    <!-- 通用頁尾、提示模態框、確認模態框 由 common-modals.js 動態注入 -->
+    <button class="add-item" id="btnAddItem">＋ 新增品項</button>
+</div>
 
+<!-- ===================================================================
+     金額
+     大寫採「格位式」：發票上「億仟佰拾萬仟佰拾元」是印好的，
+     手寫只填每格前面的數字，用不到的高位要劃掉。
+     這裡的呈現刻意和擬真圖一模一樣，兩邊對照不會看錯。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>金額</span>
+        <span class="hint">點總計可由含稅價反推</span>
+    </div>
+
+    <div class="sum-row" id="rowSales">
+        <span class="k">銷售額（未稅）</span>
+        <span class="v" id="vSales">0</span>
+    </div>
+    <div class="sum-row" id="rowTax">
+        <span class="k" id="kTax">營業稅額 5%</span>
+        <span class="v" id="vTax">0</span>
+    </div>
+    <!-- 總計做成看得出可點的樣式。原本純文字，使用者完全不會知道
+         這裡能由含稅價反推，功能等於不存在 -->
+    <div class="sum-row total tappable" id="rowTotal">
+        <span class="k">總計（含稅）</span>
+        <span class="rev">⇄ 反推</span>
+        <span class="v box-look" id="vTotal">0</span>
+    </div>
+
+    <div class="upper-slots" id="vUpper"></div>
+    <div class="upper-note">灰底劃掉的格子不用寫，其餘每格都要填一個數字</div>
+</div>
+
+<!-- ===================================================================
+     擬真發票預覽
+     依實際三聯式發票重畫。SVG 內的日期是可點的熱區。
+     =================================================================== -->
+<div class="card">
+    <div class="card-title">
+        <span>發票範例</span>
+        <span class="hint">點日期可改，點其他地方放大</span>
+    </div>
+    <div class="preview-wrap" id="previewWrap"></div>
+</div>
+
+<div class="acts">
+    <button class="act primary" id="btnZoom">放大看</button>
+    <button class="act" id="btnShare">分享</button>
+    <button class="act" id="btnSave">存圖</button>
+    <button class="act" id="btnReset">清除</button>
+</div>
+
+<div class="divider-flow"></div>
+
+<!-- ===================================================================
+     全螢幕放大
+     可用區域是橫的就直接鋪滿，是直的（手機直握）才轉 90 度。
+     用長寬比判斷而不是判斷裝置，平板與轉向都能自動正確。
+     =================================================================== -->
+<div class="zoom-overlay" id="zoomOverlay">
+    <div class="zoom-stage" id="zoomStage">
+        <div class="zoom-paper" id="zoomPaper"></div>
+    </div>
+    <div class="zoom-bar">
+        <button id="zRotate">旋轉</button>
+        <button id="zOut">－</button>
+        <button id="zIn">＋</button>
+        <button id="zFit">符合</button>
+        <button class="close" id="zClose">關閉</button>
+    </div>
+</div>
+
+<!-- ===================================================================
+     歷史記錄
+     一行一筆：日期、抬頭、總計。點一下整張載回來繼續編輯或再分享一次。
+     =================================================================== -->
+<div class="sheet" id="histSheet">
+    <div class="sheet-head">
+        <span class="t">歷史記錄</span>
+        <div class="sheet-acts">
+            <button id="histClear">全部刪除</button>
+            <button class="x" id="histClose">×</button>
+        </div>
+    </div>
+    <div class="sheet-body" id="histBody"></div>
+</div>
+
+<!-- ===================================================================
+     日期選擇
+     預設今天，需要補開或補寫前幾天的發票時才會動到。
+     =================================================================== -->
+<div class="pad-modal" id="dateModal">
+    <div class="pad-panel">
+        <div class="pad-head">
+            <span class="t">發票日期（民國）</span>
+            <button class="x" id="dateClose">×</button>
+        </div>
+
+        <!-- 月曆直接點日期，比加減鍵快得多：
+             要改成 3 號，加減鍵要按二十幾下，月曆點一下就好 -->
+        <div class="cal-nav">
+            <button data-nav="y-1">«</button>
+            <button data-nav="m-1">‹</button>
+            <span class="cal-title" id="calTitle">115 年 7 月</span>
+            <button data-nav="m1">›</button>
+            <button data-nav="y1">»</button>
+        </div>
+        <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div class="cal-grid" id="calGrid"></div>
+
+        <div class="date-btns">
+            <button id="dateToday">今天</button>
+            <button class="ok" id="dateOk">確定</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     文字輸入彈窗（抬頭 / 品名）
+     底層被遮罩蓋住，系統鍵盤彈出時只有這個面板會移動。
+     =================================================================== -->
+<div class="txt-modal" id="txtModal">
+    <div class="txt-panel" id="txtPanel">
+        <h3 id="txtTitle">輸入</h3>
+        <div class="chips-label" id="chipsLabel">常用（點一下直接填入）</div>
+        <div class="chips" id="txtChips"></div>
+        <input type="text" id="txtInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="txt-btns">
+            <button id="txtCancel">取消</button>
+            <button class="ok" id="txtOk">確定</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================================
+     自製數字鍵盤
+     金額、數量、統編全部走這裡，永遠不會叫出系統鍵盤。
+     =================================================================== -->
+<div class="pad-modal" id="padModal">
+    <div class="pad-panel">
+        <div class="pad-head">
+            <span class="t" id="padTitle">輸入金額</span>
+            <button class="x" id="padClose">×</button>
+        </div>
+        <div class="pad-disp" id="padDisp">0</div>
+        <div class="pad-sub" id="padSub"></div>
+        <div class="pad-grid" id="padGrid"></div>
+    </div>
+</div>
+
+<!-- 頁尾
+     其他頁是由 common-modals.js 注入的，但那支同時會塞進一整組計算機彈窗，
+     那些彈窗靠 calculator.css 才會隱藏。這頁沒載 calculator.css（會跟本頁的
+     .row / .toast-message 打架），載進來反而整組露在畫面上，所以直接寫死。 -->
+<footer class="global-app-footer">
+    <div class="footer-title">重車貸款業務工具箱 <span id="appVersionLabel"></span></div>
+    <div class="footer-copyright">© 2026 Fleet Loan Toolkit. All rights reserved.</div>
+</footer>
+
+<script src="../js/invoice-engine.js"></script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 /**
  * 發票新版 - 純函式驗算
- * 直接從 invoice-new-engine.js 抽出不碰 DOM 的函式來跑，
+ * 直接從 invoice-engine.js 抽出不碰 DOM 的函式來跑，
  * 避免測試檔和實作各寫一份而漸漸不同步。
  */
 const fs=require('fs'),path=require('path');
-const ENGINE=path.join(__dirname,'../../js/invoice-new-engine.js');
+const ENGINE=path.join(__dirname,'../../js/invoice-engine.js');
 const src=fs.readFileSync(ENGINE,'utf8');
 const pick=(n)=>{const i=src.indexOf('function '+n);if(i<0)throw new Error('找不到 '+n);
   let d=0;for(let k=src.indexOf('{',i);k<src.length;k++){if(src[k]==='{')d++;if(src[k]==='}'){d--;if(d===0)return src.slice(i,k+1);}}};

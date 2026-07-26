@@ -20,7 +20,9 @@
  * 規則：4.24 → 4.25 → ... → 4.99 → 5.00 → 5.01
  * 版本號一變，Service Worker 就會重新安裝並抓取全新的檔案。
  * ============================================================ */
-const CACHE_VERSION = '4.31';
+// 發票頁全面改版（擬真發票範例、品項明細、格位式大寫）。
+// 版本號一定要跟著改，否則已安裝 PWA 的手機會繼續吃舊快取裡的發票頁。
+const CACHE_VERSION = '4.32';
 const CACHE_NAME = `xiaopenyou-tools-v${CACHE_VERSION}`;
 
 // 核心檔案清單 - 這些檔案會被優先快取以確保離線功能
@@ -48,8 +50,9 @@ const CORE_ASSETS = [
 
     // 支票頁與發票頁模組（原本漏掉，導致離線時這兩頁開不起來）
     './js/check-engine.js',     // 支票試算引擎
-    './js/invoice-engine.js',   // 發票轉換引擎
+    './js/invoice-engine.js',   // 發票開立引擎
     './css/check.css',          // 支票頁專用樣式（原內嵌於 check.html）
+    './css/invoice.css',        // 發票頁專用樣式（發票頁不吃 calculator.css）
     './js/common-modals.js',    // 三頁共用的彈窗與數字小鍵盤（HTML 注入）
     './js/common-keypad.js',    // 計算頁與支票頁共用的鍵盤與彈窗邏輯（JS）
     './js/frame-guard.js',      // 四個功能頁共用的防護腳本

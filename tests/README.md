@@ -8,6 +8,7 @@
 
 ```bash
 node tests/大寫金額測試.js
+node tests/invoice/verify.js
 ```
 
 ### 需要先安裝 jsdom（模擬瀏覽器環境）
@@ -21,7 +22,10 @@ node tests/支票開票流程測試.js
 node tests/支票進度與存檔測試.js
 node tests/版面樣式測試.js
 node tests/鍵盤行為對照測試.js
+node tests/invoice/頁面載入測試.js
 ```
+
+發票頁的測試自成一個資料夾 `tests/invoice/`，另有一份說明見 `tests/invoice/README.md`。
 
 全部通過時結束碼為 0，有任何一項失敗會是 1，訊息裡會直接指出哪一項、預期值與實得值。
 

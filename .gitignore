@@ -1,0 +1,19 @@
+# GitHub Pages 會把 repo 裡的東西整包當成網站內容送出去，
+# 所以測試與開發過程的產物一定要擋在版控之外，避免不小心公開。
+
+# 測試用的 npm 套件（目前只有 jsdom）
+# 需要時用 npm install jsdom 重裝即可，見 tests/README.md
+node_modules/
+package.json
+package-lock.json
+
+# tests/invoice/render-samples.js 產生的目視檢查用圖，看完即可刪
+tests/invoice/*.svg
+tests/invoice/*.png
+
+# macOS 產生的資料夾檢視設定，與網站無關
+.DS_Store
+
+# Python 執行時產生的位元碼快取
+__pycache__/
+*.pyc

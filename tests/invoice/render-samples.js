@@ -1,6 +1,6 @@
 /** 產生三種情境的擬真發票 SVG，用來目視比對真實發票版面 */
 const fs=require('fs'),path=require('path');
-const src=fs.readFileSync(path.join(__dirname,'../../js/invoice-new-engine.js'),'utf8');
+const src=fs.readFileSync(path.join(__dirname,'../../js/invoice-engine.js'),'utf8');
 const pick=(n)=>{const i=src.indexOf('function '+n);if(i<0)throw new Error('缺 '+n);
   let d=0;for(let k=src.indexOf('{',i);k<src.length;k++){if(src[k]==='{')d++;if(src[k]==='}'){d--;if(d===0)return src.slice(i,k+1);}}};
 const head=`
@@ -9,11 +9,12 @@ const UP_UNITS=['億','仟','佰','拾','萬','仟','佰','拾','元'];
 const CN_NUM=['〇','一','二','三','四','五','六','七','八','九'];
 const CN_MONTH=['','一','二','三','四','五','六','七','八','九','十','十一','十二'];
 const TAX_RATE=0.05, MAX_ITEMS=5, MAX_AMOUNT=999999999;
+const DEFAULT_ITEM_NAME='品項名稱';
 const INK='#123fc8',PRT='#111111',PRE='#8a8a8a',STAMP_BG='#eaf1ff',STAMP_FG='#4a7fd4';
 const NAT_W_3=820,NAT_H_3=515,NAT_W_2=700,NAT_H_2=432;
 let state={type:'3',taxId:'',title:'',date:null,items:[],lockTotal:null};`;
 const fns=['fmt','esc','todayROC','curDate','rocYearCN','periodCN','upperSlots','calc',
-  'fitSize','svgText','svgLine','svgRect','hotspot','stampArea','upperRow','voidSlash',
+  'fitSize','svgText','svgSpread','svgLine','svgRect','noteColumn','upperRow','voidSlash',
   'buildSvg3','buildSvg2'].map(pick).join('\n');
 const m=new Function(head+fns+`return {set:o=>Object.assign(state,o),s3:buildSvg3,s2:buildSvg2,calc};`)();
 
