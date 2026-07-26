@@ -727,6 +727,44 @@ async function main() {
     t(`外殼標題列 ${headerH}px 與 iframe 起點 ${contentTop}px 完全對齊（重疊 0px）`,
         headerH === contentTop, `header=${headerH} content=${contentTop}`);
 
+    /* ── 四頁都不准再留「閃避標題列」的補償值 ──
+     *
+     * 重疊是 0 之後，這些補償值就變成頂端多出來的空白。
+     * 四個頁面當初各自用不同方式閃避，所以要逐頁檢查：
+     *   calculator.css  html, body { padding-top: 30px }
+     *   check.css       .write-progress { top: 15px }
+     *   invoice.css     .top-bar { top: 16px; margin-top: 16px }
+     *   gas.css         .time-display-wrapper { padding-top: 12px }
+     *                   .sticky-header { top: 10px }
+     * 全部歸零後，各頁與標題列的間距只剩 4～5px 的正常邊距。 */
+    const stickyTops = {
+        'css/gas.css': ['.sticky-header'],
+        'css/check.css': ['.write-progress'],
+        'css/invoice.css': ['.top-bar']
+    };
+    Object.entries(stickyTops).forEach(([file, sels]) => {
+        const css = fs.readFileSync(path.join(R, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+        sels.forEach(sel => {
+            const m = css.match(new RegExp(sel.replace('.', '\\.') + '\\s*\\{([^}]*)\\}'));
+            const top = m && (m[1].match(/(?<![\w-])top:\s*(-?\d+)px/) || [])[1];
+            t(`  ${file} 的 ${sel} sticky top = ${headerH - contentTop}px（等於重疊高度）`,
+                top === null || top === undefined || Number(top) === headerH - contentTop, `top=${top}`);
+        });
+    });
+
+    const bodyTopPad = (file) => {
+        const css = fs.readFileSync(path.join(R, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+        const m = css.match(/html,\s*body\s*\{([^}]*)\}/);
+        const p = m && (m[1].match(/padding-top:\s*(\d+)px/) || [])[1];
+        return p ? Number(p) : 0;
+    };
+    ['css/calculator.css', 'css/invoice.css'].forEach(f => {
+        t(`  ${f} 的 html/body 沒有閃避用的 padding-top`, bodyTopPad(f) === 0, `${bodyTopPad(f)}px`);
+    });
+    t('  gas.css 的 .time-display-wrapper 沒有閃避用的 padding-top',
+        !/\.time-display-wrapper\s*\{[^}]*padding-top:\s*[1-9]/.test(
+            fs.readFileSync(path.join(R, 'css/gas.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')));
+
     // ── 頁尾：四頁都要有，且只能有一份實作 ──
     ['calculator.html', 'check.html', 'invoice.html', 'gas.html'].forEach(p => {
         const src = fs.readFileSync(path.join(R, 'pages', p), 'utf8');
@@ -791,6 +829,54 @@ async function main() {
         fs.readFileSync(path.join(R, 'sw.js'), 'utf8').includes("'./css/keypad.css'"));
     t('本頁實作了 submitCalculatorValue()',
         /function\s+submitCalculatorValue\s*\(/.test(mainScript));
+
+    /* ── keypad.css 必須自給自足 ──
+     *
+     * 這是抽出 keypad.css 時真的踩到的坑：當初用「選擇器名稱包含
+     * calculator / modal / calc-button …」的關鍵字比對來挑要搬的規則，
+     * 但數字鍵盤的容器叫 .number-input-modal，命名對不上就被漏掉，
+     * 留在了 calculator.css。加油頁沒載那份，整個彈窗容器完全沒有樣式 ——
+     * 沒有寬度限制、沒有背景、沒有圓角，標題列與鍵盤各自散開。
+     * 計算頁與支票頁因為仍載入 calculator.css 所以完全看不出問題。
+     *
+     * 正確的稽核方式是以 common-modals.js 注入的 DOM 為準逐一比對，
+     * 而不是靠選擇器名稱猜。 */
+    const modalsJs = fs.readFileSync(path.join(R, 'js/common-modals.js'), 'utf8');
+    const injectedClasses = new Set();
+    for (const m of modalsJs.matchAll(/class="([^"]*)"/g)) {
+        m[1].split(/\s+/).filter(Boolean).forEach(c => injectedClasses.add(c));
+    }
+    const keypadCssNoComment = fs.readFileSync(path.join(R, 'css/keypad.css'), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '');
+    const keypadClasses = new Set();
+    for (const m of keypadCssNoComment.matchAll(/([^{}]+)\{/g)) {
+        for (const c of m[1].matchAll(/\.([\w-]+)/g)) keypadClasses.add(c[1]);
+    }
+    // zero-btn 的格位改由 common-modals.js 內嵌計算，刻意沒有 CSS 規則
+    const noStyleByDesign = new Set(['zero-btn']);
+    const orphanClasses = [...injectedClasses]
+        .filter(c => !keypadClasses.has(c) && !noStyleByDesign.has(c)).sort();
+    t('common-modals 注入的每個 class 在 keypad.css 都有樣式',
+        orphanClasses.length === 0, orphanClasses.join(', '));
+
+    // 動畫也要自給自足，否則彈窗不會有進場效果（而且不會報錯）
+    const usedAnim = new Set([...keypadCssNoComment.matchAll(/animation:\s*([\w-]+)/g)].map(m => m[1]));
+    const haveAnim = new Set([...keypadCssNoComment.matchAll(/@keyframes\s+([\w-]+)/g)].map(m => m[1]));
+    const missingAnim = [...usedAnim].filter(a => !haveAnim.has(a));
+    t('  keypad.css 引用的 @keyframes 都有定義', missingAnim.length === 0, missingAnim.join(', '));
+
+    // keypad.css 與 calculator.css 對同名 token 的值必須一致，否則兩頁鍵盤會長不一樣
+    const calcCss = fs.readFileSync(path.join(R, 'css/calculator.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const tokenVal = (css, name) => {
+        const m = css.match(new RegExp('^\\s*' + name + '\\s*:\\s*([^;]+);', 'm'));
+        return m ? m[1].trim() : null;
+    };
+    const kpTokens = [...keypadCssNoComment.matchAll(/^\s*(--[\w-]+)\s*:/gm)].map(m => m[1]);
+    const tokenMismatch = kpTokens
+        .map(n => [n, tokenVal(keypadCssNoComment, n), tokenVal(calcCss, n)])
+        .filter(([, a, b]) => b !== null && a !== b)
+        .map(([n, a, b]) => `${n}: keypad=${a} calculator=${b}`);
+    t('  與 calculator.css 同名 token 的值一致', tokenMismatch.length === 0, tokenMismatch.join('; '));
 
     // ── 加速鍵設定 ──
     t('已設定 00 加速鍵（每月油錢動輒數十萬）',

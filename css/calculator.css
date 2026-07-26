@@ -253,7 +253,14 @@ html, body {
     color: var(--text-color);
     font-family: "Microsoft JhengHei", Arial, sans-serif;
     box-sizing: border-box;
-    padding-top: 30px;
+
+    /* 【2026/07 移除 padding-top: 30px】
+     * 那是外殼版面對不上時留下的補償值：index.html 的標題列高 60px、
+     * 但 iframe 容器設在 top: 45px，內容最上面 15px 被標題列蓋住，
+     * 所以各頁都往下推一段來閃避。
+     * 外殼已改成 top: 60px 對齊，補償值再留著就變成純粹的空白 ——
+     * 這一頁原本會多出整整 30px 看不到內容。
+     * 與頂端的間距現在只靠 .time-display-wrapper 的 margin-top: 5px。 */
 }
 
 /* ============================================
@@ -428,10 +435,6 @@ html, body {
     color: var(--accent-color);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
 .divider-flow {
     position: relative;
@@ -1015,28 +1018,11 @@ div[id$="Buttons"] button:active {
     box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4);
 }
 
-@keyframes modalSlideIn {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
 /* ============================================
 * 數字計算機鍵盤彈窗 (Number Pad Modal)
 * ============================================ */
-.number-input-modal {
-    background-color: var(--primary-color);
-    border-radius: 12px;
-    width: 95%;
-    max-width: 350px;
-    box-shadow: 0 10px 25px var(--shadow-color);
-    overflow: hidden;
-    animation: modalSlideIn 0.1s ease-out;
-}
 
-.calculator-submit-container {
-    padding: 0 10px 12px 10px;
-    background-color: var(--primary-color);
-}
 
 /* ============================================
 * 備註編輯視窗 (Note Editor Modal)

@@ -391,3 +391,44 @@
     transform: scale(0.98);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
+
+
+/* ------------------------------------------------------------
+ * 【2026/07 補漏】以下四個區塊原本留在 calculator.css，抽出時漏掉了。
+ *
+ * 漏掉的原因是當初用「選擇器名稱包含 calculator / modal / calc-button …」
+ * 這種關鍵字比對來挑要搬的規則，而數字鍵盤的容器叫 .number-input-modal，
+ * 兩邊的命名對不上就被漏掉了。
+ *
+ * 後果：加油頁沒有載入 calculator.css，整個鍵盤彈窗的容器完全沒有樣式 ——
+ * 沒有寬度限制、沒有背景、沒有圓角，標題列與鍵盤各自散開。
+ * 計算頁與支票頁因為仍載入 calculator.css 所以看不出問題。
+ *
+ * 正確的稽核方式是以 js/common-modals.js 注入的 DOM 為準，
+ * 逐一確認每個 class 與 id 都有樣式 —— tests 已加入這項守門測試。
+ * ------------------------------------------------------------ */
+
+.number-input-modal {
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    width: 95%;
+    max-width: 350px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    overflow: hidden;
+    animation: modalSlideIn 0.1s ease-out;
+}
+
+.calculator-submit-container {
+    padding: 0 10px 12px 10px;
+    background-color: var(--primary-color);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}

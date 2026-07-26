@@ -55,11 +55,16 @@ body { padding-bottom: 12px !important; }
 .top-bar {
     position: -webkit-sticky;
     position: sticky;
-    top: 16px;
+    /* 【2026/07：top 與 margin-top 從 16px 改為 0 / 5px】
+     * 這兩個 16px 是外殼版面對不上時留下的補償：index.html 的標題列高
+     * 60px、iframe 容器卻設在 top: 45px，內容最上面 15px 被蓋住，
+     * 所以固定列往下推一段來閃避。外殼已改成 top: 60px 對齊，
+     * 補償值再留著就變成頂端多出一段空白。 */
+    top: 0;
     z-index: 900;
     background: var(--primary-color);
     padding: 6px 0 5px;
-    margin: 16px 0 5px;
+    margin: 5px 0 5px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
 }
 

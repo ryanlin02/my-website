@@ -274,19 +274,26 @@ body {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== 時間顯示欄位樣式 - 從支票試算工具複製 ===== */
+/* ===== 時間顯示欄位樣式 - 從支票試算工具複製 =====
+ *
+ * 【2026/07 移除 padding-top: 12px、sticky top 改為 0】
+ * 那兩個值是外殼版面對不上時留下的補償：index.html 的標題列高 60px、
+ * 但 iframe 容器設在 top: 45px，內容最上面 15px 被標題列蓋住，
+ * 所以往下推一段來閃避。外殼已改成 top: 60px 對齊，
+ * 補償值再留著就變成頂端多出一段空白 —— 這一頁正在為每個像素斤斤計較。
+ * 與頂端的間距現在只靠下面的 margin: 4px。
+ * ------------------------------------------------------------ */
 .time-display-wrapper {
     position: relative;                    /* 相對定位 */
     height: auto;                          /* 自動高度 */
-    margin: 4px 0;                         /* 修改：與其他欄位相同的上下邊距 */
-    padding-top: 12px;                     /* 新增：增加與螢幕頂端的距離 */
+    margin: 4px 0;                         /* 與其他欄位相同的上下邊距 */
     z-index: 1000;                         /* 設定層級確保在最上方 */
 }
 
 .sticky-header {
     position: -webkit-sticky !important;   /* Safari瀏覽器相容性 */
     position: sticky !important;           /* 黏性定位 */
-    top: 10px;                             /* 修改：從頂部往下 10px，增加與螢幕頂端距離 */
+    top: 0;                                /* 必須是 0：外殼標題列與 iframe 起點已對齊 */
     background: var(--secondary-color);    /* 使用統一的次要背景色 */
     padding: 3px;                          /* 修改：與輸入欄位相同的內部間距 */
     border-radius: 4px;                    /* 圓角邊框 */
