@@ -4,6 +4,18 @@
 
 /* 基礎全域變數定義 */
 :root {
+    /* ------------------------------------------------------------
+     * 內容與 iframe 頂端的間距（= 與外殼標題列的間距）
+     *
+     * 【四個頁面必須用同一個值】四頁各自宣告一份，
+     * tests/版面守門測試.js 會比對它們是否一致。
+     *
+     * 這個值原本散落成 calculator 30px、check 18px、invoice 16px、
+     * gas 12px 四個手調的魔術數字，而且它們其實是在閃避外殼版面
+     * 對不上時留下的 15px 遮擋，不是真的版面設計。
+     * ------------------------------------------------------------ */
+    --content-gap: 5px;
+
     /* ========== 尺寸相關變數 ========== */
     --border-radius-sm: 4px;              /* 小型元素圓角（按鈕、輸入框） */
     --border-radius-md: 8px;              /* 中型元素圓角（卡片） */
@@ -91,17 +103,37 @@
 /* ============================================
 * 固定頂部利率顯示 header 樣式
 * ============================================ */
+/* ------------------------------------------------------------
+ * 【2026/07 結構性修正：position: fixed → sticky】
+ *
+ * 這一列原本是 position: fixed，而 fixed 會脫離文件流、不佔空間，
+ * 所以下方所有內容都得靠 html/body 的 padding-top 手動「讓開」，
+ * 那個讓開的量必須等於這一列的高度 —— 只要字級或內距一改就要重算。
+ * 時間列的 sticky top 也是為了避開它才寫死 65px。
+ *
+ * 這就是為什麼版面反覆改不好：一個 fixed 元素牽動了三個檔案裡的
+ * 好幾個魔術數字，改對一個就會弄壞另一個。
+ *
+ * 改成 sticky 之後它會佔據自己的空間：
+ *   - 下方內容不需要任何 padding-top 去讓開
+ *   - 內容永遠不會被蓋住
+ *   - 這一列的高度怎麼變都不用改別的地方
+ *   - 捲動時照樣會黏在頂端
+ *
+ * 【規則】頁內頂列一律用 sticky，禁止 fixed。
+ * tests/版面守門測試.js 會擋下違規。
+ * ------------------------------------------------------------ */
 .fixed-rate-header {
-    position: fixed;
+    position: -webkit-sticky;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
     background-color: var(--primary-color);
     border-bottom: 2px solid var(--accent-color);
-    padding: 22px 5px 5px;
+    /* 上方 22px 原本是為了閃避外殼標題列的遮擋，外殼已對齊，改用統一間距 */
+    padding: var(--content-gap) 5px 5px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -373,15 +405,36 @@ html, body {
 .time-display-wrapper {
     position: relative;
     height: auto;
-    margin: 3px 0;
+    margin: var(--content-gap) 0 3px 0;
     z-index: 90;
-    margin-top: 5px;
 }
 
+/* 計算頁專用：這一頁已經有佣後利率列黏在頂端了，時間列就不要再黏。
+ *
+ * 兩個 sticky 元素都 top: 0 的話，捲動時會疊在一起。
+ * 這條選擇器的意思是「如果這一頁有佣後利率列，時間列就跟著內容捲動」——
+ * 支票頁與加油頁沒有那一列，不會被這條規則命中，時間列照樣黏頂。
+ *
+ * 用結構關係判斷而不是加一個 .calculator-page 的 class，
+ * 好處是新增頁面時不會忘記加標記。 */
+.fixed-rate-header ~ .time-display-wrapper .sticky-header {
+    position: relative !important;
+    top: auto !important;
+}
+
+/* 時間顯示列。
+ *
+ * 【top 從 65px 改為 0】
+ * 65px 是為了避開佣後利率列（position: fixed）而寫死的。但這個 class
+ * 同時被支票頁與加油頁使用，那兩頁根本沒有佣後利率列 ——
+ * 結果它們的時間列白白往下掉 65px，那就是支票頁頂端那段空白的來源。
+ *
+ * 佣後利率列改用 sticky 之後會自己佔位，這裡不需要再閃避任何東西。
+ * 計算頁的處理見下方 .fixed-rate-header ~ .time-display-wrapper 那條規則。 */
 .sticky-header {
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 65px;
+    top: 0;
     background: var(--secondary-color);
     padding: 8px;
     border-radius: 4px;

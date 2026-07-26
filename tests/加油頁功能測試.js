@@ -715,55 +715,11 @@ async function main() {
         t(`  ${page} 沒有失效的 CSS 變數`, bad.length === 0, bad.join(', '));
     });
 
-    console.log('\n=== 20. 外殼版面與頁尾（2026/07 兩個 bug 修正）===');
+    console.log('\n=== 20. 頁尾（2026/07 修正）===');
 
-    // ── 外殼標題列與 iframe 起點必須對齊 ──
-    // 這兩個數字對不上時，每一頁的最上面都會被標題列蓋掉一截。
-    // 發票頁的歷史記錄面板是 position:fixed; inset:0，緊貼 iframe 頂端，
-    // 所以只有它明顯看得出「歷史記錄」標題被切掉。
-    const shell = fs.readFileSync(path.join(R, 'index.html'), 'utf8');
-    const headerH = parseFloat((shell.match(/\.header-container\s*\{[^}]*height:\s*(\d+)px/) || [])[1]);
-    const contentTop = parseFloat((shell.match(/\.content-container\s*\{[^}]*top:\s*(\d+)px/) || [])[1]);
-    t(`外殼標題列 ${headerH}px 與 iframe 起點 ${contentTop}px 完全對齊（重疊 0px）`,
-        headerH === contentTop, `header=${headerH} content=${contentTop}`);
-
-    /* ── 四頁都不准再留「閃避標題列」的補償值 ──
-     *
-     * 重疊是 0 之後，這些補償值就變成頂端多出來的空白。
-     * 四個頁面當初各自用不同方式閃避，所以要逐頁檢查：
-     *   calculator.css  html, body { padding-top: 30px }
-     *   check.css       .write-progress { top: 15px }
-     *   invoice.css     .top-bar { top: 16px; margin-top: 16px }
-     *   gas.css         .time-display-wrapper { padding-top: 12px }
-     *                   .sticky-header { top: 10px }
-     * 全部歸零後，各頁與標題列的間距只剩 4～5px 的正常邊距。 */
-    const stickyTops = {
-        'css/gas.css': ['.sticky-header'],
-        'css/check.css': ['.write-progress'],
-        'css/invoice.css': ['.top-bar']
-    };
-    Object.entries(stickyTops).forEach(([file, sels]) => {
-        const css = fs.readFileSync(path.join(R, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-        sels.forEach(sel => {
-            const m = css.match(new RegExp(sel.replace('.', '\\.') + '\\s*\\{([^}]*)\\}'));
-            const top = m && (m[1].match(/(?<![\w-])top:\s*(-?\d+)px/) || [])[1];
-            t(`  ${file} 的 ${sel} sticky top = ${headerH - contentTop}px（等於重疊高度）`,
-                top === null || top === undefined || Number(top) === headerH - contentTop, `top=${top}`);
-        });
-    });
-
-    const bodyTopPad = (file) => {
-        const css = fs.readFileSync(path.join(R, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-        const m = css.match(/html,\s*body\s*\{([^}]*)\}/);
-        const p = m && (m[1].match(/padding-top:\s*(\d+)px/) || [])[1];
-        return p ? Number(p) : 0;
-    };
-    ['css/calculator.css', 'css/invoice.css'].forEach(f => {
-        t(`  ${f} 的 html/body 沒有閃避用的 padding-top`, bodyTopPad(f) === 0, `${bodyTopPad(f)}px`);
-    });
-    t('  gas.css 的 .time-display-wrapper 沒有閃避用的 padding-top',
-        !/\.time-display-wrapper\s*\{[^}]*padding-top:\s*[1-9]/.test(
-            fs.readFileSync(path.join(R, 'css/gas.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')));
+    /* 註：外殼標題列與各頁頂端間距的檢查已移到 tests/版面守門測試.js。
+     *     那組規則涉及四個頁面與外殼，放在加油頁的測試裡不合適，
+     *     而且分散在兩處會漂移。 */
 
     // ── 頁尾：四頁都要有，且只能有一份實作 ──
     ['calculator.html', 'check.html', 'invoice.html', 'gas.html'].forEach(p => {

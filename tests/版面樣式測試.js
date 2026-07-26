@@ -54,18 +54,18 @@ console.log('\n=== 固定進度列 ===');
 const bar = d.getElementById('write-progress');
 t('進度列存在', bar !== null);
 t('  position 為 sticky', css(bar).position === 'sticky', css(bar).position);
-/* 外殼 index.html 的標題列高 60px，但 iframe 容器設在 top: 45px，
- * 所以 iframe 最上面 15px 被標題列蓋住。進度列必須固定在 15px，
- * 上緣才會正好接在標題列底下，文字不會被切掉。
- * 這兩個數字直接從 index.html 讀出來計算，之後外殼若調整會立刻被抓到。 */
-const shell = fs.readFileSync(path.join(R, 'index.html'), 'utf8');
-const headerH = parseFloat((shell.match(/\.header-container\s*\{[^}]*height:\s*(\d+)px/) || [])[1]);
-const contentTop = parseFloat((shell.match(/\.content-container\s*\{[^}]*top:\s*(\d+)px/) || [])[1]);
-const overlap = headerH - contentTop;
-t(`  外殼標題列 ${headerH}px、iframe 起點 ${contentTop}px，重疊 ${overlap}px`,
-    Number.isFinite(overlap) && overlap >= 0, `header=${headerH} content=${contentTop}`);
-t('  進度列的 top 等於重疊高度（避免文字被標題列切掉）',
-    parseFloat(css(bar).top) === overlap, `top=${css(bar).top} 應為 ${overlap}px`);
+/* 【2026/07 更新】
+ * 這裡原本要從 index.html 讀出「標題列高度」與「iframe 起點」兩個寫死的
+ * px 值，算出重疊高度，再要求進度列的 top 等於那個重疊值。
+ *
+ * 那是在遷就一個 bug：兩個值分別寫 60px 與 45px，差了 15px，
+ * iframe 最上面 15px 被標題列蓋住，所以每個頂列都要往下推 15px 閃避。
+ *
+ * 現在外殼的高度收斂成單一變數 --shell-header-h，三處都從它推導，
+ * 結構上不可能再有重疊，所以進度列的 top 就是單純的 0。
+ * 「外殼三處是否都用變數推導」改由 tests/版面守門測試.js 負責。 */
+t('  進度列的 top 為 0（外殼已對齊，不需要閃避）',
+    parseFloat(css(bar).top) === 0, `top=${css(bar).top}`);
 
 /**
  * 一個元素會不會建立捲動容器

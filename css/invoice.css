@@ -10,6 +10,18 @@
  */
 
 :root {
+    /* ------------------------------------------------------------
+     * 內容與 iframe 頂端的間距（= 與外殼標題列的間距）
+     *
+     * 【四個頁面必須用同一個值】四頁各自宣告一份，
+     * tests/版面守門測試.js 會比對它們是否一致。
+     *
+     * 這個值原本散落成 calculator 30px、check 18px、invoice 16px、
+     * gas 12px 四個手調的魔術數字，而且它們其實是在閃避外殼版面
+     * 對不上時留下的 15px 遮擋，不是真的版面設計。
+     * ------------------------------------------------------------ */
+    --content-gap: 5px;
+
     --primary-color: #333333;
     --secondary-color: #4a4a4a;
     --text-color: #ffffff;
@@ -64,7 +76,7 @@ body { padding-bottom: 12px !important; }
     z-index: 900;
     background: var(--primary-color);
     padding: 6px 0 5px;
-    margin: 5px 0 5px;
+    margin: var(--content-gap) 0 5px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
 }
 

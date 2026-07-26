@@ -51,7 +51,7 @@ html, body {
 .time-display-wrapper {
     position: relative;
     height: auto;
-    margin: 18px 0 0 0;
+    margin: var(--content-gap) 0 0 0;
     z-index: 1;
 }
 

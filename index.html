@@ -300,6 +300,22 @@
          * Header 設計 - 沿用原本計算機的外觀
          * ============================================ */
         
+        /* ============================================================
+         * 【2026/07：標題列高度收斂成單一變數 --shell-header-h】
+         *
+         * 這個高度原本寫死在三個地方：標題列自己的 height、iframe 容器的
+         * top、以及 iframe 容器的 height: calc(100% - ?)。三者必須完全一致，
+         * 但過去 top 寫 45px、另外兩個寫 60px，差了 15px ——
+         * 結果每個功能頁的最上面 15px 都被標題列蓋住，
+         * 四個頁面各自用 padding-top / margin-top / sticky top 去閃避，
+         * 於是版面變成「改一個地方就有別的地方跑掉」。
+         *
+         * 現在三處都從這一個變數推導，改高度只要改這一行。
+         * ============================================================ */
+        :root {
+            --shell-header-h: 60px;
+        }
+
         .header-container {
             position: fixed;                                  /* 固定在頂部 */
             top: 0;                                          /* 頂部對齊 */
@@ -307,7 +323,7 @@
             transform: translateX(-50%);                     /* 水平居中對齊 */
             width: 100%;                                     /* 滿寬度 */
             max-width: 400px;                               /* 最大寬度限制 */
-            height: 60px;                                    /* 固定高度 */
+            height: var(--shell-header-h);                   /* 單一來源 */
             background-color: var(--primary-color);         /* 背景色 */
             box-shadow: var(--shadow-sm);                   /* 陰影效果 */
             z-index: 1100;                                  /* 最高層級 */
@@ -413,32 +429,15 @@
          * iframe 內容區域設計
          * ============================================ */
         
-        /* ------------------------------------------------------------
-         * 【2026/07 修正：top 從 45px 改為 60px】
-         *
-         * .header-container 是 height: 60px 的固定標題列，
-         * 但這裡的 top 寫 45px，兩者對不上 15px。後果是
-         * 四個功能頁的最上面 15px 全都被壓在標題列底下看不到，
-         * 同時 height 用 calc(100% - 60px)，底部又多出 15px 沒用到。
-         *
-         * 平常看不出來，因為各頁最上方的元素都有邊距。
-         * 但發票頁的歷史記錄面板是 position: fixed; inset: 0，
-         * 內容緊貼 iframe 頂端，「歷史記錄」標題就被切掉了。
-         *
-         * 改成 60px 之後：頂端不再被遮，底部那 15px 也還回來，
-         * 可用高度不變（都是 100% - 60px），只是位置正確了。
-         *
-         * 【這個值一定要跟 .header-container 的 height 一致】
-         * tests/加油頁功能測試.js 有一項守門測試在比對這兩個數字。
-         * ------------------------------------------------------------ */
+        /* iframe 容器：起點與高度都從 --shell-header-h 推導，不再寫死數字。 */
         .content-container {
             position: fixed;                                 /* 固定定位 */
-            top: 60px;                                       /* 必須等於 .header-container 的 height */
+            top: var(--shell-header-h);                      /* 緊接在標題列下方 */
             left: 50%;                                       /* 左側定位到中央 */
             transform: translateX(-50%);                     /* 水平居中對齊 */
             width: 100%;                                     /* 滿寬度 */
             max-width: 400px;                               /* 最大寬度限制 */
-            height: calc(100% - 60px);                      /* 剩餘高度（改用 % 避免 iOS 上 100vh 被網址列切掉） */
+            height: calc(100% - var(--shell-header-h));     /* 剩餘高度（用 % 避免 iOS 上 100vh 被網址列切掉） */
             border: none;                                    /* 無邊框 */
             overflow: hidden;                                /* 隱藏溢出 */
         }
