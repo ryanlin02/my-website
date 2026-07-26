@@ -65,6 +65,10 @@ set('check-count',0);        t('開票張數 0 被擋下', val('check-count')===
 set('check-count',0.4);      t('開票張數 0.4 被擋下 (先四捨五入再驗證)', val('check-count')==='', val('check-count'));
 set('total-amount',1000000); t('總金額 1,000,000 正常寫入', val('total-amount')==='1,000,000', val('total-amount'));
 t('  舊版漏洞複驗：100-200= 會產生 -100', ev('(function(){calculatorClear();calculatorValue="100";calculatorOperation("-");calculatorValue="200";calculatorEquals();return calculatorValue;})()')==='-100');
+// 2026/07：共用鍵盤原本沒有運算優先順序，打 1000+2000×3 會算成 (1000+2000)×3 = 9000。
+// 支票金額算錯不會報錯，只會讓客戶少付或多付。完整涵蓋見 tests/鍵盤運算正確性測試.js
+t('  運算優先順序：1000+2000×3 = 7000（不是 9000）',
+  ev('(function(){calculatorClear();for(const c of "1000")calculatorInput(+c);calculatorOperation("+");for(const c of "2000")calculatorInput(+c);calculatorOperation("*");calculatorInput(3);calculatorEquals();return calculatorValue;})()')==='7000');
 
 console.log('\n=== A2 押票金額為負 ===');
 set('payment-amount',200000); set('check-count',10);

@@ -40,10 +40,32 @@
  * ------------------------------------------------------------ */
 let currentInputField = null;              // 目前正在輸入哪一個欄位
 let calculatorValue = "0";                 // 顯示區當前數值
-let calculatorOperator = null;             // 待執行的運算子
-let calculatorFirstValue = null;           // 運算子左側的值
 let calculatorWaitingForSecondValue = false;
 let calculatorHistory = "";                // 顯示在上方的算式歷程
+
+/* ------------------------------------------------------------
+ * 運算式（支援先乘除後加減）
+ * ------------------------------------------------------------
+ * 【2026/07 修正：這台計算機原本沒有運算優先順序】
+ *
+ * 舊版用「兩個運算元 + 一個待執行運算子」的累加器模型：
+ * 每按一次運算子就先把前一段算完。所以打 1000+2000×3 會變成
+ * (1000+2000)×3 = 9000，而正確答案是 1000+(2000×3) = 7000。
+ *
+ * 這不會報錯，只會安靜給出錯誤金額 —— 而這台鍵盤負責輸入的是
+ * 貸款本金與支票金額。加油頁自己那台鍵盤反而是數學正確的
+ * （它把運算式交給 new Function 求值），等於同一個 App 裡有兩台
+ * 答案不同的計算機。
+ *
+ * 現在改成保留完整的 token 序列，按下「=」時才依優先順序求值。
+ *
+ * 【顯示行為的連帶變化】
+ * 舊版按下運算子會立刻算出中間結果並顯示。現在若前一個運算子的
+ * 優先順序較低（例如 + 之後按 ×），無法先算，所以顯示區會維持
+ * 剛輸入的數字不變 —— 這與一般工程計算機一致，而且上方的算式
+ * 歷程本來就會完整顯示 1000 + 2000 × ，看得出來還沒算完。
+ * ------------------------------------------------------------ */
+let calculatorTokens = [];                 // 例：[1000, '+', 2000, '*']
 
 /* ------------------------------------------------------------
  * 觸覺回饋
@@ -233,8 +255,7 @@ function openCalculator(targetId, title) {
     const display = document.getElementById('calculatorDisplay');
     if (display) display.textContent = calculatorValue;
 
-    calculatorOperator = null;
-    calculatorFirstValue = null;
+    calculatorTokens = [];
     calculatorWaitingForSecondValue = false;
     calculatorHistory = "";
 
@@ -285,8 +306,7 @@ function calculatorDecimal() {
 
 function calculatorClear() {
     calculatorValue = '0';
-    calculatorOperator = null;
-    calculatorFirstValue = null;
+    calculatorTokens = [];
     calculatorWaitingForSecondValue = false;
     calculatorHistory = "";
 
@@ -311,24 +331,111 @@ function calculatorBackspace() {
     vibrate();
 }
 
-function calculatorOperation(op) {
-    // 連續輸入運算子時，先把前一段算完
-    if (calculatorFirstValue !== null && calculatorOperator !== null) {
-        calculatorEquals();
+/**
+ * 依優先順序求值：先做完所有乘除，再做加減。
+ *
+ * 刻意不使用 eval 或 new Function —— 那會把使用者輸入當程式碼執行。
+ * 這裡的 token 全部來自鍵盤按鍵，本來就受控，但用純資料的方式求值
+ * 就完全不需要依賴這件事，也不會被 CSP 擋。
+ *
+ * @param  {Array} tokens 數字與運算子交錯的序列，例：[1000, '+', 2000, '*', 3]
+ * @return {number|null}  求值結果；遇到除以零回傳 null
+ */
+function evaluateTokens(tokens) {
+    if (!tokens.length) return null;
+
+    // 第一輪：把乘除收掉
+    const reduced = [tokens[0]];
+    for (let i = 1; i < tokens.length; i += 2) {
+        const op = tokens[i];
+        const rhs = tokens[i + 1];
+        if (rhs === undefined) break;
+
+        if (op === '*') {
+            reduced[reduced.length - 1] = reduced[reduced.length - 1] * rhs;
+        } else if (op === '/') {
+            if (rhs === 0) return null;
+            reduced[reduced.length - 1] = reduced[reduced.length - 1] / rhs;
+        } else {
+            reduced.push(op, rhs);
+        }
     }
 
-    calculatorFirstValue = parseFloat(calculatorValue);
-    calculatorOperator = op;
+    // 第二輪：剩下的加減從左到右
+    let result = reduced[0];
+    for (let i = 1; i < reduced.length; i += 2) {
+        const op = reduced[i];
+        const rhs = reduced[i + 1];
+        if (rhs === undefined) break;
+        result = op === '+' ? result + rhs : result - rhs;
+    }
+    return result;
+}
+
+/** 把浮點運算的尾數雜訊修掉（例如 0.1+0.2 = 0.30000000000000004） */
+function trimFloatNoise(num) {
+    const s = num.toString();
+    return s.includes('.') ? parseFloat(num.toFixed(8)).toString() : s;
+}
+
+const OP_SYMBOL = { '+': ' + ', '-': ' - ', '*': ' × ', '/': ' ÷ ' };
+
+function calculatorOperation(op) {
+    // 連按運算子時只換掉最後那一個，不把上一段提前算掉
+    if (calculatorWaitingForSecondValue && calculatorTokens.length) {
+        calculatorTokens[calculatorTokens.length - 1] = op;
+        calculatorHistory = calculatorHistory.replace(/ [+\-×÷] $/, OP_SYMBOL[op]);
+        updateCalculatorHistory();
+        vibrate();
+        return;
+    }
+
+    calculatorTokens.push(parseFloat(calculatorValue));
+
+    /* ------------------------------------------------------------
+     * 顯示區要盡量顯示中間結果，但只能算「這個運算子允許先算」的部分。
+     *
+     *   按下 + 或 −（優先順序最低）→ 前面整串都可以先算完
+     *       1 + 2 +   顯示 3
+     *
+     *   按下 × 或 ÷ → 只能把結尾那一段連續的乘除收掉
+     *       2 × 3 ×   顯示 6      （可以先算）
+     *       1 + 2 ×   顯示 2      （不能先算，否則就變成 (1+2)×）
+     *
+     * 這與一般工程計算機的行為一致，也讓 token 串維持很短。
+     * ------------------------------------------------------------ */
+    if (op === '+' || op === '-') {
+        const whole = evaluateTokens(calculatorTokens);
+        if (whole === null || !isFinite(whole)) {
+            showToast('錯誤：不能除以零', true);
+            calculatorClear();
+            return;
+        }
+        calculatorTokens = [whole];
+        calculatorValue = trimFloatNoise(whole);
+    } else {
+        // 找出最後一個加減，它之後就是一段純乘除，可以安全收掉
+        let cut = -1;
+        for (let i = calculatorTokens.length - 2; i >= 1; i -= 2) {
+            if (calculatorTokens[i] === '+' || calculatorTokens[i] === '-') { cut = i; break; }
+        }
+        const tail = evaluateTokens(calculatorTokens.slice(cut + 1));
+        if (tail === null || !isFinite(tail)) {
+            showToast('錯誤：不能除以零', true);
+            calculatorClear();
+            return;
+        }
+        calculatorTokens = calculatorTokens.slice(0, cut + 1).concat(tail);
+        calculatorValue = trimFloatNoise(tail);
+    }
+
+    const display = document.getElementById('calculatorDisplay');
+    if (display) display.textContent = calculatorValue;
+
+    calculatorTokens.push(op);
     calculatorWaitingForSecondValue = true;
 
-    let opSymbol = op;
-    switch (op) {
-        case '+': opSymbol = ' + '; break;
-        case '-': opSymbol = ' - '; break;
-        case '*': opSymbol = ' × '; break;
-        case '/': opSymbol = ' ÷ '; break;
-    }
-
+    const opSymbol = OP_SYMBOL[op] || op;
     if (calculatorHistory === "") {
         calculatorHistory = calculatorValue + opSymbol;
     } else {
@@ -341,32 +448,19 @@ function calculatorOperation(op) {
 }
 
 function calculatorEquals() {
-    if (calculatorFirstValue === null || calculatorOperator === null) return;
+    // 還沒輸入任何運算子時，「=」不做事（與舊版一致）
+    if (!calculatorTokens.length) return;
 
-    const secondValue = parseFloat(calculatorValue);
     const completeExpression = calculatorHistory + calculatorValue + " = ";
-    let result;
+    const result = evaluateTokens(calculatorTokens.concat(parseFloat(calculatorValue)));
 
-    switch (calculatorOperator) {
-        case '+': result = calculatorFirstValue + secondValue; break;
-        case '-': result = calculatorFirstValue - secondValue; break;
-        case '*': result = calculatorFirstValue * secondValue; break;
-        case '/':
-            if (secondValue === 0) {
-                showToast('錯誤：不能除以零', true);
-                calculatorClear();
-                return;
-            }
-            result = calculatorFirstValue / secondValue;
-            break;
-        default: return;
+    if (result === null || !isFinite(result)) {
+        showToast('錯誤：不能除以零', true);
+        calculatorClear();
+        return;
     }
 
-    calculatorValue = result.toString();
-    if (calculatorValue.includes('.')) {
-        // 去掉浮點運算的尾數雜訊（例如 0.1+0.2 = 0.30000000000000004）
-        calculatorValue = parseFloat(result.toFixed(8)).toString();
-    }
+    calculatorValue = trimFloatNoise(result);
 
     const display = document.getElementById('calculatorDisplay');
     if (display) display.textContent = calculatorValue;
@@ -374,8 +468,8 @@ function calculatorEquals() {
     calculatorHistory = completeExpression.length > 30 ? calculatorValue : completeExpression;
     updateCalculatorHistory();
 
-    calculatorOperator = null;
-    calculatorFirstValue = parseFloat(calculatorValue);
+    // 算完後可以接著按運算子繼續算，此時以結果為新的起點
+    calculatorTokens = [];
     calculatorWaitingForSecondValue = true;
     vibrate();
 }

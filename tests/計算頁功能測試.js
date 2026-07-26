@@ -74,6 +74,19 @@ viaKeypad('period',60);
 viaKeypad('period',1000); t('期數超上限 (>999) 被擋下', v('period')==='60', v('period'));
 viaKeypad('period',999);  t('期數 999 (上限內) 可接受', v('period')==='999', v('period'));
 
+console.log('\n=== 鍵盤運算優先順序（2026/07 修正）===');
+// 共用鍵盤原本是「兩運算元累加器」，每按運算子就先把前一段算完，
+// 所以 1000+2000×3 會變成 (1000+2000)×3 = 9000。本金算錯不會報錯。
+// 完整涵蓋（含 4 萬組隨機算式）見 tests/鍵盤運算正確性測試.js
+const keys = s => { ev('calculatorClear()'); for (const c of s) {
+  if ('+-*/'.includes(c)) ev(`calculatorOperation(${JSON.stringify(c)})`);
+  else if (c === '.') ev('calculatorDecimal()');
+  else ev(`calculatorInput(${c})`); } ev('calculatorEquals()'); return ev('calculatorValue'); };
+t('1000+2000*3 = 7000（先乘後加）', keys('1000+2000*3')==='7000', keys('1000+2000*3'));
+t('2*3+4 = 10', keys('2*3+4')==='10', keys('2*3+4'));
+t('10-2*3 = 4', keys('10-2*3')==='4', keys('10-2*3'));
+viaKeypad('principal',1000000);
+
 console.log('\n=== Toast 警告仍會觸發 ===');
 ev('rateWarnShown=false; warnRateIfOver(99);');
 t('利率超標會跳 Toast', d.querySelector('.toast-message')!==null,
