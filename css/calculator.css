@@ -278,7 +278,30 @@ html, body {
     max-width: 400px;
     margin: 0 auto;
     position: relative;
+
+    /* ------------------------------------------------------------
+     * 【2026/07 修正：overflow-x: hidden → 併用 clip】
+     *
+     * 只寫 overflow-x: hidden 時，因為 overflow-y 是 visible，
+     * 瀏覽器會把 overflow-y 自動算成 auto —— body 於是變成一個捲動容器。
+     * position: sticky 是相對「最近的捲動祖先」定位的，
+     * 所以佣後／稅佣後利率列會黏在 body 那個等同整份文件高度的捲動框裡，
+     * 看起來就完全沒有固定效果（這就是它「某次改完不再置頂」的原因，
+     * 不是 sticky 或 top 值寫錯）。
+     *
+     * overflow-x: clip 一樣裁掉水平溢出，但不建立捲動容器，
+     * sticky 才能正常相對視窗固定。
+     *
+     * 兩行並列是漸進增強：不支援 clip 的舊瀏覽器忽略第二行、沿用 hidden
+     * （利率列不固定，但版面不會壞）。
+     *
+     * check.css 早已對同一組選擇器做過這個覆寫，所以支票頁沒中招；
+     * 修在這裡之後兩頁行為一致，check.css 那段覆寫變成同值重複，
+     * 保留當文件用，不影響結果。
+     * ------------------------------------------------------------ */
     overflow-x: hidden;
+    overflow-x: clip;
+
     -webkit-text-size-adjust: 100%;
     padding: 0 3px;
     background-color: var(--primary-color);
@@ -878,7 +901,17 @@ div[id$="Buttons"] button:active {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 22px 15px 5px 15px;
+
+    /* 【2026/07】頂端 22px → var(--content-gap)
+     *
+     * 22px 是外殼標題列還沒對齊時留下的閃避補償（那時 iframe 起點與標題列
+     * 差 15px，各頁都自己往下推一段）。外殼改用 --shell-header-h 對齊後，
+     * 這 22px 就變成純粹多出來的空白 —— 歷史記錄標題與主標題列的距離
+     * 因此比其他區塊都大。改用四頁共用的 --content-gap，跟頁面其他頂端
+     * 間距同一個來源，以後只要改一個變數。
+     *
+     * 計算頁與支票頁共用這條規則，一次修好兩頁。 */
+    padding: var(--content-gap) 15px 5px 15px;
     background-color: var(--primary-color);
     position: sticky;
     top: 0;
@@ -904,10 +937,15 @@ div[id$="Buttons"] button:active {
 }
 
 .history-content {
+    /* 【2026/07】移除 padding-top: 20px
+     *
+     * 這裡原本先寫 padding: 8px 再用 padding-top: 20px 覆寫，
+     * 等於在已經多 22px 的標題列下方又疊一段空白，
+     * 第一筆紀錄被推得離標題很遠。標題列自己已經有下內距，
+     * 這裡回到四邊一致的 8px。 */
     padding: 8px;
     max-width: 400px;
     margin: 0 auto;
-    padding-top: 20px;
 }
 
 .history-list {

@@ -126,7 +126,27 @@ body {
     background-color: var(--primary-color);
     color: var(--text-color);  /* 改用 --text-color 變數 */
     min-height: 100%;  /* 改用 % 避免 iOS 上 100vh 被網址列切掉 */
+
+    /* ------------------------------------------------------------
+     * 【2026/07 修正：overflow-x: hidden → 併用 clip】
+     *
+     * 只寫 hidden 時，因為 overflow-y 是 visible，
+     * 瀏覽器會把 overflow-y 自動算成 auto —— body 於是變成捲動容器。
+     * position: sticky 是相對「最近的捲動祖先」定位的，
+     * 一旦 body 變成那個祖先，任何頁內頂列都會黏在等同整份文件高度的框裡，
+     * 等於完全沒有固定效果。
+     *
+     * 這一頁目前沒有需要黏頂的元素（見下方 .sticky-header 註解），
+     * 所以這行不改變現在的畫面；寫在這裡是為了四頁的捲動容器一致，
+     * 將來這頁要加固定列時不會再踩同一個坑。
+     *
+     * clip 一樣裁掉水平溢出，但不建立捲動容器。
+     * 兩行並列是漸進增強：舊瀏覽器忽略第二行、沿用 hidden。
+     * 四頁統一寫法，見 css/check.css 與 css/calculator.css 同段註解。
+     * ------------------------------------------------------------ */
     overflow-x: hidden;
+    overflow-x: clip;
+
     /* 新增與支票工具一致的設定 */
     margin: 0 auto;
     max-width: 400px;  /* 限制最大寬度與支票工具一致 */
@@ -302,10 +322,24 @@ body {
     z-index: 1000;                         /* 設定層級確保在最上方 */
 }
 
+/* ------------------------------------------------------------
+ * 【2026/07】時間列改為一般捲動，不再宣告 sticky
+ *
+ * 這條原本寫 position: sticky !important，但它其實從來沒有生效過，
+ * 而且有兩層原因：
+ *   1. body 的 overflow-x: hidden 讓 body 變成捲動容器（已於上方修正）
+ *   2. 就算修好 1，它的父層 .time-display-wrapper 高度剛好等於它自己，
+ *      sticky 沒有任何可移動的空間，捲動時照樣跟著跑掉
+ *
+ * 與其補第二層修正，不如照支票頁的結論處理：手機上方只有一個固定位置，
+ * 「現在幾點」不值得永久佔掉約 45px；而這一頁目前也沒有任何
+ * 需要常駐在畫面上的欄位。所以維持現狀、把宣告拿掉，
+ * 讓程式碼與實際行為一致，不再留下「看起來會黏但其實不會」的假象。
+ *
+ * 支票頁的同一個決定見 css/check.css 的「現在時間」段落。
+ * ------------------------------------------------------------ */
 .sticky-header {
-    position: -webkit-sticky !important;   /* Safari瀏覽器相容性 */
-    position: sticky !important;           /* 黏性定位 */
-    top: 0;                                /* 必須是 0：外殼標題列與 iframe 起點已對齊 */
+    position: relative;                    /* 一般捲動，不黏頂 */
     background: var(--secondary-color);    /* 使用統一的次要背景色 */
     padding: 3px;                          /* 修改：與輸入欄位相同的內部間距 */
     border-radius: 4px;                    /* 圓角邊框 */

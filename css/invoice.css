@@ -40,7 +40,23 @@ html, body {
     max-width: 400px;
     margin: 0 auto;
     position: relative;
+
+    /* ------------------------------------------------------------
+     * 【2026/07 修正：overflow-x: hidden → 併用 clip】
+     *
+     * 只寫 hidden 時，因為 overflow-y 是 visible，
+     * 瀏覽器會把 overflow-y 自動算成 auto —— body 於是變成捲動容器。
+     * position: sticky 相對「最近的捲動祖先」定位，
+     * 固定頂列（.top-bar）會黏在那個等同整份文件高度的框裡，
+     * 看起來完全沒固定效果。
+     *
+     * clip 一樣裁掉水平溢出，但不建立捲動容器，sticky 才能相對視窗固定。
+     * 兩行並列是漸進增強：舊瀏覽器忽略第二行、沿用 hidden。
+     * 四頁統一寫法，見 css/check.css 與 css/calculator.css 同段註解。
+     * ------------------------------------------------------------ */
     overflow-x: hidden;
+    overflow-x: clip;
+
     -webkit-text-size-adjust: 100%;
     padding: 0 3px !important;
     background-color: var(--primary-color);
