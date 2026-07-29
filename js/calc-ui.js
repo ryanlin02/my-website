@@ -12,6 +12,29 @@
 let rateWarnShown = false;      // 利率是否已提示過
 let ratioWarnShown = false;     // 佣金比例是否已提示過
 
+/* ------------------------------------------------------------
+ * 使用情況回報
+ * ------------------------------------------------------------
+ * 【2026/07 新增】
+ *
+ * 計算頁原本的追蹤是「畫面上每一顆按鈕按下去都回報」，
+ * 而數字鍵盤也是按鈕 —— 業務算一筆貸款按十幾下就送十幾筆
+ * 「按了 7」「按了 8」，報表被雜訊淹沒，看不出任何有用的事。
+ * 那段已經在 pages/calculator.html 移除。
+ *
+ * 這裡改成只在「完成一次試算」時回報一次，並且只帶不指向特定客戶的資訊：
+ *   期數、利率 —— 可以看出業務常談的方案落在哪個區間
+ *   本金、月付金、佣金 —— 一律不送，那是客戶的金額
+ *
+ * trackEvent 定義在 calculator.html 的 GA4 區塊。本檔案被測試環境
+ * 單獨載入時不會有那個區塊，所以一定要做存在性檢查。
+ * ------------------------------------------------------------ */
+function trackCalcEvent(eventName, parameters = {}) {
+    if (typeof trackEvent === 'function') {
+        trackEvent(eventName, parameters);
+    }
+}
+
 /**
  * 跨門檻才提示一次的共用邏輯
  * @param {boolean} isOver 目前是否超標
@@ -118,6 +141,13 @@ function calculatePayment() {
         
         document.getElementById('payment').value = formatNumberWithCommas(Math.round(payment));
         updateAllFields();
+
+        // 完成一次「算月付金」。不送本金與月付金，那是客戶的金額。
+        trackCalcEvent('loan_calculate', {
+            calc_mode: 'payment',
+            period: safePeriod,
+            rate: Math.round(safeRate * 10) / 10
+        });
     } catch (error) {
         console.error('期繳金額計算錯誤:', error);
         if (shouldWarn) showToast('計算期繳金額時出錯', true);
@@ -173,6 +203,13 @@ function calculateRate() {
 
         document.getElementById('rate').value = rate.toFixed(4);
         updateAllFields();
+
+        // 完成一次「反推利率」。同樣不送本金與月付金。
+        trackCalcEvent('loan_calculate', {
+            calc_mode: 'rate',
+            period: period,
+            rate: Math.round(rate * 10) / 10
+        });
     } catch (error) {
         console.error('利率計算錯誤:', error);
         if (shouldWarn) showToast('計算利率時出錯', true);

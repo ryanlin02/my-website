@@ -63,32 +63,18 @@
         }
         
         // ============================================
-        // 追蹤頁面切換事件
+        // 功能頁瀏覽追蹤
+        // --------------------------------------------
+        // 【2026/07 修正】
+        //
+        // 這裡原本有一段「把 switchPage 包起來，切頁時順便回報」的程式。
+        // 它從來沒有生效過 —— 因為下面的主程式又用同名的 switchPage
+        // 把它整個蓋掉了，所以 page_switch 與切頁的瀏覽紀錄一筆都沒送出過。
+        //
+        // 現在改成由主程式的 switchPage 直接呼叫 trackToolView()，
+        // 不再用包裝的方式，也就不會再被蓋掉。
         // ============================================
-        
-        // 修改原本的 switchPage 函數，加入追蹤
-        const originalSwitchPage = window.switchPage;
-        window.switchPage = function(pageName) {
-            // 追蹤頁面切換事件
-            trackEvent('page_switch', {
-                from_page: currentPage,
-                to_page: pageName,
-                switch_method: 'navigation_button'
-            });
-            
-            // 追蹤虛擬頁面瀏覽
-            gtag('event', 'page_view', {
-                page_title: `工具 - ${getPageTitle(pageName)}`,
-                page_location: window.location.href + '#' + pageName,
-                page_path: '/' + pageName
-            });
-            
-            // 執行原本的切換函數
-            if (originalSwitchPage) {
-                originalSwitchPage.call(this, pageName);
-            }
-        };
-        
+
         // 頁面標題對應
         function getPageTitle(pageName) {
             const titles = {
@@ -99,82 +85,55 @@
             };
             return titles[pageName] || pageName;
         }
-        
+
+        /**
+         * 記錄「使用者真的看了哪一個功能頁」
+         *
+         * 這是整套統計裡最重要的一筆。四個功能頁在開啟工具箱時會同時載入，
+         * 所以「頁面被載入」完全不等於「有人在用」；只有切到那一頁才算。
+         *
+         * @param {string} toolName  切到哪一頁
+         * @param {string} fromTool  從哪一頁來的（開啟工具箱的第一頁為 'app_open'）
+         */
+        function trackToolView(toolName, fromTool) {
+            trackEvent('tool_view', {
+                tool: toolName,
+                tool_name: getPageTitle(toolName),
+                from_tool: fromTool || ''
+            });
+
+            // 同時送一筆瀏覽紀錄，讓 GA4 的「網頁和畫面」報表能分開四個功能
+            gtag('event', 'page_view', {
+                page_title: '工具 - ' + getPageTitle(toolName),
+                page_location: window.location.href.split('#')[0] + '#' + toolName,
+                page_path: '/' + toolName
+            });
+        }
+
         // ============================================
-        // 追蹤使用者互動事件
+        // 追蹤錯誤
+        // --------------------------------------------
+        // 【2026/07 修正】
+        //
+        // 這一段原本被關在一個 DOMContentLoaded 區塊裡，而那個區塊的開頭
+        // 有一行去找名為 pageIframe 的元素 —— 這個網站從來沒有這個元素
+        // （四個框架分別叫 calculatorFrame、checkFrame、invoiceFrame、gasFrame）。
+        // 找不到就出錯，程式一出錯整個區塊就停住，所以錯誤記錄從來沒運作過。
+        //
+        // 同時被關在裡面的還有兩段已經移除的統計：
+        //   每 30 秒回報一次停留時間、切換到別的 App 時回報 ——
+        //   這兩件事 GA4 本來就會自動收集，自己再寫一份只會讓報表出現
+        //   兩個對不起來的數字，而且自己寫的版本分不出「開著但沒在操作」。
+        //
+        // 錯誤記錄現在獨立出來，不再依賴任何元素，也就不會再被連累。
         // ============================================
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // 追蹤導航按鈕點擊
-            document.querySelectorAll('.nav-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetPage = this.getAttribute('data-page');
-                    trackEvent('navigation_click', {
-                        button_text: this.textContent,
-                        target_page: targetPage
-                    });
-                });
-            });
-            
-            // 追蹤 iframe 載入時間
-            const iframe = document.getElementById('pageIframe');
-            let loadStartTime;
-            
-            iframe.addEventListener('loadstart', function() {
-                loadStartTime = performance.now();
-            });
-            
-            iframe.addEventListener('load', function() {
-                if (loadStartTime) {
-                    const loadTime = performance.now() - loadStartTime;
-                    trackEvent('iframe_load', {
-                        page: currentPage,
-                        load_time_ms: Math.round(loadTime),
-                        iframe_src: iframe.src
-                    });
-                }
-            });
-            
-            // 追蹤使用者參與度
-            let engagementStartTime = Date.now();
-            let isEngaged = true;
-            
-            // 每30秒追蹤一次參與度
-            setInterval(function() {
-                if (isEngaged) {
-                    trackEvent('user_engagement', {
-                        engagement_time_seconds: Math.round((Date.now() - engagementStartTime) / 1000),
-                        current_page: currentPage
-                    });
-                }
-            }, 30000);
-            
-            // 追蹤頁面可見性變化
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden) {
-                    isEngaged = false;
-                    trackEvent('page_visibility', {
-                        visibility: 'hidden',
-                        current_page: currentPage
-                    });
-                } else {
-                    isEngaged = true;
-                    engagementStartTime = Date.now();
-                    trackEvent('page_visibility', {
-                        visibility: 'visible',
-                        current_page: currentPage
-                    });
-                }
-            });
-            
-            // 追蹤錯誤
-            window.addEventListener('error', function(e) {
-                trackEvent('javascript_error', {
-                    error_message: e.message,
-                    error_source: e.filename,
-                    error_line: e.lineno,
-                    current_page: currentPage
-                });
+
+        window.addEventListener('error', function(e) {
+            trackEvent('javascript_error', {
+                error_message: e.message,
+                error_source: e.filename,
+                error_line: e.lineno,
+                current_page: (typeof currentPage !== 'undefined') ? currentPage : ''
             });
         });
         
@@ -1272,10 +1231,20 @@
         function restoreInitialPage() {
             const initialPage = resolveInitialPage();
 
+            // 開啟工具箱時記一筆，附上「用應用程式還是瀏覽器開的」「是不是從 LINE 點進來的」。
+            // 這兩件事之後可以拿來比較：裝了應用程式的人是不是用得比較兇。
+            trackEvent('app_open', {
+                entry_tool: initialPage,
+                display_mode: isRunningAsApp() ? 'app' : 'browser',
+                browser_kind: isInAppBrowser() ? 'in_app' : 'normal',
+                platform: detectPlatform()
+            });
+
             if (initialPage !== currentPage) {
                 switchPage(initialPage);                    // 切到目標頁（內部會呼叫 rememberCurrentPage）
             } else {
                 rememberCurrentPage(initialPage);           // 已經在目標頁，只需同步網址與儲存狀態
+                trackToolView(initialPage, 'app_open');     // 沒切頁就不會經過 switchPage，這裡自己補一筆
             }
 
             // 頁面已經指到正確位置，解除 <head> 加上的載入保護，讓畫面顯示出來。
@@ -1569,13 +1538,15 @@
         
         function switchPage(pageName) {
             console.log(`頁面切換: ${currentPage} -> ${pageName}`);
-            
+
             // 檢查頁面是否存在
             if (!pageMapping[pageName]) {
                 console.error(`頁面不存在: ${pageName}`);
                 return;
             }
-            
+
+            const previousPage = currentPage;                // 記下來給統計用
+
             // ============================================
             // 使用顯示/隱藏方式切換頁面，不重新載入
             // ============================================
@@ -1600,9 +1571,12 @@
 
             // 更新導航按鈕狀態
             updateNavigationState(pageName);
-            
-            // 不再需要呼叫 loadPageInIframe
-            // loadPageInIframe(pageName);  // 移除這行
+
+            // 回報「使用者真的切到這一頁了」。
+            // 直接寫在這裡而不是從外面包起來，才不會像舊版那樣被覆蓋掉。
+            if (typeof trackToolView === 'function') {
+                trackToolView(pageName, previousPage);
+            }
         }
         
         // ============================================

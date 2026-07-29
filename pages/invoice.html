@@ -21,10 +21,13 @@
         gtag('js', new Date());
 
         const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
+        // send_page_view: false 的原因見 check.html 同一段的說明：
+        // 避免四個功能頁各自回報一次瀏覽，把數字灌成五倍。
         gtag('config', 'G-XE5XMQR0Z1', {
             page_title: `貸款業務工具箱 - 發票開立`,
             page_location: window.location.href,
-            page_path: window.location.pathname
+            page_path: window.location.pathname,
+            send_page_view: false
         });
 
         function trackEvent(eventName, parameters = {}) {

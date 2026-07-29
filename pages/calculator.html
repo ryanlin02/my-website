@@ -19,57 +19,49 @@
     <link rel="stylesheet" href="../css/calculator.css">
 
     <!-- Google Analytics 4 追蹤代碼 -->
+    <!-- ============================================================
+         【2026/07 精簡：把只會製造雜訊的追蹤全部拿掉】
+
+         這個區塊原本比其他三頁多了一大段，內容是三種追蹤，但沒有一種能用：
+
+         1. querySelectorAll('button') 無條件綁 click
+            計算頁的數字鍵盤也是按鈕。業務算一筆貸款按十幾下，
+            就送出十幾筆「按了 7」「按了 8」「按了小數點」——
+            報表被按鍵雜訊淹沒，而且白耗業務在外面的行動網路流量。
+            （加油頁在 2026/07 已經因為同樣原因清掉過一次）
+
+         2. 每個 input 綁 focus / change
+            點一下輸入框就送一筆。同樣是雜訊，看不出任何商業意義。
+
+         3. calculate_action 綁在 #calculateBtn / .calculate-btn 上
+            這個網站從來沒有這兩個名字的按鈕，所以這行從第一天起
+            就沒有綁上任何東西，一筆資料都沒送出過。
+
+         真正有意義的追蹤改放在 js/calc-ui.js 與 js/calc-storage.js 裡，
+         綁在「算月付金」「算利率」「存進歷史」這種完成型動作上。
+         ============================================================ -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE5XMQR0Z1"></script>
     <script>
         const isInIframe = window !== window.parent;
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        
+
         const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
-        
+
+        // send_page_view: false 的原因見 check.html 同一段的說明：
+        // 避免四個功能頁各自回報一次瀏覽，把數字灌成五倍。
         gtag('config', 'G-XE5XMQR0Z1', {
             page_title: `貸款業務工具箱 - 計算機`,
             page_location: window.location.href,
             page_path: window.location.pathname,
-            custom_map: {
-                'dimension3': 'is_iframe',
-                'dimension4': 'page_type'
-            }
+            send_page_view: false
         });
-        
+
         function trackEvent(eventName, parameters = {}) {
             parameters.page_type = currentPageName;
             parameters.is_iframe = isInIframe;
             gtag('event', eventName, parameters);
-            console.log('GA4 Event (iframe):', eventName, parameters);
-        }
-
-        if (currentPageName === 'calculator') {
-            document.addEventListener('DOMContentLoaded', function() {
-                const calculateBtn = document.querySelector('#calculateBtn, .calculate-btn');
-                if (calculateBtn) {
-                    calculateBtn.addEventListener('click', function() {
-                        trackEvent('calculate_action', { calculator_type: 'loan', action: 'calculate' });
-                    });
-                }
-                
-                document.querySelectorAll('input').forEach(input => {
-                    input.addEventListener('focus', function() {
-                        trackEvent('input_interaction', { input_name: this.name || this.id, input_type: this.type, action: 'focus' });
-                    });
-                    
-                    input.addEventListener('change', function() {
-                        trackEvent('input_interaction', { input_name: this.name || this.id, input_type: this.type, action: 'change', has_value: this.value.length > 0 });
-                    });
-                });
-
-                document.querySelectorAll('button').forEach(button => {
-                    button.addEventListener('click', function() {
-                        trackEvent('button_click', { button_text: this.textContent.trim(), button_id: this.id, button_class: this.className });
-                    });
-                });
-            });
         }
     </script>
 

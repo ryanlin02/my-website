@@ -17,10 +17,16 @@
         gtag('js', new Date());
         
         const currentPageName = window.location.pathname.split('/').pop().replace('.html', '');
+        // send_page_view: false 是關鍵。
+        // 四個功能頁在開啟工具箱時會同時被載入（只是三個先藏起來），
+        // 若每一頁都自己回報一次「有人瀏覽了頁面」，開一次工具箱就會產生
+        // 五筆瀏覽紀錄（外殼一筆＋四頁各一筆），而且四頁的數字永遠一樣，
+        // 完全看不出哪個功能真的有人用。瀏覽紀錄一律交給外殼統一送。
         gtag('config', 'G-XE5XMQR0Z1', {
             page_title: `貸款業務工具箱 - 支票計算`,
             page_location: window.location.href,
-            page_path: window.location.pathname
+            page_path: window.location.pathname,
+            send_page_view: false
         });
         
         function trackEvent(eventName, parameters = {}) {

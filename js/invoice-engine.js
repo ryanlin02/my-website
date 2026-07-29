@@ -75,6 +75,37 @@ function vibrate(p = 30) {
     if (navigator && navigator.vibrate) navigator.vibrate(p);
 }
 
+/* ------------------------------------------------------------
+ * 使用情況回報
+ * ------------------------------------------------------------
+ * 【2026/07 新增】
+ *
+ * 發票頁在此之前完全沒有任何追蹤 —— 網站上線到現在，
+ * 沒有任何一筆資料能回答「這一頁到底有沒有人在用」。
+ *
+ * 加上的四個事件都綁在「完成型動作」上，不綁按鍵、不綁輸入：
+ *   invoice_saved         存檔進歷史
+ *   invoice_image_saved   存成圖片（或直接分享出去）
+ *   invoice_shared        分享連結給同事
+ *   taxid_lookup          查統編（記查到或查不到，看得出離線索引夠不夠用）
+ *
+ * 一律不送金額、抬頭、統一編號本身 —— 那是客戶的資料。
+ * 只送「幾聯式」「有沒有查到」這種不指向特定客戶的資訊。
+ *
+ * trackEvent 定義在 invoice.html 的 GA4 區塊。本檔案被測試環境單獨載入時
+ * 不會有那個區塊，所以一定要做存在性檢查，否則整支引擎會拋 ReferenceError。
+ * ------------------------------------------------------------ */
+function trackInvoiceEvent(eventName, parameters = {}) {
+    if (typeof trackEvent === 'function') {
+        trackEvent(eventName, parameters);
+    }
+}
+
+/** 三聯式 / 二聯式，統計時用得到 */
+function invoiceTypeLabel() {
+    return state.type === '3' ? 'triplicate' : 'duplicate';
+}
+
 function $(id) { return document.getElementById(id); }
 
 function fmt(n) { return (n || 0).toLocaleString('en-US'); }
@@ -1058,6 +1089,10 @@ function autoFillTitleFromIndex(taxId) {
     if (!global_TaxIdLookup() || state.title) return;
     const asked = taxId;                       // 記住當下這一組，避免慢回應蓋掉新輸入
     window.TaxIdLookup.lookup(taxId).then(name => {
+        // 只記「查到了沒」，不送統編本身。
+        // 查不到的比例如果偏高，代表離線索引該補資料了。
+        trackInvoiceEvent('taxid_lookup', { found: !!name });
+
         if (!name) return;
         if (state.taxId !== asked || state.title) return;   // 使用者已經改了，就別動他
         state.title = name;
@@ -1103,6 +1138,14 @@ function saveRecord() {
     list.unshift(snapshot());
     localStorage.setItem(LS_HISTORY, JSON.stringify(list.slice(0, 100)));
     rememberCustomer();
+
+    // 存檔代表這張發票對業務是有意義的。不送金額與抬頭。
+    trackInvoiceEvent('invoice_saved', {
+        invoice_type: invoiceTypeLabel(),
+        item_count: (state.items || []).length,
+        history_count: Math.min(list.length, 100)
+    });
+
     showToast('已存檔');
     vibrate([40, 60]);
 }
@@ -1215,6 +1258,11 @@ function shareLink() {
     const url = location.origin + location.pathname + '#inv=' + encodeState();
     const text = `發票開立範例（${state.type === '3' ? '三聯式' : '二聯式'}）總計 ${fmt(calc().total)} 元`;
 
+    trackInvoiceEvent('invoice_shared', {
+        invoice_type: invoiceTypeLabel(),
+        share_method: navigator.share ? 'system_share' : (navigator.clipboard ? 'clipboard' : 'url_hash')
+    });
+
     if (navigator.share) {
         navigator.share({ title: '發票開立範例', text: text, url: url }).catch(() => {});
         return;
@@ -1256,6 +1304,11 @@ function saveImage() {
 
         c.toBlob(function (png) {
             if (!png) { showToast('產生圖片失敗', true); return; }
+
+            // 存成圖片通常是要傳給客戶看，是這一頁最終的產出動作
+            trackInvoiceEvent('invoice_image_saved', {
+                invoice_type: invoiceTypeLabel()
+            });
 
             const file = new File([png], name, { type: 'image/png' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {

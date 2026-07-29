@@ -19,6 +19,40 @@ let checkCount = 0;
 let depositAmount = 0;
 let startDate = null;
 
+/* ------------------------------------------------------------
+ * 使用情況回報
+ * ------------------------------------------------------------
+ * 【2026/07 新增】
+ *
+ * 支票頁在此之前完全沒有任何追蹤 —— 網站上線到現在，
+ * 沒有任何一筆資料能回答「這一頁到底有沒有人在用」。
+ *
+ * 加上的四個事件都綁在「完成型動作」上，不綁按鍵：
+ *   check_calculated       算出尾款金額（只在從無到有的那一刻回報一次）
+ *   check_saved            保存計算進歷史
+ *   check_history_loaded   從歷史叫回舊紀錄
+ *   check_all_written      整批票全部開完打勾
+ *
+ * 一律不送總金額、繳款金額、尾款金額 —— 那是客戶的金額。
+ * 只送張數，因為張數看得出業務常談的方案長度，且不指向特定客戶。
+ *
+ * trackEvent 定義在 check.html 的 GA4 區塊。本檔案被測試環境單獨載入時
+ * 不會有那個區塊，所以一定要做存在性檢查，否則整支引擎會拋 ReferenceError。
+ * ------------------------------------------------------------ */
+function trackCheckEvent(eventName, parameters = {}) {
+    if (typeof trackEvent === 'function') {
+        trackEvent(eventName, parameters);
+    }
+}
+
+// 尾款金額目前是不是已經算出來了。
+// 用來判斷「從沒有結果變成有結果」的那一刻，避免每改一個欄位就送一筆。
+let hasDepositResult = false;
+
+// 這一批票上一次檢查時是不是已經全部開完。
+// 同樣是為了只在「剛好開完」的那一刻回報一次，不是每打一個勾都送。
+let barWasAllWritten = false;
+
 // 日期選擇器變數
 let selectedDate = null;
 let currentViewMonth = new Date();
@@ -601,6 +635,7 @@ function calculateDepositAmount() {
     // 必要欄位沒填齊：直接歸零，不留任何殘影
     if (!totalAmount || !paymentAmount || !checkCount) {
         depositAmount = 0;
+        hasDepositResult = false;                 // 回到沒有結果的狀態，下次算出來要再回報一次
         resetDepositDisplay();
         return;
     }
@@ -608,6 +643,7 @@ function calculateDepositAmount() {
     depositAmount = totalAmount - (paymentAmount * checkCount) + paymentAmount;
 
     if (depositAmount <= 0) {
+        hasDepositResult = false;                 // 金額不成立不算有結果
         // 關鍵：一定要把 depositAmount 歸零。
         // 若留著負數，後續 updateChineseDisplay() 會把它當成有效金額，
         // 而 arabicToChineseNumber 早期版本會用 Math.abs 把負號吃掉。
@@ -615,6 +651,15 @@ function calculateDepositAmount() {
         resetDepositDisplay();
         showToast('錯誤：尾款金額必須大於零，請檢查總金額、繳款金額與張數', true);
         return;
+    }
+
+    // 只在「從沒有結果變成有結果」的那一刻回報一次。
+    // 這個函式幾乎每改一個欄位就會被呼叫，不做狀態判斷就會變成雜訊。
+    if (!hasDepositResult) {
+        hasDepositResult = true;
+        trackCheckEvent('check_calculated', {
+            check_count: checkCount
+        });
     }
 
     const depEl = document.getElementById('deposit-amount');
@@ -806,6 +851,17 @@ function updateWriteProgress() {
     if (leftEl) leftEl.textContent = remaining;
 
     bar.classList.toggle('all-written', remaining === 0);
+
+    /* 整批票全部開完的那一刻回報一次。
+     * 這是支票頁最有價值的一個數字 —— 它代表業務真的把這一頁用完了整個流程，
+     * 而不是只算了一下就關掉。用 all-written 這個 class 當作前後狀態的判斷，
+     * 所以連續打勾不會重複送，取消再打勾才會再送一次。 */
+    if (remaining === 0 && done > 0 && !barWasAllWritten) {
+        trackCheckEvent('check_all_written', {
+            check_count: checkCount
+        });
+    }
+    barWasAllWritten = (remaining === 0 && done > 0);
 
     /* 漏開偵測
      * 往下開票的過程中，下方本來就全是未打勾 —— 那不是漏開，是還沒開到。
@@ -1252,6 +1308,13 @@ function commitCheckData(overwriteId) {
 
     if (!writeCheckHistory(checkHistory)) return;
 
+    // 保存進歷史代表這筆試算對業務是有意義的，比「算了一次」更強的訊號
+    trackCheckEvent('check_saved', {
+        check_count: checkCount,
+        is_overwrite: overwriteId ? true : false,
+        history_count: checkHistory.length
+    });
+
     // 存檔後重新建立連結，之後打勾就會直接寫回這一筆
     linkedHistoryId = targetId;
     sourceHistoryId = targetId;
@@ -1438,6 +1501,11 @@ function applyCheckRecord(item) {
     updateCountBreakdown();
     calculateDepositAmount();
     generateCheckList();
+
+    // 套用歷史是業務到客戶端開票的主要入口，這個數字看得出這條路徑有多常用
+    trackCheckEvent('check_history_loaded', {
+        check_count: checkCount
+    });
 
     const historyPanel = document.getElementById('historyPanel');
     if (historyPanel) historyPanel.style.display = 'none';

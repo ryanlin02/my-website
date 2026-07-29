@@ -117,7 +117,16 @@ function saveLoanData() {
     let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
     loanHistory.push(loanData);
     localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
-    
+
+    // 存進歷史代表這筆試算對業務是有意義的，是比「算了一次」更強的訊號。
+    // 只送期數與筆數，金額一律不送。
+    if (typeof trackCalcEvent === 'function') {
+        trackCalcEvent('loan_saved', {
+            period: parseFloat(period) || 0,
+            history_count: loanHistory.length
+        });
+    }
+
     if (typeof showToast === 'function') showToast('貸款計算結果已保存！');
 }
 
@@ -214,6 +223,12 @@ function loadLoanToForm(id) {
         const historyPanel = document.getElementById('historyPanel');
         if (historyPanel) historyPanel.style.display = 'none';
         
+        // 從歷史叫回舊案件。這個數字高代表業務會回頭找舊案，
+        // 也就代表歷史紀錄這個功能值得再加強。
+        if (typeof trackCalcEvent === 'function') {
+            trackCalcEvent('loan_history_loaded');
+        }
+
         if (typeof showToast === 'function') showToast('已載入貸款計算資料');
         if (typeof vibrate === 'function') vibrate();
     }
