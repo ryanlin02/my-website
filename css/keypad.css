@@ -279,6 +279,61 @@
     text-overflow: ellipsis;
 }
 
+/* ------------------------------------------------------------
+ * 常用值快捷列（計數型欄位：期數、開票張數…）
+ *
+ * :empty 是關鍵 —— 沒有宣告 chips 的欄位這一列完全不佔高度，
+ * 金額型的面板尺寸一點都不會受影響。
+ *
+ * 30px 比按鍵矮，是刻意的：它是次要的捷徑而不是主要輸入，
+ * 而且點錯的代價很低（值會直接顯示在上面，看得到也改得掉）。
+ * 面板高度不能因為多這一列而變高，所以計數型同時收起算式歷程行
+ * （見 .number-input-modal.form-compact）。
+ * ------------------------------------------------------------ */
+.calculator-chips {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 5px;
+    /* 下方不留外距：與按鍵之間的距離由 .calculator-buttons 的 8px 內距負責。
+     * 多留一份就會把面板撐高 8px，那正是這一列要避免的事。 */
+    margin: 0 8px 0;
+}
+
+.calculator-chips:empty {
+    display: none;
+}
+
+.chip-btn {
+    /* 28px：算式歷程行讓出來的是 26px，多的 2px 在畫面上看不出來。
+     * 再高就會把面板撐高，那是這次明確不能發生的事。 */
+    height: 28px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+}
+
+.chip-btn:active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #ffffff;
+}
+
+/* 計數型：收起算式歷程行，顯示區從三行變兩行（數字 + 副資訊）。
+ * 讓出來的 26px 剛好給快捷列，面板總高與其他型別維持一致。 */
+.number-input-modal.form-compact .calculator-history {
+    display: none;
+}
+
+.number-input-modal.form-compact .calculator-display-container {
+    height: 70px;
+}
+
 .calculator-scroll-indicator {
     position: absolute;
     top: 5px;

@@ -139,6 +139,11 @@ function initCommonModals() {
                 <div class="calculator-sub" id="calculatorSub"></div>
             </div>
 
+            <!-- 常用值快捷列（2026/07 新增）
+                 只有宣告了 chips 的欄位才會長出內容；沒有內容時
+                 CSS 的 :empty 讓它完全不佔高度，其他欄位的面板尺寸不受影響。 -->
+            <div class="calculator-chips" id="calculatorChips"></div>
+
             <div class="calculator-buttons">
                 <!-- 第一行：功能鍵 -->
                 <button onclick="calculatorClear()" class="clear" style="grid-column: span 2;">C 清除</button>

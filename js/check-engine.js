@@ -219,19 +219,29 @@ function askContinueFromDeposit(nextStart, nextTotal) {
  * 顯示「n 張月票 + 1 張尾款票」的拆解
  * 讓「開票張數含不含尾款票」這件事在畫面上不需要猜
  */
+/**
+ * 開票張數的拆解說明（純函式）
+ *
+ * 【2026/07 抽成函式】原本這段文字寫死在 updateCountBreakdown() 裡面，
+ * 現在數字鍵盤的副資訊行也要顯示同一句話（見 js/common-keypad.js 的
+ * KEYPAD_FIELDS 設定）。兩邊各寫一份遲早會分岔 —— 例如哪天改成
+ * 「不含尾款票」，只改了一邊，業務會看到兩個互相矛盾的說明。
+ *
+ * @param  {number} count 含尾款票的總張數
+ * @return {string} 說明文字；張數不成立時回傳空字串
+ */
+function describeCheckCount(count) {
+    const n = Math.floor(Number(count));
+    if (!Number.isFinite(n) || n < 1) return '';
+    if (n === 1) return '僅 1 張尾款票';
+    return `${n - 1} 張月票 ＋ 1 張尾款票`;
+}
+
 function updateCountBreakdown() {
     const el = document.getElementById('check-count-breakdown');
     if (!el) return;
 
-    if (!checkCount) {
-        el.textContent = '';
-        return;
-    }
-    if (checkCount === 1) {
-        el.textContent = '僅 1 張尾款票';
-        return;
-    }
-    el.textContent = `${checkCount - 1} 張月票 ＋ 1 張尾款票`;
+    el.textContent = checkCount ? describeCheckCount(checkCount) : '';
 }
 
 /**

@@ -525,6 +525,28 @@ function adjustPeriod(delta) {
     calculatePayment();
 }
 
+/**
+ * 期數的換算說明（純函式）
+ *
+ * 2026/07 新增：數字鍵盤把期數欄位改成計數型，副資訊行顯示這句話
+ * （見 pages/calculator.html 的 KEYPAD_FIELDS 設定）。
+ * 畫面上那排快捷鍵標的是「1～6」年、輸入的卻是 12～72 期，
+ * 這一行就是把兩種說法接起來的地方。
+ *
+ * @param  {number} period 期數（月）
+ * @return {string} 例：「36 期 ＝ 3 年」「30 期 ＝ 2 年 6 個月」；不成立時空字串
+ */
+function describePeriod(period) {
+    const n = Math.floor(Number(period));
+    if (!Number.isFinite(n) || n < 1) return '';
+
+    const years = Math.floor(n / 12);
+    const months = n % 12;
+
+    if (!years) return `${n} 期 ＝ ${months} 個月`;
+    return `${n} 期 ＝ ${years} 年` + (months ? ` ${months} 個月` : '');
+}
+
 function setPeriod(value) {
     vibrate();
     document.getElementById('period').value = value;

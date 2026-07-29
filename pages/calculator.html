@@ -18,6 +18,27 @@
     <link rel="stylesheet" href="../css/keypad.css">
     <link rel="stylesheet" href="../css/calculator.css">
 
+    <!--
+        逐欄位的鍵盤型別（2026/07 新增，必須在 common-modals.js 之前設定）
+
+        期數是計數型：末列的小數點與加速鍵都收起來（12 期按成 12000 期
+        是這頁最容易發生的誤按），改成給常用期數快捷鍵。
+        快捷值與畫面上那排 1～6 年的按鈕完全相同，不另立一套。
+
+        本金、期繳這些金額欄位這一批還沒動，沒有列名的欄位一律沿用
+        本頁預設，與改版前逐顆完全相同。
+    -->
+    <script>
+        window.KEYPAD_FIELDS = {
+            period: {
+                form: 'count',
+                maxDigits: 3,
+                chips: [12, 24, 36, 48, 60, 72],
+                sub: 'describePeriod'
+            }
+        };
+    </script>
+
     <!-- Google Analytics 4 追蹤代碼 -->
     <!-- ============================================================
          【2026/07 精簡：把只會製造雜訊的追蹤全部拿掉】

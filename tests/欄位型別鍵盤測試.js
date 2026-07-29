@@ -146,20 +146,96 @@ chk.ev(`calculatorAppend('000')`);
 t('  再按 000 會超過 7 位，被擋下', chk.ev('calculatorValue') === '9000000', chk.ev('calculatorValue'));
 
 /* ============================================================
+ * B-2. 計數型：快捷值、拆解說明，而且面板不能變高
+ * ============================================================ */
+console.log('\n=== B-2. 計數型：快捷值與拆解說明 ===');
+
+const COUNT_TAIL = ['0/span 3', '='];
+const chipList = d => [...d.querySelectorAll('#calculatorChips .chip-btn')].map(b => b.textContent);
+
+const COUNT_FIELDS = [
+    ['check.html', 'check-count', '開票張數', [12, 24, 36, 48, 60, 72], '35 張月票 ＋ 1 張尾款票'],
+    ['calculator.html', 'period', '期數', [12, 24, 36, 48, 60, 72], '36 期 ＝ 3 年']
+];
+
+COUNT_FIELDS.forEach(([page, field, title, chips, subText]) => {
+    const { d, ev } = booted[page];
+    ev(`openCalculator('${field}', '${title}')`);
+
+    t(`${field} 末列只有 0 與 =（沒有 000／萬／小數點）`,
+        JSON.stringify(tailKeys(d)) === JSON.stringify(COUNT_TAIL), JSON.stringify(tailKeys(d)));
+    t('  前四列一樣沒動', JSON.stringify(headKeys(d)) === JSON.stringify(HEAD_EXPECT));
+    t(`  快捷值 ${chips.join('／')}`,
+        JSON.stringify(chipList(d)) === JSON.stringify(chips.map(String)), JSON.stringify(chipList(d)));
+
+    ev('calculatorClear(); calculatorInput(3); calculatorInput(6)');
+    t(`  副資訊顯示拆解「${subText}」`, d.getElementById('calculatorSub').textContent === subText,
+        d.getElementById('calculatorSub').textContent);
+
+    ev('calculatorChip(48)');
+    t('  點快捷值直接帶入 48', ev('calculatorValue') === '48', ev('calculatorValue'));
+    t('    拆解說明同步更新', d.getElementById('calculatorSub').textContent !== subText
+        && d.getElementById('calculatorSub').textContent.length > 0,
+        d.getElementById('calculatorSub').textContent);
+
+    t('  面板帶 form-compact（算式行收起、空間讓給快捷列）',
+        d.querySelector('.number-input-modal').classList.contains('form-compact'));
+
+    // 計數型仍然可以運算，算式改顯示在副資訊行（不會消失）
+    ev(`calculatorClear(); calculatorInput(6); calculatorInput(0); calculatorOperation('-'); calculatorInput(1); calculatorInput(2)`);
+    t('  按了運算子後，算式改顯示在副資訊行',
+        d.getElementById('calculatorSub').textContent.indexOf('60 - ') === 0,
+        d.getElementById('calculatorSub').textContent);
+    ev('calculatorEquals()');
+    t('    60 − 12 = 48', ev('calculatorValue') === '48', ev('calculatorValue'));
+});
+
+// 位數上限：張數兩位、期數三位
+booted['check.html'].ev(`openCalculator('check-count', '張數'); calculatorClear(); calculatorInput(9); calculatorInput(9); calculatorInput(9)`);
+t('開票張數擋在 2 位數（99）', booted['check.html'].ev('calculatorValue') === '99',
+    booted['check.html'].ev('calculatorValue'));
+booted['calculator.html'].ev(`openCalculator('period', '期數'); calculatorClear(); calculatorInput(1); calculatorInput(2); calculatorInput(0); calculatorInput(0)`);
+t('期數擋在 3 位數（120）', booted['calculator.html'].ev('calculatorValue') === '120',
+    booted['calculator.html'].ev('calculatorValue'));
+
+// 加油頁：計數型但保留 00（每月油量動輒四五位數），且沒有快捷值
+booted['gas.html'].ev(`openCalculator('monthlyVolume', '每月油量')`);
+t('每月油量：計數型但保留 00 加速鍵',
+    JSON.stringify(tailKeys(booted['gas.html'].d)) === JSON.stringify(['0/span 2', '00', '=']),
+    JSON.stringify(tailKeys(booted['gas.html'].d)));
+t('  已收掉對公升沒有意義的小數點', !tailKeys(booted['gas.html'].d).includes('.'));
+t('  沒有快捷值時，快捷列是空的（CSS :empty 不佔高度）',
+    chipList(booted['gas.html'].d).length === 0);
+t('  keypad.css 有 :empty 規則', /\.calculator-chips:empty\s*\{[^}]*display:\s*none/
+    .test(fs.readFileSync(R + '/css/keypad.css', 'utf8')));
+
+// 拆解說明必須與頁面上原本那行文字用同一支函式
+t('describeCheckCount 是共用的純函式（欄位下方那行與鍵盤共用）',
+    booted['check.html'].ev('typeof describeCheckCount') === 'function');
+t('  1 張時的說法一致', booted['check.html'].ev('describeCheckCount(1)') === '僅 1 張尾款票');
+t('  0 張不產生文字', booted['check.html'].ev('describeCheckCount(0)') === '');
+t('describePeriod 換算正確（30 期 ＝ 2 年 6 個月）',
+    booted['calculator.html'].ev('describePeriod(30)') === '30 期 ＝ 2 年 6 個月',
+    booted['calculator.html'].ev('describePeriod(30)'));
+t('  未滿一年只講月數', booted['calculator.html'].ev('describePeriod(6)') === '6 期 ＝ 6 個月',
+    booted['calculator.html'].ev('describePeriod(6)'));
+
+/* ============================================================
  * C. 同一頁欄位互相切換不留殘渣
  * ============================================================ */
 console.log('\n=== C. 切換欄位不留殘渣 ===');
 
 chk.ev(`openCalculator('total-amount', '總金額')`);
 chk.ev(`openCalculator('check-count', '開票張數')`);
-t('金額型 → 計數型：末列回到支票頁預設',
-    JSON.stringify(tailKeys(chk.d)) === JSON.stringify(BASELINE['check.html'].tail),
+t('金額型 → 計數型：末列換成 0 與 =（000 與 萬 完全消失）',
+    JSON.stringify(tailKeys(chk.d)) === JSON.stringify(COUNT_TAIL),
     JSON.stringify(tailKeys(chk.d)));
-t('  計數型不顯示大寫（張數不是金額）',
-    (chk.ev('calculatorClear(); calculatorInput(3); calculatorInput(6)'),
-        chk.d.getElementById('calculatorSub').textContent === ''),
+chk.ev('calculatorClear(); calculatorInput(3); calculatorInput(6)');
+t('  副資訊換成張數拆解，不是金額大寫',
+    chk.d.getElementById('calculatorSub').textContent === '35 張月票 ＋ 1 張尾款票',
     chk.d.getElementById('calculatorSub').textContent);
-t('  張數沒有位數上限設定，可正常輸入 36', chk.ev('calculatorValue') === '36', chk.ev('calculatorValue'));
+t('  沒有殘留「元整」', !chk.d.getElementById('calculatorSub').textContent.includes('元整'));
+t('  可正常輸入 36 張', chk.ev('calculatorValue') === '36', chk.ev('calculatorValue'));
 
 chk.ev(`openCalculator('total-amount', '總金額')`);
 t('計數型 → 金額型：末列再次變成金額型',
@@ -280,6 +356,18 @@ const budget = 9 * 2 + 29                                  // 標題列：上下
 /* 這個估算值與 Chrome 實測相符（實測 473px，改版前 533px）。
  * 上限取 480 是留給字體行框的誤差，不是留給再加東西。 */
 t(`面板估算高度 ${budget}px ≤ 480px（小螢幕仍有餘裕）`, budget <= 480, budget + 'px');
+
+/* 計數型：多一列快捷值、少一行算式歷程，兩者要互相抵銷。
+ * 這是這一批最重要的約束 —— 快捷列不可以把面板撐高。 */
+const compactBudget = budget
+    - num(/\.calculator-display-container\s*\{[^}]*height:\s*(\d+)px/)
+    + num(/form-compact \.calculator-display-container\s*\{[^}]*height:\s*(\d+)px/)
+    + num(/\.chip-btn\s*\{[^}]*height:\s*(\d+)px/);
+t(`計數型估算高度 ${compactBudget}px，與其他型別相差 ${Math.abs(compactBudget - budget)}px（≤ 8px）`,
+    Math.abs(compactBudget - budget) <= 8, compactBudget + 'px vs ' + budget + 'px');
+t('  快捷列下方沒有額外外距（有的話就會把面板撐高）',
+    /\.calculator-chips\s*\{[^}]*margin:\s*0 8px 0/.test(css),
+    (css.match(/\.calculator-chips\s*\{[^}]*margin:[^;]*/) || [''])[0]);
 
 console.log('\n========================================');
 console.log(`   通過 ${pass} 項 / 失敗 ${fail} 項`);

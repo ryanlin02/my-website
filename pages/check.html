@@ -66,12 +66,24 @@
          * （總金額 9 位、繳款金額 7 位）。這裡是「按下去就擋」，
          * 那邊的語意驗證（不可為零等）仍然保留，兩層並存。
          *
-         * 開票張數（check-count）刻意沒有列在這裡：它屬於計數型，
-         * 需要的是常用張數快捷鍵而不是加速鍵，留待下一批處理。
+         * 開票張數是計數型：末列只有 0 與 =（000 與 萬 只會讓人把
+         * 12 張按成 12000 張），改成給常用張數快捷鍵。
+         * 快捷值與計算頁的期數快捷鍵一致（12／24／36／48／60／72 期），
+         * 因為含尾款票的總張數就等於貸款期數。
+         *
+         * sub 指向 check-engine.js 的 describeCheckCount()，
+         * 與欄位下方那行拆解說明用同一支函式，兩邊不會分岔。
+         *
          * 沒有列名的欄位一律沿用本頁預設，與改版前逐顆完全相同。 */
         window.KEYPAD_FIELDS = {
             'total-amount':   { form: 'amount', maxDigits: 9 },
-            'payment-amount': { form: 'amount', maxDigits: 7 }
+            'payment-amount': { form: 'amount', maxDigits: 7 },
+            'check-count':    {
+                form: 'count',
+                maxDigits: 2,
+                chips: [12, 24, 36, 48, 60, 72],
+                sub: 'describeCheckCount'
+            }
         };
     </script>
 

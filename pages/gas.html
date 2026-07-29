@@ -257,6 +257,21 @@
          必須在載入 common-modals.js 之前設定。 -->
     <script>
         window.KEYPAD_OPTIONS = { accelerators: ['00'] };
+
+        /* 逐欄位的鍵盤型別（2026/07 新增）
+         *
+         * 每月油量是計數型（整數公升，submitCalculatorValue() 會 Math.round），
+         * 所以收掉小數點；但它動輒四五位數，00 留著比較好按，
+         * 用欄位層級的 accelerators 覆寫計數型的預設。
+         *
+         * 沒有給快捷值：每月油量沒有一組公認的常用數字，
+         * 硬給幾個反而會誤導。快捷列沒有內容時不佔任何高度。
+         *
+         * 油品單價與折扣金額是小數型（29.3、0.5），目前仍沿用本頁預設
+         * （有小數點，但也還帶著對它們沒有意義的 00 鍵），留待下一批處理。 */
+        window.KEYPAD_FIELDS = {
+            monthlyVolume: { form: 'count', maxDigits: 6, accelerators: ['00'] }
+        };
     </script>
 
     <!-- 共用鍵盤：common-keypad.js 必須排在 common-modals.js 之前，

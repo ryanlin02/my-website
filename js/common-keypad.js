@@ -281,6 +281,25 @@ const KEYPAD_FORMS = {
     amount: {
         tail: { decimal: false, accelerators: ['000', '0000'] },
         sub: 'upper'
+    },
+
+    /* 計數型：期數、開票張數、數量、每月油量…
+     *
+     * 這類數字最多兩三位，000 與 萬 只會讓人誤按（12 期按成 12000 期），
+     * 小數點也沒有意義，所以末列只有 0 與 =。
+     *
+     * 取而代之的是「常用值快捷列」：這行業的期數就是 12／24／36／48／60／72，
+     * 點一下比按兩個鍵還快，也不會按錯。要哪幾個值由各欄位自己宣告。
+     *
+     * 【為什麼計數型的算式歷程行要收起來】
+     * 快捷列要佔一列高度，而面板不能因此變高（垂直居中的彈窗一長高，
+     * 整個彈窗的上下位置都會跑）。取捨的結果是收掉算式歷程那一行：
+     * 金額欄位常常要當場加減，期數與張數幾乎不會。
+     * 真的按了運算子時，算式會改顯示在副資訊那一行，不會消失。 */
+    count: {
+        tail: { decimal: false, accelerators: [] },
+        sub: null,
+        compact: true            // 收起算式歷程行，空間讓給快捷列
     }
 };
 
@@ -301,23 +320,69 @@ function applyKeypadTail(tailOpts) {
 }
 
 /**
+ * 常用值快捷列
+ *
+ * 沒有宣告 chips 的欄位就清空 —— CSS 的 :empty 會讓這一列完全不佔高度，
+ * 所以其他欄位的面板尺寸一點都不受影響。
+ */
+function applyKeypadChips(chips) {
+    const box = document.getElementById('calculatorChips');
+    if (!box) return;
+
+    if (!Array.isArray(chips) || !chips.length) {
+        box.innerHTML = '';
+        return;
+    }
+
+    box.innerHTML = chips.map(v =>
+        `<button type="button" class="chip-btn" onclick="calculatorChip('${v}')">${v}</button>`
+    ).join('');
+}
+
+/** 點一下常用值：直接取代目前的數字（不是接在後面） */
+function calculatorChip(value) {
+    calculatorValue = String(value);
+    calculatorWaitingForSecondValue = false;
+    updateCalculatorDisplay();
+    vibrate();
+}
+
+/**
  * 顯示區的副資訊（第三行）
  *
- * 目前只有一種來源：金額型顯示中文大寫。寫支票時可以直接照抄，
- * 不必按了確認輸入、回到頁面才看到大寫。
+ * 三種來源：
+ *   'upper'      金額型 —— 中文大寫，寫支票時可以直接照抄
+ *   函式名稱      計數型 —— 由各頁提供拆解說明，例如
+ *                 開票張數 36 → 「35 張月票 ＋ 1 張尾款票」
+ *                 期數 36     → 「36 期 ＝ 3 年」
+ *   null         不顯示（但那一行的高度仍然保留）
  *
- * arabicToChineseNumber() 目前住在 check-engine.js，其他頁面沒有這支函式，
- * 所以這裡用 typeof 判斷 —— 取不到就顯示空白，不會壞。
+ * 【計數型的算式】計數型收起了算式歷程那一行（空間讓給快捷列），
+ * 所以真的按了運算子時，這一行改顯示算式 —— 算式不會消失，
+ * 而且正在算的時候拆解說明本來就沒有意義（數字還不是最後結果）。
+ *
+ * 各頁的函式（arabicToChineseNumber、describeCheckCount…）不一定存在，
+ * 一律用 typeof 判斷；取不到就顯示空白，不會壞。
  */
 function keypadSubText(value) {
-    if (keypadSpec.sub !== 'upper') return '';
+    if (keypadSpec.compact && calculatorHistory) {
+        return formatHistoryLine(calculatorHistory);
+    }
+
+    if (!keypadSpec.sub) return '';
 
     const num = parseFloat(value);
     if (!isFinite(num) || num <= 0) return '';
-    if (typeof arabicToChineseNumber !== 'function') return '';
 
-    const upper = arabicToChineseNumber(Math.floor(num), 'financial', false);
-    return upper ? upper + ' 元整' : '';
+    if (keypadSpec.sub === 'upper') {
+        if (typeof arabicToChineseNumber !== 'function') return '';
+        const upper = arabicToChineseNumber(Math.floor(num), 'financial', false);
+        return upper ? upper + ' 元整' : '';
+    }
+
+    // 其餘一律當成「全域函式名稱」，由各頁自己提供
+    const fn = window[keypadSpec.sub];
+    return typeof fn === 'function' ? (fn(num) || '') : '';
 }
 
 /**
@@ -390,10 +455,23 @@ function openCalculator(targetId, title) {
     const fieldCfg = (window.KEYPAD_FIELDS || {})[targetId] || {};
     const form = KEYPAD_FORMS[fieldCfg.form] || {};
     keypadSpec = {
-        sub: form.sub || null,
-        maxDigits: fieldCfg.maxDigits || null
+        sub: fieldCfg.sub || form.sub || null,
+        maxDigits: fieldCfg.maxDigits || null,
+        compact: form.compact === true
     };
-    applyKeypadTail(form.tail || window.KEYPAD_TAIL_DEFAULT);
+
+    /* 末列：型別決定，欄位可以再覆寫加速鍵。
+     * （例：每月油量是計數型，但它動輒四五位數，保留原本的 00 比較好按） */
+    const tail = form.tail || window.KEYPAD_TAIL_DEFAULT || {};
+    applyKeypadTail(Array.isArray(fieldCfg.accelerators)
+        ? Object.assign({}, tail, { accelerators: fieldCfg.accelerators })
+        : tail);
+
+    applyKeypadChips(fieldCfg.chips);
+
+    /* 計數型收起算式歷程行，把高度讓給快捷列 —— 面板總高不變 */
+    const panel = document.querySelector('.number-input-modal');
+    if (panel) panel.classList.toggle('form-compact', keypadSpec.compact);
 
     const titleEl = document.getElementById('inputModalTitle');
     if (titleEl) titleEl.textContent = title;
