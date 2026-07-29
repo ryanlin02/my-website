@@ -583,6 +583,12 @@ function buildSvg3() {
     // 合計區與大寫列的橫線，一律只到備註欄左緣
     [SY1, SY2, SY3, UY].forEach(y => s += svgLine(cols[0], y, cols[4], y, 1));
 
+    /* 合計區的直線：標籤與數字之間要有一條，位置與上方金額欄的左緣同一條線。
+     * 營業稅那一列本來就有（「應稅｜零稅率｜免稅」小表格的右框就是它），
+     * 銷售額合計與總計兩列漏了，看起來像數字浮在標籤旁邊。 */
+    s += svgLine(cols[3], SY1, cols[3], SY2, 1);
+    s += svgLine(cols[3], SY3, cols[3], UY, 1);
+
     // 欄位名稱用分散對齊，撐滿整格
     heads.forEach((h, i) => {
         s += svgSpread(cols[i], cols[i + 1], TY + 17, h,
@@ -684,6 +690,9 @@ function buildSvg2() {
     s += svgLine(cols[4], TY, cols[4], TEND, 1.5);
     for (let i = 1; i < ROWS; i++) s += svgLine(cols[0], bodyTop + RH * i, cols[4], bodyTop + RH * i, 0.6);
     [SY1, UY].forEach(y => s += svgLine(cols[0], y, cols[4], y, 1));
+
+    // 總計列的直線：標籤與數字之間要有一條，與上方金額欄左緣同一條線
+    s += svgLine(cols[3], SY1, cols[3], UY, 1);
 
     heads.forEach((h, i) => {
         s += svgSpread(cols[i], cols[i + 1], TY + 17, h,
