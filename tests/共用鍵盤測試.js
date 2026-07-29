@@ -9,9 +9,12 @@ function boot(page, scripts){
     {url:'https://ryanlin02.github.io/my-website/pages/'+page,runScripts:'outside-only',pretendToBeVisual:true});
   const w=dom.window;
   w.eval('window.setInterval=function(){return 0;};window.setTimeout=function(f){return 0;};');
-  // jsdom 不執行 HTML 內嵌 script，手動重現頁面裡的設定
-  const cfg=fs.readFileSync(R+'/pages/'+page,'utf8').match(/window\.KEYPAD_OPTIONS\s*=\s*\{[^}]*\}/);
-  if(cfg) w.eval(cfg[0]);
+  /* jsdom 不執行 HTML 內嵌 script，手動重現頁面裡的鍵盤設定。
+   * 改為整段 <script> eval：KEYPAD_FIELDS 是巢狀物件，
+   * 原本用 \{[^}]*\} 抓單一宣告會在第一個 } 就截斷。 */
+  for(const m of fs.readFileSync(R+'/pages/'+page,'utf8').matchAll(/<script>([\s\S]*?)<\/script>/g)){
+    if(m[1].includes('KEYPAD')) w.eval(m[1]);
+  }
   // 依照 HTML 中 <script src> 的真實順序載入，頂層 let 轉 var 以便從外部讀取狀態
   for(const s of scripts) w.eval(fs.readFileSync(R+'/js/'+s,'utf8').replace(/^let /gm,'var '));
   w.eval('initCommonModals()');
@@ -71,7 +74,12 @@ for(const page of ['calculator.html','check.html']){
   ev('calculatorClear();calculatorInput(1);calculatorOperation("+");calculatorInput(2);calculatorOperation("+");');
   t('連續運算子自動結算 (1+2+ → 3)', ev('calculatorValue')==='3', ev('calculatorValue'));
   t('算式歷程有記錄', ev('calculatorHistory').length>0, ev('calculatorHistory'));
-  t('顯示區與狀態同步', d.getElementById('calculatorDisplay').textContent===ev('calculatorValue'));
+  /* 顯示區會加千分位（2026/07），狀態一律保持沒有逗號的原字串 ——
+   * 各頁的 submitCalculatorValue() 都直接 parseFloat 這個狀態。 */
+  t('顯示區與狀態同步（顯示帶千分位、狀態不帶）',
+    d.getElementById('calculatorDisplay').textContent===ev('groupThousands(calculatorValue)')
+    && !ev('calculatorValue').includes(','),
+    d.getElementById('calculatorDisplay').textContent+' vs '+ev('calculatorValue'));
 
   // 5) 小數點：計算頁應可用，支票頁應已隱藏
   const hasDecimalKey=handlers.some(h=>h.includes('calculatorDecimal'));

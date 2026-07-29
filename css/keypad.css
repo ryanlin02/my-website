@@ -176,51 +176,69 @@
     background-color: rgba(var(--error-color-rgb), 0.9);
 }
 
+/* ------------------------------------------------------------
+ * 【2026/07：顯示區改三行，並把整個面板高度壓下來】
+ *
+ * 原本面板實測 350×533。這台鍵盤是垂直居中的彈窗，一旦比可視高度高，
+ * 上下就會被切掉或變成要在彈窗裡捲動。iPhone SE 這類 568px 高的機器
+ * 扣掉外殼標題列只剩約 508px，533 幾乎貼滿、沒有餘裕。
+ *
+ * 這次把顯示區從 110px 收成 96px（多容納一行副資訊）、按鍵 48→44px、
+ * 間距與內距各收 2px，標題列另外在 .number-input-modal 內收窄，
+ * 總高降到 470px 以內。按鍵仍在 44px 的觸控建議值之上。
+ * ------------------------------------------------------------ */
 .calculator-display-container {
     display: flex;
     flex-direction: column;
     background-color: var(--input-bg);
-    margin: 10px;
+    margin: 8px;
     border-radius: 10px;
     border: 1px solid var(--border-color);
     box-shadow: inset 0 2px 8px var(--shadow-color);
     overflow: hidden;
-    height: 110px;
+    height: 96px;
     position: relative;
 }
 
 .calculator-history {
     color: var(--text-muted);
-    font-size: 16px;
-    padding: 8px 15px;
+    font-size: 14px;
+    padding: 0 12px;
     text-align: right;
-    height: 40px;
-    overflow-y: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    line-height: 1.3;
-    word-break: break-all;
+    height: 26px;
+    line-height: 26px;
     font-family: 'Consolas', monospace;
     position: relative;
-    background: linear-gradient(to bottom, rgba(var(--input-bg-rgb), 0.8), rgba(var(--secondary-color-rgb), 0.8));
-}
 
-.calculator-history::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(var(--accent-color-rgb), 0.4), transparent);
+    /* 固定單行。
+     * 原本是 flex 直排 + word-break: break-all，用來容納兩行算式；
+     * 現在算式一律單行（過長由 formatHistoryLine() 從左邊截斷），
+     * 兩者都不需要了 —— 而 break-all 還會把數字從中間切開
+     * （1149150 斷成 11491／50），比截斷更容易看錯金額。
+     * nowrap + hidden 留著當第二道防線：萬一某支裝置的等寬字體更寬，
+     * 只會裁掉右緣，不會擠出第二行把上一行切一半。 */
+    white-space: nowrap;
+    overflow: hidden;
+
+    /* ------------------------------------------------------------
+     * 【2026/07：拿掉漸層底色與那條橫切線】
+     *
+     * 這裡原本有兩個裝飾：底色由深到淺的漸層，以及 ::after 畫出的一條
+     * 橘色細線。它們的用意是把「算式歷程」和「數字」分成兩個區塊，
+     * 但顯示區改成三行之後，那條線只是把一塊小小的螢幕橫切成兩半，
+     * 看起來像是破圖而不是分隔。
+     *
+     * 三行現在共用同一個平底色，整塊就是一面螢幕 —— 層級靠字級與顏色
+     * 區分（算式 14px 灰、數字 30px 白粗、大寫 12px 橘）就夠了。
+     * ------------------------------------------------------------ */
+    background: var(--input-bg);
 }
 
 .calculator-display {
     background-color: var(--input-bg);
     color: var(--text-color);
-    font-size: 36px;
-    padding: 10px 15px;
+    font-size: 30px;
+    padding: 2px 12px;
     text-align: right;
     flex: 1;
     display: flex;
@@ -233,11 +251,32 @@
     font-family: 'Consolas', monospace;
     font-weight: bold;
     letter-spacing: 1px;
+    position: relative;
+    /* 與算式行、大寫行同一個平底色（見上方說明）。
+     * 圓角也移除了：現在顯示區的最後一行是 .calculator-sub，圓角在那裡。 */
+    background: var(--input-bg);
+    text-shadow: 0 1px 2px var(--shadow-color);
+}
+
+/* 顯示區第三行：副資訊（目前是金額欄位的中文大寫）
+ *
+ * 即使沒有內容也保留高度 —— 面板是垂直居中的，高度一變上下都會跳，
+ * 而同一頁的三個欄位會來回切換。固定高度，位置才穩。 */
+.calculator-sub {
+    height: 22px;
+    line-height: 22px;
+    /* 圓角原本在 .calculator-display（當時它是最後一行），
+     * 現在最後一行是這一行，圓角要跟著搬過來才貼合外框。 */
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    position: relative;
-    background: linear-gradient(to bottom, rgba(var(--input-bg-rgb), 0.9), rgba(var(--input-bg-rgb), 0.7));
-    text-shadow: 0 1px 2px var(--shadow-color);
+    padding: 0 12px;
+    text-align: right;
+    font-size: 12px;
+    color: var(--accent-color);
+    background-color: var(--input-bg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .calculator-scroll-indicator {
@@ -257,12 +296,12 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(5, auto);
-    gap: 6px;
-    padding: 10px;
+    gap: 5px;
+    padding: 8px;
 }
 
 .calculator-buttons button {
-    padding: 10px 0;
+    padding: 8px 0;
     font-size: 20px;
     border-radius: 10px;
     background-color: var(--secondary-color);
@@ -273,7 +312,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 48px;
+    height: 44px;
     box-shadow: 0 2px 4px var(--shadow-color);
     position: relative;
     overflow: hidden;
@@ -418,8 +457,19 @@
     animation: modalSlideIn 0.1s ease-out;
 }
 
+/* 鍵盤的標題列比提示彈窗窄一些。
+ * 刻意只縮鍵盤這一個 —— .modal-header 同時給提示與確認彈窗用，
+ * 那兩個一年出現不了幾次，沒必要為了省高度動到它們。 */
+.number-input-modal .modal-header {
+    padding: 9px 12px;
+}
+
+.number-input-modal .modal-header h3 {
+    font-size: 17px;
+}
+
 .calculator-submit-container {
-    padding: 0 10px 12px 10px;
+    padding: 0 8px 10px 8px;
     background-color: var(--primary-color);
 }
 

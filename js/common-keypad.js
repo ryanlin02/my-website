@@ -249,6 +249,135 @@ function showToast(message, isError = false, duration = 2000) {
  * 數字鍵盤
  * ------------------------------------------------------------ */
 
+/* ------------------------------------------------------------
+ * 欄位型別（form）
+ * ------------------------------------------------------------
+ * 【2026/07 新增：鍵盤形態由「欄位」決定，不再由「頁面」決定】
+ *
+ * 原本的 window.KEYPAD_OPTIONS 是掛在整頁上的，同一頁所有欄位共用一組
+ * 按鍵組成，於是出現兩個相反方向的錯：
+ *   - 加油頁設了 accelerators:['00']，連「油品單價 29.3」這種小數欄位
+ *     也長出一顆沒有意義的 00 鍵。
+ *   - 支票頁只設了 decimal:false，沒有加速鍵，於是動輒三百萬的總金額
+ *     要一位一位按七個 0 —— 最需要加速鍵的欄位反而沒有。
+ *
+ * 現在改成每個欄位自己宣告型別，頁面在載入 common-modals.js 之前設定：
+ *
+ *     window.KEYPAD_FIELDS = {
+ *         'total-amount':   { form: 'amount', maxDigits: 9 },
+ *         'payment-amount': { form: 'amount', maxDigits: 7 }
+ *     };
+ *
+ * 沒有宣告的欄位一律沿用該頁的 KEYPAD_TAIL_DEFAULT，也就是與改版前
+ * 逐顆完全相同的按鍵 —— 計算頁與加油頁不受影響。
+ *
+ * 【位置規則】前四列（清除／退回／運算子／1～9）四種型別完全相同，
+ * 0 永遠在末列最左、= 永遠在末列最右、確認輸入永遠在面板最底部。
+ * 會變的只有末列中間那幾格與副資訊行的內容。
+ * ------------------------------------------------------------ */
+const KEYPAD_FORMS = {
+    /* 金額型：本金、期繳、推廣、資金成本、總金額、繳款金額、每月油錢…
+     * 整數、常見整萬整千，所以給 000 與 萬；副資訊顯示中文大寫。 */
+    amount: {
+        tail: { decimal: false, accelerators: ['000', '0000'] },
+        sub: 'upper'
+    }
+};
+
+let keypadSpec = {};                       // 目前這個欄位的型別設定
+
+/**
+ * 依欄位型別重建末列按鍵
+ *
+ * 只換掉帶 data-keypad-tail 標記的按鈕，前四列不動。
+ * 每次開啟鍵盤都重建，避免上一個欄位的組成殘留。
+ */
+function applyKeypadTail(tailOpts) {
+    const grid = document.querySelector('.calculator-buttons');
+    if (!grid || typeof buildKeypadTailRow !== 'function') return;
+
+    grid.querySelectorAll('[data-keypad-tail]').forEach(btn => btn.remove());
+    grid.insertAdjacentHTML('beforeend', buildKeypadTailRow(tailOpts));
+}
+
+/**
+ * 顯示區的副資訊（第三行）
+ *
+ * 目前只有一種來源：金額型顯示中文大寫。寫支票時可以直接照抄，
+ * 不必按了確認輸入、回到頁面才看到大寫。
+ *
+ * arabicToChineseNumber() 目前住在 check-engine.js，其他頁面沒有這支函式，
+ * 所以這裡用 typeof 判斷 —— 取不到就顯示空白，不會壞。
+ */
+function keypadSubText(value) {
+    if (keypadSpec.sub !== 'upper') return '';
+
+    const num = parseFloat(value);
+    if (!isFinite(num) || num <= 0) return '';
+    if (typeof arabicToChineseNumber !== 'function') return '';
+
+    const upper = arabicToChineseNumber(Math.floor(num), 'financial', false);
+    return upper ? upper + ' 元整' : '';
+}
+
+/**
+ * 把字串裡的每個數字加上千分位（1149150 → 1,149,150）
+ *
+ * 只比對「連續的數字」，所以：
+ *   - 剛按下小數點的 "3." 不會被吃掉（"." 不在比對範圍內，原樣留著）
+ *   - 負號、運算子、空白、"=" 都原樣保留
+ * 算式行與中間的大字都用這一支，兩處的逗號規則才不會分岔。
+ */
+function groupThousands(text) {
+    return String(text).replace(/\d+(?:\.\d+)?/g, match => {
+        const parts = match.split('.');
+        const int = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.length > 1 ? int + '.' + parts[1] : int;
+    });
+}
+
+/**
+ * 更新顯示區（數字 + 副資訊）
+ *
+ * 原本「取得 calculatorDisplay、寫入 textContent」這三行在八個地方逐字重複，
+ * 每次要在顯示時多做一件事就得改八個地方 —— 副資訊行正是這種需求，
+ * 所以先收斂成一支。
+ */
+function updateCalculatorDisplay() {
+    /* 中間那行大字也加千分位。
+     *
+     * calculatorValue 本身一律保持沒有逗號的原字串（submitCalculatorValue()
+     * 與各頁的驗證都直接 parseFloat 它），逗號只在寫進畫面的這一刻加上。
+     *
+     * groupThousands() 只動「連續的數字」，所以剛按下小數點時的 "3."
+     * 不會被吃掉，負號與小數位也都原樣保留。 */
+    const display = document.getElementById('calculatorDisplay');
+    if (display) display.textContent = groupThousands(calculatorValue);
+
+    const sub = document.getElementById('calculatorSub');
+    if (sub) sub.textContent = keypadSubText(calculatorValue);
+}
+
+/**
+ * 位數上限即時檢查
+ *
+ * 原本只在按下「確認輸入」時才驗證，使用者可能已經多按了好幾位才被退回。
+ * 改成按下去的當下就擋住並告知上限，語意類的驗證（不可為零、
+ * 繳款不得大於總額之類）仍留在各頁的 submitCalculatorValue()。
+ *
+ * @return {boolean} true 表示超過上限、呼叫端應該中止
+ */
+function keypadExceedsDigits(nextValue) {
+    if (!keypadSpec.maxDigits) return false;
+
+    const intDigits = String(nextValue).replace('-', '').split('.')[0].replace(/^0+/, '').length;
+    if (intDigits <= keypadSpec.maxDigits) return false;
+
+    showToast(`最多 ${keypadSpec.maxDigits} 位數`, true);
+    vibrate([50, 30, 50]);
+    return true;
+}
+
 /**
  * 喚起數字輸入器
  * @param {string} targetId 要填入的欄位 id
@@ -256,6 +385,15 @@ function showToast(message, isError = false, duration = 2000) {
  */
 function openCalculator(targetId, title) {
     currentInputField = targetId;
+
+    /* 這個欄位是哪一型？沒宣告就用該頁預設（= 改版前的樣子） */
+    const fieldCfg = (window.KEYPAD_FIELDS || {})[targetId] || {};
+    const form = KEYPAD_FORMS[fieldCfg.form] || {};
+    keypadSpec = {
+        sub: form.sub || null,
+        maxDigits: fieldCfg.maxDigits || null
+    };
+    applyKeypadTail(form.tail || window.KEYPAD_TAIL_DEFAULT);
 
     const titleEl = document.getElementById('inputModalTitle');
     if (titleEl) titleEl.textContent = title;
@@ -265,8 +403,7 @@ function openCalculator(targetId, title) {
     const currentValue = inputEl ? inputEl.value : '';
     calculatorValue = (currentValue && currentValue !== '') ? currentValue.replace(/,/g, '') : "0";
 
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
 
     calculatorTokens = [];
     calculatorWaitingForSecondValue = false;
@@ -290,10 +427,11 @@ function calculatorInput(num) {
         calculatorValue = num.toString();
         calculatorWaitingForSecondValue = false;
     } else {
-        calculatorValue = calculatorValue === '0' ? num.toString() : calculatorValue + num.toString();
+        const next = calculatorValue === '0' ? num.toString() : calculatorValue + num.toString();
+        if (keypadExceedsDigits(next)) return;
+        calculatorValue = next;
     }
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
     vibrate();
 }
 
@@ -317,9 +455,9 @@ function calculatorAppend(digits) {
 
     // 目前還是 0 就不動作：按 00 得到 000 只會讓人以為壞了
     if (calculatorValue !== '0') {
+        if (keypadExceedsDigits(calculatorValue + digits)) return;
         calculatorValue += digits;
-        const display = document.getElementById('calculatorDisplay');
-        if (display) display.textContent = calculatorValue;
+        updateCalculatorDisplay();
     }
 
     vibrate();
@@ -340,8 +478,7 @@ function calculatorDecimal() {
     if (!calculatorValue.includes('.')) {
         calculatorValue += '.';
     }
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
     vibrate();
 }
 
@@ -351,8 +488,7 @@ function calculatorClear() {
     calculatorWaitingForSecondValue = false;
     calculatorHistory = "";
 
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
     const history = document.getElementById('calculatorHistory');
     if (history) history.textContent = "";
     const indicator = document.getElementById('historyScrollIndicator');
@@ -367,8 +503,7 @@ function calculatorBackspace() {
     } else {
         calculatorValue = '0';
     }
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
     vibrate();
 }
 
@@ -434,6 +569,22 @@ function calculatorOperation(op) {
     calculatorTokens.push(parseFloat(calculatorValue));
 
     /* ------------------------------------------------------------
+     * 【2026/07 修正：算式歷程要記「使用者按的那個數」，不是中間結果】
+     *
+     * 下面的求值會把 calculatorValue 換成中間結果，而算式歷程原本是在
+     * 求值「之後」才取這個變數，於是記下來的是結果而不是運算元：
+     *     打 1500000 − 265433 +
+     *     歷程顯示 1500000 - 1234567 +      ← 這個算式是錯的
+     * 顯示區的數字換成中間結果是刻意的（與工程計算機一致），
+     * 但歷程是給人回頭核對按了什麼的，記錯數字比不記還糟。
+     *
+     * 所以先把使用者剛輸入的數字留下來，後面才用它接算式。
+     * 註：按過「=」再接運算子時，calculatorValue 本來就是上一段的結果，
+     * 這時記下結果才是對的 —— 兩種情況都由這一行涵蓋。
+     * ------------------------------------------------------------ */
+    const operandText = calculatorValue;
+
+    /* ------------------------------------------------------------
      * 顯示區要盡量顯示中間結果，但只能算「這個運算子允許先算」的部分。
      *
      *   按下 + 或 −（優先順序最低）→ 前面整串都可以先算完
@@ -470,19 +621,15 @@ function calculatorOperation(op) {
         calculatorValue = trimFloatNoise(tail);
     }
 
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
 
     calculatorTokens.push(op);
     calculatorWaitingForSecondValue = true;
 
     const opSymbol = OP_SYMBOL[op] || op;
-    if (calculatorHistory === "") {
-        calculatorHistory = calculatorValue + opSymbol;
-    } else {
-        // 算式太長就換行，避免橫向撐破顯示區
-        calculatorHistory += (calculatorHistory.length > 20 ? "\n" : "") + calculatorValue + opSymbol;
-    }
+    /* 算式一律累加成單行，過長時由 formatHistoryLine() 從左邊截斷。
+     * 原本這裡會在超過 20 字時插一個換行，那是顯示區還有兩行空間時的做法。 */
+    calculatorHistory += operandText + opSymbol;
 
     updateCalculatorHistory();
     vibrate();
@@ -503,10 +650,12 @@ function calculatorEquals() {
 
     calculatorValue = trimFloatNoise(result);
 
-    const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = calculatorValue;
+    updateCalculatorDisplay();
 
-    calculatorHistory = completeExpression.length > 30 ? calculatorValue : completeExpression;
+    /* 完整算式一律留著。原本超過 30 字就整段換成結果數字 ——
+     * 那等於在最需要回頭核對的時候（算式很長）把依據刪掉。
+     * 現在太長只是左邊被截斷，看得到的仍是最後那幾步。 */
+    calculatorHistory = completeExpression;
     updateCalculatorHistory();
 
     // 算完後可以接著按運算子繼續算，此時以結果為新的起點
@@ -515,19 +664,55 @@ function calculatorEquals() {
     vibrate();
 }
 
+/* ------------------------------------------------------------
+ * 算式歷程的顯示
+ * ------------------------------------------------------------
+ * 【2026/07：改成永遠單行，太長從左邊截斷】
+ *
+ * 原本的做法是「算式超過 20 個字就插一個換行」，讓它變成兩行。
+ * 顯示區改成三行、算式行從 40px 收成 26px 之後，第二行放不下，
+ * 上面那行會被從字的中間切斷 —— 看起來像文字溢出到框外。
+ *
+ * 現在固定一行：業務要確認的是「最後這幾步按了什麼」，最新的部分
+ * 永遠貼在右邊；前面按過的用「…」代表。這樣算式再長，面板高度都不變 ——
+ * 對垂直居中的彈窗特別重要，高度一變整個彈窗的上下位置都會跳。
+ *
+ * 字數上限用固定值而不是量測，理由是這一行是等寬字體，而各系統的
+ * 等寬字體寬度不同（Windows 的 Consolas 約 0.55em、iOS/Android 約 0.6em）。
+ * 34 個字是取最寬的那個推算出來的安全值：
+ *   26px 高的行、字級 14px、可用寬度約 310px ÷ 8.4px ≈ 36 字。
+ * CSS 那邊仍然保留 nowrap + overflow hidden 當第二道防線，
+ * 萬一某支裝置的字體更寬，也只會裁掉、不會破版。
+ * ------------------------------------------------------------ */
+const HISTORY_MAX_CHARS = 34;
+
+/**
+ * 算式歷程 → 實際顯示的那一行
+ *
+ * 注意：calculatorHistory 本身一律保存「沒有千分位、沒有截斷」的原字串，
+ * 因為 calculatorOperation() 會用正規表示式去換掉結尾的運算子。
+ * 千分位與截斷只在這裡（顯示的最後一刻）處理。
+ */
+function formatHistoryLine(raw) {
+    const line = groupThousands(String(raw || '').replace(/\s*\n\s*/g, ' '));
+    if (line.length <= HISTORY_MAX_CHARS) return line;
+
+    let tail = line.slice(-(HISTORY_MAX_CHARS - 2));
+
+    /* 截斷點一定要落在空白處，不能從數字中間切。
+     * 「… 4,567 + …」看起來就是一個四千多元的數字，實際上它是 1,234,567
+     * 的尾巴 —— 這種誤讀比少看幾步嚴重得多。 */
+    const firstSpace = tail.indexOf(' ');
+    if (firstSpace >= 0) tail = tail.slice(firstSpace + 1);
+
+    return '… ' + tail;
+}
+
 function updateCalculatorHistory() {
     const historyElement = document.getElementById('calculatorHistory');
     if (!historyElement) return;
 
-    historyElement.textContent = calculatorHistory;
-
-    const isOverflowing = historyElement.scrollWidth > historyElement.clientWidth ||
-                        historyElement.scrollHeight > historyElement.clientHeight;
-    if (isOverflowing) {
-        historyElement.classList.add('has-overflow');
-    } else {
-        historyElement.classList.remove('has-overflow');
-    }
+    historyElement.textContent = formatHistoryLine(calculatorHistory);
 }
 
 /* ------------------------------------------------------------

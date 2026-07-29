@@ -52,6 +52,27 @@
     -->
     <script>
         window.KEYPAD_OPTIONS = { decimal: false };
+
+        /* 逐欄位的鍵盤型別（2026/07 新增）
+         *
+         * KEYPAD_OPTIONS 是「整頁」共用一組按鍵，所以這三個欄位過去長得一模一樣：
+         * 動輒三百萬的總金額要一位一位按七個 0，而開票張數（最多 99）
+         * 卻也不需要加速鍵 —— 一組設定不可能同時滿足兩者。
+         *
+         * 金額型會多出 000 與 萬 兩顆鍵，顯示區也會即時顯示中文大寫，
+         * 開支票時直接照抄，不必按了確認輸入才看到。
+         *
+         * maxDigits 與 check-engine.js 的 submitCalculatorValue() 一致
+         * （總金額 9 位、繳款金額 7 位）。這裡是「按下去就擋」，
+         * 那邊的語意驗證（不可為零等）仍然保留，兩層並存。
+         *
+         * 開票張數（check-count）刻意沒有列在這裡：它屬於計數型，
+         * 需要的是常用張數快捷鍵而不是加速鍵，留待下一批處理。
+         * 沒有列名的欄位一律沿用本頁預設，與改版前逐顆完全相同。 */
+        window.KEYPAD_FIELDS = {
+            'total-amount':   { form: 'amount', maxDigits: 9 },
+            'payment-amount': { form: 'amount', maxDigits: 7 }
+        };
     </script>
 
     <!-- 引用通用組件與支票邏輯 JS
