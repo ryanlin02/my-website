@@ -61,7 +61,7 @@ const FAKE = {
         '03518': '宏達國際電子股份有限公司',
         '12345': '測試運輸有限公司'
     },
-    '../data/taxid/045.json': { '95257': '台灣積體電路製造股份有限公司' }
+    '../data/taxid/045.json': { '41302': '鴻海精密工業股份有限公司' }
 };
 
 function normalFetch(url) {
@@ -80,7 +80,7 @@ function normalFetch(url) {
         check('查得到的統編回傳公司名稱',
             (await api.lookup('16003518')) === '宏達國際電子股份有限公司');
         check('前導 0 的統編也查得到',
-            (await api.lookup('04595257')) === '台灣積體電路製造股份有限公司');
+            (await api.lookup('04541302')) === '鴻海精密工業股份有限公司');
         check('同一分片內查不到的號碼回傳空字串',
             (await api.lookup('16099999')) === '');
         check('整段號碼沒有資料（分片 404）回傳空字串',

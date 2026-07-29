@@ -859,7 +859,7 @@ function describeInvoiceUpper(amount) {
  * 統一編號：檢查碼與查到的公司名
  *
  * 第二個參數是沒有經過處理的原字串，前導零與長度都完整
- * （04595257 是 8 碼，parseFloat 之後會變成 4595257）。
+ * （04541302 是 8 碼，parseFloat 之後會變成 4595257）。
  */
 function describeTaxId(_num, raw) {
     const digits = String(raw || '');

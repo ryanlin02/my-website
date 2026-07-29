@@ -90,16 +90,16 @@ type('045');
 ok(shown() === '045', '前導零保留（045…）', shown());
 ok(sub().includes('還要 5 碼'), '副資訊提示還差幾碼', sub());
 
-type('95257');
-ok(shown() === '04595257', '八碼完整，開頭的 0 沒有被吃掉', shown());
+type('41302');
+ok(shown() === '04541302', '八碼完整，開頭的 0 沒有被吃掉', shown());
 ok(shown().indexOf(',') === -1, '不加千分位（04,595,257 不是統編）', shown());
 ok(sub().indexOf('✓') === 0, '檢查碼正確時副資訊顯示 ✓', sub());
 
 window.calculatorInput(9);
-ok(shown() === '04595257', '第 9 碼被擋掉', shown());
+ok(shown() === '04541302', '第 9 碼被擋掉', shown());
 
 T.submitCalculatorValue();
-ok(T.state.taxId === '04595257', '確認輸入後存進狀態的統編保留前導零', T.state.taxId);
+ok(T.state.taxId === '04541302', '確認輸入後存進狀態的統編保留前導零', T.state.taxId);
 
 click($('fTaxId'));
 window.calculatorClear();          // 上一組號碼還在，先清掉才輸入得進去

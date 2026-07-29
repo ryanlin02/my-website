@@ -319,7 +319,7 @@ const KEYPAD_FORMS = {
     /* 編號型：統一編號
      *
      * 這一型與其他三型的差別是根本性的 —— 它輸入的是「編號」不是「數值」：
-     *   - 開頭的 0 有意義（04595257 是台積電），不能被正規化吃掉
+     *   - 開頭的 0 有意義（04541302 是鴻海），不能被正規化吃掉
      *   - 不能加千分位（04,595,257 不是統編）
      *   - 不能做四則運算，所以連運算子欄與等號都收掉，變成三欄
      *
@@ -513,7 +513,7 @@ function keypadExceedsDigits(nextValue) {
     const parts = String(nextValue).replace('-', '').split('.');
 
     if (keypadSpec.maxDigits) {
-        /* 編號型連前導零都算一碼（統編就是 8 碼，04595257 也是 8 碼）；
+        /* 編號型連前導零都算一碼（統編就是 8 碼，04541302 也是 8 碼）；
          * 其他型別的前導零不算，因為 007 與 7 是同一個數字。 */
         const intDigits = keypadSpec.plain ? parts[0].length : parts[0].replace(/^0+/, '').length;
         if (intDigits > keypadSpec.maxDigits) {
@@ -625,7 +625,7 @@ function calculatorInput(num) {
         calculatorWaitingForSecondValue = false;
     } else {
         /* 編號型一律接在後面，不做「開頭的 0 換掉」那個正規化 ——
-         * 04595257（台積電）開頭那個 0 是統編的一部分，吃掉就變成另一個號碼。 */
+         * 04541302（鴻海）開頭那個 0 是統編的一部分，吃掉就變成另一個號碼。 */
         const next = (calculatorValue === '0' && !keypadSpec.plain)
             ? num.toString()
             : calculatorValue + num.toString();

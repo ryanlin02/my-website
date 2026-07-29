@@ -6,7 +6,7 @@
  *
  * 另外釘住一個容易回頭踩的坑：統編開頭的 0 不可以被吃掉。
  * 鍵盤原本對金額做「前導零正規化」（打 0 再打 4 會變成 4），
- * 但統編是編號不是數值，04595257（台積電）開頭那個 0 有意義。
+ * 但統編是編號不是數值，04541302（鴻海）開頭那個 0 有意義。
  *
  * 執行：node tests/invoice/統編自動帶入測試.js  （需先 npm install jsdom）
  */
@@ -26,7 +26,7 @@ function ok(cond, label, extra) {
 
 /* 假的稅籍索引：只有這兩段號碼有資料 */
 const FAKE_SHARDS = {
-    '045': { '95257': '台灣積體電路製造股份有限公司' },
+    '045': { '41302': '鴻海精密工業股份有限公司' },
     '160': { '03518': '宏達國際電子股份有限公司' }
 };
 
@@ -124,20 +124,20 @@ function reset() {
 
     console.log('\n=== 2. 統編開頭的 0 不可以被吃掉 ===');
     reset();
-    const shown = typeTaxId('04595257');
-    ok(shown === '04595257', '鍵盤顯示保留前導零', '實得 ' + JSON.stringify(shown));
-    ok(T.state.taxId === '04595257', '存入狀態的統編保留前導零', '實得 ' + T.state.taxId);
-    ok(T.validateTaxId('04595257') === true, '04595257 的檢查碼驗證要通過');
+    const shown = typeTaxId('04541302');
+    ok(shown === '04541302', '鍵盤顯示保留前導零', '實得 ' + JSON.stringify(shown));
+    ok(T.state.taxId === '04541302', '存入狀態的統編保留前導零', '實得 ' + T.state.taxId);
+    ok(T.validateTaxId('04541302') === true, '04541302 的檢查碼驗證要通過');
 
     console.log('\n=== 3. 稅籍索引查到後自動填上抬頭 ===');
     await wait(30);
-    ok(T.state.title === '台灣積體電路製造股份有限公司',
+    ok(T.state.title === '鴻海精密工業股份有限公司',
         '抬頭自動帶入', '實得 ' + JSON.stringify(T.state.title));
-    ok($('fTitle').textContent.includes('台灣積體電路'), '畫面上的抬頭欄位同步更新');
+    ok($('fTitle').textContent.includes('鴻海精密'), '畫面上的抬頭欄位同步更新');
 
     console.log('\n=== 4. 帶入後會寫進本地名冊，下次離線也查得到 ===');
     const book = JSON.parse(window.localStorage.getItem('invNewCustomers') || '[]');
-    ok(book.some(c => c.taxId === '04595257'), '已寫入客戶名冊',
+    ok(book.some(c => c.taxId === '04541302'), '已寫入客戶名冊',
         window.localStorage.getItem('invNewCustomers'));
 
     console.log('\n=== 5. 打到第 3 碼就預先載入分片 ===');
