@@ -314,6 +314,23 @@ const KEYPAD_FORMS = {
     decimal: {
         tail: { decimal: true, accelerators: [] },
         sub: null
+    },
+
+    /* 編號型：統一編號
+     *
+     * 這一型與其他三型的差別是根本性的 —— 它輸入的是「編號」不是「數值」：
+     *   - 開頭的 0 有意義（04595257 是台積電），不能被正規化吃掉
+     *   - 不能加千分位（04,595,257 不是統編）
+     *   - 不能做四則運算，所以連運算子欄與等號都收掉，變成三欄
+     *
+     * 三欄之後每顆數字鍵更寬，8 碼一次按完的容錯也更高。
+     * 收掉運算子是用 CSS 隱藏（.form-code），前四列的 DOM 一顆都沒動 ——
+     * 切回其他欄位時不需要重建，也不會有殘留。 */
+    code: {
+        tail: { decimal: false, accelerators: [], equals: false, cols: 3 },
+        sub: null,
+        plain: true,                 // 保留前導零、不加千分位
+        panelClass: 'form-code'      // 收掉運算子欄（見 keypad.css）
     }
 };
 
@@ -331,6 +348,36 @@ function applyKeypadTail(tailOpts) {
 
     grid.querySelectorAll('[data-keypad-tail]').forEach(btn => btn.remove());
     grid.insertAdjacentHTML('beforeend', buildKeypadTailRow(tailOpts));
+}
+
+/**
+ * 金額的「幾萬幾億」讀法（純函式）
+ *
+ * 【為什麼不是中文大寫】
+ * 大寫是給「要用手抄到支票或發票上」的欄位用的。本金、期繳、推廣、
+ * 每月油錢這些欄位不會手抄，它們真正會出的錯是「多一個零或少一個零」——
+ * 1,500,000 與 15,000,000 在一堆逗號裡很難一眼分辨，
+ * 但「150 萬」與「1,500 萬」不可能看錯。
+ *
+ * 未滿一萬不顯示（1,234 本來就一眼看得懂，再寫一次只是雜訊）。
+ *
+ * @param  {number} amount
+ * @return {string} 例：「150 萬」「1,234 萬 5678」「2 億 3,000 萬」
+ */
+function describeMagnitude(amount) {
+    const n = Math.floor(Number(amount));
+    if (!Number.isFinite(n) || n < 10000) return '';
+
+    const yi = Math.floor(n / 100000000);
+    const wan = Math.floor((n % 100000000) / 10000);
+    const rest = n % 10000;
+
+    const parts = [];
+    if (yi) parts.push(yi.toLocaleString('en-US') + ' 億');
+    if (wan) parts.push(wan.toLocaleString('en-US') + ' 萬');
+    if (rest) parts.push(String(rest));
+
+    return parts.join(' ');
 }
 
 /**
@@ -385,18 +432,25 @@ function keypadSubText(value) {
 
     if (!keypadSpec.sub) return '';
 
-    const num = parseFloat(value);
-    if (!isFinite(num) || num <= 0) return '';
+    const raw = String(value === null || value === undefined ? '' : value);
+    const num = parseFloat(raw);
 
     if (keypadSpec.sub === 'upper') {
+        if (!isFinite(num) || num <= 0) return '';
         if (typeof arabicToChineseNumber !== 'function') return '';
         const upper = arabicToChineseNumber(Math.floor(num), 'financial', false);
         return upper ? upper + ' 元整' : '';
     }
 
-    // 其餘一律當成「全域函式名稱」，由各頁自己提供
+    if (keypadSpec.sub === 'magnitude') return describeMagnitude(num);
+
+    /* 其餘一律當成「全域函式名稱」，由各頁自己提供。
+     * 第二個參數是沒有經過任何處理的原字串 —— 編號型（統編）要的正是它，
+     * 前導零與長度都得完整保留，parseFloat 之後就沒了。
+     * 這裡刻意不先擋掉 NaN 或 0：各頁的函式本來就會自己判斷，
+     * 而統編在還沒打滿 8 碼時本來就不是一個合法數字。 */
     const fn = window[keypadSpec.sub];
-    return typeof fn === 'function' ? (fn(num) || '') : '';
+    return typeof fn === 'function' ? (fn(num, raw) || '') : '';
 }
 
 /**
@@ -431,10 +485,19 @@ function updateCalculatorDisplay() {
      * groupThousands() 只動「連續的數字」，所以剛按下小數點時的 "3."
      * 不會被吃掉，負號與小數位也都原樣保留。 */
     const display = document.getElementById('calculatorDisplay');
-    if (display) display.textContent = groupThousands(calculatorValue);
+    /* 編號型（統編）不加千分位：04,595,257 不是統一編號 */
+    if (display) display.textContent = keypadSpec.plain ? calculatorValue : groupThousands(calculatorValue);
 
     const sub = document.getElementById('calculatorSub');
     if (sub) sub.textContent = keypadSubText(calculatorValue);
+
+    /* 每次數值變動的掛勾，由欄位宣告（onInput: '全域函式名稱'）。
+     * 目前唯一的用途：統編打到第 3 碼時先把稅籍索引分片抓下來，
+     * 使用者按完第 8 碼時抬頭幾乎是同時就跳出來。 */
+    if (keypadSpec.onInput) {
+        const hook = window[keypadSpec.onInput];
+        if (typeof hook === 'function') hook(parseFloat(calculatorValue), String(calculatorValue));
+    }
 }
 
 /**
@@ -450,7 +513,9 @@ function keypadExceedsDigits(nextValue) {
     const parts = String(nextValue).replace('-', '').split('.');
 
     if (keypadSpec.maxDigits) {
-        const intDigits = parts[0].replace(/^0+/, '').length;
+        /* 編號型連前導零都算一碼（統編就是 8 碼，04595257 也是 8 碼）；
+         * 其他型別的前導零不算，因為 007 與 7 是同一個數字。 */
+        const intDigits = keypadSpec.plain ? parts[0].length : parts[0].replace(/^0+/, '').length;
         if (intDigits > keypadSpec.maxDigits) {
             showToast(`最多 ${keypadSpec.maxDigits} 位數`, true);
             vibrate([50, 30, 50]);
@@ -475,10 +540,18 @@ function keypadExceedsDigits(nextValue) {
 
 /**
  * 喚起數字輸入器
- * @param {string} targetId 要填入的欄位 id
- * @param {string} title    彈窗標題
+ *
+ * @param {string} targetId     要填入的欄位 id（同時也是 KEYPAD_FIELDS 的鍵）
+ * @param {string} title        彈窗標題
+ * @param {string} [initialValue] 起始值。不給就從 targetId 那個輸入框讀。
+ *
+ * 【為什麼要有第三個參數】
+ * 前三頁的欄位都是畫面上真實存在的 <input>，直接讀它的值最自然。
+ * 發票頁不是 —— 它的數字（單價、數量、統編）存在 JS 狀態裡，
+ * 畫面上是自己畫的方塊而不是輸入框。多這個可選參數，
+ * 發票頁就能沿用同一台鍵盤，不必為了配合它去憑空造隱藏輸入框。
  */
-function openCalculator(targetId, title) {
+function openCalculator(targetId, title, initialValue) {
     currentInputField = targetId;
 
     /* 這個欄位是哪一型？沒宣告就用該頁預設（= 改版前的樣子） */
@@ -492,7 +565,10 @@ function openCalculator(targetId, title) {
         /* 有快捷列就收起算式歷程行，兩者高度剛好對換，面板總高不變。
          * 這個關係刻意做成自動的 —— 之後替任何欄位加上快捷值，
          * 都不必再去想「面板會不會變高」。 */
-        compact: chips.length > 0
+        compact: chips.length > 0,
+        /* 編號型：保留前導零、不加千分位（統編是編號不是數值） */
+        plain: form.plain === true,
+        onInput: fieldCfg.onInput || null
     };
 
     /* 末列：型別決定，欄位可以再覆寫加速鍵。
@@ -504,17 +580,25 @@ function openCalculator(targetId, title) {
 
     applyKeypadChips(chips);
 
-    /* 計數型收起算式歷程行，把高度讓給快捷列 —— 面板總高不變 */
+    /* 計數型收起算式歷程行，把高度讓給快捷列 —— 面板總高不變。
+     * 編號型另外掛 form-code，把運算子欄收掉變成三欄。 */
     const panel = document.querySelector('.number-input-modal');
-    if (panel) panel.classList.toggle('form-compact', keypadSpec.compact);
+    if (panel) {
+        panel.classList.toggle('form-compact', keypadSpec.compact);
+        panel.classList.toggle('form-code', form.panelClass === 'form-code');
+    }
 
     const titleEl = document.getElementById('inputModalTitle');
     if (titleEl) titleEl.textContent = title;
 
-    // 帶入欄位現值當作起始值（去掉千分位逗號）
+    /* 起始值：呼叫端有給就用它（發票頁走這條），
+     * 沒給就從畫面上的輸入框讀（前三頁走這條），並去掉千分位逗號。
+     * 編號型的空值是空字串而不是 "0" —— 統編第一碼就可能是 0。 */
     const inputEl = document.getElementById(targetId);
-    const currentValue = inputEl ? inputEl.value : '';
-    calculatorValue = (currentValue && currentValue !== '') ? currentValue.replace(/,/g, '') : "0";
+    const raw = (initialValue !== undefined && initialValue !== null)
+        ? String(initialValue)
+        : (inputEl ? inputEl.value : '');
+    calculatorValue = (raw && raw !== '') ? raw.replace(/,/g, '') : (keypadSpec.plain ? '' : '0');
 
     updateCalculatorDisplay();
 
@@ -540,7 +624,11 @@ function calculatorInput(num) {
         calculatorValue = num.toString();
         calculatorWaitingForSecondValue = false;
     } else {
-        const next = calculatorValue === '0' ? num.toString() : calculatorValue + num.toString();
+        /* 編號型一律接在後面，不做「開頭的 0 換掉」那個正規化 ——
+         * 04595257（台積電）開頭那個 0 是統編的一部分，吃掉就變成另一個號碼。 */
+        const next = (calculatorValue === '0' && !keypadSpec.plain)
+            ? num.toString()
+            : calculatorValue + num.toString();
         if (keypadExceedsDigits(next)) return;
         calculatorValue = next;
     }
@@ -596,7 +684,8 @@ function calculatorDecimal() {
 }
 
 function calculatorClear() {
-    calculatorValue = '0';
+    // 編號型的「空」是空字串：統編第一碼就可能是 0，用 '0' 當空值會混淆
+    calculatorValue = keypadSpec.plain ? '' : '0';
     calculatorTokens = [];
     calculatorWaitingForSecondValue = false;
     calculatorHistory = "";
@@ -614,7 +703,7 @@ function calculatorBackspace() {
     if (calculatorValue.length > 1) {
         calculatorValue = calculatorValue.slice(0, -1);
     } else {
-        calculatorValue = '0';
+        calculatorValue = keypadSpec.plain ? '' : '0';
     }
     updateCalculatorDisplay();
     vibrate();

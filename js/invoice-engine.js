@@ -71,9 +71,9 @@ const state = {
 /* ============================================================
    小工具
    ============================================================ */
-function vibrate(p = 30) {
-    if (navigator && navigator.vibrate) navigator.vibrate(p);
-}
+/* vibrate() 與 showToast() 已改用 js/common-keypad.js 的共用版本
+   （行為相同）。本頁原本各有一份，兩份同名函式會互相覆蓋，
+   哪一份生效取決於載入順序 —— 這種隱性依賴留著遲早會咬人。 */
 
 /* ------------------------------------------------------------
  * 使用情況回報
@@ -116,20 +116,6 @@ function esc(s) {
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function showToast(msg, isError = false, duration = 2200) {
-    const old = document.querySelector('.toast-message');
-    if (old && old.parentNode) old.parentNode.removeChild(old);
-
-    const t = document.createElement('div');
-    t.className = 'toast-message' + (isError ? ' toast-error' : '');
-    t.textContent = msg;
-    document.body.appendChild(t);
-
-    setTimeout(() => {
-        t.style.opacity = '0';
-        setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 450);
-    }, duration);
-}
 
 function loadJSON(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) || fallback; }
@@ -797,90 +783,117 @@ function fitZoom() {
 }
 
 /* ============================================================
-   自製數字鍵盤
+   數字鍵盤（2026/07 起改用四頁共用的那台）
    ------------------------------------------------------------
-   金額 / 數量 / 統編全部走這裡，永遠不會叫出系統鍵盤。
-   數字鍵同時標阿拉伯數字與國字大寫，按的當下就順便對照怎麼寫。
+   本頁原本自帶一台鍵盤（openPad / padKey / #padModal），約 90 行。
+   它與其他三頁那台各自演化：這台有 000 與 萬、有大寫金額預覽、
+   會保留統編的前導零；那台有四則運算與算式歷程。
+   兩台都不完整，而且外觀與手感不一樣。
+
+   現在統一走 js/common-keypad.js：
+     - 金額欄位第一次有了四則運算（本頁原本完全不能加減乘除）
+     - 000／萬、大寫預覽、統編前導零全部保留，改由欄位型別宣告
+       （設定見 pages/invoice.html 的 KEYPAD_FIELDS）
+
+   共用鍵盤按「確認輸入」時會呼叫各頁自己的 submitCalculatorValue()，
+   本頁在那裡把值交還給原本的回呼 —— 呼叫端（品項、統編、反推）
+   的寫法完全不用改。
    ============================================================ */
-const pad = { buf: '', max: 9, onOk: null, mode: 'amount' };
 
+/* 目前這次輸入完成後要把值交給誰。共用鍵盤只認欄位 id，
+   本頁的數字存在 state 裡而不是輸入框，所以用回呼接回來。 */
+let padTarget = null;
+
+/**
+ * 開啟數字鍵盤
+ *
+ * @param {Object} opts { field, title, value, onOk }
+ *        field: KEYPAD_FIELDS 裡的欄位 id（inv-taxid / inv-qty / inv-price / inv-total）
+ *        onOk : (數值, 原字串) => void
+ */
 function openPad(opts) {
-    pad.buf = opts.value ? String(opts.value) : '';
-    pad.max = opts.max || 9;
-    pad.mode = opts.mode || 'amount';
-    pad.onOk = opts.onOk;
-
-    $('padTitle').textContent = opts.title || '輸入';
-    buildPadKeys();
-    updatePad();
-    $('padModal').classList.add('show');
-    vibrate(30);
+    padTarget = opts.onOk || null;
+    openCalculator(opts.field, opts.title || '輸入',
+        opts.value === undefined || opts.value === null ? '' : String(opts.value));
 }
 
 function closePad() {
-    $('padModal').classList.remove('show');
-    pad.onOk = null;
+    padTarget = null;
+    closeModal('numberInputModal');
 }
 
-function buildPadKeys() {
-    const key = d => `<button class="key" data-k="${d}"><span class="an">${d}</span><span class="fc">${UP_DIGITS[d]}</span></button>`;
-    let h = '';
-    h += `<div class="pad-line">${key(7)}${key(8)}${key(9)}</div>`;
-    h += `<div class="pad-line">${key(4)}${key(5)}${key(6)}</div>`;
-    h += `<div class="pad-line">${key(1)}${key(2)}${key(3)}</div>`;
-    h += `<div class="pad-line"><button class="key fn" data-k="C">清除</button>${key(0)}<button class="key fn" data-k="B">退回</button></div>`;
+/**
+ * 共用鍵盤按下「確認輸入」時會呼叫這裡（四頁各自實作）
+ *
+ * 其他三頁在這裡做欄位驗證並回寫輸入框；本頁的驗證留在各個回呼裡
+ * （例如統編要驗檢查碼、反推要重算品項），這裡只負責把值交回去。
+ */
+function submitCalculatorValue() {
+    const raw = String(calculatorValue || '');
+    const value = raw === '' ? 0 : parseInt(raw, 10);
+    const done = padTarget;
 
-    // 金額欄位補上「000」「萬」快捷 —— 這行業的金額幾乎都是整萬整千
-    if (pad.mode === 'amount') {
-        h += `<div class="pad-line">
-                <button class="key op" data-k="000">000</button>
-                <button class="key op" data-k="0000">萬</button>
-                <button class="key ok" data-k="OK">確定</button>
-              </div>`;
-    } else {
-        h += `<div class="pad-line"><button class="key ok" data-k="OK">確定</button></div>`;
-    }
-    $('padGrid').innerHTML = h;
+    closePad();
+    if (done) done(isFinite(value) ? value : 0, raw);
+    vibrate([40, 60]);
 }
 
-function updatePad() {
-    const v = pad.buf === '' ? 0 : parseInt(pad.buf, 10);
-    $('padDisp').textContent = pad.mode === 'taxid' ? (pad.buf || '　') : fmt(v);
-    $('padSub').textContent = (pad.mode === 'amount' && v > 0)
-        ? upperSlots(v).filter(s => s.digit !== null).map(s => s.digit + s.unit).join('')
-        : '';
+/* ------------------------------------------------------------
+   鍵盤副資訊（顯示區第三行）
+   ------------------------------------------------------------ */
+
+/**
+ * 金額欄位：大寫金額
+ *
+ * 沿用本頁原本的格位式寫法（upperSlots），與發票上「億仟佰拾萬仟佰拾元」
+ * 那排格子完全對得起來 —— 支票頁用的是另一套（arabicToChineseNumber），
+ * 兩者的用途不同，刻意不共用。
+ */
+function describeInvoiceUpper(amount) {
+    const n = Math.floor(Number(amount));
+    if (!isFinite(n) || n <= 0) return '';
+    return upperSlots(n).filter(s => s.digit !== null).map(s => s.digit + s.unit).join('');
 }
 
-function padKey(k) {
-    if (k === 'C') { pad.buf = ''; vibrate([40, 40]); }
-    else if (k === 'B') { pad.buf = pad.buf.slice(0, -1); vibrate(40); }
-    else if (k === 'OK') {
-        const v = pad.buf === '' ? 0 : parseInt(pad.buf, 10);
-        const cb = pad.onOk;
-        const raw = pad.buf;
-        closePad();
-        if (cb) cb(v, raw);
-        vibrate([40, 60]);
+/**
+ * 統一編號：檢查碼與查到的公司名
+ *
+ * 第二個參數是沒有經過處理的原字串，前導零與長度都完整
+ * （04595257 是 8 碼，parseFloat 之後會變成 4595257）。
+ */
+function describeTaxId(_num, raw) {
+    const digits = String(raw || '');
+    if (digits.length === 0) return '';
+    if (digits.length < 8) return `已輸入 ${digits.length} 碼，還要 ${8 - digits.length} 碼`;
+    return validateTaxId(digits) ? '✓ 檢查碼正確' : '✕ 檢查碼不符，請再確認';
+}
+
+/**
+ * 統編輸入過程中的兩件事（共用鍵盤每次數值變動都會呼叫）
+ *
+ *   打到第 3 碼 → 先把稅籍索引分片抓下來，按完第 8 碼時抬頭幾乎同時出現
+ *   打滿 8 碼   → 查到公司名就直接寫進副資訊行，按確認之前就看得到抄對了沒
+ *
+ * 查詢是非同步的，回來時使用者可能已經改了號碼或關掉鍵盤，
+ * 所以寫回去之前會再確認一次「畫面上還是同一組號碼」。
+ */
+function prefetchTaxId(_num, raw) {
+    const digits = String(raw || '');
+    if (!window.TaxIdLookup) return;
+
+    if (digits.length === 3) {
+        window.TaxIdLookup.prefetch(digits);
         return;
-    } else {
-        if (pad.buf === '' && k.startsWith('0') && k.length > 1) return;  // 開頭不給補零
-        if ((pad.buf + k).length > pad.max) {
-            showToast(`最多 ${pad.max} 位數`, true);
-            vibrate([50, 30, 50]);
-            return;
-        }
-        // 統編是「編號」不是「數字」，開頭的 0 有意義（例：04595257 台積電），
-        // 所以只有金額、數量這類真正的數值才吃掉前導零。
-        pad.buf = (pad.mode !== 'taxid' && pad.buf === '0' ? '' : pad.buf) + k;
-        vibrate(30);
-
-        // 打到第 3 碼時就先把對應的稅籍分片抓下來，
-        // 等使用者按完 8 碼，抬頭幾乎是同時就跳出來的
-        if (pad.mode === 'taxid' && pad.buf.length === 3 && window.TaxIdLookup) {
-            window.TaxIdLookup.prefetch(pad.buf);
-        }
     }
-    updatePad();
+
+    if (digits.length === 8 && validateTaxId(digits)) {
+        window.TaxIdLookup.lookup(digits).then(name => {
+            if (!name) return;
+            const sub = document.getElementById('calculatorSub');
+            // 慢回來的查詢不可以蓋掉使用者現在正在看的東西
+            if (sub && String(calculatorValue) === digits) sub.textContent = '✓ ' + name;
+        }).catch(() => { /* 查不到就維持檢查碼那句，不打擾使用者 */ });
+    }
 }
 
 /* ============================================================
@@ -1350,7 +1363,7 @@ function bind() {
     // --- 統一編號 ---
     $('fTaxId').addEventListener('click', () => {
         openPad({
-            title: '統一編號（8 碼）', mode: 'taxid', max: 8, value: state.taxId,
+            title: '統一編號（8 碼）', field: 'inv-taxid', value: state.taxId,
             onOk: (v, raw) => {
                 state.taxId = raw || '';
                 if (state.taxId.length === 8) {
@@ -1413,7 +1426,7 @@ function bind() {
 
             case 'qty':
                 openPad({
-                    title: `第 ${i + 1} 項　數量`, mode: 'qty', max: 4, value: it.qty,
+                    title: `第 ${i + 1} 項　數量`, field: 'inv-qty', value: it.qty,
                     onOk: v => { it.qty = v; touch(); }
                 });
                 break;
@@ -1421,7 +1434,7 @@ function bind() {
             case 'price':
                 openPad({
                     title: `第 ${i + 1} 項　單價（${state.type === '3' ? '未稅' : '含稅'}）`,
-                    mode: 'amount', max: 9, value: it.price,
+                    field: 'inv-price', value: it.price,
                     onOk: v => { it.price = v; touch(); }
                 });
                 break;
@@ -1430,7 +1443,7 @@ function bind() {
             case 'amt':
                 openPad({
                     title: `第 ${i + 1} 項　金額（數量將設為 1）`,
-                    mode: 'amount', max: 9, value: (it.qty || 0) * (it.price || 0),
+                    field: 'inv-price', value: (it.qty || 0) * (it.price || 0),
                     onOk: v => { it.qty = 1; it.price = v; touch(); }
                 });
                 break;
@@ -1454,7 +1467,7 @@ function bind() {
     // --- 由含稅總額反推 ---
     $('rowTotal').addEventListener('click', () => {
         openPad({
-            title: '由含稅總額反推', mode: 'amount', max: 9, value: calc().total,
+            title: '由含稅總額反推', field: 'inv-total', value: calc().total,
             onOk: v => {
                 if (v <= 0) return;
                 const keep = (state.items[0] && state.items[0].name) || DEFAULT_ITEM_NAME;
@@ -1541,12 +1554,13 @@ function bind() {
     });
 
     // --- 數字鍵盤 ---
-    $('padGrid').addEventListener('click', e => {
-        const b = e.target.closest('button[data-k]');
-        if (b) padKey(b.dataset.k);
-    });
-    $('padClose').addEventListener('click', closePad);
-    $('padModal').addEventListener('click', e => { if (e.target === $('padModal')) closePad(); });
+    /* 共用鍵盤的按鍵、關閉鈕、點遮罩關閉都由 js/common-modals.js 注入的
+       DOM 自己處理（onclick），這裡只補上「點遮罩關閉」—— 其他三頁是在
+       各自的頁面腳本裡綁的，本頁沿用同樣做法。 */
+    const numModal = document.getElementById('numberInputModal');
+    if (numModal) {
+        numModal.addEventListener('click', e => { if (e.target === numModal) closePad(); });
+    }
 
     // --- 文字彈窗 ---
     $('txtChips').addEventListener('click', e => {

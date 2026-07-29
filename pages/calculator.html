@@ -46,7 +46,21 @@
                 maxDecimals: 4,
                 chips: [4, 6, 8, 10, 12, 14],
                 sub: 'describeRate'
-            }
+            },
+
+            /* 三個金額欄位：拿到 000 與 萬 兩顆加速鍵。
+             * 位數上限比照 LIMITS.MAX_AMOUNT（99,999,999，8 位）。
+             *
+             * 副資訊用「幾萬」而不是中文大寫 —— 這三個欄位不會手抄到單據上，
+             * 它們真正會出的錯是多一個零或少一個零，而「150 萬」與「1,500 萬」
+             * 不可能看錯。大寫留給要手寫的支票與發票。 */
+            principal:  { form: 'amount', maxDigits: 8, sub: 'magnitude' },
+            payment:    { form: 'amount', maxDigits: 8, sub: 'magnitude' },
+            commission: { form: 'amount', maxDigits: 8, sub: 'magnitude' },
+
+            /* 資金成本是百分比（0～20%，存檔時 toFixed(4)），不是金額 ——
+             * 欄位名稱容易讓人以為是錢，這裡歸類成小數型才不會給錯按鍵。 */
+            monthlyCost: { form: 'decimal', maxDigits: 2, maxDecimals: 4 }
         };
     </script>
 

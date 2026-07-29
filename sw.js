@@ -41,7 +41,7 @@ const CORE_ASSETS = [
     './pages/gas.html',         // 加油頁面
 
     // 樣式
-    './css/keypad.css',         // 數字鍵盤與彈窗元件樣式（三頁共用）
+    './css/keypad.css',         // 數字鍵盤與彈窗元件樣式（四頁共用）
     './css/calculator.css',     // 計算機專用樣式
 
     // 計算頁模組
@@ -55,8 +55,8 @@ const CORE_ASSETS = [
     './js/taxid-lookup.js',     // 統編離線查詢（分片索引本身不預快取，用到才抓）
     './css/check.css',          // 支票頁專用樣式（原內嵌於 check.html）
     './css/invoice.css',        // 發票頁專用樣式（發票頁不吃 calculator.css）
-    './js/common-modals.js',    // 三頁共用的彈窗與數字小鍵盤（HTML 注入）
-    './js/common-keypad.js',    // 計算頁與支票頁共用的鍵盤與彈窗邏輯（JS）
+    './js/common-modals.js',    // 四頁共用的彈窗與數字小鍵盤（HTML 注入）
+    './js/common-keypad.js',    // 四頁共用的鍵盤邏輯（2026/07 起發票頁也走這台）
     './js/common-footer.js',    // 四頁共用的頁尾與版本號顯示
     './js/frame-guard.js',      // 四個功能頁共用的防護腳本
 

@@ -334,6 +334,31 @@
     height: 70px;
 }
 
+/* ------------------------------------------------------------
+ * 編號型（統一編號）：收掉運算子欄，整個鍵盤變三欄
+ *
+ * 統編是編號不是數值，加減乘除對它沒有任何意義，等號也一樣。
+ * 用 CSS 隱藏而不是重建按鍵，是為了讓前四列的 DOM 一顆都不必動 ——
+ * 切回其他欄位時不需要重建，也不會有殘留。
+ *
+ * 第一列的「C 清除」本來就跨兩格，加上退回剛好三格；
+ * 數字列 7 8 9 / 4 5 6 / 1 2 3 本來就是三顆；
+ * 末列由 buildKeypadTailRow({ cols: 3, equals: false }) 產生一顆跨三格的 0。
+ * 三欄之後每顆鍵更寬，8 碼一次按完也比較不會按錯。
+ * ------------------------------------------------------------ */
+.number-input-modal.form-code .calculator-buttons {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.number-input-modal.form-code .calculator-buttons .operator {
+    display: none;
+}
+
+/* 統編是一串代號，字距拉開比較好一碼一碼核對 */
+.number-input-modal.form-code .calculator-display {
+    letter-spacing: 4px;
+}
+
 .calculator-scroll-indicator {
     position: absolute;
     top: 5px;

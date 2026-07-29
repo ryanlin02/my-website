@@ -22,15 +22,20 @@
  * data-keypad-tail 是重建時的辨識標記：只有帶這個屬性的按鈕會被換掉，
  * 前四列碰不到。
  *
- * @param {Object} opts { decimal: boolean, accelerators: string[] }
+ * @param {Object} opts { decimal: boolean, accelerators: string[],
+ *                        equals: boolean, cols: number }
+ *                 equals: false → 不放等號（編號型：統編不能做運算）
+ *                 cols: 3 → 編號型收掉運算子欄，整個鍵盤只有三欄
  * @return {string} 末列的 HTML
  * ------------------------------------------------------------ */
 function buildKeypadTailRow(opts) {
     const showDecimal = !opts || opts.decimal !== false;
     const accelerators = (opts && Array.isArray(opts.accelerators)) ? opts.accelerators : [];
+    const showEquals = !opts || opts.equals !== false;
+    const cols = (opts && opts.cols) || 4;
 
-    const tailKeys = accelerators.length + (showDecimal ? 1 : 0) + 1;   // 加速鍵 + 小數點 + 等號
-    const zeroSpan = Math.max(1, 4 - tailKeys);
+    const tailKeys = accelerators.length + (showDecimal ? 1 : 0) + (showEquals ? 1 : 0);
+    const zeroSpan = Math.max(1, cols - tailKeys);
 
     const acceleratorHtml = accelerators.map(a =>
         `<button onclick="calculatorAppend('${a}')" class="function" data-keypad-tail="1">${a === '0000' ? '萬' : a}</button>`
@@ -42,7 +47,7 @@ function buildKeypadTailRow(opts) {
                 </button>
                 ${acceleratorHtml}
                 ${showDecimal ? `<button onclick="calculatorDecimal()" class="function" data-keypad-tail="1">.</button>` : ''}
-                <button onclick="calculatorEquals()" class="equals" data-keypad-tail="1">=</button>`;
+                ${showEquals ? `<button onclick="calculatorEquals()" class="equals" data-keypad-tail="1">=</button>` : ''}`;
 }
 
 function initCommonModals() {

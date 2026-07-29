@@ -37,7 +37,40 @@
         }
     </script>
 
+    <!-- 鍵盤與彈窗元件樣式（要排在頁面自己的 CSS 之前，讓本頁可以覆寫）
+         2026/07：本頁改用共用數字鍵盤，不再自帶一台。 -->
+    <link rel="stylesheet" href="../css/keypad.css">
     <link rel="stylesheet" href="../css/invoice.css">
+
+    <!--
+        逐欄位的鍵盤型別（必須在 common-modals.js 之前設定）
+
+        這一頁的四種數字輸入分成兩型：
+
+        金額（單價／金額／由含稅反推）→ 金額型
+            拿到 000 與 萬，並且第一次有了四則運算 ——
+            本頁原本那台自製鍵盤完全不能加減乘除。
+            副資訊沿用本頁原本的大寫金額寫法（describeInvoiceUpper）。
+
+        數量 → 計數型；統一編號 → 編號型
+            統編是編號不是數值：開頭的 0 有意義、不能加千分位、
+            不能做運算，所以連運算子欄與等號都收掉，變成三欄大鍵。
+            onInput 讓它打到第 3 碼就先抓稅籍索引分片，
+            按完第 8 碼抬頭幾乎同時就出現。
+    -->
+    <script>
+        window.KEYPAD_OPTIONS = { decimal: false };
+
+        window.KEYPAD_FIELDS = {
+            'inv-taxid': {
+                form: 'code', maxDigits: 8,
+                sub: 'describeTaxId', onInput: 'prefetchTaxId'
+            },
+            'inv-qty':   { form: 'count', maxDigits: 4 },
+            'inv-price': { form: 'amount', maxDigits: 9, sub: 'describeInvoiceUpper' },
+            'inv-total': { form: 'amount', maxDigits: 9, sub: 'describeInvoiceUpper' }
+        };
+    </script>
 </head>
 <body>
 
@@ -241,21 +274,11 @@
     </div>
 </div>
 
-<!-- ===================================================================
-     自製數字鍵盤
-     金額、數量、統編全部走這裡，永遠不會叫出系統鍵盤。
-     =================================================================== -->
-<div class="pad-modal" id="padModal">
-    <div class="pad-panel">
-        <div class="pad-head">
-            <span class="t" id="padTitle">輸入金額</span>
-            <button class="x" id="padClose">×</button>
-        </div>
-        <div class="pad-disp" id="padDisp">0</div>
-        <div class="pad-sub" id="padSub"></div>
-        <div class="pad-grid" id="padGrid"></div>
-    </div>
-</div>
+<!-- 數字鍵盤
+     2026/07：本頁原本自帶一台鍵盤（#padModal），已改用四頁共用的那台
+     （由 js/common-modals.js 注入，設定見 <head> 的 KEYPAD_FIELDS）。
+     金額、數量、統編仍然全部走自製鍵盤，永遠不會叫出系統鍵盤，
+     差別只在四頁現在長得一樣、也共用同一套規則。 -->
 
 <!-- 頁尾
      原本這裡寫死一段 <footer>，因為當時頁尾綁在 common-modals.js 裡，
@@ -265,6 +288,10 @@
      2026/07 已把頁尾拆成獨立的 js/common-footer.js，不再夾帶任何彈窗，
      所以這頁改為與其他三頁一致：載入該檔案即自動注入。 -->
 
+<!-- 共用鍵盤：common-keypad.js 必須排在 common-modals.js 與
+     invoice-engine.js 之前 —— 它以 let 宣告鍵盤共用狀態，需先完成宣告。 -->
+<script src="../js/common-keypad.js"></script>
+<script src="../js/common-modals.js"></script>
 <script src="../js/common-footer.js"></script>
 <script src="../js/taxid-lookup.js"></script>
 <script src="../js/invoice-engine.js"></script>

@@ -62,10 +62,31 @@ const dom = new JSDOM(html, {
 const { window } = dom;
 const doc = window.document;
 
-// jsdom 不會自動抓相對路徑的 <script>，兩支都手動注入（順序要與 HTML 一致）
+/* jsdom 不會自己抓相對路徑的 <script src>，所以手動把檔案內容跑起來，
+   順序要與 invoice.html 一致（2026/07 起本頁改用共用鍵盤，多了前兩支）。
+
+   兩處針對「eval 與真實 <script> 的語意差異」所做的補償：
+
+     let → var
+       真實頁面上所有 <script> 共用同一個全域語彙環境，所以
+       common-keypad.js 用 let 宣告的鍵盤狀態，invoice-engine.js 看得到。
+       這裡是一支一支 eval，各自獨立，let 不會跨得過去。
+
+     去掉 'use strict'
+       嚴格模式下的 indirect eval 會建立自己的作用域，頂層的 function
+       宣告不會掛到 window；真實 <script> 則會（嚴格與否都一樣）。
+       鍵盤的 onInput/sub 掛勾正是用函式名稱去 window 找的。
+
+   兩者都只影響測試環境的執行語意，不改變被測程式的行為。 */
+window.eval(fs.readFileSync(path.join(ROOT, 'js/common-keypad.js'), 'utf8')
+    .replace(/^let /gm, 'var '));
+window.eval(fs.readFileSync(path.join(ROOT, 'js/common-modals.js'), 'utf8'));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/taxid-lookup.js'), 'utf8'));
-const engine = fs.readFileSync(path.join(ROOT, 'js/invoice-engine.js'), 'utf8');
-window.eval(engine + '\n;window.__test = { state, padKey, validateTaxId, render };');
+
+const engine = fs.readFileSync(path.join(ROOT, 'js/invoice-engine.js'), 'utf8')
+    .replace(/^'use strict';$/m, '');
+window.eval(engine + '\n;window.__test = { state, validateTaxId, render, describeTaxId, submitCalculatorValue };');
+
 const T = window.__test;
 
 doc.dispatchEvent(new window.Event('DOMContentLoaded', { bubbles: true }));
@@ -74,12 +95,16 @@ const $ = id => doc.getElementById(id);
 const click = el => el && el.dispatchEvent(new window.Event('click', { bubbles: true }));
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
-/* 模擬使用者在自製鍵盤上一碼一碼按完統編 */
+/* 模擬使用者在共用鍵盤上一碼一碼按完統編 */
+function typeDigits(digits) {
+    for (const d of String(digits)) window.calculatorInput(Number(d));
+}
+
 function typeTaxId(digits) {
     click($('fTaxId'));                       // 開鍵盤
-    for (const d of String(digits)) T.padKey(d);
-    const typed = $('padDisp').textContent.trim();
-    T.padKey('OK');                           // 確定
+    typeDigits(digits);
+    const typed = $('calculatorDisplay').textContent.trim();
+    T.submitCalculatorValue();                // 確認輸入
     return typed;
 }
 
@@ -119,12 +144,12 @@ function reset() {
     fetchLog.length = 0;
     reset();
     click($('fTaxId'));
-    '160'.split('').forEach(d => T.padKey(d));
+    typeDigits('160');
     await wait(20);
     ok(fetchLog.some(u => u.endsWith('160.json')), '第 3 碼觸發預先載入',
         JSON.stringify(fetchLog));
-    '03518'.split('').forEach(d => T.padKey(d));
-    T.padKey('OK');
+    typeDigits('03518');
+    T.submitCalculatorValue();
     await wait(30);
     ok(T.state.title === '宏達國際電子股份有限公司', '按完 8 碼抬頭已經在了');
 

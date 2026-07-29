@@ -113,6 +113,28 @@ function stripJsComments(src) {
  * 假的 fetch：讓油價載入走得通，也能模擬離線
  * ------------------------------------------------------------ */
 const fuelJson = fs.readFileSync(path.join(R, 'data/fuel-prices.json'), 'utf8');
+
+/* ------------------------------------------------------------
+ * 【2026/07：油價相關的預期值一律從資料檔推導，不再寫死】
+ *
+ * 台灣的油價每週日深夜公告、週一凌晨生效，本站的 GitHub Action
+ * （.github/workflows/update-fuel-prices.yml）在週一上班前自動更新
+ * data/fuel-prices.json。
+ *
+ * 這支測試原本把當時的油價（28.8、28.6、29.8）與更新時間寫死在斷言裡，
+ * 於是每週一油價一更新就固定 7 項紅字 —— 那不是程式壞了，是測試過期了。
+ * 長期有紅字的後果比沒有測試更糟：真正的失敗會被當成「又是那幾項」而忽略。
+ *
+ * 現在改成從同一份 JSON 推導預期值：測的是「畫面有沒有正確反映資料」，
+ * 而那才是這幾項原本要守的東西。油價再怎麼變都不會再無故變紅。
+ *
+ * 注意 toFixed(1) 的用法要與 js/gas-engine.js 一致：
+ *   顯示（欄位值、$金額、title）用 toFixed(1)
+ *   onclick 內嵌的數字用原始值（29 會寫成 29，不是 29.0）
+ * ------------------------------------------------------------ */
+const FUEL = JSON.parse(fuelJson);
+const CPC = FUEL.prices.cpc;
+const FORMOSA = FUEL.prices.formosa;
 ev(`
     window.__fuelJson = ${fuelJson};
     window.__fetchMode = 'ok';
@@ -157,21 +179,60 @@ const reset = () => { ev('clearCalculation();'); ev('setDieselPrice(28.8);'); };
  * ============================================================ */
 async function main() {
 
+    /* ============================================================
+     * 0. 油價資料檔本身
+     * ============================================================
+     * 預期值既然改成從這份檔案推導，就得先確認這份檔案是對的 ——
+     * 否則檔案壞掉時，上面那些斷言會拿著壞資料互相「驗證通過」。
+     *
+     * 更新機制：台灣油價每週日深夜公告、週一凌晨生效，
+     * .github/workflows/update-fuel-prices.yml 在週一上班前自動抓取更新。 */
+    console.log('\n=== 0. 油價資料檔（data/fuel-prices.json）===');
+
+    const FUEL_KEYS = ['diesel', 'unleaded92', 'unleaded95', 'unleaded98'];
+    const badPrices = [];
+    [['cpc', CPC], ['formosa', FORMOSA]].forEach(([brand, prices]) => {
+        FUEL_KEYS.forEach(key => {
+            const price = prices[key];
+            if (typeof price !== 'number' || !isFinite(price) || price <= 0 || price > 200) {
+                badPrices.push(`${brand}.${key}=${price}`);
+            } else if (Math.round(price * 10) !== price * 10) {
+                // 油價一律一位小數；多出來的位數代表抓取來源的格式變了
+                badPrices.push(`${brand}.${key}=${price}（小數超過 1 位）`);
+            }
+        });
+    });
+    t('兩家油商的四種油品價格都是合理的一位小數', badPrices.length === 0, badPrices.join(', '));
+    t('有 updatedDateStr（畫面上的「最後更新時間」靠它）',
+        typeof FUEL.updatedDateStr === 'string' && FUEL.updatedDateStr.length > 0, FUEL.updatedDateStr);
+
+    /* 更新排程壞掉時要看得出來，但這不算「程式壞了」，所以只警示不計失敗 ——
+     * 讓測試長期掛著紅字，真正的失敗就會被當成雜訊忽略。 */
+    const ageDays = Math.floor((Date.now() - new Date(FUEL.updatedAt).getTime()) / 86400000);
+    if (!isFinite(ageDays)) {
+        console.log('  WARN   updatedAt 不是有效時間：' + FUEL.updatedAt);
+    } else if (ageDays > 10) {
+        console.log(`  WARN   油價資料已 ${ageDays} 天沒更新（每週一自動更新）—— 請檢查 GitHub Action`);
+    } else {
+        console.log(`  INFO   油價資料 ${ageDays} 天前更新，屬正常範圍（每週一自動更新）`);
+    }
+
     console.log('\n=== 1. 頁面初始化與油價載入 ===');
     // 拆檔後初始化改由 DOMContentLoaded 觸發；
     // jsdom 的 load 事件在建構時就過了，所以直接呼叫初始化函式
     ev('initGasPage();');
     await new Promise(r => setImmediate(r));   // 等 loadFuelPrices 的 promise 走完
 
-    t('自動帶入中油柴油單價 28.8', v('dieselPrice') === '28.8', v('dieselPrice'));
+    t(`自動帶入中油柴油單價 ${CPC.diesel.toFixed(1)}（來自 data/fuel-prices.json）`,
+        v('dieselPrice') === CPC.diesel.toFixed(1), v('dieselPrice'));
     t('「中」按鈕的 onclick 已動態更新（含 GA4 來源標記）',
-        d.getElementById('btnCpcDiesel').getAttribute('onclick') === "setDieselPrice(28.8, 'quick_cpc')",
+        d.getElementById('btnCpcDiesel').getAttribute('onclick') === `setDieselPrice(${CPC.diesel}, 'quick_cpc')`,
         d.getElementById('btnCpcDiesel').getAttribute('onclick'));
     t('「塑」按鈕的 onclick 已動態更新（含 GA4 來源標記）',
-        d.getElementById('btnFormosaDiesel').getAttribute('onclick') === "setDieselPrice(28.6, 'quick_formosa')",
+        d.getElementById('btnFormosaDiesel').getAttribute('onclick') === `setDieselPrice(${FORMOSA.diesel}, 'quick_formosa')`,
         d.getElementById('btnFormosaDiesel').getAttribute('onclick'));
-    t('表格下方顯示最後更新時間',
-        d.getElementById('tableFootnote').textContent.includes('2026/07/24'),
+    t('表格下方顯示資料檔裡的最後更新時間',
+        d.getElementById('tableFootnote').textContent.includes(FUEL.updatedDateStr),
         d.getElementById('tableFootnote').textContent);
     t('時間顯示已填入', d.getElementById('current-date').textContent !== '',
         d.getElementById('current-date').textContent);
@@ -291,13 +352,15 @@ async function main() {
     t('第 1 列為 92 無鉛汽油', rows[0] && rows[0].textContent.includes('92'), rows[0] && rows[0].textContent.trim());
     t('第 4 列為超級柴油', rows[3] && rows[3].textContent.includes('超級柴油'), rows[3] && rows[3].textContent.trim());
     const cpc92 = rows[0] && rows[0].querySelector('td.price-val.cpc');
-    t('92 中油價格顯示 $29.8', cpc92 && cpc92.textContent === '$29.8', cpc92 && cpc92.textContent);
+    t(`92 中油價格顯示 $${CPC.unleaded92.toFixed(1)}（來自資料檔）`,
+        cpc92 && cpc92.textContent === `$${CPC.unleaded92.toFixed(1)}`, cpc92 && cpc92.textContent);
     t('  且可點擊帶入（onclick 含價格與 GA4 來源標記）',
-        cpc92 && cpc92.getAttribute('onclick') === "setDieselPrice(29.8, 'table_cpc_unleaded92')",
+        cpc92 && cpc92.getAttribute('onclick') === `setDieselPrice(${CPC.unleaded92}, 'table_cpc_unleaded92')`,
         cpc92 && cpc92.getAttribute('onclick'));
     // jsdom 的 runScripts:'outside-only' 不會執行 inline onclick，改直接呼叫驗證帶入邏輯
-    ev('setDieselPrice(29.8)');
-    t('點擊帶入後單價 = 29.8', v('dieselPrice') === '29.8', v('dieselPrice'));
+    ev(`setDieselPrice(${CPC.unleaded92})`);
+    t(`點擊帶入後單價 = ${CPC.unleaded92.toFixed(1)}`,
+        v('dieselPrice') === CPC.unleaded92.toFixed(1), v('dieselPrice'));
     ev('setDieselPrice(28.8)');
 
     console.log('\n=== 12. 離線 fallback ===');
@@ -593,7 +656,8 @@ async function main() {
     // ── 價格色塊 ──
     const chip = rows[0] && rows[0].querySelector('td.price-val .price-chip');
     t('價格外層包了 .price-chip 色塊', chip !== null && chip !== undefined);
-    t('  色塊內含價格文字', chip && chip.textContent === '$29.8', chip && chip.textContent);
+    t('  色塊內含價格文字', chip && chip.textContent === `$${CPC.unleaded92.toFixed(1)}`,
+        chip && chip.textContent);
     t('  色塊有外框（讓使用者看出可點）',
         cssRule('.price-val .price-chip').includes('border:'));
     t('  色塊有底色', cssRule('.price-val.cpc .price-chip').includes('background-color'));
@@ -834,15 +898,32 @@ async function main() {
         .map(([n, a, b]) => `${n}: keypad=${a} calculator=${b}`);
     t('  與 calculator.css 同名 token 的值一致', tokenMismatch.length === 0, tokenMismatch.join('; '));
 
-    // ── 加速鍵設定 ──
-    t('已設定 00 加速鍵（每月油錢動輒數十萬）',
-        /KEYPAD_OPTIONS\s*=\s*\{[^}]*accelerators:\s*\['00'\]/.test(html));
-    t('  鍵盤上真的有 00 鍵',
-        [...d.querySelectorAll('.calculator-buttons button')]
-            .some(b => (b.getAttribute('onclick') || '').includes("calculatorAppend('00')")));
-    t('  小數點鍵保留（單價與折扣需要小數）',
-        [...d.querySelectorAll('.calculator-buttons button')]
-            .some(b => (b.getAttribute('onclick') || '').includes('calculatorDecimal')));
+    /* ── 末列按鍵：2026/07 起由「欄位」決定，不再是整頁一組 ──
+     *
+     * 這裡原本檢查的是「整頁都有 00 與小數點」。那個設定是頁面層級的，
+     * 於是「油品單價 29.3」上面也掛著一顆 00（按下去得到 29.300），
+     * 而「每月油錢」卻只有 00、沒有 000 與 萬。
+     * 現在四個欄位各自宣告型別，改成逐欄位驗證。 */
+    const tailOnclicks = () => [...d.querySelectorAll('.calculator-buttons [data-keypad-tail]')]
+        .map(b => b.getAttribute('onclick') || '');
+
+    t('每月油錢是金額型：有 000 與 萬',
+        (ev("openCalculator('monthlyExpense','t')"),
+            tailOnclicks().some(o => o.includes("calculatorAppend('000')"))
+            && tailOnclicks().some(o => o.includes("calculatorAppend('0000')"))),
+        tailOnclicks().join(' | '));
+
+    t('油品單價是小數型：有小數點、沒有加速鍵',
+        (ev("openCalculator('dieselPrice','t')"),
+            tailOnclicks().some(o => o.includes('calculatorDecimal'))
+            && !tailOnclicks().some(o => o.includes('calculatorAppend'))),
+        tailOnclicks().join(' | '));
+
+    t('每月油量是計數型：保留 00、收掉小數點',
+        (ev("openCalculator('monthlyVolume','t')"),
+            tailOnclicks().some(o => o.includes("calculatorAppend('00')"))
+            && !tailOnclicks().some(o => o.includes('calculatorDecimal'))),
+        tailOnclicks().join(' | '));
 
     // 最後一列格位總和必須是 4，否則鍵盤會破格
     const kbBtns = [...d.querySelectorAll('.calculator-buttons button')];

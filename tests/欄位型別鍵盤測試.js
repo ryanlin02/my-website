@@ -68,10 +68,15 @@ function headKeys(d) {
  */
 console.log('\n=== A. 未宣告型別的欄位：末列不得改變 ===');
 
+/* 註：四頁的每一個真實欄位現在都宣告了型別，所以這裡改用一個不存在的
+ * 欄位 id 來驗證「沒有宣告型別時會發生什麼」—— 這條保證仍然重要，
+ * 之後任何人新增欄位而忘了宣告，看到的就是這個樣子（＝改版前的樣子）。 */
+const UNDECLARED = '__undeclared__';
+
 const BASELINE = {
-    'calculator.html': { field: 'principal', title: '本金', tail: ['0/span 2', '.', '='] },
-    'check.html': { field: 'check-count', title: '開票張數', tail: ['0/span 3', '='] },
-    'gas.html': { field: 'monthlyExpense', title: '每月油錢', tail: ['0/span 1', '00', '.', '='] }
+    'calculator.html': { field: UNDECLARED, title: '未宣告欄位', tail: ['0/span 2', '.', '='] },
+    'check.html': { field: UNDECLARED, title: '未宣告欄位', tail: ['0/span 3', '='] },
+    'gas.html': { field: UNDECLARED, title: '未宣告欄位', tail: ['0/span 1', '00', '.', '='] }
 };
 
 const HEAD_EXPECT = ['C清除', '⌫', '÷', '7柒', '8捌', '9玖', '×', '4肆', '5伍', '6陸', '−', '1壹', '2貳', '3參', '+'];
@@ -285,6 +290,53 @@ t('小數位數上限是各欄位自己宣告的（沒宣告的欄位不受限�
     calcPage.ev(`openCalculator('principal', '本金'); calculatorClear(); calculatorInput(1); calculatorDecimal(); calculatorInput(2); calculatorInput(3); calculatorInput(4); calculatorInput(5)`);
     return calcPage.ev('calculatorValue') === '1.2345';
 })(), calcPage.ev('calculatorValue'));
+
+/* ============================================================
+ * B-4. 其餘金額欄位（計算頁三個 + 加油頁每月油錢）
+ * ============================================================ */
+console.log('\n=== B-4. 計算頁與加油頁的金額欄位 ===');
+
+[['calculator.html', 'principal', '本金'],
+['calculator.html', 'payment', '期繳'],
+['calculator.html', 'commission', '推廣']].forEach(([page, field, title]) => {
+    const { d, ev } = booted[page];
+    ev(`openCalculator('${field}', '${title}')`);
+    t(`${field} 末列＝0／000／萬／=`,
+        JSON.stringify(tailKeys(d)) === JSON.stringify(AMOUNT_TAIL), JSON.stringify(tailKeys(d)));
+    ev(`calculatorClear(); calculatorInput(1); calculatorInput(5); calculatorAppend('0000')`);
+    t('  15 + 萬 = 150000', ev('calculatorValue') === '150000', ev('calculatorValue'));
+    t('  副資訊顯示「15 萬」', d.getElementById('calculatorSub').textContent === '15 萬',
+        d.getElementById('calculatorSub').textContent);
+});
+
+booted['gas.html'].ev(`openCalculator('monthlyExpense', '每月油錢')`);
+t('每月油錢末列＝0／000／萬／=（頁面層級的 00 已換掉）',
+    JSON.stringify(tailKeys(booted['gas.html'].d)) === JSON.stringify(AMOUNT_TAIL),
+    JSON.stringify(tailKeys(booted['gas.html'].d)));
+
+booted['calculator.html'].ev(`openCalculator('monthlyCost', '資金成本')`);
+t('資金成本是百分比 → 小數型（不是金額型）',
+    JSON.stringify(tailKeys(booted['calculator.html'].d)) === JSON.stringify(DECIMAL_TAIL),
+    JSON.stringify(tailKeys(booted['calculator.html'].d)));
+booted['calculator.html'].ev(`calculatorClear(); calculatorInput(2); calculatorInput(5)`);
+t('  兩位整數（上限 20%）可輸入 25，交給原本的驗證擋',
+    booted['calculator.html'].ev('calculatorValue') === '25');
+booted['calculator.html'].ev('calculatorInput(5)');
+t('  第 3 位被擋掉', booted['calculator.html'].ev('calculatorValue') === '25');
+
+// 「幾萬」讀法本身
+const mag = n => booted['calculator.html'].ev(`describeMagnitude(${n})`);
+t('describeMagnitude：1500000 → 150 萬', mag(1500000) === '150 萬', mag(1500000));
+t('  12345678 → 1,234 萬 5678', mag(12345678) === '1,234 萬 5678', mag(12345678));
+t('  230000000 → 2 億 3,000 萬', mag(230000000) === '2 億 3,000 萬', mag(230000000));
+t('  未滿一萬不顯示（1234 本來就看得懂）', mag(1234) === '', mag(1234));
+t('  0 與負數不顯示', mag(0) === '' && mag(-5) === '');
+
+// 支票頁仍然是中文大寫（要手抄到支票上），不是「幾萬」
+chk.ev(`openCalculator('total-amount', '總金額'); calculatorClear(); calculatorInput(1); calculatorAppend('000000')`);
+t('支票金額仍顯示中文大寫（手寫用），不是「幾萬」',
+    chk.d.getElementById('calculatorSub').textContent === '壹佰萬 元整',
+    chk.d.getElementById('calculatorSub').textContent);
 
 /* ============================================================
  * C. 同一頁欄位互相切換不留殘渣

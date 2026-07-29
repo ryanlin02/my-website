@@ -252,9 +252,10 @@
     <!-- 鍵盤與彈窗的 DOM 由 js/common-modals.js 動態注入，本檔不需要寫。
          原本這裡有 43 行自有計算機 HTML，2026/07 階段 4 改用共用鍵盤後移除。 -->
 
-    <!-- 共用鍵盤選項：加油頁四個欄位有兩個要小數（單價、折扣），所以小數點保留。
-         加上 00 加速鍵 —— 每月油錢動輒數十萬，一位一位按 0 太慢也容易按錯。
-         必須在載入 common-modals.js 之前設定。 -->
+    <!-- 共用鍵盤選項（頁面層級的預設值，必須在載入 common-modals.js 之前設定）
+         本頁四個欄位現在都各自宣告了型別（見下方 KEYPAD_FIELDS），
+         這一行只剩兩個作用：注入鍵盤時的初始樣子，以及日後新增欄位卻
+         忘了宣告型別時的退路。 -->
     <script>
         window.KEYPAD_OPTIONS = { accelerators: ['00'] };
 
@@ -278,6 +279,10 @@
          *
          * 兩者的副資訊都顯示折後單價 —— 那是這頁真正要看的數字。 */
         window.KEYPAD_FIELDS = {
+            /* 每月油錢是金額型：把頁面層級的 00 換成 000 與 萬（動輒數十萬），
+             * 副資訊顯示「幾萬」，多一個零少一個零一眼就看得出來。 */
+            monthlyExpense: { form: 'amount', maxDigits: 8, sub: 'magnitude' },
+
             monthlyVolume:  { form: 'count', maxDigits: 6, accelerators: ['00'] },
             dieselPrice:    {
                 form: 'decimal', maxDigits: 3, maxDecimals: 1,
