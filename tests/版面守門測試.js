@@ -146,20 +146,45 @@ console.log('\n=== D. 沒有殘留的閃避補償 ===');
         `padding-top: ${pad}px —— 這通常是在讓開某個 fixed 元素`);
 });
 
-// 頂端元素的間距必須用變數，不能又寫回數字
+/* 頂端元素的間距必須用變數，不能又寫回數字。
+ *
+ * 第三欄是「這個間距必須寫在哪個屬性」：
+ *   margin  —— 一般流元素（各頁時間列），寫 margin 最直觀
+ *   padding —— sticky 頂列。這裡不能用 margin：top: 0 是把邊框盒釘在
+ *              捲動視窗的 0，margin 不算在內，於是「未捲動時被 margin
+ *              推開」與「黏住後貼齊 0」差了一個 --content-gap，
+ *              捲動最初那幾 px 固定列會跟著移動。
+ *              詳見 css/invoice.css .top-bar 的註解。 */
 const GAP_USERS = [
-    ['css/calculator.css', '.time-display-wrapper'],
-    ['css/check.css', '.time-display-wrapper'],
-    ['css/gas.css', '.time-display-wrapper'],
-    ['css/invoice.css', '.top-bar']
+    ['css/calculator.css', '.time-display-wrapper', 'margin'],
+    ['css/check.css', '.time-display-wrapper', 'margin'],
+    ['css/gas.css', '.time-display-wrapper', 'margin'],
+    ['css/invoice.css', '.top-bar', 'padding']
 ];
-GAP_USERS.forEach(([f, sel]) => {
+GAP_USERS.forEach(([f, sel, prop]) => {
     const css = stripComments(read(f));
     const m = css.match(new RegExp('(?:^|\\})\\s*' + sel.replace('.', '\\.') + '\\s*\\{([^}]*)\\}', 'm'));
     if (!m) return;
-    t(`${f} 的 ${sel} 用 --content-gap 控制頂端間距`,
-        /margin:\s*var\(--content-gap\)/.test(m[1]) || /margin-top:\s*var\(--content-gap\)/.test(m[1]),
-        (m[1].match(/margin[^;]*/) || [''])[0].trim());
+    // 允許 `prop: var(--content-gap) …` 與 `prop: calc(var(--content-gap) + n) …`
+    const ok = new RegExp(prop + '(?:-top)?:\\s*[^;]*var\\(--content-gap\\)').test(m[1]);
+    t(`${f} 的 ${sel} 用 --content-gap 控制頂端間距（且寫在 ${prop}）`,
+        ok,
+        (m[1].match(new RegExp(prop + '[^;]*')) || [''])[0].trim());
+});
+
+/* sticky 頂列不准再用 margin-top 撐頂端間距（會造成上面說的位移）。
+ * 只檢查確定已修好的那些，其餘待辦：
+ *   css/check.css .write-progress 目前仍是 margin-top: 10px + top: 0，
+ *   同一個病、幅度 10px；它平常 display: none，只在開票流程中出現。 */
+[['css/invoice.css', '.top-bar']].forEach(([f, sel]) => {
+    const css = stripComments(read(f));
+    const m = css.match(new RegExp('(?:^|\\})\\s*' + sel.replace('.', '\\.') + '\\s*\\{([^}]*)\\}', 'm'));
+    if (!m) return;
+    const mt = (m[1].match(/margin(?:-top)?:\s*([^;]+)/) || [])[1] || '0';
+    const firstVal = mt.trim().split(/\s+/)[0];
+    t(`  ${sel} 的 margin-top 為 0（間距一律走 padding）`,
+        firstVal === '0' || firstVal === '0px',
+        `margin-top: ${firstVal} —— sticky 頂列的間距寫在 margin 會讓它捲動時位移`);
 });
 
 /* ============================================================

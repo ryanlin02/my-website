@@ -72,14 +72,6 @@ body { padding-bottom: 12px !important; }
    兩者都是「一眼要看到、隨時要能切」的東西，所以釘在頂端不隨捲動消失。
    合併成一列是為了省下垂直空間 —— 這是整頁最貴的資源。
    =================================================================== */
-/*
- * 為什麼是 16px 而不是 0：
- * 外殼 index.html 的 .header-container 高 60px、固定在頂端，
- * 但裝 iframe 的 .content-container 是從 top:45px 開始 ——
- * 也就是 iframe 最上面 15px 永遠被壓在外殼標題列底下。
- * 少了這個位移，這排按鈕的上半截會被切掉（實機才看得出來）。
- * sticky 的 top 與 margin-top 要一致，否則捲動時會跳一下。
- */
 .top-bar {
     position: -webkit-sticky;
     position: sticky;
@@ -91,8 +83,29 @@ body { padding-bottom: 12px !important; }
     top: 0;
     z-index: 900;
     background: var(--primary-color);
-    padding: 6px 0 5px;
-    margin: var(--content-gap) 0 5px;
+
+    /* ------------------------------------------------------------
+     * 【2026/07 修正：頂端間距從 margin-top 改成 padding-top】
+     *
+     * 原本寫 padding: 6px 0 5px; margin: var(--content-gap) 0 5px;
+     * 捲動時這排按鈕會先跟著往上跑 5px 才黏住 —— 幅度剛好等於
+     * --content-gap，實機上看起來就是「固定列會微微移動」。
+     *
+     * 原因：top: 0 是把「邊框盒」釘在捲動視窗的 0，margin 不算在內。
+     *   未捲動 → 在正常流裡被 margin 推到 5px
+     *   黏住後 → 邊框盒被釘在 0
+     * 兩個位置差 5px，那段差就是移動量。
+     *
+     * 間距改成寫在 sticky 盒子「內部」的 padding，位置從頭到尾都是 0，
+     * 不會有落差；底色同為 --primary-color，靜止時外觀與原本完全一樣。
+     * 這也是計算頁 .fixed-rate-header 一直沒有這個問題的原因
+     * （它本來就是 padding: var(--content-gap) 5px 5px）。
+     *
+     * 【規則】頁內 sticky 頂列的頂端間距一律用 padding，不可用 margin。
+     * tests/版面守門測試.js D 段會擋下違規。
+     * ------------------------------------------------------------ */
+    padding: calc(var(--content-gap) + 6px) 0 5px;
+    margin: 0 0 5px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
 }
 
