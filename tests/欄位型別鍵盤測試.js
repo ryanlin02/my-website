@@ -221,6 +221,72 @@ t('  未滿一年只講月數', booted['calculator.html'].ev('describePeriod(6)'
     booted['calculator.html'].ev('describePeriod(6)'));
 
 /* ============================================================
+ * B-3. 小數型：保留小數點、收掉加速鍵、小數位數即時擋
+ * ============================================================ */
+console.log('\n=== B-3. 小數型：利率、油品單價、折扣金額 ===');
+
+const DECIMAL_TAIL = ['0/span 2', '.', '='];
+
+const calcPage = booted['calculator.html'];
+calcPage.ev(`openCalculator('rate', '稅前利率')`);
+t('利率末列＝0／小數點／=（沒有 000 與 萬）',
+    JSON.stringify(tailKeys(calcPage.d)) === JSON.stringify(DECIMAL_TAIL), JSON.stringify(tailKeys(calcPage.d)));
+t('  快捷值 4／6／8／10／12／14（與畫面上那排相同）',
+    JSON.stringify(chipList(calcPage.d)) === JSON.stringify(['4', '6', '8', '10', '12', '14']),
+    JSON.stringify(chipList(calcPage.d)));
+calcPage.ev(`calculatorClear(); calculatorInput(8); calculatorDecimal(); calculatorInput(5)`);
+t('  可輸入 8.5', calcPage.ev('calculatorValue') === '8.5', calcPage.ev('calculatorValue'));
+t('  副資訊顯示月利率 0.7083%',
+    calcPage.d.getElementById('calculatorSub').textContent === '月利率 0.7083%',
+    calcPage.d.getElementById('calculatorSub').textContent);
+calcPage.ev('calculatorInput(5); calculatorInput(5); calculatorInput(5)');
+t('  小數 4 位（8.5555）', calcPage.ev('calculatorValue') === '8.5555', calcPage.ev('calculatorValue'));
+calcPage.ev('calculatorInput(5)');
+t('    第 5 位被當下擋掉（存檔是 toFixed(4)，不會無聲改掉畫面上的數字）',
+    calcPage.ev('calculatorValue') === '8.5555', calcPage.ev('calculatorValue'));
+calcPage.ev('calculatorChip(12)');
+t('  點快捷值帶入 12', calcPage.ev('calculatorValue') === '12', calcPage.ev('calculatorValue'));
+t('    月利率同步變成 1.0000%',
+    calcPage.d.getElementById('calculatorSub').textContent === '月利率 1.0000%',
+    calcPage.d.getElementById('calculatorSub').textContent);
+
+const gasPage = booted['gas.html'];
+gasPage.ev(`openCalculator('dieselPrice', '油品單價')`);
+t('油品單價末列＝0／小數點／=（頁面層級的 00 已不再套用）',
+    JSON.stringify(tailKeys(gasPage.d)) === JSON.stringify(DECIMAL_TAIL), JSON.stringify(tailKeys(gasPage.d)));
+t('  沒有快捷值（每週油價都不同，畫面上已有中／塑兩顆鍵）',
+    chipList(gasPage.d).length === 0);
+gasPage.ev(`calculatorClear(); calculatorInput(2); calculatorInput(9); calculatorDecimal(); calculatorInput(3)`);
+t('  可輸入 29.3', gasPage.ev('calculatorValue') === '29.3', gasPage.ev('calculatorValue'));
+gasPage.ev('calculatorInput(7)');
+t('    第 2 位小數被擋掉（存檔是 toFixed(1)）', gasPage.ev('calculatorValue') === '29.3',
+    gasPage.ev('calculatorValue'));
+
+gasPage.ev(`openCalculator('discountAmount', '折扣金額')`);
+t('折扣金額快捷值 0.4～0.9（與畫面上那排相同）',
+    JSON.stringify(chipList(gasPage.d)) === JSON.stringify(['0.4', '0.5', '0.6', '0.7', '0.8', '0.9']),
+    JSON.stringify(chipList(gasPage.d)));
+gasPage.ev('calculatorChip(0.5)');
+t('  點 0.5 直接帶入', gasPage.ev('calculatorValue') === '0.5', gasPage.ev('calculatorValue'));
+gasPage.d.getElementById('dieselPrice').value = '29.3';
+gasPage.ev('calculatorChip(0.5)');
+t('  副資訊顯示折後 28.8 元/公升',
+    gasPage.d.getElementById('calculatorSub').textContent === '折後 28.8 元/公升',
+    gasPage.d.getElementById('calculatorSub').textContent);
+gasPage.ev(`openCalculator('dieselPrice', '油品單價')`);
+gasPage.d.getElementById('discountAmount').value = '0.5';
+gasPage.ev(`calculatorClear(); calculatorInput(3); calculatorInput(0)`);
+t('  反過來輸入單價時也顯示折後 29.5 元/公升',
+    gasPage.d.getElementById('calculatorSub').textContent === '折後 29.5 元/公升',
+    gasPage.d.getElementById('calculatorSub').textContent);
+
+t('小數位數上限是各欄位自己宣告的（沒宣告的欄位不受限制）', (() => {
+    // 計算頁的本金沒有宣告 maxDecimals，仍可自由輸入小數
+    calcPage.ev(`openCalculator('principal', '本金'); calculatorClear(); calculatorInput(1); calculatorDecimal(); calculatorInput(2); calculatorInput(3); calculatorInput(4); calculatorInput(5)`);
+    return calcPage.ev('calculatorValue') === '1.2345';
+})(), calcPage.ev('calculatorValue'));
+
+/* ============================================================
  * C. 同一頁欄位互相切換不留殘渣
  * ============================================================ */
 console.log('\n=== C. 切換欄位不留殘渣 ===');
@@ -305,7 +371,8 @@ t('剛按下小數點時顯示 8.（不會被千分位吃掉）',
 calc.ev('calculatorInput(5)');
 t('  接著輸入變成 8.5', calc.d.getElementById('calculatorDisplay').textContent === '8.5',
     calc.d.getElementById('calculatorDisplay').textContent);
-calc.ev(`calculatorClear(); '1234567'.split('').forEach(function(c){ calculatorInput(Number(c)); }); calculatorDecimal(); calculatorInput(8)`);
+// 換到沒有位數上限的欄位（利率限 3 位整數，塞不下七位數）
+calc.ev(`openCalculator('principal', '本金'); calculatorClear(); '1234567'.split('').forEach(function(c){ calculatorInput(Number(c)); }); calculatorDecimal(); calculatorInput(8)`);
 t('  整數位加逗號、小數位不加：1,234,567.8',
     calc.d.getElementById('calculatorDisplay').textContent === '1,234,567.8',
     calc.d.getElementById('calculatorDisplay').textContent);

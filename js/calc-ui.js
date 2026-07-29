@@ -536,6 +536,21 @@ function adjustPeriod(delta) {
  * @param  {number} period 期數（月）
  * @return {string} 例：「36 期 ＝ 3 年」「30 期 ＝ 2 年 6 個月」；不成立時空字串
  */
+/**
+ * 稅前利率的換算說明（純函式）
+ *
+ * 這頁的利率是年利率 —— PMT() 內部就是 rate / 100 / 12（見 js/calc-engine.js）。
+ * 但業務跟客戶談的時候常常講月利率，兩者換算一次就少一次口誤。
+ *
+ * @param  {number} rate 年利率（%）
+ * @return {string} 例：「月利率 0.7083%」；不成立時空字串
+ */
+function describeRate(rate) {
+    const value = Number(rate);
+    if (!Number.isFinite(value) || value <= 0) return '';
+    return `月利率 ${(value / 12).toFixed(4)}%`;
+}
+
 function describePeriod(period) {
     const n = Math.floor(Number(period));
     if (!Number.isFinite(n) || n < 1) return '';

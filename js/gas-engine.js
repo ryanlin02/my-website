@@ -421,6 +421,41 @@ function removeThousandsSeparator(str) {
     return str.replace(/,/g, '').replace(/[^\d.]/g, '');
 }
 
+/* ------------------------------------------------------------
+ * 鍵盤副資訊：折後單價（2026/07 新增）
+ * ------------------------------------------------------------
+ * 單價與折扣是這頁唯二要輸入的小數，而業務真正在意的是兩者相減之後的
+ * 「折後單價」。原本要按下確認輸入、回到頁面才看得到，
+ * 現在邊按邊顯示在鍵盤上。
+ *
+ * 兩支都會去讀「另一個欄位」目前的值，讀不到就回傳空字串 ——
+ * 副資訊行的高度本來就固定保留，沒有內容也不會讓版面跳動。
+ * ------------------------------------------------------------ */
+
+/** 讀取某個欄位目前的數值，取不到回傳 0 */
+function readFieldNumber(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field) return 0;
+    const value = parseFloat(removeThousandsSeparator(field.value));
+    return Number.isFinite(value) ? value : 0;
+}
+
+/** 正在輸入油品單價時：顯示扣掉目前折扣後的單價 */
+function describeFuelPrice(price) {
+    const value = Number(price);
+    const discount = readFieldNumber('discountAmount');
+    if (!Number.isFinite(value) || value <= 0 || discount <= 0) return '';
+    return `折後 ${Math.max(0, value - discount).toFixed(1)} 元/公升`;
+}
+
+/** 正在輸入折扣金額時：顯示套用之後的單價 */
+function describeDiscount(discount) {
+    const value = Number(discount);
+    const price = readFieldNumber('dieselPrice');
+    if (!Number.isFinite(value) || value <= 0 || price <= 0) return '';
+    return `折後 ${Math.max(0, price - value).toFixed(1)} 元/公升`;
+}
+
 /* ===== 時間顯示相關函數 - 從支票試算工具複製 ===== */
 // 初始化當前時間（民國年）
 function updateCurrentDate() {

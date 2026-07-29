@@ -291,15 +291,29 @@ const KEYPAD_FORMS = {
      * 取而代之的是「常用值快捷列」：這行業的期數就是 12／24／36／48／60／72，
      * 點一下比按兩個鍵還快，也不會按錯。要哪幾個值由各欄位自己宣告。
      *
-     * 【為什麼計數型的算式歷程行要收起來】
+     * 【有快捷列的欄位會收起算式歷程行】
      * 快捷列要佔一列高度，而面板不能因此變高（垂直居中的彈窗一長高，
-     * 整個彈窗的上下位置都會跑）。取捨的結果是收掉算式歷程那一行：
-     * 金額欄位常常要當場加減，期數與張數幾乎不會。
-     * 真的按了運算子時，算式會改顯示在副資訊那一行，不會消失。 */
+     * 整個彈窗的上下位置都會跑）。讓出來的正好是算式歷程那 26px ——
+     * 會用到快捷值的都是期數、張數、利率這類「幾乎不會當場加減」的欄位。
+     * 真的按了運算子時，算式會改顯示在副資訊那一行，不會消失。
+     * 這個對換是自動的（見 openCalculator 的 compact），沒有快捷值的欄位
+     * 仍然保有算式歷程行，兩種情況的面板高度只差 2px。 */
     count: {
         tail: { decimal: false, accelerators: [] },
-        sub: null,
-        compact: true            // 收起算式歷程行，空間讓給快捷列
+        sub: null
+    },
+
+    /* 小數型：稅前利率、油品單價、折扣金額
+     *
+     * 這類數字帶小數而且位數很少（8.5％、29.3 元、0.5 元），
+     * 所以小數點必留、000 與 萬 一律不給 —— 加油頁原本整頁掛著 00 加速鍵，
+     * 連「油品單價 29.3」上面也有一顆，按下去只會得到 29.300 這種沒有意義的值。
+     *
+     * 小數位數由各欄位用 maxDecimals 宣告，與各頁存檔時的四捨五入一致
+     * （利率 4 位、油價與折扣 1 位），多按的位數當下就擋掉。 */
+    decimal: {
+        tail: { decimal: true, accelerators: [] },
+        sub: null
     }
 };
 
@@ -433,14 +447,30 @@ function updateCalculatorDisplay() {
  * @return {boolean} true 表示超過上限、呼叫端應該中止
  */
 function keypadExceedsDigits(nextValue) {
-    if (!keypadSpec.maxDigits) return false;
+    const parts = String(nextValue).replace('-', '').split('.');
 
-    const intDigits = String(nextValue).replace('-', '').split('.')[0].replace(/^0+/, '').length;
-    if (intDigits <= keypadSpec.maxDigits) return false;
+    if (keypadSpec.maxDigits) {
+        const intDigits = parts[0].replace(/^0+/, '').length;
+        if (intDigits > keypadSpec.maxDigits) {
+            showToast(`最多 ${keypadSpec.maxDigits} 位數`, true);
+            vibrate([50, 30, 50]);
+            return true;
+        }
+    }
 
-    showToast(`最多 ${keypadSpec.maxDigits} 位數`, true);
-    vibrate([50, 30, 50]);
-    return true;
+    /* 小數位數：與各頁存檔時的四捨五入一致（利率 4 位、油價與折扣 1 位）。
+     * 沒有這道檢查的話，使用者可以打出 29.37，按下確認輸入卻變成 29.4 ——
+     * 畫面上的數字被無聲改掉，是最容易讓人以為「這個工具會亂跳」的情況。 */
+    if (keypadSpec.maxDecimals !== null && parts.length > 1
+        && parts[1].length > keypadSpec.maxDecimals) {
+        showToast(keypadSpec.maxDecimals === 0
+            ? '這個欄位不收小數'
+            : `小數最多 ${keypadSpec.maxDecimals} 位`, true);
+        vibrate([50, 30, 50]);
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -454,10 +484,15 @@ function openCalculator(targetId, title) {
     /* 這個欄位是哪一型？沒宣告就用該頁預設（= 改版前的樣子） */
     const fieldCfg = (window.KEYPAD_FIELDS || {})[targetId] || {};
     const form = KEYPAD_FORMS[fieldCfg.form] || {};
+    const chips = Array.isArray(fieldCfg.chips) ? fieldCfg.chips : [];
     keypadSpec = {
         sub: fieldCfg.sub || form.sub || null,
         maxDigits: fieldCfg.maxDigits || null,
-        compact: form.compact === true
+        maxDecimals: typeof fieldCfg.maxDecimals === 'number' ? fieldCfg.maxDecimals : null,
+        /* 有快捷列就收起算式歷程行，兩者高度剛好對換，面板總高不變。
+         * 這個關係刻意做成自動的 —— 之後替任何欄位加上快捷值，
+         * 都不必再去想「面板會不會變高」。 */
+        compact: chips.length > 0
     };
 
     /* 末列：型別決定，欄位可以再覆寫加速鍵。
@@ -467,7 +502,7 @@ function openCalculator(targetId, title) {
         ? Object.assign({}, tail, { accelerators: fieldCfg.accelerators })
         : tail);
 
-    applyKeypadChips(fieldCfg.chips);
+    applyKeypadChips(chips);
 
     /* 計數型收起算式歷程行，把高度讓給快捷列 —— 面板總高不變 */
     const panel = document.querySelector('.number-input-modal');

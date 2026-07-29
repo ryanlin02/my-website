@@ -267,10 +267,27 @@
          * 沒有給快捷值：每月油量沒有一組公認的常用數字，
          * 硬給幾個反而會誤導。快捷列沒有內容時不佔任何高度。
          *
-         * 油品單價與折扣金額是小數型（29.3、0.5），目前仍沿用本頁預設
-         * （有小數點，但也還帶著對它們沒有意義的 00 鍵），留待下一批處理。 */
+         * 油品單價與折扣金額是小數型：保留小數點、收掉 00
+         * （29.3 後面按 00 得到 29.300，沒有任何意義），
+         * 小數位數比照兩者存檔時的 toFixed(1) —— 打得出 29.37 卻被無聲
+         * 存成 29.4，是最容易讓人以為「這個工具會亂跳」的情況。
+         *
+         * 折扣金額的快捷值與畫面上那排 4～9 角的按鈕完全相同，不另立一套；
+         * 油品單價沒有固定的常用值（每週油價都不同，畫面上已有中／塑兩顆鍵），
+         * 所以不給快捷值。
+         *
+         * 兩者的副資訊都顯示折後單價 —— 那是這頁真正要看的數字。 */
         window.KEYPAD_FIELDS = {
-            monthlyVolume: { form: 'count', maxDigits: 6, accelerators: ['00'] }
+            monthlyVolume:  { form: 'count', maxDigits: 6, accelerators: ['00'] },
+            dieselPrice:    {
+                form: 'decimal', maxDigits: 3, maxDecimals: 1,
+                sub: 'describeFuelPrice'
+            },
+            discountAmount: {
+                form: 'decimal', maxDigits: 1, maxDecimals: 1,
+                chips: [0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+                sub: 'describeDiscount'
+            }
         };
     </script>
 
