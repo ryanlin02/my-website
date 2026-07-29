@@ -36,6 +36,7 @@ import os
 import shutil
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 import zipfile
 from datetime import datetime, timedelta, timezone
@@ -68,18 +69,55 @@ def log(msg):
     print(msg, flush=True)
 
 
+# 政府網站普遍會擋掉 urllib 預設的 "Python-urllib/3.x"，直接回 403。
+# 帶上一般瀏覽器的標頭才要得到檔案。
+REQUEST_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"),
+    "Accept": "*/*",
+    "Accept-Language": "zh-TW,zh;q=0.9",
+    "Referer": "https://data.gov.tw/dataset/9400",
+}
+
+
+def fetch(url, timeout):
+    """抓一個網址，回傳 bytes。失敗時把狀態碼與原因寫進訊息裡，方便看 log 判斷。"""
+    request = urllib.request.Request(url, headers=REQUEST_HEADERS)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.read()
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"HTTP {e.code} {e.reason}") from e
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"連線失敗：{e.reason}") from e
+
+
 def download_source():
-    """下載原始資料，回傳解碼後的 CSV 文字內容"""
+    """下載原始資料，回傳解碼後的 CSV 文字內容
+
+    先抓 zip（體積小很多），失敗才退回未壓縮的 csv。
+    兩者都失敗時把兩個原因一起印出來 —— 只印後者會看不出第一步是為什麼掛的。
+    """
+    zip_error = None
     try:
         log(f"下載壓縮檔：{ZIP_URL}")
-        raw = urllib.request.urlopen(ZIP_URL, timeout=600).read()
+        raw = fetch(ZIP_URL, timeout=600)
         with zipfile.ZipFile(io.BytesIO(raw)) as zf:
             member = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
             log(f"解壓縮：{member}")
             data = zf.read(member)
     except Exception as e:
+        zip_error = e
         log(f"壓縮檔下載失敗（{e}），改抓未壓縮 CSV：{CSV_URL}")
-        data = urllib.request.urlopen(CSV_URL, timeout=900).read()
+        try:
+            data = fetch(CSV_URL, timeout=900)
+        except Exception as csv_error:
+            raise RuntimeError(
+                f"兩個來源都下載失敗。\n"
+                f"  壓縮檔 {ZIP_URL} → {zip_error}\n"
+                f"  CSV   {CSV_URL} → {csv_error}\n"
+                f"  請確認 https://data.gov.tw/dataset/9400 上的下載網址是否已變更。"
+            ) from csv_error
 
     log(f"原始資料大小：{len(data) / 1024 / 1024:.1f} MB")
     return decode(data)
