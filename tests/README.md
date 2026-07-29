@@ -25,6 +25,7 @@ node tests/支票進度與存檔測試.js
 node tests/加油頁功能測試.js
 node tests/版面守門測試.js
 node tests/版面樣式測試.js
+node tests/安裝教學測試.js
 node tests/鍵盤行為對照測試.js
 node tests/invoice/頁面載入測試.js
 node tests/invoice/統編自動帶入測試.js

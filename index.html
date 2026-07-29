@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=400, user-scalable=no">
     <title>貸款業務工具箱</title>
 
+    <!-- ============================================
+    * 開啟瞬間的畫面保護
+    * --------------------------------------------
+    * 網頁一載入時預設顯示的是計算頁，但使用者上次可能停在別頁，
+    * 稍後的程式會把它切回去。舊版有一片全螢幕安裝遮罩擋著，看不到這一下切換；
+    * 遮罩移除後改由這裡接手：先加上記號把內容藏起來，
+    * 等頁面還原完成（restoreInitialPage）再拿掉，全程在畫面繪製之前完成。
+    * 只藏顯示、不動版面高度，所以不會造成任何位移。
+    * ============================================ -->
+    <script>
+        document.documentElement.classList.add('booting');
+
+        // 保險絲：萬一還原流程出錯沒把記號拿掉，畫面也不能一直空白。
+        // 正常情況下這行執行時記號早就被移除了，不會有任何作用。
+        window.addEventListener('load', function () {
+            document.documentElement.classList.remove('booting');
+        });
+    </script>
+
     <!-- 將以下程式碼加入 index.html 的 <head> 標籤內 -->
     <!-- 放在 <title> 標籤之後 -->
 
@@ -479,64 +498,131 @@
         }
 
         /* ============================================
-        * PWA 安裝引導畫面樣式
+        * 安裝教學彈窗樣式
+        * --------------------------------------------
+        * 2026/07 改版：
+        *   這一區原本是「開啟網頁就整片蓋住、非安裝不可」的強制引導畫面。
+        *   現在改成純教學彈窗，預設完全隱藏，只有從主選單點進來才會出現，
+        *   打開網頁的當下不再有任何東西擋住操作。
         * ============================================ */
 
-        /* 安裝引導畫面遮罩層 */
-        .install-prompt-overlay {
+        /* 安裝教學遮罩層（預設隱藏） */
+        .install-guide-overlay {
             position: fixed;                                /* 固定定位覆蓋整個螢幕 */
             top: 0;                                        /* 從頂部開始 */
             left: 0;                                       /* 從左側開始 */
             width: 100%;                                   /* 全寬度 */
             height: 100%;                                  /* 全高度 */
-            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); /* 漸層背景 */
-            z-index: 9999;                                 /* 最高層級確保覆蓋所有內容 */
-            display: flex;                                 /* 彈性佈局 */
-            flex-direction: column;                        /* 垂直排列 */
-            align-items: center;                           /* 水平居中 */
-            justify-content: center;                       /* 垂直居中 */
-            padding: 20px;                                 /* 內邊距 */
-            box-sizing: border-box;                       /* 邊框盒模型 */
+            background: var(--primary-color);              /* 與主選單一致的背景 */
+            z-index: 10001;                                /* 高於主選單，才能蓋在它上面 */
+            display: none;                                 /* 預設隱藏 */
             opacity: 0;                                    /* 初始透明 */
-            animation: fadeIn 0.01s forwards;              /* 淡入動畫 */
+            transition: opacity var(--transition-fast);    /* 淡入淡出 */
         }
 
-        /* 淡入動畫定義 */
-        @keyframes fadeIn {
-            to {
-                opacity: 1;                                /* 完全不透明 */
-            }
+        /* 顯示狀態（兩段式，與主選單相同的寫法） */
+        .install-guide-overlay.show {
+            display: block;                                /* 顯示 */
         }
 
-        /* 安裝引導容器 */
-        .install-prompt-container {
-            background: var(--primary-color);             /* 主要背景色 */
-            border-radius: 15px;                          /* 圓角 */
-            padding: 30px 25px;                           /* 內邊距 */
-            max-width: 350px;                             /* 最大寬度 */
-            width: 90%;                                   /* 寬度90% */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);  /* 陰影效果 */
-            text-align: center;                           /* 文字居中 */
+        .install-guide-overlay.show.active {
+            opacity: 1;                                    /* 完全不透明 */
         }
 
-        /* 安裝引導標題 - 可點擊但不顯示 */
-        .install-prompt-title {
-            color: var(--accent-color);                   /* 橘色文字 */
-            font-size: 24px;                              /* 大字體 */
-            font-weight: bold;                            /* 粗體 */
-            margin-bottom: 15px;                          /* 底部間距 */
-            cursor: default;                               /* 預設游標不暗示可點擊 */
-            user-select: none;                            /* 禁止選取文字 */
-            -webkit-user-select: none;                    /* iOS禁止選取 */
-            -webkit-tap-highlight-color: transparent;     /* 移除點擊高亮 */
+        .install-guide-overlay.show.active .install-guide-container {
+            transform: translateY(0);                      /* 滑入到正常位置 */
         }
 
-        /* 安裝引導說明文字 */
-        .install-prompt-text {
+        /* 安裝教學容器 */
+        .install-guide-container {
+            width: 100%;                                  /* 全寬度 */
+            max-width: 400px;                             /* 與全站一致的寬度上限 */
+            height: 100%;                                 /* 全高度 */
+            margin: 0 auto;                               /* 水平居中 */
+            display: flex;                                /* 彈性佈局 */
+            flex-direction: column;                       /* 垂直排列 */
+            padding: 20px;                                /* 內邊距 */
+            box-sizing: border-box;                       /* 邊框盒模型 */
+            transform: translateY(-20px);                 /* 初始上移位置 */
+            transition: transform var(--transition-fast); /* 滑入動畫 */
+        }
+
+        /* 安裝教學頂部區域 */
+        .install-guide-header {
+            display: flex;                                /* 彈性佈局 */
+            justify-content: space-between;               /* 兩端對齊 */
+            align-items: center;                          /* 垂直居中 */
+            padding-bottom: 15px;                         /* 底部內距 */
+            border-bottom: 2px solid var(--accent-color); /* 底部橘色邊框 */
+            margin-bottom: 20px;                          /* 底部外邊距 */
+        }
+
+        /* 安裝教學標題 */
+        .install-guide-title {
             color: var(--text-color);                     /* 白色文字 */
-            font-size: 16px;                              /* 標準字體 */
+            font-size: var(--font-size-xl);               /* 特大字體 */
+            font-weight: bold;                            /* 粗體 */
+        }
+
+        /* 安裝教學內容區（可捲動） */
+        .install-guide-content {
+            flex: 1;                                      /* 佔據剩餘空間 */
+            overflow-y: auto;                             /* 內容過長時自行捲動 */
+            -webkit-overflow-scrolling: touch;            /* iOS 慣性捲動 */
+        }
+
+        /* 開場說明文字 */
+        .install-guide-lead {
+            color: var(--text-color);                     /* 白色文字 */
+            font-size: var(--font-size-md);               /* 中字體 */
             line-height: 1.6;                             /* 行高 */
-            margin-bottom: 25px;                          /* 底部間距 */
+            margin-bottom: 18px;                          /* 底部間距 */
+            text-align: center;                           /* 置中 */
+        }
+
+        /* 提醒方塊（LINE 內建瀏覽器 / 已安裝提示，預設隱藏） */
+        .install-guide-notice {
+            display: none;                                /* 預設隱藏，由程式決定是否顯示 */
+            background: var(--secondary-color);           /* 次要背景色 */
+            border-left: 4px solid var(--accent-color);   /* 左側橘色標記 */
+            border-radius: var(--border-radius-md);       /* 中圓角 */
+            padding: 12px 14px;                           /* 內距 */
+            margin-bottom: 18px;                          /* 底部間距 */
+            color: var(--text-color);                     /* 白色文字 */
+            font-size: 14px;                              /* 小字體 */
+            line-height: 1.7;                             /* 行高 */
+            text-align: left;                             /* 左對齊 */
+        }
+
+        /* 提醒方塊顯示狀態 */
+        .install-guide-notice.show {
+            display: block;                               /* 顯示 */
+        }
+
+        /* 一鍵安裝按鈕（只有瀏覽器願意給安裝資格時才出現） */
+        .install-guide-action {
+            display: none;                                /* 預設隱藏 */
+            width: 100%;                                  /* 滿寬度 */
+            box-sizing: border-box;                       /* 邊框盒模型 */
+            background: var(--accent-color);              /* 橘色底 */
+            color: #1a1a1a;                               /* 深色文字確保對比 */
+            border: none;                                 /* 無邊框 */
+            border-radius: var(--border-radius-md);       /* 中圓角 */
+            padding: 14px;                                /* 內距 */
+            font-size: var(--font-size-lg);               /* 大字體 */
+            font-weight: bold;                            /* 粗體 */
+            cursor: pointer;                              /* 指標樣式 */
+            margin-bottom: 18px;                          /* 底部間距 */
+        }
+
+        /* 一鍵安裝按鈕顯示狀態 */
+        .install-guide-action.show {
+            display: block;                               /* 顯示 */
+        }
+
+        /* 一鍵安裝按鈕按下效果 */
+        .install-guide-action:active {
+            opacity: 0.8;                                 /* 按下時淡化 */
         }
 
         /* 操作系統區塊 */
@@ -578,9 +664,17 @@
             font-weight: bold;                            /* 粗體 */
         }
 
-        /* 隱藏安裝引導畫面 */
-        .install-prompt-overlay.hidden {
-            display: none;                                 /* 完全隱藏 */
+        /* ============================================
+        * 開啟瞬間的畫面保護
+        * --------------------------------------------
+        * 原本那片全螢幕安裝遮罩，順便蓋住了「先顯示計算頁、再跳到上次停留頁」
+        * 的那一下閃動。遮罩拿掉之後改由這個 class 接手：
+        *   還原頁面之前先把內容藏起來，還原完成立刻放行。
+        * html 上的 booting 是由 <head> 的程式碼加上去的，
+        * 所以瀏覽器不支援或關閉程式碼時完全不受影響，畫面照常顯示。
+        * ============================================ */
+        html.booting .content-container {
+            visibility: hidden;                            /* 只是先不畫出來，版面高度完全不變 */
         }
 
         /* ============================================
@@ -875,54 +969,81 @@
     <!-- ============================================
     * PWA 安裝引導畫面
     * ============================================ -->
-    <div class="install-prompt-overlay" id="installPromptOverlay">
-        <div class="install-prompt-container">
-            <!-- 標題：連續點擊4次可關閉（隱藏功能） -->
-            <h2 class="install-prompt-title" id="installPromptTitle">
-                安裝工具
-            </h2>
-            
-            <p class="install-prompt-text">
-                請依照以下指引安裝應用程式
-            </p>
-            
-            <!-- iOS 安裝說明 -->
-            <div class="install-os-section" id="iosSection">
-                <div class="install-os-title">
-                    iPhone / iPad
-                </div>
-                <ol class="install-steps">
-                    <li>點擊瀏覽器底部的 <span class="install-highlight">分享按鈕</span> ⬆️</li>
-                    <li>在選單中向下滑動</li>
-                    <li>點選 <span class="install-highlight">「加入主畫面」</span></li>
-                    <li>點擊右上角的 <span class="install-highlight">「加入」</span></li>
-                </ol>
+    <!-- ============================================
+    * 安裝教學彈窗（預設隱藏，只從主選單開啟）
+    * ============================================ -->
+    <div class="install-guide-overlay" id="installGuideOverlay">
+        <div class="install-guide-container">
+            <!-- 頂部：標題與關閉鍵 -->
+            <div class="install-guide-header">
+                <h2 class="install-guide-title">安裝手機應用程式</h2>
+                <button class="main-menu-close" id="installGuideClose">✕</button>
             </div>
-            
-            <!-- Android 安裝說明 -->
-            <div class="install-os-section" id="androidSection">
-                <div class="install-os-title">
-                    Android
+
+            <!-- 內容區（過長時可捲動） -->
+            <div class="install-guide-content">
+
+                <p class="install-guide-lead">
+                    安裝到桌面後全螢幕顯示，<br>沒有網址列，畫面更大、開啟更快。
+                </p>
+
+                <!-- 提醒方塊：目前用 LINE 等內建瀏覽器開啟，裝不起來 -->
+                <div class="install-guide-notice" id="installNoticeInApp">
+                    你現在是從 <span class="install-highlight">LINE 內建的瀏覽器</span> 開啟這個網頁，
+                    這種瀏覽器無法安裝到桌面。<br>
+                    請先點右上角的 <span class="install-highlight">⋯</span>，
+                    選擇「<span class="install-highlight">用其他瀏覽器開啟</span>」
+                    （Android 選 Chrome、iPhone 選 Safari），再回到主選單安裝。
                 </div>
-                <ol class="install-steps">
-                    <li>點擊瀏覽器右上角的 <span class="install-highlight">選單按鈕</span> ⋮</li>
-                    <li>選擇 <span class="install-highlight">「安裝應用程式」</span></li>
-                    <li>或選擇 <span class="install-highlight">「加到主畫面」</span></li>
-                    <li>點擊 <span class="install-highlight">「安裝」</span> 確認</li>
-                </ol>
-            </div>
-            
-            <!-- 電腦版 Chrome 安裝說明 -->
-            <div class="install-os-section" id="desktopSection">
-                <div class="install-os-title">
-                    電腦版瀏覽器
+
+                <!-- 提醒方塊：已經在應用程式裡面了 -->
+                <div class="install-guide-notice" id="installNoticeInstalled">
+                    你目前已經是用安裝好的應用程式開啟，不需要再安裝一次。
                 </div>
-                <ol class="install-steps">
-                    <li>點擊網址列右側的 <span class="install-highlight">安裝圖示</span> ⊕</li>
-                    <li>或點擊右上角 <span class="install-highlight">選單</span> ⋮</li>
-                    <li>選擇 <span class="install-highlight">「安裝工具」</span></li>
-                    <li>點擊 <span class="install-highlight">「安裝」</span> 確認</li>
-                </ol>
+
+                <!-- 一鍵安裝：只有瀏覽器願意給安裝資格時才會出現 -->
+                <button class="install-guide-action" id="installGuideAction">
+                    幫我安裝
+                </button>
+
+                <!-- iOS 安裝說明 -->
+                <div class="install-os-section" id="iosSection">
+                    <div class="install-os-title">
+                        iPhone / iPad
+                    </div>
+                    <ol class="install-steps">
+                        <li>點擊瀏覽器底部的 <span class="install-highlight">分享按鈕</span> ⬆️</li>
+                        <li>在選單中向下滑動</li>
+                        <li>點選 <span class="install-highlight">「加入主畫面」</span></li>
+                        <li>點擊右上角的 <span class="install-highlight">「加入」</span></li>
+                    </ol>
+                </div>
+
+                <!-- Android 安裝說明 -->
+                <div class="install-os-section" id="androidSection">
+                    <div class="install-os-title">
+                        Android
+                    </div>
+                    <ol class="install-steps">
+                        <li>點擊瀏覽器右上角的 <span class="install-highlight">選單按鈕</span> ⋮</li>
+                        <li>選擇 <span class="install-highlight">「安裝應用程式」</span></li>
+                        <li>或選擇 <span class="install-highlight">「加到主畫面」</span></li>
+                        <li>點擊 <span class="install-highlight">「安裝」</span> 確認</li>
+                    </ol>
+                </div>
+
+                <!-- 電腦版 Chrome 安裝說明 -->
+                <div class="install-os-section" id="desktopSection">
+                    <div class="install-os-title">
+                        電腦版瀏覽器
+                    </div>
+                    <ol class="install-steps">
+                        <li>點擊網址列右側的 <span class="install-highlight">安裝圖示</span> ⊕</li>
+                        <li>或點擊右上角 <span class="install-highlight">選單</span> ⋮</li>
+                        <li>選擇 <span class="install-highlight">「安裝工具」</span></li>
+                        <li>點擊 <span class="install-highlight">「安裝」</span> 確認</li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
@@ -963,6 +1084,19 @@
                         <li class="menu-item">
                             <a href="#" class="menu-item-link" data-instruction="gas">
                                 加油優惠報價
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 應用程式區塊：安裝入口
+                     已經用應用程式開啟的人看不到這一整塊（由程式判斷後隱藏） -->
+                <div class="menu-section" id="installMenuSection">
+                    <h3 class="menu-section-title">應用程式</h3>
+                    <ul class="menu-items">
+                        <li class="menu-item">
+                            <a href="#" class="menu-item-link" data-install-guide="true">
+                                安裝手機應用程式
                             </a>
                         </li>
                     </ul>
@@ -1143,6 +1277,10 @@
             } else {
                 rememberCurrentPage(initialPage);           // 已經在目標頁，只需同步網址與儲存狀態
             }
+
+            // 頁面已經指到正確位置，解除 <head> 加上的載入保護，讓畫面顯示出來。
+            // 這一行跑在瀏覽器第一次繪製之前，所以使用者不會看到中間的切換過程。
+            document.documentElement.classList.remove('booting');
         }
 
         // ============================================
@@ -1152,8 +1290,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('貸款業務工具箱 - 頁面初始化開始');
             
-            // 初始化安裝引導畫面（新增的）
-            initializeInstallPrompt();
+            // 初始化安裝教學（只準備資料，不會主動彈出任何東西）
+            initializeInstallGuide();
 
             // 初始化主選單功能
             initializeMainMenu();
@@ -1172,119 +1310,242 @@
 
 
         // ============================================
-        // PWA 安裝引導畫面控制
+        // 安裝教學控制
+        // --------------------------------------------
+        // 2026/07 改版說明：
+        //   舊版是「一打開網頁就整片蓋住，不安裝就用不了」。
+        //   現在完全不主動彈出任何東西，安裝教學改放進主選單，
+        //   使用者想裝的時候自己點進來。
         // ============================================
 
         // 立即還原到上次所在的頁面
         // 放在這裡（而不是 DOMContentLoaded）是為了避免畫面先閃一下計算頁再跳走
         restoreInitialPage();
 
+        // 瀏覽器願意讓這個網頁安裝時，會丟一個「安裝機會」過來，先接住存著。
+        // 這個東西只有 Android 與電腦版 Chrome 這類瀏覽器才會給，而且不一定會給
+        // （例如已經裝過、或瀏覽器判斷時機不對），所以絕對不能假設它一定存在。
+        let deferredInstallPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', function (event) {
+            event.preventDefault();                         // 擋掉瀏覽器自己的小橫幅，改由我們的按鈕觸發
+            deferredInstallPrompt = event;                  // 存起來，等使用者點「幫我安裝」時再用
+            refreshInstallActionButton();                   // 讓按鈕即時出現（可能教學已經開著）
+            console.log('已取得安裝資格，一鍵安裝可用');
+        });
+
+        // 安裝完成後把安裝機會作廢，並把入口收起來
+        window.addEventListener('appinstalled', function () {
+            deferredInstallPrompt = null;
+            refreshInstallActionButton();
+            hideInstallMenuEntry();
+            console.log('應用程式安裝完成');
+        });
+
         /**
-         * 初始化 PWA 安裝引導畫面
-         * 檢測是否已安裝為 PWA，控制顯示邏輯
+         * 是不是已經用安裝好的應用程式開啟
+         * @returns {boolean}
          */
-        function initializeInstallPrompt() {
-            const installOverlay = document.getElementById('installPromptOverlay');
-            const installTitle = document.getElementById('installPromptTitle');
-            
-            // 檢測是否為 PWA 模式（已安裝的應用程式）
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                        window.navigator.standalone === true;  // iOS 檢測
-            
-            // 檢測作業系統類型
-            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const isAndroid = /Android/.test(navigator.userAgent);
-            const isDesktop = !isIOS && !isAndroid;
-            
-            // 根據作業系統顯示對應的安裝說明
-            const iosSection = document.getElementById('iosSection');
-            const androidSection = document.getElementById('androidSection');
-            const desktopSection = document.getElementById('desktopSection');
-            
-            // 預設隱藏所有區塊
-            iosSection.style.display = 'none';
-            androidSection.style.display = 'none';
-            desktopSection.style.display = 'none';
-            
-            // 顯示對應的操作系統說明
-            if (isIOS) {
-                iosSection.style.display = 'block';
-            } else if (isAndroid) {
-                androidSection.style.display = 'block';
+        function isRunningAsApp() {
+            return window.matchMedia('(display-mode: standalone)').matches ||
+                   window.navigator.standalone === true;    // iPhone / iPad 專用的判斷方式
+        }
+
+        /**
+         * 判斷目前的裝置種類
+         *
+         * 有一個蘋果的坑要處理：iPad 用 Safari 開網頁時會謊報自己是 Mac 電腦，
+         * 光看瀏覽器回報的字串會把 iPad 當成桌機，顯示對不上的教學。
+         * 補救方式是再看「螢幕能不能多點觸控」，桌上型 Mac 不會有這個能力。
+         *
+         * @returns {string} 'ios' / 'android' / 'desktop'
+         */
+        function detectPlatform() {
+            const ua = navigator.userAgent || '';
+
+            if (/Android/i.test(ua)) {
+                return 'android';
+            }
+
+            if (/iPhone|iPad|iPod/i.test(ua)) {
+                return 'ios';
+            }
+
+            // 自稱 Mac，但螢幕支援多點觸控 → 其實是偽裝成電腦的 iPad
+            if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) {
+                return 'ios';
+            }
+
+            return 'desktop';
+        }
+
+        /**
+         * 判斷是不是從 LINE、Facebook 這類 App 的內建瀏覽器開啟
+         *
+         * 這件事很重要：業務之間傳網址幾乎都用 LINE，而 LINE 內建的瀏覽器
+         * 不管在 Android 還是 iPhone 都無法把網頁安裝到桌面。
+         * 使用者會照著步驟找不到按鈕然後放棄，所以要先講清楚。
+         *
+         * @returns {boolean}
+         */
+        function isInAppBrowser() {
+            const ua = navigator.userAgent || '';
+            return /\bLine\//i.test(ua) ||                  // LINE
+                   /FBAN|FBAV|FB_IAB/i.test(ua) ||          // Facebook / Messenger
+                   /Instagram/i.test(ua);                   // Instagram
+        }
+
+        /**
+         * 依目前狀態決定「幫我安裝」按鈕要不要出現
+         *
+         * 只有真的拿得到安裝資格才顯示。拿不到就完全不顯示，
+         * 使用者看到的是下面的手動步驟，不會發生「按了沒反應」。
+         */
+        function refreshInstallActionButton() {
+            const actionButton = document.getElementById('installGuideAction');
+            if (!actionButton) return;
+
+            if (deferredInstallPrompt) {
+                actionButton.classList.add('show');
             } else {
-                desktopSection.style.display = 'block';
-            }
-            
-            // 如果已經是 PWA 模式，直接隱藏引導畫面
-            if (isPWA) {
-                installOverlay.classList.add('hidden');
-                console.log('已偵測到 PWA 模式，隱藏安裝引導');
-                return;
-            }
-            
-            // 如果不是 PWA 模式，顯示引導畫面
-            console.log('非 PWA 模式，顯示安裝引導');
-            
-            // ============================================
-            // 隱藏功能：連續點擊標題 4 次關閉引導畫面
-            // ============================================
-            
-            let clickCount = 0;                    // 點擊計數器
-            let clickTimer = null;                 // 計時器
-            
-            // 為標題綁定點擊事件
-            installTitle.addEventListener('click', function(e) {
-                e.preventDefault();                 // 防止預設行為
-                
-                clickCount++;                       // 增加點擊次數
-                
-                // 清除之前的計時器
-                if (clickTimer) {
-                    clearTimeout(clickTimer);
-                }
-                
-                // 檢查是否達到 4 次點擊
-                if (clickCount >= 4) {
-                    console.log('觸發隱藏功能：關閉安裝引導畫面');
-                    
-                    // 添加淡出動畫後隱藏
-                    installOverlay.style.animation = 'fadeOut 0.3s forwards';
-                    
-                    setTimeout(() => {
-                        installOverlay.classList.add('hidden');
-                        // 儲存關閉狀態到本地存儲（可選）
-                        localStorage.setItem('installPromptDismissed', 'true');
-                    }, 300);
-                    
-                    // 重置計數器
-                    clickCount = 0;
-                }
-                
-                // 設置計時器：2秒後重置計數器
-                clickTimer = setTimeout(() => {
-                    clickCount = 0;                 // 重置計數
-                    console.log('點擊計數器已重置');
-                }, 2000);  // 2秒內要完成4次點擊
-            });
-            
-            // 檢查是否曾經關閉過引導畫面（可選功能）
-            const wasDismissed = localStorage.getItem('installPromptDismissed');
-            if (wasDismissed === 'true') {
-                // 如果使用者曾經關閉過，可以選擇直接隱藏
-                // installOverlay.classList.add('hidden');
-                // 或者仍然顯示，讓使用者自行決定
+                actionButton.classList.remove('show');
             }
         }
 
-        // 添加淡出動畫定義
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
+        /**
+         * 把主選單裡的安裝入口整塊收起來（已經在用應用程式的人不需要看到）
+         */
+        function hideInstallMenuEntry() {
+            const menuSection = document.getElementById('installMenuSection');
+            if (menuSection) {
+                menuSection.style.display = 'none';
             }
-        `;
-        document.head.appendChild(style);
+        }
+
+        /**
+         * 初始化安裝教學
+         * 注意：這裡只做準備，不會主動顯示任何畫面
+         */
+        function initializeInstallGuide() {
+            // 已經用應用程式開啟的人，主選單不用出現安裝入口
+            if (isRunningAsApp()) {
+                hideInstallMenuEntry();
+                console.log('目前以應用程式模式執行，隱藏安裝入口');
+            }
+
+            // 關閉鍵
+            const closeButton = document.getElementById('installGuideClose');
+            if (closeButton) {
+                closeButton.addEventListener('click', closeInstallGuide);
+            }
+
+            // 點遮罩空白處也可以關閉
+            const overlay = document.getElementById('installGuideOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) {
+                        closeInstallGuide();
+                    }
+                });
+            }
+
+            // 一鍵安裝
+            const actionButton = document.getElementById('installGuideAction');
+            if (actionButton) {
+                actionButton.addEventListener('click', triggerInstall);
+            }
+        }
+
+        /**
+         * 開啟安裝教學彈窗
+         * 每次開啟都重新判斷一次環境，因為使用者可能換了瀏覽器再回來
+         */
+        function openInstallGuide() {
+            const overlay = document.getElementById('installGuideOverlay');
+            if (!overlay) return;
+
+            const platform = detectPlatform();
+
+            // 依裝置只顯示對應的那一段說明
+            const sections = {
+                ios: document.getElementById('iosSection'),
+                android: document.getElementById('androidSection'),
+                desktop: document.getElementById('desktopSection')
+            };
+
+            Object.keys(sections).forEach(function (key) {
+                if (sections[key]) {
+                    sections[key].style.display = (key === platform) ? 'block' : 'none';
+                }
+            });
+
+            // LINE 等內建瀏覽器的提醒：擺在最上面，因為在這裡怎麼做都裝不起來
+            const inAppNotice = document.getElementById('installNoticeInApp');
+            if (inAppNotice) {
+                inAppNotice.classList.toggle('show', isInAppBrowser());
+            }
+
+            // 已經在應用程式裡面的提醒（正常情況下入口已隱藏，這是保險）
+            const installedNotice = document.getElementById('installNoticeInstalled');
+            if (installedNotice) {
+                installedNotice.classList.toggle('show', isRunningAsApp());
+            }
+
+            // 一鍵安裝按鈕
+            refreshInstallActionButton();
+
+            // 顯示（兩段式動畫，與主選單一致）
+            overlay.classList.add('show');
+            setTimeout(function () {
+                overlay.classList.add('active');
+            }, 10);
+
+            console.log('安裝教學已開啟，裝置類型：' + platform);
+        }
+
+        /**
+         * 關閉安裝教學彈窗
+         */
+        function closeInstallGuide() {
+            const overlay = document.getElementById('installGuideOverlay');
+            if (!overlay) return;
+
+            overlay.classList.remove('active');
+            setTimeout(function () {
+                overlay.classList.remove('show');
+            }, 200);
+        }
+
+        /**
+         * 觸發系統的安裝視窗（只有拿得到安裝資格時才會走到這裡）
+         */
+        function triggerInstall() {
+            if (!deferredInstallPrompt) {
+                // 理論上按鈕這時候是隱藏的，走到這裡代表資格中途失效，
+                // 直接把按鈕收起來，讓使用者改看下面的手動步驟
+                refreshInstallActionButton();
+                return;
+            }
+
+            deferredInstallPrompt.prompt();                 // 叫出系統的安裝視窗
+
+            deferredInstallPrompt.userChoice
+                .then(function (choice) {
+                    console.log('使用者的安裝選擇：' + choice.outcome);
+
+                    if (choice.outcome === 'accepted') {
+                        closeInstallGuide();
+                    }
+                })
+                .catch(function (error) {
+                    console.warn('安裝流程發生問題', error);
+                })
+                .finally(function () {
+                    // 安裝機會只能用一次，用過就作廢
+                    deferredInstallPrompt = null;
+                    refreshInstallActionButton();
+                });
+        }
 
         // ============================================
         // 導航功能初始化
@@ -1592,6 +1853,9 @@
                         
                         // 開啟外部連結後關閉主選單
                         closeMainMenu();
+                    } else if (this.getAttribute('data-install-guide') === 'true') {
+                        // 處理安裝手機應用程式 - 開啟安裝教學彈窗
+                        openInstallGuide();
                     } else {
                         // 處理Privacy Policy連結 - 新增功能
                         const isPrivacyPolicy = this.getAttribute('data-privacy-policy');
@@ -1621,9 +1885,15 @@
                     const termsIframe = document.getElementById('termsOfServiceIframe');
                     // 檢查Privacy Policy iframe是否存在並顯示中
                     const privacyIframe = document.getElementById('privacyPolicyIframe');
-                    
-                    // 最優先關閉Terms of Service頁面
-                    if (termsIframe && termsIframe.classList.contains('show')) {
+                    // 檢查安裝教學彈窗是否顯示中
+                    const installGuide = document.getElementById('installGuideOverlay');
+
+                    // 安裝教學蓋在最上層，最優先關閉
+                    if (installGuide && installGuide.classList.contains('show')) {
+                        closeInstallGuide();
+                    }
+                    // 其次關閉Terms of Service頁面
+                    else if (termsIframe && termsIframe.classList.contains('show')) {
                         closeTermsOfService();
                     }
                     // 其次關閉Privacy Policy頁面
