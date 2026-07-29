@@ -1,0 +1,10 @@
+{
+  "updatedAt": "2026-07-29T23:26:01.374784+08:00",
+  "updatedDateStr": "2026/07/29",
+  "count": 1710258,
+  "shards": 965,
+  "prefixLen": 3,
+  "source": "財政部財政資訊中心 - 全國營業(稅籍)登記資料集",
+  "sourceUrl": "https://data.gov.tw/dataset/9400",
+  "license": "政府資料開放授權條款-第1版"
+}

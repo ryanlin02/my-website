@@ -34,6 +34,7 @@ import io
 import json
 import os
 import shutil
+import ssl
 import sys
 import tempfile
 import urllib.error
@@ -80,11 +81,38 @@ REQUEST_HEADERS = {
 }
 
 
+def build_ssl_context():
+    """建立連線用的 SSL 設定
+
+    【為什麼要自己建，不用預設的】
+    Python 3.13 起，create_default_context() 預設打開 VERIFY_X509_STRICT，
+    也就是嚴格照 RFC 5280 檢查憑證的每個欄位。財政部這台主機的憑證鏈裡
+    有一張 CA 憑證少了 Subject Key Identifier（台灣本地 CA 簽的舊憑證
+    很常見），於是連線在握手階段就被擋下：
+
+        [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
+        Missing Subject Key Identifier
+
+    這與「憑證是假的」完全是兩回事 —— 憑證本身有效、主機名稱也對得上，
+    只是欄位不齊全。所以這裡只關掉那個額外的嚴格檢查，
+    憑證信任鏈與主機名稱驗證全部保留（絕不用 _create_unverified_context，
+    那等於整個不驗，任何人都能冒充這個網域）。
+    """
+    context = ssl.create_default_context()
+    strict = getattr(ssl, "VERIFY_X509_STRICT", 0)
+    if strict:
+        context.verify_flags &= ~strict
+    return context
+
+
+SSL_CONTEXT = build_ssl_context()
+
+
 def fetch(url, timeout):
     """抓一個網址，回傳 bytes。失敗時把狀態碼與原因寫進訊息裡，方便看 log 判斷。"""
     request = urllib.request.Request(url, headers=REQUEST_HEADERS)
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with urllib.request.urlopen(request, timeout=timeout, context=SSL_CONTEXT) as response:
             return response.read()
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"HTTP {e.code} {e.reason}") from e
