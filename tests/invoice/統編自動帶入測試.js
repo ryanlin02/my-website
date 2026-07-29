@@ -102,6 +102,7 @@ function typeDigits(digits) {
 
 function typeTaxId(digits) {
     click($('fTaxId'));                       // 開鍵盤
+    window.calculatorClear();                 // 欄位已有號碼時要先清掉（8 碼滿了就打不進去）
     typeDigits(digits);
     const typed = $('calculatorDisplay').textContent.trim();
     T.submitCalculatorValue();                // 確認輸入
@@ -111,6 +112,7 @@ function typeTaxId(digits) {
 function reset() {
     T.state.taxId = '';
     T.state.title = '';
+    T.state.titleFrom = null;
     window.localStorage.clear();
     T.render();
 }
@@ -155,10 +157,46 @@ function reset() {
 
     console.log('\n=== 6. 使用者已經自己填了抬頭，就不要覆蓋他 ===');
     reset();
-    T.state.title = '我自己打的抬頭';
+    T.state.title = '我自己打的抬頭';       // titleFrom 維持 null＝使用者自己打的
     typeTaxId('16003518');
     await wait(30);
     ok(T.state.title === '我自己打的抬頭', '不覆蓋使用者輸入的抬頭',
+        '實得 ' + T.state.title);
+
+    /* 這一段是 2026/07 發現的實際狀況：
+       查完 A 公司之後改查 B 公司，抬頭一直停在 A 公司。
+       原因是「不覆蓋使用者的抬頭」只判斷抬頭是不是空的，
+       而上一次自動帶入的抬頭讓它不再是空的。
+       那張發票的統編與抬頭會是不同公司，畫面上完全看不出異常。 */
+    console.log('\n=== 6-2. 換一組統編時，自動帶入的抬頭要跟著換 ===');
+    reset();
+    typeTaxId('04541302');
+    await wait(30);
+    ok(T.state.title === '鴻海精密工業股份有限公司', '先查到第一家',
+        '實得 ' + T.state.title);
+
+    typeTaxId('16003518');
+    await wait(30);
+    ok(T.state.title === '宏達國際電子股份有限公司', '再查另一家，抬頭跟著換掉',
+        '實得 ' + T.state.title);
+
+    /* 換成查不到的統編時，舊抬頭一定要清掉 —— 留著會變成張冠李戴的發票。
+       這裡用 22099131（檢查碼合法、但不在假索引裡），因為檢查碼不合法的號碼
+       走的是另一條路（只跳提示、完全不動抬頭）。 */
+    typeTaxId('22099131');
+    await wait(30);
+    ok(T.state.title === '', '換成查不到的統編時，舊公司的抬頭會清掉',
+        '實得 ' + JSON.stringify(T.state.title));
+
+    // 使用者自己改過抬頭之後，就再也不會被自動覆蓋
+    reset();
+    typeTaxId('04541302');
+    await wait(30);
+    T.state.titleFrom = null;              // 模擬使用者手動改過抬頭
+    T.state.title = '手動改過的抬頭';
+    typeTaxId('16003518');
+    await wait(30);
+    ok(T.state.title === '手動改過的抬頭', '手動改過之後就不再自動覆蓋',
         '實得 ' + T.state.title);
 
     console.log('\n=== 7. 索引查不到時安靜略過，不擋使用者 ===');

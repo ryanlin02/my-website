@@ -492,21 +492,40 @@ body { padding-bottom: 12px !important; }
 }
 .zoom-overlay.show { display: block; }
 
+/* ------------------------------------------------------------
+ * 【2026/07 改寫：位移與縮放全部自己算，不再靠瀏覽器捲動】
+ *
+ * 舊版是 overflow: auto + flex 置中。這兩件事湊在一起有個經典陷阱：
+ * 內容比容器大時，被置中擠到「上方與左方」的部分是捲不到的
+ * （捲動範圍不含負值），所以放大之後永遠看不到發票的左上角 ——
+ * ＋／－ 兩顆鍵因此形同虛設，這也是它們被移除的原因。
+ *
+ * 現在改成 overflow: hidden，位置由 transform 控制，範圍自己夾住，
+ * 四個角都到得了；同一套座標也直接支援雙指縮放與滾輪縮放。
+ *
+ * touch-action: none 是必要的：不交出手勢控制權，瀏覽器就不會
+ * 在雙指縮放到一半時把手勢搶去做頁面捲動。
+ * ------------------------------------------------------------ */
 .zoom-stage {
     position: absolute;
     inset: 0;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
+    touch-action: none;
+    cursor: grab;
 }
+.zoom-stage.dragging { cursor: grabbing; }
 
 .zoom-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
     background: #ffffff;
-    transform-origin: center center;
-    flex: 0 0 auto;
+    transform-origin: 0 0;
+    will-change: transform;
 }
+
+/* 旋轉獨立一層：捏放大時只動外層的 transform，不必重畫整張發票 */
+.zoom-rot { transform-origin: 0 0; }
 .zoom-paper svg { display: block; }
 
 .zoom-bar {
@@ -521,6 +540,17 @@ body { padding-bottom: 12px !important; }
     padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
     background: rgba(34, 34, 34, .94);
     border-top: 1px solid var(--border-color);
+}
+
+/* 手勢是看不見的，所以在工具列上直接寫出來。
+   桌機沒有觸控時由 JS 換成「滾輪縮放」。 */
+.zoom-hint {
+    flex: 0 0 auto;
+    align-self: center;
+    padding: 0 8px 0 4px;
+    font-size: 11px;
+    color: #9a9a9a;
+    white-space: nowrap;
 }
 
 .zoom-bar button {

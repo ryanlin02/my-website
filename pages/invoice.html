@@ -201,12 +201,18 @@
      =================================================================== -->
 <div class="zoom-overlay" id="zoomOverlay">
     <div class="zoom-stage" id="zoomStage">
-        <div class="zoom-paper" id="zoomPaper"></div>
+        <!-- zoom-paper 負責平移與縮放，zoom-rot 只負責旋轉。
+             兩層分開，捏放大時只要改外層的 transform，不必重畫發票。 -->
+        <div class="zoom-paper" id="zoomPaper">
+            <div class="zoom-rot" id="zoomRot"></div>
+        </div>
     </div>
     <div class="zoom-bar">
+        <!-- ＋／－ 已移除：改成雙指縮放與滾輪縮放。
+             那兩顆鍵原本就無法搭配移動使用（放大後看不到左上角），
+             留著只會佔掉其他三顆鍵的寬度。 -->
+        <span class="zoom-hint" id="zoomHint">雙指縮放・拖曳移動</span>
         <button id="zRotate">旋轉</button>
-        <button id="zOut">－</button>
-        <button id="zIn">＋</button>
         <button id="zFit">符合</button>
         <button class="close" id="zClose">關閉</button>
     </div>

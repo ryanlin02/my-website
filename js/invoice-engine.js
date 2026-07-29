@@ -51,6 +51,23 @@ const state = {
     type: '3',          // '3' 三聯式（開給公司）/ '2' 二聯式（開給個人）
     taxId: '',
     title: '',
+
+    /**
+     * 目前這個抬頭是「哪一組統編自動帶出來的」，使用者自己打的則為 null。
+     *
+     * 【為什麼需要記這件事】
+     * 自動帶入抬頭有一條規則：使用者已經自己填了抬頭就不要覆蓋他。
+     * 但原本的判斷只看「抬頭是不是空的」，於是查完 A 公司之後再改成
+     * B 公司的統編，抬頭會一直停在 A 公司 —— 因為它已經不是空的了。
+     * 那張發票的統編與抬頭會是不同公司，而且畫面上完全看不出異常。
+     *
+     * 記下來源之後就分得清楚：自動帶入的可以被下一次查詢取代，
+     * 手動打的永遠不動。
+     *
+     * 存檔與分享連結刻意不保存這個欄位 —— 讀回來的抬頭一律當成
+     * 使用者確認過的，不會被自動覆蓋，這是比較安全的預設。
+     */
+    titleFrom: null,
     date: null,         // {y,m,d} 民國年。null 代表跟著今天走
     items: [{ name: DEFAULT_ITEM_NAME, qty: 1, price: 0 }],
 
@@ -748,47 +765,190 @@ function renderPreview() {
    「是不是手機」：桌機、平板、手機轉向全部自動正確，
    也不會因為裝置判斷失準而轉錯方向。
    ============================================================ */
-const zoom = { rot: 0, scale: 1 };
+/* zoom 的座標系統
+     rot   0 或 90，發票本身要不要轉向
+     scale 目前縮放倍率
+     fit   「符合」時的倍率，同時也是縮小的下限依據
+     tx/ty 紙張左上角相對可視區左上角的位移（px，未經縮放的畫面座標）
+
+   紙張的 transform 一律是 translate(tx,ty) scale(scale)，原點在左上角。
+   以左上角為原點的好處是：所有換算都只是加減乘除，
+   不必去猜「center center」在縮放後跑到哪裡。 */
+const zoom = { rot: 0, scale: 1, fit: 1, tx: 0, ty: 0 };
+
+const ZOOM_MAX = 8;          // 再放大就只是看到鋸齒，沒有意義
+const ZOOM_MIN_RATIO = 0.6;  // 最小可縮到「符合」的 0.6 倍，留一點退遠的餘裕
+
+/** 可視區大小（扣掉底部工具列，不然發票下緣會被蓋住） */
+function zoomView() {
+    const stage = $('zoomStage');
+    const bar = document.querySelector('.zoom-bar');
+    return {
+        w: Math.max(1, stage.clientWidth - 8),
+        h: Math.max(1, stage.clientHeight - (bar ? bar.offsetHeight : 56) - 8)
+    };
+}
+
+/** 旋轉後的紙張尺寸（未縮放） */
+function zoomPaperSize() {
+    const n = natSize();
+    return zoom.rot === 90 ? { w: n.h, h: n.w } : { w: n.w, h: n.h };
+}
+
+/**
+ * 把位移夾在合理範圍內
+ *
+ * 這是舊版做不到的事：舊版靠瀏覽器捲動，而捲動範圍不含負值，
+ * 被置中擠到上方與左方的部分永遠碰不到。自己算就沒有這個限制 ——
+ * 放得下時置中，放不下時允許一路拖到每一個邊界，四個角都到得了。
+ */
+function clampZoomPan() {
+    const v = zoomView();
+    const p = zoomPaperSize();
+    const w = p.w * zoom.scale;
+    const h = p.h * zoom.scale;
+
+    zoom.tx = w <= v.w ? (v.w - w) / 2 : Math.min(0, Math.max(v.w - w, zoom.tx));
+    zoom.ty = h <= v.h ? (v.h - h) / 2 : Math.min(0, Math.max(v.h - h, zoom.ty));
+}
+
+/** 只改 transform —— 不重畫 SVG，捏放大才會跟手 */
+function applyZoom() {
+    clampZoomPan();
+    $('zoomPaper').style.transform =
+        `translate(${zoom.tx}px, ${zoom.ty}px) scale(${zoom.scale})`;
+}
+
+/**
+ * 以畫面上某一點為錨點縮放
+ *
+ * 錨點在畫面上的位置維持不動，這是「捏哪裡就以哪裡為中心放大」
+ * 與「滾輪在游標處縮放」共用的同一套算式。
+ */
+function zoomTo(nextScale, px, py) {
+    const min = zoom.fit * ZOOM_MIN_RATIO;
+    const s1 = Math.max(min, Math.min(ZOOM_MAX, nextScale));
+    const ratio = s1 / zoom.scale;
+
+    zoom.tx = px - (px - zoom.tx) * ratio;
+    zoom.ty = py - (py - zoom.ty) * ratio;
+    zoom.scale = s1;
+    applyZoom();
+}
+
+/** 重畫發票內容（只有開啟與旋轉時需要） */
+function renderZoomPaper() {
+    const n = natSize();
+    const p = zoomPaperSize();
+
+    const paper = $('zoomPaper');
+    paper.style.width = p.w + 'px';
+    paper.style.height = p.h + 'px';
+
+    const rot = $('zoomRot');
+    rot.style.width = n.w + 'px';
+    rot.style.height = n.h + 'px';
+    // 以左上角為原點轉 90 度後，整張會落在左側外面，往右推一個高度補回來
+    rot.style.transform = zoom.rot === 90 ? `translate(${n.h}px, 0) rotate(90deg)` : 'none';
+    rot.innerHTML = buildSvg();
+}
+
+function fitZoom() {
+    const v = zoomView();
+    const p = zoomPaperSize();
+    zoom.fit = Math.min(v.w / p.w, v.h / p.h);
+    zoom.scale = zoom.fit;
+    applyZoom();
+}
 
 function openZoom() {
     $('zoomOverlay').classList.add('show');
     const stage = $('zoomStage');
     // 可用區域是直的（手機直握）才轉 90 度，把螢幕長邊讓給發票寬邊
     zoom.rot = stage.clientWidth >= stage.clientHeight ? 0 : 90;
+    renderZoomPaper();
     fitZoom();
     vibrate(30);
 }
 
 function closeZoom() { $('zoomOverlay').classList.remove('show'); }
 
-function applyZoom() {
-    const n = natSize();
-    const s = zoom.scale;
-    const paper = $('zoomPaper');
-    const svg = buildSvg();
+/* ------------------------------------------------------------
+   手勢：單指拖曳移動、雙指縮放、滾輪縮放
+   ------------------------------------------------------------
+   用 Pointer Events 而不是 touch/mouse 兩套 —— 手指、滑鼠、觸控筆
+   都走同一條路徑，不必寫兩份也不會互相打架。
 
-    if (zoom.rot === 90) {
-        // 以左上角為原點旋轉後再平移回可視範圍，
-        // 這樣外框的寬高剛好等於旋轉後的實際佔位，捲動才會正確。
-        paper.style.width = (n.h * s) + 'px';
-        paper.style.height = (n.w * s) + 'px';
-        paper.innerHTML = `<div style="width:${n.w}px;height:${n.h}px;transform-origin:0 0;transform:translate(${n.h * s}px,0) rotate(90deg) scale(${s});">${svg}</div>`;
-    } else {
-        paper.style.width = (n.w * s) + 'px';
-        paper.style.height = (n.h * s) + 'px';
-        paper.innerHTML = `<div style="width:${n.w}px;height:${n.h}px;transform-origin:0 0;transform:scale(${s});">${svg}</div>`;
-    }
+   為什麼一定要自己接手勢：本頁的 viewport 設了 user-scalable=no
+   （整個 App 的前提：畫面不可以被使用者縮放而跑版），加上安裝成 PWA
+   之後瀏覽器本來就不給雙指縮放。所以「捏放大」只能自己做。
+   ------------------------------------------------------------ */
+const zoomPointers = new Map();
+let pinchPrev = null;        // { dist, x, y } 上一幀的雙指距離與中心
+
+/** 事件座標轉成相對可視區左上角的座標 */
+function zoomLocal(e) {
+    const r = $('zoomStage').getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
-function fitZoom() {
+function pinchState() {
+    const [a, b] = [...zoomPointers.values()];
+    return {
+        dist: Math.hypot(a.x - b.x, a.y - b.y),
+        x: (a.x + b.x) / 2,
+        y: (a.y + b.y) / 2
+    };
+}
+
+function onZoomPointerDown(e) {
     const stage = $('zoomStage');
-    const n = natSize();
-    const availW = stage.clientWidth - 8;
-    const availH = stage.clientHeight - 64;   // 扣掉底部工具列
-    const w = zoom.rot === 90 ? n.h : n.w;
-    const h = zoom.rot === 90 ? n.w : n.h;
-    zoom.scale = Math.min(availW / w, availH / h);
+    zoomPointers.set(e.pointerId, zoomLocal(e));
+    /* 抓住指標，手指滑出可視區也還跟得住。
+       包 try：某些瀏覽器在指標已經失效時會丟例外，
+       而這只是體驗上的加分，不該讓整個拖曳掛掉。 */
+    try { stage.setPointerCapture(e.pointerId); } catch (err) { /* 忽略 */ }
+    stage.classList.add('dragging');
+    if (zoomPointers.size === 2) pinchPrev = pinchState();
+}
+
+function onZoomPointerMove(e) {
+    if (!zoomPointers.has(e.pointerId)) return;
+
+    const prev = zoomPointers.get(e.pointerId);
+    const now = zoomLocal(e);
+    zoomPointers.set(e.pointerId, now);
+
+    if (zoomPointers.size >= 2) {
+        const p = pinchState();
+        if (pinchPrev && pinchPrev.dist > 0) {
+            // 先依兩指距離變化縮放，再補上兩指中心自己的位移（捏的同時也能移動）
+            zoomTo(zoom.scale * (p.dist / pinchPrev.dist), p.x, p.y);
+            zoom.tx += p.x - pinchPrev.x;
+            zoom.ty += p.y - pinchPrev.y;
+            applyZoom();
+        }
+        pinchPrev = p;
+        return;
+    }
+
+    zoom.tx += now.x - prev.x;
+    zoom.ty += now.y - prev.y;
     applyZoom();
+}
+
+function onZoomPointerUp(e) {
+    zoomPointers.delete(e.pointerId);
+    if (zoomPointers.size < 2) pinchPrev = null;
+    if (zoomPointers.size === 0) $('zoomStage').classList.remove('dragging');
+}
+
+function onZoomWheel(e) {
+    e.preventDefault();
+    const at = zoomLocal(e);
+    // 觸控板的雙指開合會送出帶 ctrlKey 的 wheel，級距比滾輪小很多，
+    // 用指數換算讓兩者的手感都自然
+    zoomTo(zoom.scale * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0025)), at.x, at.y);
 }
 
 /* ============================================================
@@ -1108,7 +1268,10 @@ function lookupByTaxId(taxId) {
    查到就自動填抬頭。整段是非同步的，但不會卡住畫面：
    使用者可以照常繼續打字，名字跳出來只是「順手幫你填好」。 */
 function autoFillTitleFromIndex(taxId) {
-    if (!global_TaxIdLookup() || state.title) return;
+    // 使用者自己打的抬頭不查也不動；上一次自動帶入的則可以被取代
+    if (!global_TaxIdLookup()) return;
+    if (state.title && !state.titleFrom) return;
+
     const asked = taxId;                       // 記住當下這一組，避免慢回應蓋掉新輸入
     window.TaxIdLookup.lookup(taxId).then(name => {
         // 只記「查到了沒」，不送統編本身。
@@ -1116,8 +1279,12 @@ function autoFillTitleFromIndex(taxId) {
         trackInvoiceEvent('taxid_lookup', { found: !!name });
 
         if (!name) return;
-        if (state.taxId !== asked || state.title) return;   // 使用者已經改了，就別動他
+        // 慢回應回來時使用者可能已經改了號碼，或自己動手打了抬頭
+        if (state.taxId !== asked) return;
+        if (state.title && !state.titleFrom) return;
+
         state.title = name;
+        state.titleFrom = asked;
         rememberCustomer();                    // 下次同一組統編改走本地名冊，完全離線
         showToast('已帶出公司抬頭：' + name);
         render();
@@ -1205,6 +1372,7 @@ function loadRecord(id) {
     state.type = rec.type === '2' ? '2' : '3';
     state.taxId = rec.taxId || '';
     state.title = rec.title || '';
+    state.titleFrom = null;        // 讀回來的抬頭一律當成使用者確認過的，不自動覆蓋
     state.date = rec.date ? { y: rec.date.y, m: rec.date.m, d: rec.date.d } : null;
     state.items = (rec.items && rec.items.length) ? rec.items.map(it => ({
         name: it.name || '', qty: it.qty || 0, price: it.price || 0
@@ -1261,6 +1429,7 @@ function decodeState(code) {
     state.type = (o.y === '2') ? '2' : '3';
     state.taxId = typeof o.n === 'string' ? o.n.slice(0, 8) : '';
     state.title = typeof o.t === 'string' ? o.t.slice(0, 40) : '';
+    state.titleFrom = null;        // 同上：分享連結帶來的抬頭不自動覆蓋
 
     if (Array.isArray(o.d) && o.d.length === 3) {
         state.date = { y: +o.d[0] || todayROC().y, m: +o.d[1] || 1, d: +o.d[2] || 1 };
@@ -1378,13 +1547,22 @@ function bind() {
                 if (state.taxId.length === 8) {
                     if (!validateTaxId(state.taxId)) {
                         showToast('統編檢查碼不符，請再確認一次', true, 2800);
-                    } else if (!state.title) {
-                        // 先查本地名冊：回頭客最多、而且是同步的，抬頭馬上就出來
-                        const t = lookupByTaxId(state.taxId);
+                    } else if (!state.title || state.titleFrom) {
+                        /* 抬頭是空的，或上一次是自動帶入的 —— 兩種都可以更新。
+                           使用者自己打過的抬頭則完全不碰（state.titleFrom 為 null）。 */
+                        const t = lookupByTaxId(state.taxId);   // 先查本地名冊，同步、馬上就出來
                         if (t) {
                             state.title = t;
+                            state.titleFrom = state.taxId;
                             showToast('已帶出上次的抬頭：' + t);
                         } else {
+                            /* 換成另一組統編卻查不到公司名時，舊的抬頭一定要先清掉。
+                               留著會變成「統編是 B 公司、抬頭是 A 公司」的發票，
+                               而畫面上完全看不出哪裡不對。 */
+                            if (state.titleFrom && state.titleFrom !== state.taxId) {
+                                state.title = '';
+                                state.titleFrom = null;
+                            }
                             // 名冊沒有才去翻稅籍索引（非同步，不擋畫面）
                             autoFillTitleFromIndex(state.taxId);
                         }
@@ -1405,6 +1583,7 @@ function bind() {
             title: '買受人抬頭', value: state.title, chips: customerChips(),
             onOk: v => {
                 state.title = v;
+                state.titleFrom = null;        // 使用者自己確認過的抬頭，之後不再被自動覆蓋
                 if (v && !state.taxId) {
                     const id = lookupByTitle(v);
                     if (id) { state.taxId = id; showToast('已帶出上次的統編：' + id); }
@@ -1502,9 +1681,25 @@ function bind() {
     $('btnZoom').addEventListener('click', openZoom);
     $('zClose').addEventListener('click', closeZoom);
     $('zFit').addEventListener('click', fitZoom);
-    $('zRotate').addEventListener('click', () => { zoom.rot = zoom.rot === 90 ? 0 : 90; fitZoom(); });
-    $('zIn').addEventListener('click', () => { zoom.scale = Math.min(zoom.scale * 1.25, 6); applyZoom(); });
-    $('zOut').addEventListener('click', () => { zoom.scale = Math.max(zoom.scale / 1.25, 0.2); applyZoom(); });
+    $('zRotate').addEventListener('click', () => {
+        zoom.rot = zoom.rot === 90 ? 0 : 90;
+        renderZoomPaper();     // 旋轉是少數需要重畫的時機
+        fitZoom();
+    });
+
+    // 手勢：單指拖曳、雙指縮放、滾輪縮放
+    const zStage = $('zoomStage');
+    zStage.addEventListener('pointerdown', onZoomPointerDown);
+    zStage.addEventListener('pointermove', onZoomPointerMove);
+    zStage.addEventListener('pointerup', onZoomPointerUp);
+    zStage.addEventListener('pointercancel', onZoomPointerUp);
+    zStage.addEventListener('wheel', onZoomWheel, { passive: false });
+
+    // 沒有觸控的裝置看到「雙指縮放」只會困惑
+    if (window.matchMedia && !window.matchMedia('(pointer: coarse)').matches) {
+        const hint = $('zoomHint');
+        if (hint) hint.textContent = '滾輪縮放・拖曳移動';
+    }
 
     // --- 動作列 ---
     $('btnShare').addEventListener('click', shareLink);
@@ -1512,6 +1707,7 @@ function bind() {
     $('btnReset').addEventListener('click', () => {
         state.taxId = '';
         state.title = '';
+        state.titleFrom = null;
         state.date = null;
         state.items = [{ name: DEFAULT_ITEM_NAME, qty: 1, price: 0 }];
         if (location.hash) history.replaceState(null, '', location.pathname);
@@ -1606,8 +1802,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     render();
 
+    /* 轉向或視窗大小改變時重新符合。
+       這裡也要重新判斷要不要轉 90 度 —— 手機從直握轉成橫握時，
+       發票本來就不需要再自己轉一次了。 */
     window.addEventListener('resize', () => {
-        if ($('zoomOverlay').classList.contains('show')) fitZoom();
+        if (!$('zoomOverlay').classList.contains('show')) return;
+        const stage = $('zoomStage');
+        const rot = stage.clientWidth >= stage.clientHeight ? 0 : 90;
+        if (rot !== zoom.rot) { zoom.rot = rot; renderZoomPaper(); }
+        fitZoom();
     });
 });
 
