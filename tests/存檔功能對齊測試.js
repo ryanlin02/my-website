@@ -59,6 +59,8 @@ function bootInvoice() {
     return w;
 }
 
+const invHistory = w => JSON.parse(w.localStorage.getItem('invNewHistory') || '[]');
+
 function fillInvoice(w, title, price) {
     w.__t.state.title = title;
     w.__t.state.taxId = '12345678';
@@ -280,6 +282,109 @@ console.log('\n計算頁 —— 覆蓋或另存');
     t('  覆蓋回原本那一筆（id 不變）',
         loanList(w).length === 1 && loanList(w)[0].id === id,
         `${loanList(w).length} 筆`);
+}
+
+/* ============================================================
+   發票頁 —— 覆蓋或另存（2026/07 第一批補上）
+   ------------------------------------------------------------
+   本頁的判定是「改任何一項都算」：發票沒有「一次試算」這種明確的
+   完成點，也沒有哪一項比較不重要 —— 改品名、改數量、改日期都會讓
+   這張發票變成不同的一張。
+   ============================================================ */
+console.log('\n發票頁 —— 覆蓋或另存');
+
+{
+    const w = bootInvoice();
+    const d = w.document;
+
+    fillInvoice(w, '大發運輸', 500000);
+    d.getElementById('btnSaveRec').click();
+    t('全新的一張直接存檔，不會問', d.getElementById('choiceModalOverlay') === null);
+    t('  歷史有 1 筆', invHistory(w).length === 1, String(invHistory(w).length));
+    t('  存檔後「已修改」提示不顯示',
+        d.getElementById('unsaved-hint').style.display === 'none',
+        d.getElementById('unsaved-hint').style.display);
+
+    // 改金額（走 touch()）
+    w.__t.state.items = [{ name: '車輛租賃', qty: 1, price: 600000 }];
+    w.eval('touch()');
+    t('改金額後出現「已修改，尚未儲存」',
+        d.getElementById('unsaved-hint').style.display === 'block',
+        d.getElementById('unsaved-hint').style.display);
+
+    d.getElementById('btnSaveRec').click();
+    const o = d.getElementById('choiceModalOverlay');
+    t('再次存檔會問覆蓋或另存', o !== null);
+    if (o) {
+        const labels = [...o.querySelectorAll('[data-index]')].map(b => b.textContent.trim());
+        t('  兩個選項，覆蓋在前（本頁最常見的是改同一張）',
+            labels[0] === '覆蓋原紀錄' && labels[1] === '另存為新紀錄', labels.join('|'));
+        t('  說明含抬頭', o.textContent.includes('大發運輸'), o.textContent);
+        o.querySelector('[data-index="0"]').click();
+    }
+
+    t('選覆蓋 → 仍然只有 1 筆', invHistory(w).length === 1, String(invHistory(w).length));
+    t('  金額已更新', invHistory(w)[0].data.total === 630000,
+        String(invHistory(w)[0].data.total));
+    t('  提示消失', d.getElementById('unsaved-hint').style.display === 'none');
+
+    w.__t.state.items = [{ name: '車輛租賃', qty: 1, price: 700000 }];
+    w.eval('touch()');
+    d.getElementById('btnSaveRec').click();
+    const o2 = d.getElementById('choiceModalOverlay');
+    if (o2) o2.querySelector('[data-index="1"]').click();
+    t('選另存 → 變成 2 筆', invHistory(w).length === 2, String(invHistory(w).length));
+}
+
+{
+    // 清除 = 重新開始，不該再問覆蓋
+    const w = bootInvoice();
+    fillInvoice(w, '甲公司', 100000);
+    w.document.getElementById('btnSaveRec').click();
+
+    w.document.getElementById('btnReset').click();
+    fillInvoice(w, '乙公司', 200000);
+    w.eval('touch()');
+    w.document.getElementById('btnSaveRec').click();
+
+    t('清除後重建再存檔，不會問覆蓋',
+        w.document.getElementById('choiceModalOverlay') === null);
+    t('  直接新增為第 2 筆', invHistory(w).length === 2, String(invHistory(w).length));
+}
+
+{
+    // 統編自動帶出抬頭是程式改的，不能算「已修改」
+    const w = bootInvoice();
+    fillInvoice(w, '大發運輸', 500000);
+    w.document.getElementById('btnSaveRec').click();
+    w.document.getElementById('btnHistory').click();
+    w.document.querySelector('#histBody [data-apply]').click();
+
+    t('套用歷史後不算「已修改」',
+        w.document.getElementById('unsaved-hint').style.display === 'none',
+        w.document.getElementById('unsaved-hint').style.display);
+
+    // 模擬非同步查詢回填抬頭（走 render()，不走 touch()）
+    w.__t.state.title = '自動帶出來的公司';
+    w.__t.render();
+    t('  自動帶出抬頭不會被誤判為使用者修改',
+        w.document.getElementById('unsaved-hint').style.display === 'none',
+        w.document.getElementById('unsaved-hint').style.display);
+}
+
+{
+    // 歷史卡片要看得到存檔時間
+    const w = bootInvoice();
+    fillInvoice(w, '大發運輸', 500000);
+    w.document.getElementById('btnSaveRec').click();
+    w.document.getElementById('btnHistory').click();
+
+    const row = w.document.querySelector('#histBody .hrec');
+    t('卡片顯示存檔時間', /今天\s+\d{2}:\d{2}/.test(row.textContent),
+        row.textContent.replace(/\s+/g, ' ').slice(0, 100));
+    t('  發票開立日期仍然看得到（兩者是不同的東西）',
+        !!row.querySelector('.hy') && row.querySelector('.hy').textContent.trim().length > 0,
+        (row.querySelector('.hy') || {}).textContent);
 }
 
 /* ============================================================

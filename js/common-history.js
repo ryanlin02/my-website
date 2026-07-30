@@ -129,6 +129,53 @@ function toHistoryEnvelope(record, tool) {
 }
 
 /**
+ * 把存檔時間格式化成給人看的字串
+ *
+ * 【為什麼要有時間，不只是日期】
+ * 業務回頭找舊紀錄時，記得的往往是「那是禮拜二下午談的」而不是日期。
+ * 時分是有效的回想線索，可以看出同一天談的兩個客戶誰先誰後。
+ *
+ * 【為什麼不到秒】
+ * 沒有人記得自己是 14:30:45 跟客戶談的，秒數對回想沒有幫助，
+ * 卻要多佔 3 個字元 —— 而這一行右邊緊接著徽章，400px 寬本來就在搶空間。
+ *
+ * 【為什麼用「今天／昨天」】
+ * 「今天 14:30」比「2026/07/28 14:30」短，而且直接回答了
+ * 「這筆是今天早上還是下午」。年份只在跨年度時才需要出現。
+ *
+ *   今天 14:30
+ *   昨天 09:05
+ *   07/26 14:30        今年
+ *   2025/11/03 14:30   更早
+ *
+ * @param {string} iso 信封上的 savedAt
+ * @return {string} 時間不成立時回傳空字串（呼叫端自行決定要不要留白）
+ */
+function formatSavedAt(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+
+    const pad = n => String(n).padStart(2, '0');
+    const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+    const now = new Date();
+    const sameDay = (a, b) =>
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate();
+
+    if (sameDay(d, now)) return `今天 ${hm}`;
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (sameDay(d, yesterday)) return `昨天 ${hm}`;
+
+    const md = `${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+    if (d.getFullYear() === now.getFullYear()) return `${md} ${hm}`;
+    return `${d.getFullYear()}/${md} ${hm}`;
+}
+
+/**
  * 建立一個歷史紀錄倉庫
  *
  * @param {Object} cfg
@@ -333,5 +380,5 @@ function createHistoryStore(cfg) {
 
 /* Node 測試環境用；瀏覽器不會有 module */
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { createHistoryStore, createHistoryId, toHistoryEnvelope, historyIdToTime };
+    module.exports = { createHistoryStore, createHistoryId, toHistoryEnvelope, historyIdToTime, formatSavedAt };
 }

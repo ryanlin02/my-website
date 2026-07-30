@@ -711,7 +711,24 @@ function updateGasUnsavedHint() {
     hint.style.display = (gasSourceId !== null && gasHasUnsavedChanges) ? 'block' : 'none';
 }
 
-/** 讀出目前畫面上的四個關鍵數值 */
+/**
+ * 讀出這一頁真正的「輸入值」
+ *
+ * 【為什麼只有三個】
+ * 這頁畫面上有七個數字，但其中四個是推導出來的：
+ *   每月油量   = 每月油錢 ÷ 單價
+ *   折後油錢   = （單價 - 折扣）× 油量
+ *   每月／每年節省 = 折扣前後的差
+ *
+ * 一筆紀錄如果同時存輸入值與推導值，等於讓同一件事有兩個真相來源。
+ * 兩者一旦對不起來，程式就得決定要相信哪一個 —— 而這頁的油錢與油量
+ * 是雙向換算的，方向由 lastModifiedField 決定，設錯就會拿油量去
+ * 覆蓋剛還原的油錢，數字被改掉了畫面上還看不出來。
+ *
+ * 只存輸入值就沒有第二個真相可以打架。真要出錯，也會是
+ * 「下面幾格算不出來、整片空白」這種一眼看得見的壞法，
+ * 而不是 290,000 悄悄變成 289,987。
+ */
 function readGasFields() {
     const num = id => {
         const el = document.getElementById(id);
@@ -720,8 +737,18 @@ function readGasFields() {
     return {
         dieselPrice: num('dieselPrice'),
         monthlyExpense: num('monthlyExpense'),
+        discountAmount: num('discountAmount')
+    };
+}
+
+/** 推導值：只在需要當下畫面數字時才讀（例如草稿還原後的比對） */
+function readGasDerived() {
+    const num = id => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(removeThousandsSeparator(el.value)) || 0 : 0;
+    };
+    return {
         monthlyVolume: num('monthlyVolume'),
-        discountAmount: num('discountAmount'),
         discountedExpense: num('discountedExpense'),
         monthlySaving: num('monthlySaving'),
         yearlySaving: num('yearlySaving')
@@ -746,7 +773,7 @@ function saveGasData() {
         if (src) {
             showChoiceModal(
                 '內容已變更',
-                `這筆資料來自 <b>${escapeHtml(src.data.date || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                `這筆資料來自 <b>${escapeHtml(formatSavedAt(src.savedAt) || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
                 + `原紀錄：每月油錢 ${formatNumberWithCommas(src.data.monthlyExpense)} · 折扣 ${src.data.discountAmount} 元<br>`
                 + `目前：每月油錢 ${formatNumberWithCommas(f.monthlyExpense)} · 折扣 ${f.discountAmount} 元`,
                 [
@@ -763,13 +790,10 @@ function saveGasData() {
 }
 
 function commitGasData(overwriteId) {
-    const now = new Date();
-    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-    const f = readGasFields();
-    f.date = formattedDate;
-
-    const result = gasHistoryStore.save(f, { overwriteId: overwriteId });
+    /* 不自己存日期字串：信封上的 savedAt 已經是完整到秒的時間戳，
+       顯示交給共用的 formatSavedAt()。自己再存一份格式化過的日期，
+       就是同一件事的第二個真相來源。 */
+    const result = gasHistoryStore.save(readGasFields(), { overwriteId: overwriteId });
     if (!result.ok) return;
 
     trackGasEvent('gas_saved', {
@@ -815,10 +839,14 @@ function loadGasHistory() {
         html += `
             <div class="history-item" data-gas-id="${rec.id}">
                 <div class="history-item-header">
-                    <div class="history-date">${escapeHtml(g.date || '')}</div>
+                    <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
                     <div class="history-header-rate">單價 ${g.dieselPrice} 元</div>
                 </div>
 
+                <!-- 只放這兩個數字：折扣金額是業務真正在意的，
+                     每月油錢是在還沒寫備註時用來認出「這是哪個客戶」。
+                     油量與折後金額都是推導值，套用回表單就會即時算出來，
+                     不需要佔用卡片版面。 -->
                 <div class="history-details">
                     <div class="history-detail-item">
                         <span class="detail-label">每月油錢</span>
@@ -827,14 +855,6 @@ function loadGasHistory() {
                     <div class="history-detail-item">
                         <span class="detail-label">折扣金額</span>
                         <span class="detail-value">${g.discountAmount} 元</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">每月油量</span>
-                        <span class="detail-value">${formatNumberWithCommas(g.monthlyVolume)} 公升</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">折後油錢</span>
-                        <span class="detail-value">${formatNumberWithCommas(g.discountedExpense)}</span>
                     </div>
                 </div>
 
@@ -873,8 +893,9 @@ function loadGasToForm(id) {
 
     set('dieselPrice', Number(g.dieselPrice).toFixed(1));
     set('monthlyExpense', formatNumberWithCommas(g.monthlyExpense));
-    set('monthlyVolume', formatNumberWithCommas(g.monthlyVolume));
     set('discountAmount', Number(g.discountAmount).toFixed(1));
+    // 油量不還原：它是推導值，下面 updateCalculations() 會從油錢與單價算出來
+    set('monthlyVolume', '');
 
     /* 讓引擎自己把折後油錢與節省金額重算一次，不直接塞存檔時的值 ——
        油價是每週更新的，重算才會反映使用者現在看到的條件。

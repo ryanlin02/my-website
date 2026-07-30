@@ -338,6 +338,40 @@ console.log('\n容量與上限');
         JSON.stringify(toasts));
 }
 
+/* ============================================================
+   五、存檔時間的顯示格式
+   ------------------------------------------------------------
+   業務回頭找舊紀錄時記得的是「那是禮拜二下午談的」，
+   所以時分是有效的回想線索。「今天／昨天」比完整日期短，
+   而且直接回答「這筆是今天早上還是下午」。
+   ============================================================ */
+console.log('\n存檔時間的顯示');
+
+{
+    const F = H.formatSavedAt;
+    const at = (daysAgo, h, m) => {
+        const d = new Date();
+        d.setDate(d.getDate() - daysAgo);
+        d.setHours(h, m, 30, 0);
+        return d.toISOString();
+    };
+
+    t('今天顯示「今天 HH:MM」', F(at(0, 14, 30)) === '今天 14:30', F(at(0, 14, 30)));
+    t('昨天顯示「昨天 HH:MM」', F(at(1, 9, 5)) === '昨天 09:05', F(at(1, 9, 5)));
+
+    t('不含秒數', !/:\d{2}:\d{2}/.test(F(at(0, 14, 30))), F(at(0, 14, 30)));
+
+    const older = at(30, 8, 0);
+    const od = new Date(older);
+    const expect = od.getFullYear() === new Date().getFullYear()
+        ? `${String(od.getMonth() + 1).padStart(2, '0')}/${String(od.getDate()).padStart(2, '0')} 08:00`
+        : `${od.getFullYear()}/${String(od.getMonth() + 1).padStart(2, '0')}/${String(od.getDate()).padStart(2, '0')} 08:00`;
+    t('更早的顯示日期＋時間', F(older) === expect, `${F(older)} vs ${expect}`);
+
+    t('往年會帶出年份', /^\d{4}\//.test(F('2020-03-05T08:00:00')), F('2020-03-05T08:00:00'));
+    t('時間不成立時回空字串（呼叫端自行留白）', F('壞掉的時間') === '' && F(undefined) === '');
+}
+
 /* ============================================================ */
 console.log(`\n通過 ${pass}　失敗 ${fail}\n`);
 process.exit(fail === 0 ? 0 : 1);

@@ -144,7 +144,7 @@ const TOASTS = {
                            "showToast('已刪除')", "showToast('已清空歷史')"],
     'js/check-engine.js': ["'已存檔'", "showToast('已套用')",
                            "showToast('已刪除')", "showToast('已清空歷史')"],
-    'js/invoice-engine.js': ["showToast('已存檔')", "showToast('已套用')",
+    'js/invoice-engine.js': ["'已存檔'", "showToast('已套用')",
                              "showToast('已刪除')", "showToast('已清空歷史')"],
     'js/gas-engine.js': ["'已存檔'", "showToast('已套用')",
                          "showToast('已刪除')", "showToast('已清空歷史')"]

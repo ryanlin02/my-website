@@ -1166,7 +1166,7 @@ function saveCheckData() {
         if (source) {
             showChoiceModal(
                 '內容已變更',
-                `這筆資料來自 <b>${escapeHtml(source.date || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                `這筆資料來自 <b>${escapeHtml(formatSavedAt(sourceRec.savedAt) || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
                 + `原紀錄：${source.checkCount} 張 · 尾款 ${formatNumber(source.depositAmount)}<br>`
                 + `目前：${checkCount} 張 · 尾款 ${formatNumber(depositAmount)}`,
                 [
@@ -1187,14 +1187,10 @@ function saveCheckData() {
  * @param {number|null} overwriteId 有值代表覆蓋該筆，null 代表另存新紀錄
  */
 function commitCheckData(overwriteId) {
-    const now = new Date();
-    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
     /* 【2026/07 步驟 2】改走共用 Store。
      * id 生成、覆蓋目標不存在時自動改為新增、寫入失敗提示都由 Store 處理，
      * 這裡只要提供本頁的欄位。備註在覆蓋時會被 Store 保留，不會被洗掉。 */
     const result = checkHistoryStore.save({
-        date: formattedDate,
         totalAmount, paymentAmount, checkCount, depositAmount,
         startDate: startDate.toISOString(),
         written: normalizeWrittenChecks(writtenChecks, checkCount)
@@ -1302,7 +1298,7 @@ function loadCheckHistory() {
         html += `
             <div class="history-item" data-check-id="${rec.id}">
                 <div class="history-item-header">
-                    <div class="history-date">${escapeHtml(item.date || '')}</div>
+                    <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
                     <div class="history-header-rate">${progressText}</div>
                 </div>
 

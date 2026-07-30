@@ -64,6 +64,43 @@ const invoiceHistoryStore = createHistoryStore({ key: LS_HISTORY, tool: 'invoice
 const LS_DRAFT = 'invoiceDraft';
 const DRAFT_MAX_HOURS = 24;
 
+/* ------------------------------------------------------------
+ * 與歷史紀錄的連結（2026/07 第一批）
+ *
+ * 語意與另外三頁相同：invoiceSourceId 記住資料是從哪一筆套用來的，
+ * 之後任何一項被改動就標記 invoiceHasUnsavedChanges，
+ * 存檔時據此詢問要覆蓋原紀錄還是另存。
+ *
+ * 【本頁的判定是「改任何一項都算」】
+ * 發票沒有「一次試算」這種明確的完成點，使用者可能連續編輯很久，
+ * 也沒有哪一項比較不重要 —— 改品名、改數量、改日期都會讓這張發票
+ * 變成不同的一張。所以不挑欄位，一律算數。
+ *
+ * 【唯一要排除的是統編自動帶出抬頭】
+ * 那是程式改的、不是人改的。autoFillTitleFromIndex() 走的是 render()
+ * 而不是 touch()，所以自然不會被標記 —— 這也是為什麼標記掛在
+ * touch() 而不是 render() 上。
+ * ------------------------------------------------------------ */
+let invoiceSourceId = null;
+let invoiceHasUnsavedChanges = false;
+
+function markInvoiceChanged() {
+    if (invoiceSourceId !== null) invoiceHasUnsavedChanges = true;
+    updateInvoiceUnsavedHint();
+}
+
+function detachInvoiceFromHistory() {
+    invoiceSourceId = null;
+    invoiceHasUnsavedChanges = false;
+    updateInvoiceUnsavedHint();
+}
+
+function updateInvoiceUnsavedHint() {
+    const hint = $('unsaved-hint');
+    if (!hint) return;
+    hint.style.display = (invoiceSourceId !== null && invoiceHasUnsavedChanges) ? 'block' : 'none';
+}
+
 /* ============================================================
    狀態
    ============================================================ */
@@ -280,6 +317,8 @@ function calc() {
  */
 function touch() {
     state.lockTotal = null;
+    // 金額相關的使用者修改都會走這裡
+    if (typeof markInvoiceChanged === 'function') markInvoiceChanged();
     render();
 }
 
@@ -1240,6 +1279,7 @@ function openDate() {
             const t = todayROC();
             state.date = (roc.y === t.y && roc.m === t.m && roc.d === t.d)
                 ? null : { y: roc.y, m: roc.m, d: roc.d };
+            markInvoiceChanged();
             render();
         }
     });
@@ -1344,7 +1384,39 @@ function saveRecord() {
      * 舊版是靜默 slice(0, 100) —— 超過就無聲丟掉最舊的，
      * 現在超過上限會明確告知。抬頭與統編一併填進信封的 customer，
      * 未來四頁連動時就是靠這個欄位認出同一個客戶。 */
+    /* 【2026/07 第一批】資料來自某筆紀錄、而且已經被改過時，
+     * 讓使用者決定要覆蓋原紀錄還是另存。做法與另外三頁一致，
+     * 「覆蓋原紀錄」擺在主要按鈕 —— 本頁從歷史叫回一筆最常見的意圖
+     * 是繼續改同一張，不是拿來當新發票的範本。 */
+    if (invoiceSourceId !== null && invoiceHasUnsavedChanges) {
+        const src = invoiceHistoryStore.get(invoiceSourceId);
+        if (src) {
+            const sd = src.data || {};
+            showChoiceModal(
+                '內容已變更',
+                `這筆資料來自 <b>${esc(formatSavedAt(src.savedAt) || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                + `原紀錄：${sd.title ? esc(sd.title) : '未填抬頭'} · ${fmt(sd.total)}<br>`
+                + `目前：${state.title ? esc(state.title) : '未填抬頭'} · ${fmt(r.total)}`,
+                [
+                    { label: '覆蓋原紀錄', primary: true, onSelect: () => commitInvoiceRecord(invoiceSourceId) },
+                    { label: '另存為新紀錄', onSelect: () => commitInvoiceRecord(null) }
+                ]
+            );
+            return;
+        }
+        // 原紀錄已被刪除，直接另存
+    }
+
+    commitInvoiceRecord(null);
+}
+
+/**
+ * 實際寫入歷史紀錄
+ * @param {number|null} overwriteId 有值代表覆蓋該筆，null 代表另存新紀錄
+ */
+function commitInvoiceRecord(overwriteId) {
     const result = invoiceHistoryStore.save(snapshot(), {
+        overwriteId: overwriteId,
         customer: (state.taxId || state.title)
             ? { taxId: state.taxId || '', title: state.title || '' }
             : null
@@ -1357,10 +1429,16 @@ function saveRecord() {
     trackInvoiceEvent('invoice_saved', {
         invoice_type: invoiceTypeLabel(),
         item_count: (state.items || []).length,
+        is_overwrite: result.overwritten,
         history_count: invoiceHistoryStore.count()
     });
 
-    showToast('已存檔');
+    // 存檔後重新建立連結：之後再改再存，會問要不要覆蓋這一筆
+    invoiceSourceId = result.id;
+    invoiceHasUnsavedChanges = false;
+    updateInvoiceUnsavedHint();
+
+    showToast(result.overwritten ? '已覆蓋原紀錄' : '已存檔');
     vibrate([40, 60]);
 }
 
@@ -1375,6 +1453,8 @@ function saveInvoiceDraft() {
 
         const d = snapshot();
         d.savedAt = new Date().toISOString();
+        d.invoiceSourceId = invoiceSourceId;
+        d.invoiceHasUnsavedChanges = invoiceHasUnsavedChanges;
         localStorage.setItem(LS_DRAFT, JSON.stringify(d));
     } catch (e) { /* 暫存失敗不影響任何功能，安靜略過 */ }
 }
@@ -1407,6 +1487,11 @@ function restoreInvoiceDraft() {
         ? d.items.map(it => ({ name: it.name || '', qty: it.qty || 0, price: it.price || 0 }))
         : [{ name: DEFAULT_ITEM_NAME, qty: 1, price: 0 }];
     state.lockTotal = (typeof d.lockTotal === 'number') ? d.lockTotal : null;
+
+    // 連結狀態一併還原，否則回來之後再存會變成重複的一筆
+    invoiceSourceId = (d.invoiceSourceId === undefined) ? null : d.invoiceSourceId;
+    invoiceHasUnsavedChanges = d.invoiceHasUnsavedChanges === true;
+    updateInvoiceUnsavedHint();
     return true;
 }
 
@@ -1445,6 +1530,10 @@ function renderHistory() {
                 <div class="ht">${fmt(rec.total)}</div>
             </div>
             <div class="hrec-foot">
+                <!-- 存檔時間與「發票日期」是兩件事：上面 .hd 顯示的是使用者
+                     自己選的發票開立日期（民國），這裡才是「我什麼時候存的」。
+                     四頁的存檔時間都走同一支 formatSavedAt()。 -->
+                <span class="hsaved">${esc(formatSavedAt(env.savedAt))}</span>
                 <div class="hnote${env.note ? '' : ' empty'}" data-note="${env.id}">${env.note ? esc(env.note) : '點擊添加備註'}</div>
                 <div class="hacts">
                     <button class="hbtn" data-apply="${env.id}">套用</button>
@@ -1495,6 +1584,13 @@ function loadRecord(id) {
 
     $('histSheet').classList.remove('show');
     render();
+
+    /* 記住資料來源。順序：必須在 render() 之後 ——
+       render() 不會標記變更，但保持與另外三頁一致的寫法比較不會出錯。 */
+    invoiceSourceId = env.id;
+    invoiceHasUnsavedChanges = false;
+    updateInvoiceUnsavedHint();
+
     showToast('已套用');
 }
 
@@ -1722,6 +1818,7 @@ function bind() {
                     if (id) { state.taxId = id; showToast('已帶出上次的統編：' + id); }
                 }
                 rememberCustomer();
+                markInvoiceChanged();
                 render();
             }
         });
@@ -1741,7 +1838,7 @@ function bind() {
             case 'name':
                 openText({
                     title: `第 ${i + 1} 項　品名`, value: it.name, chips: itemNameChips(),
-                    onOk: v => { it.name = v; rememberItemName(v); render(); }
+                    onOk: v => { it.name = v; rememberItemName(v); markInvoiceChanged(); render(); }
                 });
                 break;
 
@@ -1845,6 +1942,8 @@ function bind() {
         state.items = [{ name: DEFAULT_ITEM_NAME, qty: 1, price: 0 }];
         if (location.hash) history.replaceState(null, '', location.pathname);
         touch();
+        // 清除等於重新開始，與原紀錄的關係一併切斷（要放在 touch 之後）
+        detachInvoiceFromHistory();
         showToast('已清除');
     });
 

@@ -96,7 +96,15 @@ console.log('\n存檔');
     t('  存了每月油錢', d.monthlyExpense === 288000, String(d.monthlyExpense));
     t('  存了折扣金額', d.discountAmount === 0.6, String(d.discountAmount));
     t('  存了油品單價', d.dieselPrice === 28.8, String(d.dieselPrice));
-    t('  存了每月油量', d.monthlyVolume === 10000, String(d.monthlyVolume));
+    /* 【2026/07 第一批】紀錄只存輸入值，不存推導值。
+       油量、折後油錢、每月／每年節省都在套用時重算 ——
+       同一件事只有一個真相來源，換算方向才不會有機會把資料改掉。 */
+    t('  不存推導出來的油量', d.monthlyVolume === undefined, JSON.stringify(d));
+    t('  不存推導出來的折後油錢', d.discountedExpense === undefined, JSON.stringify(d));
+    t('  不存推導出來的節省金額',
+        d.monthlySaving === undefined && d.yearlySaving === undefined, JSON.stringify(d));
+    t('  也不存格式化過的日期字串（時間走信封的 savedAt）',
+        d.date === undefined && !!hist(w)[0].savedAt, JSON.stringify(d));
     t('  資料包在共用信封裡（tool 標記為 gas）',
         hist(w)[0].tool === 'gas' && hist(w)[0].v === 1, JSON.stringify(hist(w)[0]).slice(0, 80));
 }
@@ -118,8 +126,13 @@ console.log('\n歷史面板');
     const text = $(w, 'historyContent').textContent;
     t('  用的是共用的清單結構 (.history-list)',
         w.document.querySelector('.history-list') !== null);
-    t('  卡片有四個欄位', w.document.querySelectorAll('.history-detail-item').length === 4,
+    t('  卡片只有兩個欄位（每月油錢與折扣金額）',
+        w.document.querySelectorAll('.history-detail-item').length === 2,
         String(w.document.querySelectorAll('.history-detail-item').length));
+    t('  卡片不放推導值', !text.includes('公升') && !text.includes('折後'),
+        text.replace(/\s+/g, ' ').slice(0, 150));
+    t('  日期欄顯示存檔時間（今天 HH:MM）',
+        /今天\s+\d{2}:\d{2}/.test(text), text.replace(/\s+/g, ' ').slice(0, 80));
     t('  沒有出現 undefined', !text.includes('undefined'), text.replace(/\s+/g, ' ').slice(0, 150));
 
     t('  顯示每月油錢 288,000', text.includes('288,000'));

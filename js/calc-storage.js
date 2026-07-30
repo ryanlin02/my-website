@@ -151,7 +151,7 @@ function saveLoanData() {
         if (src && typeof showChoiceModal === 'function') {
             showChoiceModal(
                 '內容已變更',
-                `這筆資料來自 <b>${escapeHtml(src.data.date || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                `這筆資料來自 <b>${escapeHtml(formatSavedAt(src.savedAt) || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
                 + `原紀錄：${src.data.period} 期 · 本金 ${formatNumber(src.data.principal)}<br>`
                 + `目前：${period} 期 · 本金 ${formatNumber(principal)}`,
                 [
@@ -180,15 +180,14 @@ function commitLoanData(overwriteId) {
     const commission = document.getElementById('commission').value.replace(/,/g, '');
     const afterCommissionRate = document.getElementById('afterCommissionRate').value;
 
-    const loanDate = new Date();
-    const formattedDate = `${loanDate.getFullYear()}-${String(loanDate.getMonth() + 1).padStart(2, '0')}-${String(loanDate.getDate()).padStart(2, '0')} ${String(loanDate.getHours()).padStart(2, '0')}:${String(loanDate.getMinutes()).padStart(2, '0')}`;
-
     /* 【2026/07 步驟 2】id、timestamp、note 已改由 Store 的信封負責，
      * 這裡只提供這一頁自己的欄位。寫入失敗（容量滿、無痕模式）也由
      * Store 統一攔下並提示，這裡只需要看 ok 決定要不要繼續。
      * 覆蓋目標已被刪除時，Store 會自動改為新增。 */
+    /* 不再自己存 date 字串：信封上的 savedAt 是完整到秒的時間戳，
+       顯示交給共用的 formatSavedAt()。存一份格式化過的日期在旁邊，
+       就是同一件事的第二個真相來源（舊紀錄裡的 date 留著不影響）。 */
     const result = loanHistoryStore.save({
-        date: formattedDate,
         period: period,
         rate: rate,
         principal: principal,
@@ -249,7 +248,7 @@ function loadHistoryData() {
         html += `
             <div class="history-item" data-loan-id="${rec.id}">
                 <div class="history-item-header">
-                    <div class="history-date">${formatDate(loan.date)}</div>
+                    <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
                     <div class="history-header-rate">稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</div>
                 </div>
 
