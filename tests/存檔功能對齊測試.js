@@ -410,6 +410,50 @@ console.log('\n共用元件樣式的歸屬');
     t('  而計算頁確實沒有載入 check.css', !/css\/check\.css/.test(calcHtml));
 }
 
+/* ============================================================
+   存檔／歷史按鈕列：不可以有第二條同分的規則
+   ------------------------------------------------------------
+   【這一段是踩過才加的】
+   把 .function-buttons button 從 calculator.css 搬進 history.css 之後，
+   計算頁的「清除全部輸入」與支票頁的「存檔／歷史」從橘框白字
+   變成了灰框灰字 —— 而且沒有任何錯誤訊息。
+
+   原因是 calculator.css 裡還留著一組 .bottom-buttons button，
+   優先級與 .function-buttons button 完全相同（0,1,1）。
+   同分時由後載入的勝出：搬家之前 .function-buttons button 寫在
+   同一份檔案的更後面，所以一直是它贏，那組規則從來沒生效過；
+   搬到 history.css（排在 calculator.css 之前）以後就反過來了。
+
+   抽出共用樣式時，搬動的不只是規則本身，還有它在層疊順序裡的位置。
+   這裡守的就是「別再出現第二條同分的規則」。
+   ============================================================ */
+console.log('\n按鈕列的層疊順序');
+
+{
+    const files = ['keypad.css', 'history.css', 'calculator.css', 'check.css', 'gas.css', 'invoice.css'];
+    const owners = [];
+
+    files.forEach(f => {
+        const css = fs.readFileSync(path.join(R, 'css', f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+        // 任何「單一 class + button」形式、會命中存檔／歷史那排按鈕的選擇器
+        const re = /^\s*\.(function-buttons|top-buttons|bottom-buttons)\s+button\s*[,{]/gm;
+        if (re.test(css)) owners.push(f);
+    });
+
+    t('只有 history.css 定義存檔／歷史按鈕的外觀',
+        owners.length === 1 && owners[0] === 'history.css', owners.join('、'));
+
+    const historyCss = fs.readFileSync(path.join(R, 'css/history.css'), 'utf8');
+    t('  而且它確實是橘框（與加油頁一致）',
+        /\.function-buttons button\s*\{[^}]*border:\s*1px solid var\(--button-orange\)/.test(historyCss));
+
+    // 四頁的存檔／歷史按鈕都必須包在 .function-buttons 裡，才吃得到那條規則
+    ['calculator', 'check', 'gas'].forEach(p => {
+        const html = fs.readFileSync(path.join(R, 'pages', p + '.html'), 'utf8');
+        t(`${p}.html 的按鈕列用 .function-buttons`, /class="function-buttons/.test(html));
+    });
+}
+
 /* ============================================================ */
 console.log(`\n通過 ${pass}　失敗 ${fail}\n`);
 process.exit(fail === 0 ? 0 : 1);

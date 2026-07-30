@@ -584,27 +584,27 @@ html, body {
     margin-top: 4px !important;
 }
 
-.bottom-buttons button {
-    background-color: #262626;
-    color: #aaaaaa;
-    border: 1px solid #444444;
-    border-radius: 6px;
-    padding: 8px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-.bottom-buttons button:hover {
-    background-color: #332620;
-    color: #dddddd;
-    border-color: #664433;
-}
-
-.bottom-buttons button:active {
-    transform: scale(0.98);
-}
+/* ------------------------------------------------------------
+ * 【2026/07 步驟 4-2 後續：刪除 .bottom-buttons button 三條規則】
+ *
+ * 這三條規則從來沒有生效過，是一組不會發作的死碼 ——
+ * 直到我把 .function-buttons button 搬進 css/history.css 才被喚醒。
+ *
+ * 【為什麼原本沒生效】
+ * 全站的 .bottom-buttons 一律與 .function-buttons 寫在同一個 div 上
+ * （四頁都是 class="function-buttons bottom-buttons"，沒有例外）。
+ * 兩條選擇器的優先級完全相同（0,1,1），同分時由「後面那條」勝出，
+ * 而在這份檔案裡 .function-buttons button 寫在更後面 —— 所以永遠是它贏。
+ *
+ * 【為什麼搬走之後就發作了】
+ * history.css 排在 calculator.css 之前載入（元件樣式要讓頁面能覆寫）。
+ * .function-buttons button 一旦搬過去，就從「後面」變成「前面」，
+ * 同分時改由這三條勝出：存檔／歷史／清除全部輸入的橘框白字
+ * 變成灰框灰字。畫面上看得出來，但不會有任何錯誤訊息。
+ *
+ * 這是抽出共用樣式時最容易踩到的陷阱：搬動的不只是規則本身，
+ * 還有它在層疊順序裡的位置。直接刪掉才不會再被喚醒一次。
+ * ------------------------------------------------------------ */
 
 /* 全站通用頁尾 (Global App Footer) */
 .global-app-footer {
