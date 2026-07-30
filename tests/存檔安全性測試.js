@@ -211,10 +211,12 @@ console.log('\n發票頁 —— 刪除確認');
     makeRecords(w, 3);
 
     w.document.getElementById('btnHistory').click();
-    w.document.getElementById('histClear').click();
+    /* 【2026/07 步驟 5】清空改由編輯模式的「全選 → 刪除」完成，
+       原本標題列那顆「清空歷史」已移除（它就在關閉鈕旁邊，容易誤觸）。 */
+    w.eval('toggleHistoryEditMode(); toggleHistorySelectAll(); deleteSelectedHistory();');
 
     const overlay = w.document.getElementById('confirmModalOverlay');
-    t('「全部刪除」會先跳出確認彈窗', overlay && overlay.style.display === 'flex');
+    t('全選後刪除會先跳出確認彈窗', overlay && overlay.style.display === 'flex');
     t('確認之前三筆都還在', invHistory(w).length === 3, `實際 ${invHistory(w).length} 筆`);
     t('確認訊息會告知要刪掉幾筆',
         /3/.test(w.document.getElementById('confirmModalContent').textContent),

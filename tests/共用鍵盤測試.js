@@ -47,13 +47,20 @@ for(const page of ['calculator.html','check.html']){
   // 3) 頁面專屬函式仍在
   const own = page==='calculator.html'
     ? ['submitCalculatorValue','calculatePayment','calculateRate','updateAllFields','toggleHistoryPanel',
-       'saveLoanData','loadHistoryData','loadLoanToForm','deleteLoan','confirmDeleteAll','openNoteEditor','saveLoanNote',
+       'saveLoanData','loadHistoryData','loadLoanToForm','deleteLoan','openNoteEditor','saveLoanNote',
+       /* confirmDeleteAll 已於 2026/07 步驟 5 移除（四頁皆同）：
+          功能由編輯模式的「全選 → 刪除」取代。 */
+       'toggleHistoryEditMode','exitHistoryEditMode','toggleHistorySelectAll','deleteSelectedHistory',
        'adjustPeriod','setPeriod','adjustRate','setRate','adjustCommission','setCommissionPercent',
        'adjustPrincipal','roundPayment','adjustPayment','clearAllFieldsExceptMonthlyCost','resetMonthlyCost',
        'clearField','clearCommission','restoreAutoData','PMT','RATE','formatNumberWithCommas']
     : ['submitCalculatorValue','calculateDepositAmount','generateCheckList','updateEndDateDisplay',
        'arabicToChineseNumber','renderChineseAmount','updateChineseDisplay','resetDepositDisplay',
-       'toggleHistoryPanel','saveCheckData','loadCheckHistory','deleteCheckHistoryItem','confirmDeleteAll',
+       'toggleHistoryPanel','saveCheckData','loadCheckHistory','deleteCheckHistoryItem',
+       /* confirmDeleteAll 已於 2026/07 步驟 5 移除：功能由編輯模式的
+          「全選 → 刪除」取代（deleteSelectedHistory），而且更安全。
+          計算頁與加油頁尚未改用編輯模式，那兩頁仍然有這支函式。 */
+       'toggleHistoryEditMode','exitHistoryEditMode','toggleHistorySelectAll','deleteSelectedHistory',
        'openNoteEditor','saveCheckNote','showDatePicker','clearAllInputs',
        'formatNumber','formatDateToROC','updateCurrentDate'];
   const lostOwn=own.filter(f=>ev('typeof '+f)!=='function');

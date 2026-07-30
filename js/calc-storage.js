@@ -246,39 +246,49 @@ function loadHistoryData() {
         const commissionDisplay = formatNumber(loan.commission);
 
         html += `
-            <div class="history-item" data-loan-id="${rec.id}">
-                <div class="history-item-header">
-                    <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
-                    <div class="history-header-rate">稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</div>
-                </div>
-
-                <div class="history-details">
-                    <div class="history-detail-item">
-                        <span class="detail-label">期數</span>
-                        <span class="detail-value">${loan.period}</span>
+            <div class="history-item${historyItemClass(rec.id)}" data-loan-id="${rec.id}" data-history-id="${rec.id}">
+                <div class="history-item-summary">
+                    ${historyCheckboxHtml()}
+                    <div class="history-item-header">
+                        <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
+                        <div class="history-header-rate">稅佣後 ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</div>
                     </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">推廣</span>
-                        <span class="detail-value">${commissionDisplay}</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">本金</span>
-                        <span class="detail-value">${principalDisplay}</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">期繳</span>
-                        <span class="detail-value">${paymentDisplay}</span>
+                    <div class="history-summary-line">
+                        <span class="summary-main">${principalDisplay}</span>
+                        <span class="summary-sub">${loan.period} 期</span>
+                        ${rec.note ? `<span class="summary-note">${escapeHtml(rec.note)}</span>` : ''}
                     </div>
                 </div>
 
-                <div class="history-note-container">
-                    <div class="history-item-footer">
-                        <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
-                            ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                <div class="history-item-detail">
+                    <div class="history-details">
+                        <div class="history-detail-item">
+                            <span class="detail-label">期數</span>
+                            <span class="detail-value">${loan.period}</span>
                         </div>
-                        <div class="history-actions">
-                            <button class="detail-btn" onclick="loadLoanToForm(${rec.id})">套用</button>
-                            <button class="delete-btn" onclick="deleteLoan(${rec.id})">刪除</button>
+                        <div class="history-detail-item">
+                            <span class="detail-label">推廣</span>
+                            <span class="detail-value">${commissionDisplay}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">本金</span>
+                            <span class="detail-value">${principalDisplay}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">期繳</span>
+                            <span class="detail-value">${paymentDisplay}</span>
+                        </div>
+                    </div>
+
+                    <div class="history-note-container">
+                        <div class="history-item-footer">
+                            <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
+                                ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                            </div>
+                            <div class="history-actions">
+                                <button class="detail-btn" onclick="loadLoanToForm(${rec.id})">套用</button>
+                                <button class="delete-btn" onclick="deleteLoan(${rec.id})">刪除</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -288,6 +298,19 @@ function loadHistoryData() {
     html += '</div>';
 
     historyContent.innerHTML = html;
+
+    // 展開／收合與編輯模式的多選都由共用程式處理（同一容器只綁一次）
+    setupHistoryPanel({
+        panelId: 'historyPanel',
+        containerId: 'historyContent',
+        store: loanHistoryStore,
+        onChange: loadHistoryData,
+        onDeleted: function (ids) {
+            ids.forEach(id => {
+                if (String(loanSourceId) === String(id)) detachLoanFromHistory();
+            });
+        }
+    });
 }
 
 /**
@@ -351,6 +374,7 @@ function deleteLoan(id) {
             `確定要刪除這筆紀錄嗎？<br><br>${summary}此操作無法復原。`,
             function() {
                 if (!loanHistoryStore.remove(id)) return;
+                forgetHistoryExpanded(id);
                 loadHistoryData();
                 if (typeof showToast === 'function') showToast('已刪除');
                 if (typeof vibrate === 'function') vibrate();
@@ -359,30 +383,9 @@ function deleteLoan(id) {
     }
 }
 
-/**
- * 確認刪除所有歷史記錄
- */
-function confirmDeleteAll() {
-    if (typeof showConfirmModal === 'function') {
-        const total = loanHistoryStore.count();
-        if (!total) return;
-        showConfirmModal(
-            '清空確認',
-            `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
-            deleteAllLoans
-        );
-    }
-}
-
-/**
- * 刪除全體歷史記錄
- */
-function deleteAllLoans() {
-    loanHistoryStore.clear();
-    loadHistoryData();
-    if (typeof showToast === 'function') showToast('已清空歷史');
-    if (typeof vibrate === 'function') vibrate();
-}
+/* confirmDeleteAll() 與 deleteAllLoans() 已於 2026/07 步驟 5 移除。
+ * 功能由編輯模式的「全選 → 刪除」取代，而且更安全：
+ * 舊版那顆「清空歷史」就擺在關閉鈕旁邊，是不可復原的動作卻只要誤觸一次。 */
 
 /**
  * 開啟備註編輯彈窗

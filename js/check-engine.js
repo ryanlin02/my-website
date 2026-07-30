@@ -1244,6 +1244,8 @@ function toggleHistoryPanel() {
     const isOpen = historyPanel.style.display === 'block';
     if (isOpen) {
         historyPanel.style.display = 'none';
+        // 關掉面板就離開編輯模式，下次打開不會停在選了一半的狀態
+        if (typeof isHistoryEditMode === 'function' && isHistoryEditMode()) exitHistoryEditMode();
     } else {
         loadCheckHistory();
         historyPanel.style.display = 'block';
@@ -1305,8 +1307,9 @@ function loadCheckHistory() {
         }
 
         html += `
-            <div class="history-item${historyExpandedClass(rec.id)}" data-check-id="${rec.id}" data-history-id="${rec.id}">
+            <div class="history-item${historyItemClass(rec.id)}" data-check-id="${rec.id}" data-history-id="${rec.id}">
                 <div class="history-item-summary">
+                    ${historyCheckboxHtml()}
                     <div class="history-item-header">
                         <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
                         <div class="history-header-rate">${progressText}</div>
@@ -1364,8 +1367,25 @@ function loadCheckHistory() {
     html += '</div>';
     historyContent.innerHTML = html;
 
-    // 展開／收合的委派綁定（同一個容器只會綁一次）
-    setupHistoryExpand('historyContent');
+    /* 註冊面板：展開／收合與編輯模式的多選都由共用程式處理，
+       同一個容器只會綁一次。onDeleted 讓本頁在紀錄被刪掉時
+       切斷與表單的連結，避免打勾寫回不存在的紀錄。 */
+    setupHistoryPanel({
+        panelId: 'historyPanel',
+        containerId: 'historyContent',
+        store: checkHistoryStore,
+        onChange: loadCheckHistory,
+        onDeleted: function (ids) {
+            ids.forEach(id => {
+                if (String(linkedHistoryId) === String(id)) linkedHistoryId = null;
+                if (String(sourceHistoryId) === String(id)) {
+                    sourceHistoryId = null;
+                    hasUnsavedChanges = false;
+                }
+            });
+            updateUnsavedHint();
+        }
+    });
 }
 
 /**
@@ -1462,24 +1482,12 @@ function deleteCheckHistoryItem(id) {
     });
 }
 
-function confirmDeleteAll() {
-    vibrate();
-    const total = checkHistoryStore.count();
-    if (!total) return;
-
-    showConfirmModal('清空確認',
-        `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
-        function() {
-        checkHistoryStore.clear();
-        clearHistoryExpanded();
-        linkedHistoryId = null;
-        sourceHistoryId = null;
-        hasUnsavedChanges = false;
-        updateUnsavedHint();
-        loadCheckHistory();
-        showToast('已清空歷史');
-    });
-}
+/* confirmDeleteAll() 已於 2026/07 步驟 5 移除。
+ *
+ * 它的功能被編輯模式的「全選 → 刪除」完全取代，而且更安全：
+ * 舊版那顆「清空歷史」就擺在關閉鈕旁邊，是不可復原的動作
+ * 卻只要誤觸一次；現在要刪東西得先明確進入編輯模式。
+ * 為同一件事保留兩個入口，只是多一個誤觸點而已。 */
 
 /**
  * 開啟備註編輯視窗

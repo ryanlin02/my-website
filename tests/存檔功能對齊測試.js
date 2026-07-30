@@ -78,7 +78,7 @@ console.log('\n發票頁 —— 套用按鈕與備註');
     d.getElementById('btnSaveRec').click();
     d.getElementById('btnHistory').click();
 
-    const row = d.querySelector('#histBody .hrec');
+    const row = d.querySelector('#histBody .history-item');
     t('歷史清單渲染得出一列', !!row);
 
     t('每列有看得見的「套用」按鈕',
@@ -115,7 +115,7 @@ console.log('\n發票頁 —— 套用按鈕與備註');
 
     d.getElementById('btnHistory').click();
     t('  備註會顯示在清單上',
-        /這張要開三聯式/.test(d.querySelector('#histBody .hrec').textContent));
+        /這張要開三聯式/.test(d.querySelector('#histBody .history-item').textContent));
 
     // 套用按鈕真的會把資料帶回來
     d.querySelector('#histBody [data-apply]').click();
@@ -379,12 +379,15 @@ console.log('\n發票頁 —— 覆蓋或另存');
     w.document.getElementById('btnSaveRec').click();
     w.document.getElementById('btnHistory').click();
 
-    const row = w.document.querySelector('#histBody .hrec');
+    const row = w.document.querySelector('#histBody .history-item');
     t('卡片顯示存檔時間', /今天\s+\d{2}:\d{2}/.test(row.textContent),
         row.textContent.replace(/\s+/g, ' ').slice(0, 100));
-    t('  發票開立日期仍然看得到（兩者是不同的東西）',
-        !!row.querySelector('.hy') && row.querySelector('.hy').textContent.trim().length > 0,
-        (row.querySelector('.hy') || {}).textContent);
+    /* 發票開立日期與存檔時間是兩件事：前者是使用者選的發票日期（民國），
+       後者是「我什麼時候存的」。改用共用卡片結構後，存檔時間在收合行、
+       發票日期收進展開層的欄位裡，兩者都還在。 */
+    t('  發票開立日期收在展開層的欄位裡（兩者是不同的東西）',
+        /發票日期/.test(row.querySelector('.history-item-detail').textContent),
+        row.querySelector('.history-item-detail').textContent.replace(/\s+/g, ' ').slice(0, 120));
 }
 
 /* ============================================================

@@ -229,11 +229,18 @@
      一行一筆：日期、抬頭、總計。點一下整張載回來繼續編輯或再分享一次。
      =================================================================== -->
 <div class="sheet" id="histSheet">
+    <!-- 標題列兩套按鈕，靠 .edit-mode 切換（樣式見 css/history.css）：
+             一般模式   歷史紀錄            [編輯] [×]
+             編輯模式   已選 N 筆   [全選] [刪除] [完成] -->
     <div class="sheet-head">
-        <span class="t">歷史紀錄</span>
+        <span class="t history-title">歷史紀錄</span>
+        <span class="t history-selected-count">已選 0 筆</span>
         <div class="sheet-acts">
-            <button id="histClear">清空歷史</button>
-            <button class="x" id="histClose">×</button>
+            <button class="history-edit-btn" onclick="toggleHistoryEditMode()">編輯</button>
+            <button class="history-select-all" onclick="toggleHistorySelectAll()">全選</button>
+            <button class="history-delete-selected is-disabled" onclick="deleteSelectedHistory()">刪除</button>
+            <button class="history-done" onclick="exitHistoryEditMode()">完成</button>
+            <button class="x close-btn" id="histClose">×</button>
         </div>
     </div>
     <div class="sheet-body" id="histBody"></div>

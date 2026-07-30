@@ -17,6 +17,15 @@
  *
  * 色彩 token 沿用 keypad.css 的 :root（四頁都會載入它），
  * 本檔不重複宣告。
+ *
+ * 【規則：中文不使用 font-style: italic】
+ * 中文字體沒有真正的斜體字形，瀏覽器只能自己把字「傾斜」出來（合成斜體）。
+ * 後果有兩個：一是筆畫變形、辨識度下降；二是傾斜之後最後一個字的
+ * 右上角會超出容器，遇到 overflow: hidden 就會被切掉一角 ——
+ * 實機上「台積電」的「電」字就是這樣缺了一塊。
+ *
+ * 需要弱化的地方一律改用顏色與字級（本檔已有 --text-muted /
+ * --note-text-empty 兩個 token）。tests/歷史卡片收合測試.js 有守門檢查。
  * ============================================ */
 
 /* ============================================
@@ -110,65 +119,100 @@
     border: 1px solid rgba(var(--accent-color-rgb), 0.2);
 }
 
+/* 【2026/07 步驟 5】拿掉這一層自己的底色、圓角與內距。
+ *
+ * 它原本有 background + border-radius + padding: 2px 4px，等於在卡片
+ * 裡面又畫了一個框；而且 .history-date 有 margin-left: 5px、
+ * 徽章有 margin: 0 5px，導致這一行的左右邊緣比下面那行內縮 5px ——
+ * 實機上看起來就是「上面的框比下面窄」。
+ *
+ * 現在它只是一個單純的橫向排列，左右邊緣與下方的摘要行完全對齊。 */
 .history-item-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 2px 4px;
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 2px;
-    margin-bottom: 2px;
 }
 
 .history-date {
     font-weight: normal;
     color: var(--accent-color);
     font-size: 14px;
-    padding: 2px 0;
-    margin-left: 5px;
+    white-space: nowrap;
 }
 
+/* 徽章保留底色 —— 它是「狀態」，用色塊標示比放大字級有效，
+   而且不必跟主要金額搶視覺重量。字級由 16px 收成 14px，
+   與左邊的時間同一級，整行成為一致的「說明列」。 */
 .history-header-rate {
     font-weight: normal;
     color: var(--text-color);
-    font-size: 16px;
+    font-size: 14px;
     background-color: var(--accent-color-light);
-    padding: 2px 6px;
-    margin: 0px 5px 0px 5px;
+    padding: 2px 7px;
     border-radius: 4px;
+    white-space: nowrap;
 }
 
+/* 【2026/07 步驟 5】拿掉底色與外框。
+   上層 .history-item-detail 已經有一條分隔線把展開區隔開，
+   這裡再加一個框就變成框中框。欄位本身靠左右對齊就分得清楚。 */
 .history-details {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
-    background-color: rgba(var(--primary-color-rgb), 0.08);
-    padding: 4px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    column-gap: 10px;
+    row-gap: 1px;
 }
 
+/* ------------------------------------------------------------
+ * 【2026/07 步驟 5】標籤與數值改成同一橫列
+ *
+ * 舊版是 flex-direction: column（標籤在上、數值在下），六個欄位
+ * 就吃掉六行文字的高度。而這一頁每個欄位的長度都有明確上限
+ * （金額 9 位、日期固定 9 字），最寬的一組是
+ * 「尾款金額 999,999,999」約 140px，欄寬有 174px —— 放得下，
+ * 分兩行純粹是浪費垂直空間。
+ *
+ * 舊版還有一個反過來的地方：標籤 16px、數值 14px，標籤比數值大。
+ * 數值才是資訊，標籤只是說明它是什麼，視覺重量不該倒過來。
+ *
+ * 這段樣式原本寫在 calculator.css，是計算頁的舊卡片沿用下來的，
+ * 抽成共用檔時照搬未改。現在四頁共用同一份，改這裡四頁一起生效。
+ *
+ * 另外拿掉了每個項目自己那圈背景 —— 外層 .history-details 已經有
+ * 背景與邊框，兩層盒子疊在一起視覺很重，也各自多吃幾 px。
+ * ------------------------------------------------------------ */
 .history-detail-item {
     display: flex;
-    flex-direction: column;
-    gap: 1px;
-    padding: 2px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.02);
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 2px 3px;
 }
 
+/* 標籤 12px：比數值小一級。沒有用更小的 11px，是因為業務常常是
+   站著、手臂伸直在看螢幕，中文再小就吃力了。 */
 .detail-label {
-    font-size: 16px;
+    flex: 0 0 auto;
+    font-size: 12px;
+    line-height: 1.3;
     color: var(--text-muted);
+    white-space: nowrap;
 }
 
+/* 數值靠右、等寬數字：上下兩列的位數才會對齊，掃一眼就看得出大小 */
 .detail-value {
+    flex: 1 1 auto;
+    min-width: 0;
     font-size: 14px;
-    font-weight: normal;
+    font-weight: 600;
+    line-height: 1.3;
     color: var(--text-color);
-    line-height: 1;
     text-align: right;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .history-actions {
@@ -224,7 +268,6 @@
 .no-data {
     text-align: center;
     color: var(--text-muted);
-    font-style: italic;
     padding: 30px 0;
     font-size: 16px;
 }
@@ -257,12 +300,10 @@
 /* ============================================
 * 備註編輯視窗 (Note Editor Modal)
 * ============================================ */
+/* 純粹是排版用的容器，不需要自己的底色與外框（又一層框中框）。
+   只留上下間距把它和欄位區隔開。 */
 .history-note-container {
-    background-color: rgba(var(--primary-color-rgb), 0.05);
-    border-radius: 4px;
-    margin: 4px 0;
-    padding: 3px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    margin-top: 6px;
 }
 
 .history-item-footer {
@@ -285,13 +326,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
-    max-width: 170px;
+    min-width: 0;
     line-height: 1.4;
 }
 
 .history-note-preview.empty-note {
     color: var(--note-text-empty);
-    font-style: italic;
     background-color: transparent;
 }
 
@@ -415,7 +455,7 @@
 }
 
 .summary-main {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: bold;
     color: var(--text-color);
     font-variant-numeric: tabular-nums;
@@ -423,7 +463,7 @@
 }
 
 .summary-sub {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-muted);
     white-space: nowrap;
 }
@@ -433,8 +473,7 @@
     flex: 1 1 auto;
     min-width: 0;
     text-align: right;
-    font-size: 11px;
-    font-style: italic;
+    font-size: 12px;
     color: var(--note-text-color);
     overflow: hidden;
     white-space: nowrap;
@@ -455,4 +494,136 @@
 /* 收合狀態下，卡片內距可以再收一點 —— 一個畫面多擠進一筆 */
 .history-item {
     padding: 7px 8px;
+}
+
+/* ============================================
+ * 編輯模式與多選刪除（2026/07 步驟 5）
+ * --------------------------------------------
+ * 標題列有兩套按鈕，都寫在各頁的 HTML 裡，靠 .edit-mode 切換顯示。
+ * 共用程式因此不必組 DOM，各頁也保有調整版面的自由。
+ *
+ *   一般模式   歷史紀錄            [編輯] [×]
+ *   編輯模式   已選 N 筆   [全選] [刪除] [完成]
+ *
+ * 一般瀏覽時標題列上沒有任何破壞性按鈕 —— 這是把「清空歷史」
+ * 從關閉鈕旁邊移走的主要目的。
+ * ============================================ */
+
+/* 預設（一般模式）：編輯模式專用的元件全部收起來 */
+.history-selected-count,
+.history-select-all,
+.history-delete-selected,
+.history-done {
+    display: none;
+}
+
+/* 編輯模式：換成另一套 */
+.edit-mode .history-title,
+.edit-mode .history-edit-btn,
+.edit-mode .close-btn {
+    display: none;
+}
+.edit-mode .history-selected-count,
+.edit-mode .history-select-all,
+.edit-mode .history-delete-selected,
+.edit-mode .history-done {
+    display: inline-block;
+}
+
+/* 編輯模式下不顯示展開的細節：這時要做的是「挑出哪幾筆」，
+   不是讀內容；而且展開層裡的套用／刪除按鈕在這個情境下會造成混淆。
+   收合狀態本身不受影響，離開編輯模式後原本展開的仍然是展開的。 */
+.edit-mode .history-item-detail {
+    display: none;
+}
+.edit-mode .history-item-summary::after {
+    display: none;                 /* 展開箭頭在編輯模式沒有意義 */
+}
+
+/* 標題列的幾顆小按鈕 */
+.history-title {
+    display: inline-block;
+}
+
+.history-selected-count {
+    color: var(--accent-color);
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.history-edit-btn,
+.history-select-all,
+.history-done {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 6px;
+}
+.history-done {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.history-delete-selected {
+    background: rgba(var(--error-color-rgb), 0.15);
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 6px;
+}
+/* 一筆都沒選時不給按 —— 按了沒反應比按不下去更讓人困惑 */
+.history-delete-selected.is-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* 每一列左側的勾選框。
+   平常完全不佔空間，只有編輯模式才出現並把內容往右推 ——
+   收合行本來就緊，常駐一個勾選框會把備註擠掉。 */
+.history-check {
+    display: none;
+}
+.edit-mode .history-item-summary {
+    padding-left: 28px;
+}
+.edit-mode .history-check {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    margin-top: -9px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--text-muted);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* 選取後：填色並打勾（勾用 CSS 畫，不另外放圖 */
+.edit-mode .history-item.selected .history-check {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+.edit-mode .history-item.selected .history-check::after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 0;
+    width: 5px;
+    height: 10px;
+    border-right: 2px solid #ffffff;
+    border-bottom: 2px solid #ffffff;
+    transform: rotate(45deg);
+}
+
+.edit-mode .history-item.selected {
+    border-color: var(--accent-color);
 }

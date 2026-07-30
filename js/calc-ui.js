@@ -721,6 +721,8 @@ function toggleHistoryPanel() {
     if (!panel) return;
     if (panel.style.display === 'block') {
         panel.style.display = 'none';
+        // 關掉面板就離開編輯模式，下次打開不會停在選了一半的狀態
+        if (typeof isHistoryEditMode === 'function' && isHistoryEditMode()) exitHistoryEditMode();
     } else {
         panel.style.display = 'block';
         if (typeof loadHistoryData === 'function') loadHistoryData();

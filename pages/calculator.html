@@ -368,13 +368,20 @@
     </div>
 
     <!-- 歷史紀錄面板 -->
+    <!-- 標題列兩套按鈕，靠 .edit-mode 切換（樣式見 css/history.css）：
+             一般模式   歷史紀錄            [編輯] [×]
+             編輯模式   已選 N 筆   [全選] [刪除] [完成] -->
     <div id="historyPanel" class="history-panel">
         <div class="history-header">
             <div class="header-left">
-                <h2>歷史紀錄</h2>
+                <h2 class="history-title">歷史紀錄</h2>
+                <span class="history-selected-count">已選 0 筆</span>
             </div>
             <div class="header-right">
-                <button class="delete-all-btn" onclick="confirmDeleteAll()">清空歷史</button>
+                <button class="history-edit-btn" onclick="toggleHistoryEditMode()">編輯</button>
+                <button class="history-select-all" onclick="toggleHistorySelectAll()">全選</button>
+                <button class="history-delete-selected is-disabled" onclick="deleteSelectedHistory()">刪除</button>
+                <button class="history-done" onclick="exitHistoryEditMode()">完成</button>
             </div>
             <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
         </div>

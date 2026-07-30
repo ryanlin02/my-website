@@ -306,9 +306,16 @@ console.log('\n刪除與備註');
     buildCase(w, 28.6, 100000, 0.5);
     w.eval('saveGasData()');
 
+    /* 【2026/07 步驟 5】清空改由編輯模式的「全選 → 刪除」完成，
+       原本那顆 confirmDeleteAll 已移除。 */
     w.eval('toggleHistoryPanel()');
-    w.eval('confirmDeleteAll()');
-    t('清空會先跳確認彈窗', $(w, 'confirmModalOverlay').style.display === 'flex');
+    w.eval('toggleHistoryEditMode()');
+    w.eval('toggleHistorySelectAll()');
+    w.eval('deleteSelectedHistory()');
+    t('全選後刪除會先跳確認', $(w, 'confirmModalOverlay').style.display === 'flex');
+    t('  全選時標題是「清空確認」',
+        $(w, 'confirmModalTitle').textContent.trim() === '清空確認',
+        $(w, 'confirmModalTitle').textContent);
     t('  訊息帶出筆數 2', $(w, 'confirmModalContent').textContent.includes('2'),
         $(w, 'confirmModalContent').textContent);
     t('  確認之前兩筆都還在', hist(w).length === 2);

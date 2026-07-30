@@ -86,6 +86,12 @@ USER_FACING.forEach(f => {
    ============================================================ */
 console.log('\n按鈕字樣');
 
+/* 【2026/07 步驟 5】清空的入口分成兩種寫法，因為改版是一頁一頁推的：
+   已改用編輯模式的頁面   標題列是「編輯」，清空由「全選 → 刪除」完成
+   尚未改用的頁面         標題列仍是「清空歷史」
+   這份清單會隨著推廣而縮短，全部推完之後 LEGACY_CLEAR 就會是空的。 */
+const EDIT_MODE_PAGES = ['pages/check.html', 'pages/calculator.html', 'pages/gas.html'];
+
 [
     ['pages/calculator.html', 'saveLoanData()'],
     ['pages/check.html', 'saveCheckData()'],
@@ -95,16 +101,28 @@ console.log('\n按鈕字樣');
     t(`${f} 存檔按鈕寫「存檔」`,
         new RegExp(`onclick="${fn.replace('(', '\\(').replace(')', '\\)')}">存檔<`).test(body));
     t(`${f} 入口按鈕寫「歷史」`, /onclick="toggleHistoryPanel\(\)">歷史</.test(body));
-    t(`${f} 面板標題寫「歷史紀錄」`, /<h2>歷史紀錄<\/h2>/.test(body));
-    t(`${f} 清空按鈕寫「清空歷史」`, />清空歷史</.test(body));
+    t(`${f} 面板標題寫「歷史紀錄」`, /<h2[^>]*>歷史紀錄<\/h2>/.test(body));
+
+    if (EDIT_MODE_PAGES.includes(f)) {
+        t(`${f} 標題列改為「編輯」，沒有破壞性按鈕`,
+            />編輯</.test(body) && !/>清空歷史</.test(body));
+        t(`  ${f} 編輯模式四顆按鈕齊全`,
+            />全選</.test(body) && />刪除</.test(body) && />完成</.test(body));
+    } else {
+        t(`${f} 清空按鈕寫「清空歷史」`, />清空歷史</.test(body));
+    }
 });
 
 {
+    // 發票頁的存檔／歷史在固定頂列，標題列與另外三頁一樣是雙態的
     const body = stripHtmlComments(read('pages/invoice.html'));
     t('pages/invoice.html 存檔按鈕寫「存檔」', /id="btnSaveRec">存檔</.test(body));
     t('pages/invoice.html 入口按鈕寫「歷史」', /id="btnHistory">歷史</.test(body));
-    t('pages/invoice.html 面板標題寫「歷史紀錄」', /class="t">歷史紀錄</.test(body));
-    t('pages/invoice.html 清空按鈕寫「清空歷史」', /id="histClear">清空歷史</.test(body));
+    t('pages/invoice.html 面板標題寫「歷史紀錄」', /history-title">歷史紀錄</.test(body));
+    t('pages/invoice.html 標題列改為「編輯」，沒有破壞性按鈕',
+        />編輯</.test(body) && !/>清空歷史</.test(body));
+    t('  pages/invoice.html 編輯模式四顆按鈕齊全',
+        />全選</.test(body) && />刪除</.test(body) && />完成</.test(body));
 }
 
 /* 清單裡的套用按鈕（字樣寫在 JS 的樣板字串裡） */
@@ -127,9 +145,16 @@ const ENGINES = ['js/calc-storage.js', 'js/check-engine.js', 'js/invoice-engine.
 ENGINES.forEach(f => {
     const body = stripJsComments(read(f));
     t(`${f} 單筆刪除用「刪除確認」`, body.includes("'刪除確認'"));
-    t(`${f} 清空用「清空確認」`, body.includes("'清空確認'"));
     t(`${f} 沒有舊的「確認刪除」「全刪確認」`,
         !body.includes("'確認刪除'") && !body.includes("'全刪確認'"));
+});
+
+/* 清空的確認彈窗全部集中在共用模組（三頁都改用編輯模式了） */
+t('共用模組有「清空確認」', stripJsComments(read('js/common-history.js')).includes("'清空確認'"));
+t('  也有多筆刪除的「刪除確認」', stripJsComments(read('js/common-history.js')).includes("'刪除確認'"));
+['js/calc-storage.js', 'js/gas-engine.js', 'js/check-engine.js', 'js/invoice-engine.js'].forEach(f => {
+    t(`${f} 不再自己處理清空（已交給共用模組）`,
+        !stripJsComments(read(f)).includes("'清空確認'"));
 });
 
 /* ============================================================
@@ -140,20 +165,20 @@ console.log('\n提示訊息');
 /* 計算頁與支票頁的存檔提示是條件式的（覆蓋原紀錄時講的是另一句話），
    所以只比對字串本身，不比對整行呼叫。 */
 const TOASTS = {
-    'js/calc-storage.js': ["'已存檔'", "showToast('已套用')",
-                           "showToast('已刪除')", "showToast('已清空歷史')"],
-    'js/check-engine.js': ["'已存檔'", "showToast('已套用')",
-                           "showToast('已刪除')", "showToast('已清空歷史')"],
-    'js/invoice-engine.js': ["'已存檔'", "showToast('已套用')",
-                             "showToast('已刪除')", "showToast('已清空歷史')"],
-    'js/gas-engine.js': ["'已存檔'", "showToast('已套用')",
-                         "showToast('已刪除')", "showToast('已清空歷史')"]
+    'js/calc-storage.js': ["'已存檔'", "showToast('已套用')", "showToast('已刪除')"],
+    // 支票頁的清空已交給共用模組，本檔不再有那句提示
+    'js/check-engine.js': ["'已存檔'", "showToast('已套用')", "showToast('已刪除')"],
+    'js/invoice-engine.js': ["'已存檔'", "showToast('已套用')", "showToast('已刪除')"],
+    'js/gas-engine.js': ["'已存檔'", "showToast('已套用')", "showToast('已刪除')"]
 };
 Object.entries(TOASTS).forEach(([f, needles]) => {
     const body = stripJsComments(read(f));
     const missing = needles.filter(n => !body.includes(n));
-    t(`${f} 四個提示都用共同說法`, missing.length === 0, missing.join('、'));
+    t(`${f} 提示都用共同說法`, missing.length === 0, missing.join('、'));
 });
+
+t('共用模組的清空提示也是「已清空歷史」',
+    stripJsComments(read('js/common-history.js')).includes("'已清空歷史'"));
 
 /* 備註的提示：兩頁都要是「備註已儲存」 */
 ['js/calc-storage.js', 'js/check-engine.js', 'js/gas-engine.js', 'js/invoice-engine.js'].forEach(f => {

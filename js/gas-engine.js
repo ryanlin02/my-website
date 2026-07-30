@@ -815,6 +815,8 @@ function toggleHistoryPanel() {
 
     if (panel.style.display === 'block') {
         panel.style.display = 'none';
+        // 關掉面板就離開編輯模式，下次打開不會停在選了一半的狀態
+        if (typeof isHistoryEditMode === 'function' && isHistoryEditMode()) exitHistoryEditMode();
     } else {
         loadGasHistory();
         panel.style.display = 'block';
@@ -837,35 +839,44 @@ function loadGasHistory() {
     list.forEach(rec => {
         const g = rec.data;
         html += `
-            <div class="history-item" data-gas-id="${rec.id}">
-                <div class="history-item-header">
-                    <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
-                    <div class="history-header-rate">單價 ${g.dieselPrice} 元</div>
-                </div>
-
-                <!-- 只放這兩個數字：折扣金額是業務真正在意的，
-                     每月油錢是在還沒寫備註時用來認出「這是哪個客戶」。
-                     油量與折後金額都是推導值，套用回表單就會即時算出來，
-                     不需要佔用卡片版面。 -->
-                <div class="history-details">
-                    <div class="history-detail-item">
-                        <span class="detail-label">每月油錢</span>
-                        <span class="detail-value">${formatNumberWithCommas(g.monthlyExpense)}</span>
+            <div class="history-item${historyItemClass(rec.id)}" data-gas-id="${rec.id}" data-history-id="${rec.id}">
+                <div class="history-item-summary">
+                    ${historyCheckboxHtml()}
+                    <div class="history-item-header">
+                        <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
+                        <div class="history-header-rate">單價 ${g.dieselPrice} 元</div>
                     </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">折扣金額</span>
-                        <span class="detail-value">${g.discountAmount} 元</span>
+                    <div class="history-summary-line">
+                        <span class="summary-main">${formatNumberWithCommas(g.monthlyExpense)}</span>
+                        <span class="summary-sub">折扣 ${g.discountAmount} 元</span>
+                        ${rec.note ? `<span class="summary-note">${escapeHtml(rec.note)}</span>` : ''}
                     </div>
                 </div>
 
-                <div class="history-note-container">
-                    <div class="history-item-footer">
-                        <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
-                            ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                <div class="history-item-detail">
+                    <!-- 只放這兩個數字：折扣金額是業務真正在意的，
+                         每月油錢是在還沒寫備註時用來認出「這是哪個客戶」。
+                         油量與折後金額都是推導值，套用回表單就會即時算出來。 -->
+                    <div class="history-details">
+                        <div class="history-detail-item">
+                            <span class="detail-label">每月油錢</span>
+                            <span class="detail-value">${formatNumberWithCommas(g.monthlyExpense)}</span>
                         </div>
-                        <div class="history-actions">
-                            <button class="detail-btn" onclick="loadGasToForm(${rec.id})">套用</button>
-                            <button class="delete-btn" onclick="deleteGasHistoryItem(${rec.id})">刪除</button>
+                        <div class="history-detail-item">
+                            <span class="detail-label">折扣金額</span>
+                            <span class="detail-value">${g.discountAmount} 元</span>
+                        </div>
+                    </div>
+
+                    <div class="history-note-container">
+                        <div class="history-item-footer">
+                            <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
+                                ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                            </div>
+                            <div class="history-actions">
+                                <button class="detail-btn" onclick="loadGasToForm(${rec.id})">套用</button>
+                                <button class="delete-btn" onclick="deleteGasHistoryItem(${rec.id})">刪除</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -874,6 +885,19 @@ function loadGasHistory() {
 
     html += '</div>';
     content.innerHTML = html;
+
+    // 展開／收合與編輯模式的多選都由共用程式處理（同一容器只綁一次）
+    setupHistoryPanel({
+        panelId: 'historyPanel',
+        containerId: 'historyContent',
+        store: gasHistoryStore,
+        onChange: loadGasHistory,
+        onDeleted: function (ids) {
+            ids.forEach(id => {
+                if (String(gasSourceId) === String(id)) detachGasFromHistory();
+            });
+        }
+    });
 }
 
 function loadGasToForm(id) {
@@ -925,27 +949,15 @@ function deleteGasHistoryItem(id) {
 
     showConfirmModal('刪除確認', `確定要刪除這筆紀錄嗎？<br><br>${summary}此操作無法復原。`, function () {
         if (!gasHistoryStore.remove(id)) return;
+        forgetHistoryExpanded(id);
         if (gasSourceId === id) detachGasFromHistory();
         loadGasHistory();
         showToast('已刪除');
     });
 }
 
-function confirmDeleteAll() {
-    vibrate();
-
-    const total = gasHistoryStore.count();
-    if (!total) return;
-
-    showConfirmModal('清空確認',
-        `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
-        function () {
-            gasHistoryStore.clear();
-            detachGasFromHistory();
-            loadGasHistory();
-            showToast('已清空歷史');
-        });
-}
+/* confirmDeleteAll() 已於 2026/07 步驟 5 移除：
+ * 功能由編輯模式的「全選 → 刪除」取代，而且更安全。 */
 
 function openNoteEditor(id) {
     vibrate();

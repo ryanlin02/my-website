@@ -238,7 +238,8 @@ console.log('\n發票頁 —— 舊資料');
     t('  三聯式標記正確', text.includes('三聯式'));
 
     // 點整列載回來繼續編輯
-    body.querySelector('.hrec').click();
+    // 卡片改用共用結構後，套用要按明確的「套用」按鈕（整列點擊是展開）
+    body.querySelector('[data-apply]').click();
     t('點一列 → 抬頭載回 state', w.__test.state.title === '大發運輸有限公司', w.__test.state.title);
     t('  統編載回 state', w.__test.state.taxId === '12345678', w.__test.state.taxId);
     t('  品項載回 state', w.__test.state.items[0].name === '車輛租賃',

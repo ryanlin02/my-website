@@ -727,104 +727,10 @@ body { padding-bottom: 12px !important; }
     padding: 6px;
 }
 
-/* 【2026/07 步驟 4】一列兩行：上行是內容摘要，下行是備註與動作鈕。
-   結構比照計算頁與支票頁的歷史卡片，四頁的動線一致。 */
-.hrec {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 8px 8px;
-    margin-bottom: 5px;
-    background: var(--secondary-color);
-    border: 1px solid var(--border-color);
-    border-radius: 7px;
-    cursor: pointer;
-}
-.hrec:active { border-color: var(--button-orange); }
-
-.hrec-main {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.hrec-foot {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding-top: 5px;
-    border-top: 1px solid var(--border-color);
-}
-
-/* 存檔時間：小字、不搶戲，但看得出這筆是今天早上還是上週談的 */
-.hsaved {
-    flex: 0 0 auto;
-    font-size: 10px;
-    color: #8a8a8a;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-/* 備註佔滿剩餘寬度，單行截斷 —— 備註可能很長，不能讓它把動作鈕擠掉 */
-.hnote {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 11px;
-    color: #cccccc;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    padding: 2px 4px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, .18);
-}
-.hnote.empty { color: #7a7a7a; font-style: italic; }
-
-.hacts { flex: 0 0 auto; display: flex; gap: 5px; }
-
-.hbtn {
-    padding: 3px 10px;
-    font-size: 11px;
-    border-radius: 5px;
-    border: 1px solid var(--button-orange);
-    background: transparent;
-    color: var(--button-orange);
-    cursor: pointer;
-}
-.hbtn.hdel {
-    border-color: #7a4a4a;
-    color: var(--err-red);
-}
-
-.hrec .hd { flex: 0 0 62px; font-size: 11px; color: #9a9a9a; line-height: 1.3; }
-.hrec .hd .hy { display: block; color: var(--button-blue); font-weight: bold; font-size: 12px; }
-.hrec .hn {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 13px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-.hrec .hn .tag {
-    display: inline-block;
-    font-size: 10px;
-    padding: 1px 4px;
-    margin-right: 4px;
-    border-radius: 3px;
-    background: #3d3d3d;
-    color: #bbbbbb;
-}
-.hrec .ht {
-    flex: 0 0 auto;
-    font-size: 15px;
-    font-weight: bold;
-    color: var(--button-orange);
-    font-variant-numeric: tabular-nums;
-}
-/* .hrec .hx（那個小小的 ×）已於 2026/07 步驟 4 移除，
-   改為第二行的「刪除」文字鈕，與計算頁、支票頁一致。
-   × 太小、又緊鄰「清空歷史」，在手機上是誤觸熱區。 */
+/* .hrec 那一整套（橫向一列的歷史紀錄）已於 2026/07 步驟 5 移除。
+   發票頁的歷史卡片改用四頁共用的 .history-item 結構（見 css/history.css），
+   收合／展開、編輯模式的多選都跟另外三頁完全一致。
+   舊樣式留著只會變成沒人用卻又可能被層疊順序喚醒的死碼。 */
 
 .sheet-empty { text-align: center; color: #7a7a7a; font-size: 13px; padding: 40px 0; }
 

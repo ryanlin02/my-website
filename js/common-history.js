@@ -401,39 +401,6 @@ function isHistoryExpanded(id) {
     return expandedHistoryIds.has(String(id));
 }
 
-/** 渲染時直接串進 class 屬性 */
-function historyExpandedClass(id) {
-    return isHistoryExpanded(id) ? ' expanded' : '';
-}
-
-/**
- * 綁定展開／收合（同一個容器只會綁一次）
- *
- * 用事件委派而不是每張卡片各綁一個：面板每次重畫都會換掉所有 DOM，
- * 逐張綁定會在每次重畫時累積成一堆殘留的監聽器。
- *
- * @param {string} containerId 歷史清單的容器 id
- */
-function setupHistoryExpand(containerId) {
-    const box = document.getElementById(containerId);
-    if (!box || box.dataset.expandBound === '1') return;
-    box.dataset.expandBound = '1';
-
-    box.addEventListener('click', function (e) {
-        const summary = e.target.closest('.history-item-summary');
-        if (!summary) return;
-
-        const item = summary.closest('.history-item');
-        if (!item) return;
-
-        const id = String(item.dataset.historyId || '');
-        if (item.classList.toggle('expanded')) expandedHistoryIds.add(id);
-        else expandedHistoryIds.delete(id);
-
-        if (typeof vibrate === 'function') vibrate(15);
-    });
-}
-
 /** 紀錄被刪掉時一併忘掉它的展開狀態，避免這個集合無限長大 */
 function forgetHistoryExpanded(id) {
     expandedHistoryIds.delete(String(id));
@@ -443,10 +410,207 @@ function clearHistoryExpanded() {
     expandedHistoryIds.clear();
 }
 
+/* ============================================================
+   編輯模式與多選刪除（四頁共用）
+   ------------------------------------------------------------
+   【為什麼要有這個模式】
+   兩個問題用同一個東西解決：
+
+   一、刪多筆的成本太高。一筆要點三次（展開 → 刪除 → 確定），
+       清掉五筆就是十五次。編輯模式下是「進入 1 ＋ 選 5 ＋ 刪除 1
+       ＋ 確定 1」＝ 八次，而且筆數越多省越多。
+
+   二、「清空歷史」原本擺在標題列、就在關閉鈕旁邊，是個不可復原的
+       動作卻只要誤觸一次。改成編輯模式之後，一般瀏覽時標題列上
+       沒有任何破壞性按鈕；要刪東西得先明確進入編輯模式。
+       「全選 → 刪除」也順勢取代了原本那顆「清空歷史」，
+       不必再為同一件事保留兩個入口。
+
+   【為什麼不用常駐的勾選框】
+   收合行本來就緊（時間、進度、金額、張數、備註），再塞一個平常
+   用不到的勾選框會把備註擠掉。備註是找紀錄時的辨識線索，
+   比一年用兩次的多選重要。
+   ============================================================ */
+let historyEditMode = false;
+const selectedHistoryIds = new Set();
+
+/* 面板的設定（每頁一個面板，由該頁在初始化時註冊一次） */
+let historyPanelCtx = null;
+
+/**
+ * 註冊歷史面板，並綁定展開／選取的事件委派
+ *
+ * @param {Object} cfg
+ * @param {string} cfg.panelId      面板最外層元素的 id（編輯模式的 class 掛在這裡）
+ * @param {string} cfg.containerId  清單容器的 id
+ * @param {Object} cfg.store        該頁的 createHistoryStore(...)
+ * @param {Function} cfg.onChange   資料變動後重新渲染清單的函式
+ */
+function setupHistoryPanel(cfg) {
+    historyPanelCtx = cfg;
+
+    const box = document.getElementById(cfg.containerId);
+    if (!box || box.dataset.historyBound === '1') return;
+    box.dataset.historyBound = '1';
+
+    /* 用事件委派而不是每張卡片各綁一個：面板每次重畫都會換掉所有 DOM，
+       逐張綁定會在每次重畫時累積成一堆殘留的監聽器。 */
+    box.addEventListener('click', function (e) {
+        const summary = e.target.closest('.history-item-summary');
+        if (!summary) return;
+
+        const item = summary.closest('.history-item');
+        if (!item) return;
+
+        const id = String(item.dataset.historyId || '');
+
+        if (historyEditMode) {
+            // 編輯模式下，點整列是「選取」而不是「展開」
+            if (item.classList.toggle('selected')) selectedHistoryIds.add(id);
+            else selectedHistoryIds.delete(id);
+            updateHistoryEditUI();
+        } else {
+            if (item.classList.toggle('expanded')) expandedHistoryIds.add(id);
+            else expandedHistoryIds.delete(id);
+        }
+
+        if (typeof vibrate === 'function') vibrate(15);
+    });
+}
+
+/** 相容舊呼叫名稱（支票頁改版時用過） */
+function setupHistoryExpand(containerId) {
+    setupHistoryPanel({ containerId: containerId });
+}
+
+/** 渲染時直接串進 class 屬性：一次帶出展開與選取兩種狀態 */
+function historyItemClass(id) {
+    let cls = '';
+    if (isHistoryExpanded(id)) cls += ' expanded';
+    if (selectedHistoryIds.has(String(id))) cls += ' selected';
+    return cls;
+}
+
+/** 勾選框：只有編輯模式看得到（由 CSS 控制），四頁共用同一段 HTML */
+function historyCheckboxHtml() {
+    return '<span class="history-check" aria-hidden="true"></span>';
+}
+
+function isHistoryEditMode() {
+    return historyEditMode;
+}
+
+function enterHistoryEditMode() {
+    historyEditMode = true;
+    selectedHistoryIds.clear();
+    updateHistoryEditUI();
+    if (typeof vibrate === 'function') vibrate(20);
+}
+
+function exitHistoryEditMode() {
+    historyEditMode = false;
+    selectedHistoryIds.clear();
+    if (historyPanelCtx && typeof historyPanelCtx.onChange === 'function') {
+        historyPanelCtx.onChange();     // 重畫以清掉每一列的選取樣式
+    }
+    updateHistoryEditUI();
+}
+
+function toggleHistoryEditMode() {
+    if (historyEditMode) exitHistoryEditMode();
+    else enterHistoryEditMode();
+}
+
+/** 全選／取消全選（同一顆按鈕，依目前狀態切換） */
+function toggleHistorySelectAll() {
+    if (!historyPanelCtx || !historyPanelCtx.store) return;
+
+    const all = historyPanelCtx.store.list().map(r => String(r.id));
+    const allSelected = all.length > 0 && all.every(id => selectedHistoryIds.has(id));
+
+    selectedHistoryIds.clear();
+    if (!allSelected) all.forEach(id => selectedHistoryIds.add(id));
+
+    if (typeof historyPanelCtx.onChange === 'function') historyPanelCtx.onChange();
+    updateHistoryEditUI();
+    if (typeof vibrate === 'function') vibrate(15);
+}
+
+/** 刪除所有已選取的紀錄 */
+function deleteSelectedHistory() {
+    if (!historyPanelCtx || !historyPanelCtx.store) return;
+
+    const ids = [...selectedHistoryIds];
+    if (ids.length === 0) return;
+
+    const total = historyPanelCtx.store.count();
+    const isAll = ids.length >= total;
+
+    const doDelete = function () {
+        ids.forEach(id => {
+            historyPanelCtx.store.remove(id);
+            forgetHistoryExpanded(id);
+        });
+        if (typeof historyPanelCtx.onDeleted === 'function') historyPanelCtx.onDeleted(ids);
+
+        historyEditMode = false;
+        selectedHistoryIds.clear();
+        if (typeof historyPanelCtx.onChange === 'function') historyPanelCtx.onChange();
+        updateHistoryEditUI();
+
+        if (typeof showToast === 'function') {
+            showToast(isAll ? '已清空歷史' : `已刪除 ${ids.length} 筆`);
+        }
+    };
+
+    if (typeof showConfirmModal === 'function') {
+        showConfirmModal(
+            isAll ? '清空確認' : '刪除確認',
+            isAll
+                ? `確定要刪除全部 <b>${ids.length}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`
+                : `確定要刪除選取的 <b>${ids.length}</b> 筆紀錄嗎？<br><br>此操作無法復原。`,
+            doDelete
+        );
+    } else {
+        doDelete();
+    }
+}
+
+/**
+ * 更新標題列：筆數、按鈕文字、可否按、以及面板的編輯模式 class
+ *
+ * 標題列的兩套按鈕都寫在各頁的 HTML 裡，靠 class 切換顯示 ——
+ * 這樣共用程式不需要組 DOM，各頁也保有調整版面的自由。
+ */
+function updateHistoryEditUI() {
+    if (!historyPanelCtx) return;
+
+    const panel = document.getElementById(historyPanelCtx.panelId);
+    if (panel) panel.classList.toggle('edit-mode', historyEditMode);
+
+    const count = selectedHistoryIds.size;
+
+    const countEl = document.querySelector('.history-selected-count');
+    if (countEl) countEl.textContent = `已選 ${count} 筆`;
+
+    const delBtn = document.querySelector('.history-delete-selected');
+    if (delBtn) {
+        delBtn.disabled = (count === 0);
+        delBtn.classList.toggle('is-disabled', count === 0);
+    }
+
+    const allBtn = document.querySelector('.history-select-all');
+    if (allBtn && historyPanelCtx.store) {
+        const total = historyPanelCtx.store.count();
+        allBtn.textContent = (total > 0 && count >= total) ? '取消全選' : '全選';
+    }
+}
+
 /* Node 測試環境用；瀏覽器不會有 module */
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         createHistoryStore, createHistoryId, toHistoryEnvelope, historyIdToTime, formatSavedAt,
-        isHistoryExpanded, historyExpandedClass, forgetHistoryExpanded, clearHistoryExpanded
+        isHistoryExpanded, historyItemClass, forgetHistoryExpanded, clearHistoryExpanded,
+        isHistoryEditMode, historyCheckboxHtml
     };
 }

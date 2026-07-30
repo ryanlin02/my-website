@@ -1523,25 +1523,67 @@ function renderHistory() {
     body.innerHTML = list.map(env => {
         const rec = env.data;
         const d = rec.date || {};
-        return `<div class="hrec" data-id="${env.id}">
-            <div class="hrec-main">
-                <div class="hd"><span class="hy">${d.y || ''}/${d.m || ''}/${d.d || ''}</span>${rec.type === '3' ? '三聯式' : '二聯式'}</div>
-                <div class="hn">${rec.title ? esc(rec.title) : '<span class="tag">未填抬頭</span>'}</div>
-                <div class="ht">${fmt(rec.total)}</div>
+        return `<div class="history-item${historyItemClass(env.id)}" data-history-id="${env.id}">
+            <div class="history-item-summary">
+                ${historyCheckboxHtml()}
+                <div class="history-item-header">
+                    <div class="history-date">${esc(formatSavedAt(env.savedAt))}</div>
+                    <div class="history-header-rate">${rec.type === '3' ? '三聯式' : '二聯式'}</div>
+                </div>
+                <div class="history-summary-line">
+                    <span class="summary-main">${fmt(rec.total)}</span>
+                    <span class="summary-note">${rec.title ? esc(rec.title) : '未填抬頭'}</span>
+                    ${env.note ? `<span class="summary-note">${esc(env.note)}</span>` : ''}
+                </div>
             </div>
-            <div class="hrec-foot">
-                <!-- 存檔時間與「發票日期」是兩件事：上面 .hd 顯示的是使用者
-                     自己選的發票開立日期（民國），這裡才是「我什麼時候存的」。
-                     四頁的存檔時間都走同一支 formatSavedAt()。 -->
-                <span class="hsaved">${esc(formatSavedAt(env.savedAt))}</span>
-                <div class="hnote${env.note ? '' : ' empty'}" data-note="${env.id}">${env.note ? esc(env.note) : '點擊添加備註'}</div>
-                <div class="hacts">
-                    <button class="hbtn" data-apply="${env.id}">套用</button>
-                    <button class="hbtn hdel" data-del="${env.id}">刪除</button>
+
+            <div class="history-item-detail">
+                <div class="history-details">
+                    <div class="history-detail-item">
+                        <span class="detail-label">發票日期</span>
+                        <span class="detail-value">${d.y || ''}/${d.m || ''}/${d.d || ''}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">統編</span>
+                        <span class="detail-value">${rec.taxId ? esc(rec.taxId) : '—'}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">品項</span>
+                        <span class="detail-value">${(rec.items || []).length} 項</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">總計</span>
+                        <span class="detail-value">${fmt(rec.total)}</span>
+                    </div>
+                </div>
+
+                <div class="history-note-container">
+                    <div class="history-item-footer">
+                        <div class="history-note-preview ${env.note ? '' : 'empty-note'}" data-note="${env.id}">
+                            ${env.note ? esc(env.note) : '點擊添加備註'}
+                        </div>
+                        <div class="history-actions">
+                            <button class="detail-btn" data-apply="${env.id}">套用</button>
+                            <button class="delete-btn" data-del="${env.id}">刪除</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>`;
     }).join('');
+
+    // 展開／收合與編輯模式的多選都由共用程式處理（同一容器只綁一次）
+    setupHistoryPanel({
+        panelId: 'histSheet',
+        containerId: 'histBody',
+        store: invoiceHistoryStore,
+        onChange: renderHistory,
+        onDeleted: function (ids) {
+            ids.forEach(id => {
+                if (String(invoiceSourceId) === String(id)) detachInvoiceFromHistory();
+            });
+        }
+    });
 }
 
 /**
@@ -1613,6 +1655,7 @@ function deleteRecord(id) {
         `確定要刪除這筆紀錄嗎？<br><br>${label} · ${fmt(rec.total)}<br><br>此操作無法復原。`,
         function () {
             if (!invoiceHistoryStore.remove(id)) return;
+            forgetHistoryExpanded(id);
             renderHistory();
             showToast('已刪除');
             vibrate(40);
@@ -1950,25 +1993,18 @@ function bind() {
     // --- 存檔與歷史 ---
     $('btnSaveRec').addEventListener('click', saveRecord);
     $('btnHistory').addEventListener('click', openHistory);
-    $('histClose').addEventListener('click', () => $('histSheet').classList.remove('show'));
+    $('histClose').addEventListener('click', () => {
+        $('histSheet').classList.remove('show');
+        // 關掉面板就離開編輯模式，下次打開不會停在選了一半的狀態
+        if (typeof isHistoryEditMode === 'function' && isHistoryEditMode()) exitHistoryEditMode();
+    });
     /* 【2026/07 步驟 1】「全部刪除」補上確認彈窗。
        舊版按下去就是全部消失，沒有任何攔阻，而它就在關閉鈕旁邊。
        確認訊息帶出筆數，讓使用者知道自己要刪掉多少東西。 */
-    $('histClear').addEventListener('click', () => {
-        const total = invoiceHistoryStore.count();
-        if (!total) return;
-        showConfirmModal(
-            '清空確認',
-            `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
-            function () {
-                invoiceHistoryStore.clear();
-                renderHistory();
-                showToast('已清空歷史');
-            }
-        );
-    });
-    /* 委派的順序有意義：先攔三個明確的動作，都沒中才當成「點了整列」。
-       備註與刪除若沒有先攔下來，點下去會連帶把這筆套用回表單。 */
+    /* 舊的「清空歷史」已於 2026/07 步驟 5 移除，
+       功能由編輯模式的「全選 → 刪除」取代（更安全，看得到選了幾筆）。 */
+    /* 三個明確的動作。整列的點擊（展開／編輯模式下選取）由
+       js/common-history.js 的 setupHistoryPanel() 接管，這裡不再處理。 */
     $('histBody').addEventListener('click', e => {
         const del = e.target.closest('[data-del]');
         if (del) { deleteRecord(del.dataset.del); return; }
@@ -1976,8 +2012,6 @@ function bind() {
         if (note) { openInvoiceNoteEditor(note.dataset.note); return; }
         const apply = e.target.closest('[data-apply]');
         if (apply) { loadRecord(apply.dataset.apply); return; }
-        const rec = e.target.closest('.hrec');
-        if (rec) loadRecord(rec.dataset.id);
     });
 
     // --- 日期 ---
