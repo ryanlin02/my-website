@@ -365,3 +365,94 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     transition: all 0.1s;
 }
+
+/* ============================================
+ * 收合／展開（2026/07 步驟 5）
+ * --------------------------------------------
+ * 收合時一筆兩行，一個畫面看得到八到十筆；
+ * 展開後才出現完整欄位與套用／備註／刪除。
+ *
+ * 業務打開歷史的第一件事是「找到那一筆」，不是讀完每一筆的每個欄位。
+ * 找的時候只需要時間、狀態、一兩個關鍵數字，其餘都是雜訊。
+ * ============================================ */
+
+/* 收合時看得到的部分。整塊可點，觸控區高度約 46px，
+   遠大於 iOS 建議的 44px 最小值 —— 業務是站著單手點的。 */
+.history-item-summary {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    position: relative;
+    padding-right: 16px;        /* 留給右側的展開箭頭 */
+}
+
+/* 展開箭頭：用 CSS 畫，不佔 DOM，也不會被截斷 */
+.history-item-summary::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin-top: -5px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+.history-item.expanded .history-item-summary::after {
+    transform: rotate(-135deg);
+    margin-top: -2px;
+}
+
+/* 收合時的第二行：關鍵數字在左、備註在右 */
+.history-summary-line {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 3px;
+    min-width: 0;
+}
+
+.summary-main {
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--text-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.summary-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* 備註擠到最右邊並截斷 —— 它是辨識線索，但不能把數字推掉 */
+.summary-note {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    font-size: 11px;
+    font-style: italic;
+    color: var(--note-text-color);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 展開後才出現的區塊 */
+.history-item-detail {
+    display: none;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+}
+.history-item.expanded .history-item-detail {
+    display: block;
+}
+
+/* 收合狀態下，卡片內距可以再收一點 —— 一個畫面多擠進一筆 */
+.history-item {
+    padding: 7px 8px;
+}

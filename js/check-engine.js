@@ -1275,8 +1275,17 @@ function loadCheckHistory() {
         return;
     }
 
-    /* 排序（新→舊）已由 Store 負責，這裡不再自己 sort。
-     * rec 是信封：本頁欄位在 rec.data，備註在 rec.note。 */
+    /* 【2026/07 步驟 5】改為收合／展開。
+     *
+     * 收合時只有兩行：存檔時間與開立進度、總金額與張數（有備註就一併帶出）。
+     * 這四項是「找到那一筆」需要的全部資訊 —— 一個畫面看得到八到十筆，
+     * 舊版整張攤開時只看得到四五筆。
+     *
+     * 完整六欄與套用／備註／刪除都收在展開後，順帶讓刪除鈕不會在
+     * 捲動時被誤觸。展開狀態記在 common-history.js，重畫後仍然保留。
+     *
+     * 排序（新→舊）由 Store 負責，這裡不再自己 sort。
+     */
     let html = '<div class="history-list">';
 
     checkHistory.forEach(rec => {
@@ -1285,7 +1294,7 @@ function loadCheckHistory() {
         const total = Number(item.checkCount) || 0;
         const done = countWrittenChecks(item);
 
-        // 開立進度徽章：沿用計算頁 .history-header-rate 的樣式位置
+        // 開立進度徽章：收合時最重要的狀態，所以放在第一行右邊
         let progressText;
         if (total > 0 && done >= total) {
             progressText = `已開立完成 ${total} 張`;
@@ -1296,47 +1305,56 @@ function loadCheckHistory() {
         }
 
         html += `
-            <div class="history-item" data-check-id="${rec.id}">
-                <div class="history-item-header">
-                    <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
-                    <div class="history-header-rate">${progressText}</div>
-                </div>
-
-                <div class="history-details">
-                    <div class="history-detail-item">
-                        <span class="detail-label">總金額</span>
-                        <span class="detail-value">${formatNumber(item.totalAmount)}</span>
+            <div class="history-item${historyExpandedClass(rec.id)}" data-check-id="${rec.id}" data-history-id="${rec.id}">
+                <div class="history-item-summary">
+                    <div class="history-item-header">
+                        <div class="history-date">${escapeHtml(formatSavedAt(rec.savedAt))}</div>
+                        <div class="history-header-rate">${progressText}</div>
                     </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">每期繳款</span>
-                        <span class="detail-value">${formatNumber(item.paymentAmount)}</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">開票張數</span>
-                        <span class="detail-value">${total} 張</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">尾款金額</span>
-                        <span class="detail-value">${formatNumber(item.depositAmount)}</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">首張日期</span>
-                        <span class="detail-value">${formatDateCompact(start)}</span>
-                    </div>
-                    <div class="history-detail-item">
-                        <span class="detail-label">尾款票日期</span>
-                        <span class="detail-value">${formatDateCompact(getCheckDate(start, total - 1))}</span>
+                    <div class="history-summary-line">
+                        <span class="summary-main">${formatNumber(item.totalAmount)}</span>
+                        <span class="summary-sub">${total} 張</span>
+                        ${rec.note ? `<span class="summary-note">${escapeHtml(rec.note)}</span>` : ''}
                     </div>
                 </div>
 
-                <div class="history-note-container">
-                    <div class="history-item-footer">
-                        <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
-                            ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                <div class="history-item-detail">
+                    <div class="history-details">
+                        <div class="history-detail-item">
+                            <span class="detail-label">總金額</span>
+                            <span class="detail-value">${formatNumber(item.totalAmount)}</span>
                         </div>
-                        <div class="history-actions">
-                            <button class="detail-btn" onclick="loadCheckToForm(${rec.id})">套用</button>
-                            <button class="delete-btn" onclick="deleteCheckHistoryItem(${rec.id})">刪除</button>
+                        <div class="history-detail-item">
+                            <span class="detail-label">每期繳款</span>
+                            <span class="detail-value">${formatNumber(item.paymentAmount)}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">開票張數</span>
+                            <span class="detail-value">${total} 張</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">尾款金額</span>
+                            <span class="detail-value">${formatNumber(item.depositAmount)}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">首張日期</span>
+                            <span class="detail-value">${formatDateCompact(start)}</span>
+                        </div>
+                        <div class="history-detail-item">
+                            <span class="detail-label">尾款票日期</span>
+                            <span class="detail-value">${formatDateCompact(getCheckDate(start, total - 1))}</span>
+                        </div>
+                    </div>
+
+                    <div class="history-note-container">
+                        <div class="history-item-footer">
+                            <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
+                                ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                            </div>
+                            <div class="history-actions">
+                                <button class="detail-btn" onclick="loadCheckToForm(${rec.id})">套用</button>
+                                <button class="delete-btn" onclick="deleteCheckHistoryItem(${rec.id})">刪除</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1345,6 +1363,9 @@ function loadCheckHistory() {
 
     html += '</div>';
     historyContent.innerHTML = html;
+
+    // 展開／收合的委派綁定（同一個容器只會綁一次）
+    setupHistoryExpand('historyContent');
 }
 
 /**
@@ -1431,6 +1452,7 @@ function deleteCheckHistoryItem(id) {
 
     showConfirmModal('刪除確認', `確定要刪除這筆紀錄嗎？<br><br>${summary}此操作無法復原。`, function() {
         if (!checkHistoryStore.remove(id)) return;
+        forgetHistoryExpanded(id);
         // 刪掉的若正是目前套用中的那筆，就切斷連結，避免打勾寫回不存在的紀錄
         if (linkedHistoryId === id) linkedHistoryId = null;
         if (sourceHistoryId === id) { sourceHistoryId = null; hasUnsavedChanges = false; }
@@ -1449,6 +1471,7 @@ function confirmDeleteAll() {
         `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
         function() {
         checkHistoryStore.clear();
+        clearHistoryExpanded();
         linkedHistoryId = null;
         sourceHistoryId = null;
         hasUnsavedChanges = false;

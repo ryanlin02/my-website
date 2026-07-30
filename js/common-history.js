@@ -378,7 +378,75 @@ function createHistoryStore(cfg) {
     };
 }
 
+/* ============================================================
+   卡片的展開／收合（四頁共用）
+   ------------------------------------------------------------
+   【為什麼要收合】
+   舊版一筆紀錄整張攤開，一個畫面只看得到四五筆。但業務打開歷史時
+   要做的第一件事是「找到那一筆」，不是讀完每一筆的每個欄位 ——
+   找的時候只需要日期、進度、一兩個關鍵數字。
+
+   收合之後一筆兩行，一個畫面看得到八到十筆，找起來快得多；
+   真的要看細節或要動作時再點開。
+
+   順帶降低誤刪：刪除鈕收在展開後才出現，不會在捲動時被誤觸。
+
+   【展開狀態要跨重繪保留】
+   存備註、打勾、刪除都會讓面板整個重畫。如果狀態只寫在 DOM 上，
+   使用者展開的那一筆會在存完備註後自己合起來 —— 所以記在這裡。
+   ============================================================ */
+const expandedHistoryIds = new Set();
+
+function isHistoryExpanded(id) {
+    return expandedHistoryIds.has(String(id));
+}
+
+/** 渲染時直接串進 class 屬性 */
+function historyExpandedClass(id) {
+    return isHistoryExpanded(id) ? ' expanded' : '';
+}
+
+/**
+ * 綁定展開／收合（同一個容器只會綁一次）
+ *
+ * 用事件委派而不是每張卡片各綁一個：面板每次重畫都會換掉所有 DOM，
+ * 逐張綁定會在每次重畫時累積成一堆殘留的監聽器。
+ *
+ * @param {string} containerId 歷史清單的容器 id
+ */
+function setupHistoryExpand(containerId) {
+    const box = document.getElementById(containerId);
+    if (!box || box.dataset.expandBound === '1') return;
+    box.dataset.expandBound = '1';
+
+    box.addEventListener('click', function (e) {
+        const summary = e.target.closest('.history-item-summary');
+        if (!summary) return;
+
+        const item = summary.closest('.history-item');
+        if (!item) return;
+
+        const id = String(item.dataset.historyId || '');
+        if (item.classList.toggle('expanded')) expandedHistoryIds.add(id);
+        else expandedHistoryIds.delete(id);
+
+        if (typeof vibrate === 'function') vibrate(15);
+    });
+}
+
+/** 紀錄被刪掉時一併忘掉它的展開狀態，避免這個集合無限長大 */
+function forgetHistoryExpanded(id) {
+    expandedHistoryIds.delete(String(id));
+}
+
+function clearHistoryExpanded() {
+    expandedHistoryIds.clear();
+}
+
 /* Node 測試環境用；瀏覽器不會有 module */
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { createHistoryStore, createHistoryId, toHistoryEnvelope, historyIdToTime, formatSavedAt };
+    module.exports = {
+        createHistoryStore, createHistoryId, toHistoryEnvelope, historyIdToTime, formatSavedAt,
+        isHistoryExpanded, historyExpandedClass, forgetHistoryExpanded, clearHistoryExpanded
+    };
 }
