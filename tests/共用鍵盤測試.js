@@ -54,7 +54,7 @@ for(const page of ['calculator.html','check.html']){
     : ['submitCalculatorValue','calculateDepositAmount','generateCheckList','updateEndDateDisplay',
        'arabicToChineseNumber','renderChineseAmount','updateChineseDisplay','resetDepositDisplay',
        'toggleHistoryPanel','saveCheckData','loadCheckHistory','deleteCheckHistoryItem','confirmDeleteAll',
-       'openNoteEditor','saveCheckNote','showDatePicker','updateDatePicker','setupDatePicker','clearAllInputs',
+       'openNoteEditor','saveCheckNote','showDatePicker','clearAllInputs',
        'formatNumber','formatDateToROC','updateCurrentDate'];
   const lostOwn=own.filter(f=>ev('typeof '+f)!=='function');
   t('頁面專屬函式全部健在 ('+own.length+' 個)', lostOwn.length===0, '缺少: '+lostOwn.join(', '));

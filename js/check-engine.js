@@ -54,8 +54,9 @@ let hasDepositResult = false;
 let barWasAllWritten = false;
 
 // 日期選擇器變數
-let selectedDate = null;
-let currentViewMonth = new Date();
+/* selectedDate 與 currentViewMonth 已於 2026/07 移除：
+   「還沒按確定的選擇」現在由共用日期選擇器自己保管（見 common-datepicker.js
+   的 dpState.draft），按取消就整個丟掉，不會有殘留在本頁的半成品狀態。 */
 
 /* ------------------------------------------------------------
  * 開立進度與歷史記錄連結
@@ -1086,147 +1087,48 @@ function arabicToChineseNumber(number, type = 'financial', highlight = true) {
     return result;
 }
 
-// 日期選擇器功能
-function showDatePicker() {
-    vibrate();
-    selectedDate = startDate || new Date();
-    currentViewMonth = new Date(selectedDate);
-    updateDatePicker();
-    const modal = document.getElementById('date-picker-overlay');
-    if (modal) modal.style.display = 'flex';
-}
+/* ============================================================
+   日期選擇器（2026/07 起改用四頁共用的元件）
+   ------------------------------------------------------------
+   本頁原本自己有一套月曆：showDatePicker / updateDatePicker /
+   setupDatePicker 共 139 行，加上 <table> 版的 DOM 與約 86 行 CSS。
+   發票頁另外有一套 46 行的，兩套的外觀與操作邏輯都不一樣。
 
-function updateDatePicker() {
-    const year = currentViewMonth.getFullYear() - 1911;
-    const month = currentViewMonth.getMonth() + 1;
-    const titleEl = document.getElementById('date-picker-title');
-    if (titleEl) titleEl.textContent = `${year}年${month}月`;
-    
-    const datePickerBody = document.getElementById('date-picker-body');
-    if (!datePickerBody) return;
-    datePickerBody.innerHTML = '';
-    
-    const firstDay = new Date(currentViewMonth.getFullYear(), currentViewMonth.getMonth(), 1);
-    const firstDayOfWeek = firstDay.getDay();
-    const lastDay = new Date(currentViewMonth.getFullYear(), currentViewMonth.getMonth() + 1, 0);
-    const lastDate = lastDay.getDate();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let dayCount = 1;
-    let html = '<tr>';
-    
-    for (let i = 0; i < firstDayOfWeek; i++) {
-        html += '<td></td>';
-    }
-    
-    while (dayCount <= lastDate) {
-        const currentDate = new Date(currentViewMonth.getFullYear(), currentViewMonth.getMonth(), dayCount);
-        const isToday = currentDate.getTime() === today.getTime();
-        const isSelected = selectedDate && currentDate.getTime() === selectedDate.getTime();
-        const isPastDate = currentDate < today;
-        
-        let className = '';
-        if (isSelected) className += ' selected';
-        if (isToday) className += ' today';
-        if (isPastDate) className += ' disabled';
-        
-        html += `<td class="${className}" data-date="${currentDate.toISOString()}"${isPastDate ? ' disabled' : ''}><div>${dayCount}</div></td>`;
-        
-        if ((firstDayOfWeek + dayCount) % 7 === 0) {
-            html += '</tr><tr>';
-        }
-        dayCount++;
-    }
-    
-    const remainingCells = 7 - ((firstDayOfWeek + lastDate) % 7);
-    if (remainingCells < 7) {
-        for (let i = 0; i < remainingCells; i++) {
-            html += '<td></td>';
-        }
-    }
-    
-    const totalDays = firstDayOfWeek + lastDate + remainingCells;
-    const usedRows = Math.ceil(totalDays / 7);
-    if (usedRows < 6) {
-        const extraRows = 6 - usedRows;
-        for (let i = 0; i < extraRows; i++) {
-            html += '</tr><tr>';
-            for (let j = 0; j < 7; j++) {
-                html += '<td></td>';
+   現在統一走 js/common-datepicker.js，本頁因此多出三項能力：
+     - 面板高度固定，切月時按鍵不會在手指底下移動
+     - 點年份可以直接選年份、點月份可以直接選月份
+       （舊版只有上下月，要選一年後的日期得按 12 次）
+     - 過去日期從「禁選」改成「可選但變色提醒」
+
+   【為什麼過去日期不再禁選】
+   支票確實是未來到期日，但業務要補登「已經開始繳」的案子時
+   （客戶三個月前就開始繳，現在才輸入），禁選會直接把人擋死。
+   變色加上面板下方的提示既擋得住誤按，也不會擋住真的要那樣做的人。
+
+   【按下確定之後的那一條線】
+   下面 onOk 裡的每一步與舊版逐字相同，順序也一樣，因為那是本頁的核心：
+   清空打勾 → 寫入 startDate → 更新欄位顯示 → 重算整串開票日期 → 寫入草稿。
+   tests/支票日期選擇測試.js 就是在守這條線。
+   ============================================================ */
+function showDatePicker() {
+    openDatePicker({
+        title: '開始日期（民國）',
+        value: startDate || new Date(),
+        warnBefore: 'today',            // 早於今天只變色提醒，不禁選
+        onOk: function (roc, date) {
+            // 換了開始日期代表整批日期都變了，打勾一律清空
+            handleCalculationChanged('start-date');
+
+            startDate = date;
+            const startEl = document.getElementById('start-date');
+            if (startEl) {
+                startEl.value = `${formatDateToROC(startDate)} ${getChineseWeekday(startDate)}`;
             }
-        }
-    }
-    
-    html += '</tr>';
-    datePickerBody.innerHTML = html;
-    
-    const dateCells = document.querySelectorAll('#date-picker-body td[data-date]');
-    dateCells.forEach(cell => {
-        if (!cell.hasAttribute('disabled')) {
-            const handleClick = function() {
-                vibrate();
-                document.querySelectorAll('#date-picker-body td.selected').forEach(sel => {
-                    sel.classList.remove('selected');
-                });
-                cell.classList.add('selected');
-                selectedDate = new Date(cell.getAttribute('data-date'));
-            };
-            
-            cell.addEventListener('click', handleClick);
-            const divElement = cell.querySelector('div');
-            if (divElement) {
-                divElement.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    handleClick();
-                });
-            }
+
+            generateCheckList();
+            saveCheckDraft();
         }
     });
-}
-
-function setupDatePicker() {
-    const prevBtn = document.getElementById('prev-month');
-    if (prevBtn) {
-        prevBtn.addEventListener('click', function() {
-            vibrate();
-            currentViewMonth.setMonth(currentViewMonth.getMonth() - 1);
-            updateDatePicker();
-        });
-    }
-    const nextBtn = document.getElementById('next-month');
-    if (nextBtn) {
-        nextBtn.addEventListener('click', function() {
-            vibrate();
-            currentViewMonth.setMonth(currentViewMonth.getMonth() + 1);
-            updateDatePicker();
-        });
-    }
-    const confirmBtn = document.getElementById('confirm-date');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', function() {
-            vibrate();
-            if (selectedDate) {
-                // 換了開始日期代表整批日期都變了，打勾一律清空
-                handleCalculationChanged('start-date');
-                startDate = selectedDate;
-                const formattedDate = formatDateToROC(startDate);
-                const weekday = getChineseWeekday(startDate);
-                const startEl = document.getElementById('start-date');
-                if (startEl) startEl.value = `${formattedDate} ${weekday}`;
-                generateCheckList();
-                saveCheckDraft();
-            }
-            closeModal('date-picker-overlay');
-        });
-    }
-    const cancelBtn = document.getElementById('cancel-date');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
-            vibrate();
-            closeModal('date-picker-overlay');
-        });
-    }
 }
 
 // 歷史記錄保存與備註編輯
@@ -1617,7 +1519,7 @@ function saveCheckNote(checkId, noteText) {
 document.addEventListener('DOMContentLoaded', function() {
     updateCurrentDate();
     setInterval(updateCurrentDate, 1000);
-    setupDatePicker();
+    /* setupDatePicker() 已移除：日期選擇器的按鍵由共用元件自己處理 */
 
     // 還原自動暫存（24 小時內），避免 App 被系統回收時遺失開立進度
     restoreCheckDraft();
