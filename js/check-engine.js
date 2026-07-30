@@ -59,7 +59,7 @@ let barWasAllWritten = false;
    的 dpState.draft），按取消就整個丟掉，不會有殘留在本頁的半成品狀態。 */
 
 /* ------------------------------------------------------------
- * 開立進度與歷史記錄連結
+ * 開立進度與歷史紀錄連結
  *
  * writtenChecks      每一張票是否已經開立（打勾），索引對應流水號 -1
  *
@@ -83,6 +83,11 @@ let hasUnsavedChanges = false;
  * 因此比照計算頁設 24 小時效期，隔天打開不會跳出前一天的資料。 */
 const CHECK_DRAFT_KEY = 'checkCalculatorDraft';
 const CHECK_DRAFT_MAX_HOURS = 24;
+
+/* 歷史紀錄倉庫（js/common-history.js）。
+ * key 沿用舊的 checkHistory，既有資料原地相容。
+ * id 生成、寫入失敗提示、排序、筆數上限一律由 Store 負責。 */
+const checkHistoryStore = createHistoryStore({ key: 'checkHistory', tool: 'check' });
 
 /**
  * 推算第 index 張支票的日期（index 從 0 起算）
@@ -984,15 +989,14 @@ function persistWrittenChecks() {
 
     if (linkedHistoryId === null) return;
 
-    const checkHistory = readCheckHistory();
-    const index = checkHistory.findIndex(item => item.id === linkedHistoryId);
-    if (index === -1) {
-        linkedHistoryId = null;
-        return;
-    }
+    /* 【2026/07 步驟 2】只更新打勾這一個欄位，不整筆覆寫 ——
+     * 整筆覆寫會把使用者同時間寫的備註洗掉。 */
+    const ok = checkHistoryStore.patchData(linkedHistoryId, {
+        written: normalizeWrittenChecks(writtenChecks, checkCount)
+    });
 
-    checkHistory[index].written = normalizeWrittenChecks(writtenChecks, checkCount);
-    writeCheckHistory(checkHistory);
+    // 那筆紀錄已經被刪掉了，切斷連結，避免之後每次打勾都白寫一次
+    if (!ok) linkedHistoryId = null;
 }
 
 /**
@@ -1131,7 +1135,7 @@ function showDatePicker() {
     });
 }
 
-// 歷史記錄保存與備註編輯
+// 歷史紀錄存檔與備註編輯
 function saveCheckData() {
     vibrate();
     if (!totalAmount || !paymentAmount || !checkCount || !startDate) {
@@ -1157,7 +1161,8 @@ function saveCheckData() {
      * 業務改張數時人還在客戶面前、票也還沒開完，那時候問存檔沒有判斷依據，
      * 而且模態視窗會打斷正在進行的手寫動作。 */
     if (sourceHistoryId !== null && hasUnsavedChanges) {
-        const source = readCheckHistory().find(item => item.id === sourceHistoryId);
+        const sourceRec = checkHistoryStore.get(sourceHistoryId);
+        const source = sourceRec ? sourceRec.data : null;
         if (source) {
             showChoiceModal(
                 '內容已變更',
@@ -1185,46 +1190,25 @@ function commitCheckData(overwriteId) {
     const now = new Date();
     const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    const checkHistory = readCheckHistory();
-    const written = normalizeWrittenChecks(writtenChecks, checkCount);
-    let targetId = overwriteId;
+    /* 【2026/07 步驟 2】改走共用 Store。
+     * id 生成、覆蓋目標不存在時自動改為新增、寫入失敗提示都由 Store 處理，
+     * 這裡只要提供本頁的欄位。備註在覆蓋時會被 Store 保留，不會被洗掉。 */
+    const result = checkHistoryStore.save({
+        date: formattedDate,
+        totalAmount, paymentAmount, checkCount, depositAmount,
+        startDate: startDate.toISOString(),
+        written: normalizeWrittenChecks(writtenChecks, checkCount)
+    }, { overwriteId: overwriteId });
 
-    if (overwriteId !== null) {
-        const index = checkHistory.findIndex(item => item.id === overwriteId);
-        if (index === -1) {
-            targetId = null;                      // 原紀錄不見了就改成另存
-        } else {
-            Object.assign(checkHistory[index], {
-                date: formattedDate,
-                totalAmount, paymentAmount, checkCount, depositAmount,
-                startDate: startDate.toISOString(),
-                timestamp: now.toISOString(),
-                written
-            });
-        }
-    }
+    if (!result.ok) return;
 
-    if (targetId === null) {
-        // 同一毫秒內連按兩次會產生相同 id，刪除時會一次刪掉兩筆，故加上亂數
-        targetId = Date.now() * 1000 + Math.floor(Math.random() * 1000);
-        checkHistory.push({
-            id: targetId,
-            date: formattedDate,
-            totalAmount, paymentAmount, checkCount, depositAmount,
-            startDate: startDate.toISOString(),
-            timestamp: now.toISOString(),
-            note: '',
-            written
-        });
-    }
-
-    if (!writeCheckHistory(checkHistory)) return;
+    const targetId = result.id;
 
     // 保存進歷史代表這筆試算對業務是有意義的，比「算了一次」更強的訊號
     trackCheckEvent('check_saved', {
         check_count: checkCount,
-        is_overwrite: overwriteId ? true : false,
-        history_count: checkHistory.length
+        is_overwrite: result.overwritten,
+        history_count: checkHistoryStore.count()
     });
 
     // 存檔後重新建立連結，之後打勾就會直接寫回這一筆
@@ -1234,7 +1218,9 @@ function commitCheckData(overwriteId) {
     updateUnsavedHint();
     saveCheckDraft();
 
-    showToast(overwriteId !== null ? '已覆蓋原紀錄' : '支票計算結果已保存！');
+    /* 用 Store 回報的實際結果，而不是呼叫端的意圖 ——
+     * 想覆蓋但原紀錄已被刪掉時，Store 會改成新增，這時說「已覆蓋」是騙人的 */
+    showToast(result.overwritten ? '已覆蓋原紀錄' : '已存檔');
 }
 
 /* showToast / showModal / hideModal / showConfirmModal / hideConfirmModal
@@ -1289,16 +1275,16 @@ function loadCheckHistory() {
     const checkHistory = readCheckHistory();
 
     if (checkHistory.length === 0) {
-        historyContent.innerHTML = '<p class="no-data">尚無支票計算記錄</p>';
+        historyContent.innerHTML = '<p class="no-data">尚無支票計算紀錄</p>';
         return;
     }
 
-    // 依儲存時間新到舊排序（舊版只是把陣列 reverse，遇到舊資料順序會亂）
-    checkHistory.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
-
+    /* 排序（新→舊）已由 Store 負責，這裡不再自己 sort。
+     * rec 是信封：本頁欄位在 rec.data，備註在 rec.note。 */
     let html = '<div class="history-list">';
 
-    checkHistory.forEach(item => {
+    checkHistory.forEach(rec => {
+        const item = rec.data;
         const start = new Date(item.startDate);
         const total = Number(item.checkCount) || 0;
         const done = countWrittenChecks(item);
@@ -1314,7 +1300,7 @@ function loadCheckHistory() {
         }
 
         html += `
-            <div class="history-item" data-check-id="${item.id}">
+            <div class="history-item" data-check-id="${rec.id}">
                 <div class="history-item-header">
                     <div class="history-date">${escapeHtml(item.date || '')}</div>
                     <div class="history-header-rate">${progressText}</div>
@@ -1349,12 +1335,12 @@ function loadCheckHistory() {
 
                 <div class="history-note-container">
                     <div class="history-item-footer">
-                        <div class="history-note-preview ${item.note ? '' : 'empty-note'}" onclick="openNoteEditor(${item.id})">
-                            ${item.note ? escapeHtml(item.note) : '點擊添加備註'}
+                        <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
+                            ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
                         </div>
                         <div class="history-actions">
-                            <button class="detail-btn" onclick="loadCheckToForm(${item.id})">套用資料</button>
-                            <button class="delete-btn" onclick="deleteCheckHistoryItem(${item.id})">刪除</button>
+                            <button class="detail-btn" onclick="loadCheckToForm(${rec.id})">套用</button>
+                            <button class="delete-btn" onclick="deleteCheckHistoryItem(${rec.id})">刪除</button>
                         </div>
                     </div>
                 </div>
@@ -1374,11 +1360,13 @@ function loadCheckHistory() {
 function loadCheckToForm(id) {
     vibrate();
 
-    const item = readCheckHistory().find(entry => entry.id === id);
-    if (!item) {
-        showToast('找不到這筆記錄', true);
+    const rec = checkHistoryStore.get(id);
+    if (!rec) {
+        showToast('找不到這筆紀錄', true);
         return;
     }
+    // applyCheckRecord 需要 id 來重新建立連結，這裡把它一併帶進去
+    const item = Object.assign({ id: rec.id }, rec.data);
 
     // 有未儲存的打勾進度時先確認，避免業務辛苦點的 12 個勾被靜默丟掉
     confirmDiscardProgress('套用其他紀錄', function () { applyCheckRecord(item); });
@@ -1422,61 +1410,55 @@ function applyCheckRecord(item) {
     const historyPanel = document.getElementById('historyPanel');
     if (historyPanel) historyPanel.style.display = 'none';
 
-    showToast('已套用歷史資料');
+    showToast('已套用');
 }
 
 /**
- * 讀取歷史記錄（統一入口，順便擋掉資料損毀的情況）
+ * 讀取歷史記錄
+ *
+ * 【2026/07 步驟 2】改走共用 Store。
+ * 資料損毀的防禦、排序（新→舊）、舊格式相容都由 Store 負責，
+ * 這裡只是保留原本的函式名稱，讓呼叫端的改動降到最小。
+ * 回傳的是信封陣列：各頁欄位在 rec.data，備註在 rec.note。
  */
 function readCheckHistory() {
-    try {
-        const raw = JSON.parse(localStorage.getItem('checkHistory') || '[]');
-        return Array.isArray(raw) ? raw : [];
-    } catch (e) {
-        return [];
-    }
-}
-
-/**
- * 寫入歷史記錄
- * @returns {boolean} 是否成功（無痕模式或容量已滿時會失敗）
- */
-function writeCheckHistory(history) {
-    try {
-        localStorage.setItem('checkHistory', JSON.stringify(history));
-        return true;
-    } catch (e) {
-        showToast('儲存失敗，裝置儲存空間可能已滿', true);
-        return false;
-    }
+    return checkHistoryStore.list();
 }
 
 function deleteCheckHistoryItem(id) {
     vibrate();
-    showConfirmModal('刪除確認', '確定要刪除這筆歷史紀錄嗎？', function() {
-        const checkHistory = readCheckHistory().filter(item => item.id !== id);
-        if (!writeCheckHistory(checkHistory)) return;
+    /* 【2026/07 步驟 3】確認訊息帶出這一筆的摘要，與另外兩頁一致 */
+    const rec = checkHistoryStore.get(id);
+    const summary = rec
+        ? `${rec.data.checkCount} 張 · 總金額 ${formatNumber(rec.data.totalAmount)}<br><br>`
+        : '';
+
+    showConfirmModal('刪除確認', `確定要刪除這筆紀錄嗎？<br><br>${summary}此操作無法復原。`, function() {
+        if (!checkHistoryStore.remove(id)) return;
         // 刪掉的若正是目前套用中的那筆，就切斷連結，避免打勾寫回不存在的紀錄
         if (linkedHistoryId === id) linkedHistoryId = null;
         if (sourceHistoryId === id) { sourceHistoryId = null; hasUnsavedChanges = false; }
         updateUnsavedHint();
         loadCheckHistory();
-        showToast('歷史紀錄已刪除');
+        showToast('已刪除');
     });
 }
 
 function confirmDeleteAll() {
     vibrate();
-    showConfirmModal('全刪確認', '確定要刪除所有歷史紀錄嗎？此操作無法恢復。', function() {
-        try {
-            localStorage.removeItem('checkHistory');
-        } catch (e) { /* 移除失敗不影響畫面，繼續往下重繪 */ }
+    const total = checkHistoryStore.count();
+    if (!total) return;
+
+    showConfirmModal('清空確認',
+        `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
+        function() {
+        checkHistoryStore.clear();
         linkedHistoryId = null;
         sourceHistoryId = null;
         hasUnsavedChanges = false;
         updateUnsavedHint();
         loadCheckHistory();
-        showToast('所有歷史紀錄已刪除');
+        showToast('已清空歷史');
     });
 }
 
@@ -1491,12 +1473,12 @@ function confirmDeleteAll() {
  */
 function openNoteEditor(checkId) {
     vibrate();
-    const checkItem = readCheckHistory().find(item => item.id === checkId);
-    if (!checkItem) return;
+    const rec = checkHistoryStore.get(checkId);
+    if (!rec) return;
 
     showNoteEditor({
         title: '編輯備註',
-        note: checkItem.note || '',
+        note: rec.note || '',
         onSave: function (noteText) {
             saveCheckNote(checkId, noteText);
         }
@@ -1505,14 +1487,10 @@ function openNoteEditor(checkId) {
 
 function saveCheckNote(checkId, noteText) {
     vibrate();
-    const checkHistory = readCheckHistory();
-    const index = checkHistory.findIndex(item => item.id === checkId);
-    if (index === -1) return;
-
-    checkHistory[index].note = noteText;
-    if (!writeCheckHistory(checkHistory)) return;
+    // 寫入失敗（容量滿、無痕模式）由 Store 統一提示
+    if (!checkHistoryStore.setNote(checkId, noteText)) return;
     loadCheckHistory();
-    showToast('備註已更新');
+    showToast('備註已儲存');
 }
 
 // 初始化頁面事件與定時器

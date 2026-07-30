@@ -49,6 +49,8 @@ const { window } = dom;
 const doc = window.document;
 
 // 載入方式與其他兩支發票測試相同，理由見 tests/invoice/統編自動帶入測試.js
+// 歷史紀錄共用儲存層：invoice-engine.js 一載入就會呼叫 createHistoryStore
+window.eval(fs.readFileSync(path.join(ROOT, 'js/common-history.js'), 'utf8').replace(/^let /gm, 'var '));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-keypad.js'), 'utf8').replace(/^let /gm, 'var '));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-modals.js'), 'utf8'));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/taxid-lookup.js'), 'utf8'));

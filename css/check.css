@@ -428,28 +428,15 @@ html, body {
     100%    { background-color: transparent; }
 }
 
-/* 已修改尚未儲存：放在保存按鈕正上方 */
-.unsaved-hint {
-    display: none;
-    text-align: center;
-    font-size: 13px;
-    color: #ef9f27;
-    background-color: rgba(239, 159, 39, 0.12);
-    border: 1px solid rgba(239, 159, 39, 0.35);
-    border-radius: 6px;
-    padding: 5px 10px;
-    margin: 8px 0 0 0;
-}
+/* .unsaved-hint 與 .choice-modal-footer 已於 2026/07 步驟 4 移到 css/keypad.css。
+ *
+ * 原因與備註編輯器那次相同：這兩個都是「共用元件的樣式」，卻只放在
+ * 單一頁面的 CSS 裡。計算頁這次也要用「已修改，尚未儲存」提示與
+ * 覆蓋／另存對話框，但計算頁不載入 check.css ——
+ * 留在這裡的話，提示會變成一行沒有樣式的裸文字，
+ * 而多選項對話框的按鈕在窄螢幕會被擠成一團。
+ * 共用元件的樣式要放在四頁都載入的 keypad.css。 */
 
-/* 多選項對話框的按鈕在窄螢幕改為直向堆疊，文字才不會被擠掉 */
-.choice-modal-footer {
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.choice-modal-footer .modal-btn {
-    flex: 1 1 100%;
-}
 
 .write-summary {
     display: none;

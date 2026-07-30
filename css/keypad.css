@@ -32,6 +32,11 @@
 :root {
     --accent-color: #ff9c33;
     --accent-color-dark: #e88a22;
+    /* 【2026/07 步驟 2 補】備註編輯器從 calculator.css 搬過來時一併帶來的依賴。
+     * 少了它，.note-editor-input:focus 的 box-shadow 會在發票頁與加油頁
+     * 靜默失效（那兩頁不載入 calculator.css）—— 元件自備 token 的原則。
+     * 值與 calculator.css 的同名 token 相同。 */
+    --accent-color-light: rgba(255, 156, 51, 0.2);
     --accent-color-rgb: 255, 156, 51;
     --border-color: #555555;
     --error-color: #e74c3c;
@@ -48,6 +53,25 @@
     --shadow-color: rgba(0, 0, 0, 0.3);
     --text-color: #ffffff;
     --text-muted: #999999;
+
+    /* ------------------------------------------------------------
+     * 疊層順序（2026/07 步驟 2）
+     *
+     * 【為什麼要收斂】
+     * 四頁原本各自挑數字：計算頁與支票頁的歷史面板是 1500、共用彈窗 2000、
+     * 備註編輯器 2500；發票頁自己長了一套 4000／4500／5000／9000。
+     * 兩套不在同一個尺度上，於是「共用元件蓋不蓋得住頁面面板」這件事
+     * 在不同頁得到不同答案 —— 步驟 1 在發票頁的歷史面板裡加刪除確認時
+     * 就踩到了：彈窗確實開了，卻整個被面板蓋住，看起來像「點了沒反應」。
+     *
+     * 現在只有這五層，四頁共用。要加新東西時先問它屬於哪一層，
+     * 而不是挑一個「應該夠大」的數字。
+     * ------------------------------------------------------------ */
+    --z-page-bar: 900;        /* 頁內固定頂列 */
+    --z-panel: 1500;          /* 頁面層級面板：歷史紀錄、放大檢視 */
+    --z-panel-head: 1600;     /* 面板自己的標題列（黏在面板頂端） */
+    --z-modal: 5500;          /* 共用彈窗：確認／選擇／備註／數字鍵盤 */
+    --z-toast: 9999;          /* 提示訊息，永遠在最上層 */
 }
 
 .close-btn {
@@ -76,7 +100,10 @@
     width: 100%;
     height: 100%;
     background-color: rgba(var(--primary-color-rgb), 0.7);
-    z-index: 2000;
+
+    /* 共用彈窗必須蓋得住任何一頁的面板，見上方 :root 的疊層說明 */
+    z-index: var(--z-modal);
+
     justify-content: center;
     align-items: center;
     animation: fadeIn 0.1s ease-out;
@@ -165,7 +192,7 @@
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
-    z-index: 9999;
+    z-index: var(--z-toast);
     font-weight: bold;
     box-shadow: 0 2px 10px var(--shadow-color);
     opacity: 1;
@@ -716,4 +743,123 @@
 @keyframes modalSlideIn {
     from { opacity: 0; transform: translateY(-30px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ============================================
+ * 備註編輯器
+ * --------------------------------------------
+ * 【2026/07 步驟 2：從 calculator.css 搬過來】
+ * 這組 DOM 由 js/common-keypad.js 的 showNoteEditor() 建立，四頁共用，
+ * 但樣式原本只在 calculator.css —— 而那份只有計算頁與支票頁載入。
+ * 發票頁與加油頁要加備註時（步驟 4）會拿到一個完全沒有樣式的對話框：
+ * 沒有 display:none、沒有定位、沒有遮罩，開頁就會看到一坨裸文字。
+ * 元件的樣式要跟元件放在一起，這裡才是它該在的位置。
+ *
+ * align-items: flex-start + padding-top 是刻意的：手機鍵盤彈出時
+ * 垂直置中的對話框會被推走，靠上對齊才看得到輸入框。
+ * ============================================ */
+
+.note-editor-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--primary-color-rgb), 0.7);
+    z-index: var(--z-modal);
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 160px;
+}
+
+.note-editor-content {
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    width: 80%;
+    max-width: 320px;
+    padding: 15px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    border: 1px solid var(--accent-color);
+    animation: slideDown 0.3s ease-out;
+    margin: 0 auto;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.note-editor-input {
+    width: calc(100% - 24px);
+    padding: 12px;
+    margin: 12px 0;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    min-height: 100px;
+    resize: none;
+    font-size: 16px;
+    box-shadow: inset 0 2px 4px var(--shadow-color);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.note-editor-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px var(--accent-color-light);
+    outline: none;
+}
+
+.note-editor-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.note-editor-content h3 {
+    color: var(--accent-color);
+    font-size: 18px;
+    margin: 0 0 8px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.3);
+}
+
+
+/* ============================================
+ * 「已修改，尚未儲存」提示與多選項對話框
+ * --------------------------------------------
+ * 【2026/07 步驟 4：從 check.css 搬過來】
+ * 這兩個都是共用元件的一部分：提示由各頁的 updateXxxUnsavedHint()
+ * 控制顯示，對話框由 common-keypad.js 的 showChoiceModal() 建立。
+ * 原本只寫在 check.css，而那份只有支票頁載入 ——
+ * 計算頁這次要用同一套，留在原處會拿到沒有樣式的裸文字。
+ *
+ * 色值維持搬移前的字面值，外觀完全不變。
+ * ============================================ */
+
+/* 已修改尚未儲存：放在保存按鈕正上方 */
+.unsaved-hint {
+    display: none;
+    text-align: center;
+    font-size: 13px;
+    color: #ef9f27;
+    background-color: rgba(239, 159, 39, 0.12);
+    border: 1px solid rgba(239, 159, 39, 0.35);
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin: 8px 0 0 0;
+}
+
+/* 多選項對話框的按鈕在窄螢幕改為直向堆疊，文字才不會被擠掉 */
+.choice-modal-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.choice-modal-footer .modal-btn {
+    flex: 1 1 100%;
 }

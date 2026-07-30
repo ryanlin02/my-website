@@ -891,7 +891,7 @@ div[id$="Buttons"] button:active {
     width: 100%;
     height: 100%;
     background-color: rgba(var(--primary-color-rgb), 0.95);
-    z-index: 1500;
+    z-index: var(--z-panel);          /* 疊層來源見 css/keypad.css 的 :root */
     overflow-y: auto;
     animation: fadeIn 0.1s ease-out;
     padding-top: 0;
@@ -915,7 +915,7 @@ div[id$="Buttons"] button:active {
     background-color: var(--primary-color);
     position: sticky;
     top: 0;
-    z-index: 1600;
+    z-index: var(--z-panel-head);
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 2px 10px var(--shadow-color);
     margin-top: 0;
@@ -1161,73 +1161,14 @@ div[id$="Buttons"] button:active {
     border-color: rgba(var(--accent-color-rgb), 0.3);
 }
 
-.note-editor-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(var(--primary-color-rgb), 0.7);
-    z-index: 2500;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 160px;
-}
+/* 備註編輯器（.note-editor-*）與 @keyframes slideDown 已於 2026/07 步驟 2
+ * 移到 css/keypad.css。
+ *
+ * 原因：那組 DOM 是 js/common-keypad.js 的 showNoteEditor() 建立的，
+ * 四頁共用；但樣式只放在 calculator.css，而 calculator.css 只有計算頁
+ * 與支票頁載入。發票頁與加油頁一旦要用備註功能（步驟 4），
+ * 對話框會完全沒有樣式 —— 連 display:none 都沒有。 */
 
-.note-editor-content {
-    background-color: var(--primary-color);
-    border-radius: 12px;
-    width: 80%;
-    max-width: 320px;
-    padding: 15px;
-    box-shadow: 0 10px 25px var(--shadow-color);
-    border: 1px solid var(--accent-color);
-    animation: slideDown 0.3s ease-out;
-    margin: 0 auto;
-}
-
-@keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.note-editor-input {
-    width: calc(100% - 24px);
-    padding: 12px;
-    margin: 12px 0;
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    min-height: 100px;
-    resize: none;
-    font-size: 16px;
-    box-shadow: inset 0 2px 4px var(--shadow-color);
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-}
-
-.note-editor-input:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--accent-color-light);
-    outline: none;
-}
-
-.note-editor-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.note-editor-content h3 {
-    color: var(--accent-color);
-    font-size: 18px;
-    margin: 0 0 8px 0;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(var(--accent-color-rgb), 0.3);
-}
 
 /* ============================================
 * 合併欄位與對齊輔助

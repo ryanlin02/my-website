@@ -44,6 +44,26 @@ const LS_ITEM_NAMES = 'invNewItemNames';
 const LS_CUSTOMERS  = 'invNewCustomers';
 const LS_HISTORY    = 'invNewHistory';
 
+/* 歷史紀錄倉庫（js/common-history.js）。
+ * key 沿用舊的 invNewHistory，既有資料原地相容。
+ * 上限由舊版的 100 提高到 200，而且超過時會明確告知而不是靜默丟棄。 */
+const invoiceHistoryStore = createHistoryStore({ key: LS_HISTORY, tool: 'invoice', max: 200 });
+
+/* ------------------------------------------------------------
+ * 自動暫存（2026/07 步驟 4）
+ *
+ * 本頁原本完全沒有這一層，是四頁裡唯一沒有的。
+ * 切到別的工具頁不會掉（外殼的 iframe 不重載），但只要 App 被系統
+ * 回收、或使用者下拉重新整理，正在打的整張發票就沒了 ——
+ * 業務可能已經輸入了統編、抬頭和三筆品項。
+ *
+ * 定位跟另外兩頁一樣：這是「意外遺失的防護網」，不是正式紀錄。
+ * 真正要留的請按「存檔」。所以同樣設 24 小時效期，
+ * 隔天打開不會突然跳出前一天那張沒開成的發票。
+ * ------------------------------------------------------------ */
+const LS_DRAFT = 'invoiceDraft';
+const DRAFT_MAX_HOURS = 24;
+
 /* ============================================================
    狀態
    ============================================================ */
@@ -269,6 +289,16 @@ function render() {
     renderItems();
     renderAmounts();
     renderPreview();
+
+    /* 【2026/07 步驟 4】順手寫進自動暫存。
+     *
+     * 掛在 render() 是因為它是「狀態變了、畫面要重畫」的唯一匯流點：
+     * 改統編、改抬頭、加品項、套用歷史，最後都會走到這裡。
+     * 掛在個別的修改點會漏，而且以後每加一個功能就要記得補一次。
+     *
+     * 成本是一次 JSON.stringify 加一次 localStorage 寫入，
+     * 資料量只有幾百位元組，在手機上不會有感。 */
+    if (typeof saveInvoiceDraft === 'function') saveInvoiceDraft();
 }
 
 function renderSegments() {
@@ -1287,14 +1317,14 @@ function lookupByTitle(title) {
 }
 
 /* ============================================================
-   歷史記錄
+   歷史紀錄
    ------------------------------------------------------------
    一行一筆：日期、抬頭、總計。點一下整張載回來繼續編輯或再分享一次。
    ============================================================ */
 function snapshot() {
     const dt = curDate();
+    // 【2026/07 步驟 2】id 由 Store 的信封負責，這裡不再自己產生
     return {
-        id: Date.now(),
         type: state.type,
         taxId: state.taxId,
         title: state.title,
@@ -1309,20 +1339,75 @@ function saveRecord() {
     const r = calc();
     if (r.total <= 0) { showToast('金額還是 0，沒東西可以存', true); return; }
 
-    const list = loadJSON(LS_HISTORY, []);
-    list.unshift(snapshot());
-    localStorage.setItem(LS_HISTORY, JSON.stringify(list.slice(0, 100)));
+    /* 【2026/07 步驟 2】改走共用 Store。
+     * id 生成、筆數上限、寫入失敗提示都由 Store 負責。
+     * 舊版是靜默 slice(0, 100) —— 超過就無聲丟掉最舊的，
+     * 現在超過上限會明確告知。抬頭與統編一併填進信封的 customer，
+     * 未來四頁連動時就是靠這個欄位認出同一個客戶。 */
+    const result = invoiceHistoryStore.save(snapshot(), {
+        customer: (state.taxId || state.title)
+            ? { taxId: state.taxId || '', title: state.title || '' }
+            : null
+    });
+    if (!result.ok) return;
+
     rememberCustomer();
 
     // 存檔代表這張發票對業務是有意義的。不送金額與抬頭。
     trackInvoiceEvent('invoice_saved', {
         invoice_type: invoiceTypeLabel(),
         item_count: (state.items || []).length,
-        history_count: Math.min(list.length, 100)
+        history_count: invoiceHistoryStore.count()
     });
 
     showToast('已存檔');
     vibrate([40, 60]);
+}
+
+/* ------------------------------------------------------------
+   自動暫存的存取
+   ------------------------------------------------------------ */
+function saveInvoiceDraft() {
+    try {
+        // 完全空白的一張就不用留了，否則下次開頁會誤以為有東西要還原
+        const blank = !state.taxId && !state.title && calc().total <= 0;
+        if (blank) { localStorage.removeItem(LS_DRAFT); return; }
+
+        const d = snapshot();
+        d.savedAt = new Date().toISOString();
+        localStorage.setItem(LS_DRAFT, JSON.stringify(d));
+    } catch (e) { /* 暫存失敗不影響任何功能，安靜略過 */ }
+}
+
+function clearInvoiceDraft() {
+    try { localStorage.removeItem(LS_DRAFT); } catch (e) { /* 略過 */ }
+}
+
+/**
+ * 還原自動暫存
+ * @returns {boolean} 有沒有真的還原（呼叫端據此決定要不要跳提示）
+ */
+function restoreInvoiceDraft() {
+    let d;
+    try {
+        const raw = localStorage.getItem(LS_DRAFT);
+        if (!raw) return false;
+        d = JSON.parse(raw);
+    } catch (e) { clearInvoiceDraft(); return false; }
+
+    const hours = (new Date() - new Date(d.savedAt)) / 3600000;
+    if (!isFinite(hours) || hours >= DRAFT_MAX_HOURS) { clearInvoiceDraft(); return false; }
+
+    state.type = d.type === '2' ? '2' : '3';
+    state.taxId = d.taxId || '';
+    state.title = d.title || '';
+    state.titleFrom = null;      // 還原的抬頭一律當成使用者確認過的，不被自動查詢覆蓋
+    state.date = d.date ? { y: d.date.y, m: d.date.m, d: d.date.d } : null;
+    state.items = (d.items && d.items.length)
+        ? d.items.map(it => ({ name: it.name || '', qty: it.qty || 0, price: it.price || 0 }))
+        : [{ name: DEFAULT_ITEM_NAME, qty: 1, price: 0 }];
+    state.lockTotal = (typeof d.lockTotal === 'number') ? d.lockTotal : null;
+    return true;
 }
 
 function openHistory() {
@@ -1332,7 +1417,8 @@ function openHistory() {
 }
 
 function renderHistory() {
-    const list = loadJSON(LS_HISTORY, []);
+    // 排序（新→舊）由 Store 負責；本頁欄位在 env.data
+    const list = invoiceHistoryStore.list();
     const body = $('histBody');
 
     if (!list.length) {
@@ -1340,20 +1426,62 @@ function renderHistory() {
         return;
     }
 
-    body.innerHTML = list.map(rec => {
+    /* 【2026/07 步驟 4】一列改成兩行。
+     *
+     * 舊版是單行，而且「怎麼把這筆叫回來」完全沒有提示 —— 要點整列才知道，
+     * 畫面上沒有任何東西告訴使用者這件事。刪除鈕則是一個小小的 ×，
+     * 跟另外兩頁的「刪除」對不起來。
+     *
+     * 第二行放備註與兩顆動作鈕，結構比照計算頁與支票頁的
+     * .history-item-footer，四頁的動線因此一致。
+     * 整列仍然可以點（沿用舊習慣），只是現在多了看得見的入口。 */
+    body.innerHTML = list.map(env => {
+        const rec = env.data;
         const d = rec.date || {};
-        return `<div class="hrec" data-id="${rec.id}">
-            <div class="hd"><span class="hy">${d.y || ''}/${d.m || ''}/${d.d || ''}</span>${rec.type === '3' ? '三聯式' : '二聯式'}</div>
-            <div class="hn">${rec.title ? esc(rec.title) : '<span class="tag">未填抬頭</span>'}</div>
-            <div class="ht">${fmt(rec.total)}</div>
-            <div class="hx" data-del="${rec.id}">×</div>
+        return `<div class="hrec" data-id="${env.id}">
+            <div class="hrec-main">
+                <div class="hd"><span class="hy">${d.y || ''}/${d.m || ''}/${d.d || ''}</span>${rec.type === '3' ? '三聯式' : '二聯式'}</div>
+                <div class="hn">${rec.title ? esc(rec.title) : '<span class="tag">未填抬頭</span>'}</div>
+                <div class="ht">${fmt(rec.total)}</div>
+            </div>
+            <div class="hrec-foot">
+                <div class="hnote${env.note ? '' : ' empty'}" data-note="${env.id}">${env.note ? esc(env.note) : '點擊添加備註'}</div>
+                <div class="hacts">
+                    <button class="hbtn" data-apply="${env.id}">套用</button>
+                    <button class="hbtn hdel" data-del="${env.id}">刪除</button>
+                </div>
+            </div>
         </div>`;
     }).join('');
 }
 
+/**
+ * 備註編輯（四頁共用同一個對話框）
+ *
+ * 用的是 common-keypad.js 的 showNoteEditor()，它會依 visualViewport
+ * 把視窗固定在鍵盤上緣以上 —— 本頁自己那套 .txt-modal 是給抬頭與品名用的，
+ * 兩者不混用，備註走共用的才會跟另外兩頁手感一致。
+ */
+function openInvoiceNoteEditor(id) {
+    const env = invoiceHistoryStore.get(id);
+    if (!env) return;
+
+    showNoteEditor({
+        title: '備註編輯',
+        note: env.note || '',
+        onSave: function (text) {
+            // 寫入失敗（容量滿、無痕模式）由 Store 統一提示
+            if (!invoiceHistoryStore.setNote(id, text)) return;
+            renderHistory();
+            showToast('備註已儲存');
+        }
+    });
+}
+
 function loadRecord(id) {
-    const rec = loadJSON(LS_HISTORY, []).find(r => String(r.id) === String(id));
-    if (!rec) return;
+    const env = invoiceHistoryStore.get(id);
+    if (!env) return;
+    const rec = env.data;
 
     state.type = rec.type === '2' ? '2' : '3';
     state.taxId = rec.taxId || '';
@@ -1367,14 +1495,33 @@ function loadRecord(id) {
 
     $('histSheet').classList.remove('show');
     render();
-    showToast('已載入');
+    showToast('已套用');
 }
 
+/**
+ * 刪除單筆歷史紀錄
+ *
+ * 【2026/07 步驟 1】補上確認彈窗。
+ * 舊版是點下 × 立刻刪除、不可復原，而且 × 與「全部刪除」在視覺上都是小按鈕、
+ * 位置又相鄰，手機單手操作很容易誤觸。計算頁與支票頁本來就都有確認，
+ * 只有本頁沒有 —— 這是四頁裡唯一會靜默毀掉資料的地方。
+ */
 function deleteRecord(id) {
-    const list = loadJSON(LS_HISTORY, []).filter(r => String(r.id) !== String(id));
-    localStorage.setItem(LS_HISTORY, JSON.stringify(list));
-    renderHistory();
-    vibrate(40);
+    const env = invoiceHistoryStore.get(id);
+    if (!env) return;
+    const rec = env.data;
+
+    const label = rec.title ? esc(rec.title) : '未填抬頭';
+    showConfirmModal(
+        '刪除確認',
+        `確定要刪除這筆紀錄嗎？<br><br>${label} · ${fmt(rec.total)}<br><br>此操作無法復原。`,
+        function () {
+            if (!invoiceHistoryStore.remove(id)) return;
+            renderHistory();
+            showToast('已刪除');
+            vibrate(40);
+        }
+    );
 }
 
 /* ============================================================
@@ -1705,15 +1852,31 @@ function bind() {
     $('btnSaveRec').addEventListener('click', saveRecord);
     $('btnHistory').addEventListener('click', openHistory);
     $('histClose').addEventListener('click', () => $('histSheet').classList.remove('show'));
+    /* 【2026/07 步驟 1】「全部刪除」補上確認彈窗。
+       舊版按下去就是全部消失，沒有任何攔阻，而它就在關閉鈕旁邊。
+       確認訊息帶出筆數，讓使用者知道自己要刪掉多少東西。 */
     $('histClear').addEventListener('click', () => {
-        if (!loadJSON(LS_HISTORY, []).length) return;
-        localStorage.removeItem(LS_HISTORY);
-        renderHistory();
-        showToast('已全部刪除');
+        const total = invoiceHistoryStore.count();
+        if (!total) return;
+        showConfirmModal(
+            '清空確認',
+            `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
+            function () {
+                invoiceHistoryStore.clear();
+                renderHistory();
+                showToast('已清空歷史');
+            }
+        );
     });
+    /* 委派的順序有意義：先攔三個明確的動作，都沒中才當成「點了整列」。
+       備註與刪除若沒有先攔下來，點下去會連帶把這筆套用回表單。 */
     $('histBody').addEventListener('click', e => {
         const del = e.target.closest('[data-del]');
         if (del) { deleteRecord(del.dataset.del); return; }
+        const note = e.target.closest('[data-note]');
+        if (note) { openInvoiceNoteEditor(note.dataset.note); return; }
+        const apply = e.target.closest('[data-apply]');
+        if (apply) { loadRecord(apply.dataset.apply); return; }
         const rec = e.target.closest('.hrec');
         if (rec) loadRecord(rec.dataset.id);
     });
@@ -1757,14 +1920,27 @@ document.addEventListener('DOMContentLoaded', function () {
     // 探一次統編索引是否存在。還沒建置就自動休眠，頁面其他功能完全不受影響。
     if (window.TaxIdLookup) window.TaxIdLookup.probe();
 
-    // 從分享連結進來的話，直接還原成同一張發票
+    /* 從分享連結進來的話，直接還原成同一張發票。
+       分享連結的優先度高於自動暫存 —— 使用者是特地點那個連結進來的。 */
     const m = location.hash.match(/inv=([A-Za-z0-9_-]+)/);
     if (m) {
         try { decodeState(m[1]); showToast('已載入分享的發票範例'); }
         catch (err) { showToast('分享連結格式有誤', true); }
+    } else if (restoreInvoiceDraft()) {
+        /* 【2026/07 步驟 4】還原 24 小時內的自動暫存。
+           在 iframe 裡（正常使用情境）不跳提示：切回這一頁看到資料還在
+           是理所當然的事，每次都跳一則提示只是噪音。
+           單獨開啟本頁時才說一聲，因為那通常代表 App 曾經被系統回收。 */
+        if (window.self === window.top) showToast('已還原上次未完成的發票');
     }
 
     render();
+
+    /* 切到背景前把現況寫進暫存 —— 這是最容易被系統回收的時機。
+       另外每次操作也會經由 touch() 順手存一次（見該函式）。 */
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) saveInvoiceDraft();
+    });
 
     /* 轉向或視窗大小改變時重新符合。
        這裡也要重新判斷要不要轉 90 度 —— 手機從直握轉成橫握時，

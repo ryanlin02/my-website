@@ -762,11 +762,16 @@ async function main() {
 
     // ── 全站 CSS 都不該有失效的變數 ──
     // 這個 bug 類型不限於加油頁，順手把四頁都守住
+    /* 【2026/07 步驟 2 修正】四頁其實都有載入 keypad.css，這份清單卻漏了它。
+       漏掉的後果是雙向的：keypad.css 宣告的變數被誤判成「沒人宣告」，
+       它自己引用的變數也完全沒被檢查到。備註編輯器從 calculator.css
+       搬進 keypad.css 時就是靠補上這一項才發現 --accent-color-light
+       在發票頁與加油頁會靜默失效。 */
     const sheetsByPage = {
-        'calculator.html': ['calculator.css'],
-        'check.html': ['calculator.css', 'check.css'],
-        'invoice.html': ['invoice.css'],
-        'gas.html': ['gas.css']
+        'calculator.html': ['keypad.css', 'calculator.css'],
+        'check.html': ['keypad.css', 'calculator.css', 'check.css'],
+        'invoice.html': ['keypad.css', 'invoice.css'],
+        'gas.html': ['keypad.css', 'gas.css']
     };
     Object.entries(sheetsByPage).forEach(([page, sheets]) => {
         let declared = new Set(), referenced = new Set();

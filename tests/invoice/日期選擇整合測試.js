@@ -44,7 +44,7 @@ const { window } = dom;
 const doc = window.document;
 
 // 載入方式與其他發票測試相同，理由見 tests/invoice/統編自動帶入測試.js
-['js/common-keypad.js', 'js/common-modals.js', 'js/taxid-lookup.js', 'js/common-datepicker.js']
+['js/common-history.js', 'js/common-keypad.js', 'js/common-modals.js', 'js/taxid-lookup.js', 'js/common-datepicker.js']
     .forEach(f => window.eval(fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/^let /gm, 'var ')));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/invoice-engine.js'), 'utf8')
     .replace(/^'use strict';$/m, '')

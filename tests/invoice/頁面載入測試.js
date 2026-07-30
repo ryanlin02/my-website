@@ -63,7 +63,7 @@ const doc = window.document;
    於是「主要互動不得拋錯」那一段其實一直在對著不存在的函式點下去 ——
    jsdom 不會把事件處理器裡的例外往外丟，所以它靜靜地綠燈。
    現在四支都載，順序與 invoice.html 一致。 */
-['js/common-keypad.js', 'js/common-modals.js', 'js/taxid-lookup.js'].forEach(f => {
+['js/common-history.js', 'js/common-keypad.js', 'js/common-modals.js', 'js/taxid-lookup.js'].forEach(f => {
     window.eval(fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/^let /gm, 'var '));
 });
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-datepicker.js'), 'utf8')

@@ -519,6 +519,8 @@ function clearCommission() {
 
 function adjustPeriod(delta) {
     vibrate();
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markLoanChanged === 'function') markLoanChanged();
     const periodField = document.getElementById('period');
     const currentValue = parseFloat(periodField.value) || 0;
     periodField.value = Math.max(0, currentValue + delta);
@@ -574,6 +576,8 @@ function setPeriod(value) {
 
 function adjustRate(delta) {
     vibrate();
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markLoanChanged === 'function') markLoanChanged();
     const rateField = document.getElementById('rate');
     const currentValue = parseFloat(rateField.value) || 0;
     // 夾在 0 ~ 硬上限之間，確保欄位顯示值與實際計算值一致
@@ -593,6 +597,8 @@ function setRate(value) {
 
 function adjustCommission(delta) {
     vibrate();
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markLoanChanged === 'function') markLoanChanged();
     const commissionField = document.getElementById('commission');
     let currentValue = 0;
     if (commissionField.value && commissionField.value.trim() !== '') {
@@ -622,6 +628,8 @@ function setCommissionPercent(percent) {
 
 function adjustPrincipal(delta) {
     vibrate();
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markLoanChanged === 'function') markLoanChanged();
     const principalField = document.getElementById('principal');
     const currentValue = parseFloat(principalField.value.replace(/,/g, '')) || 0;
     const newValue = Math.max(1, Math.min(Math.floor(currentValue + delta), LIMITS.MAX_AMOUNT));
@@ -646,6 +654,8 @@ function roundPayment(direction, base) {
 
 function adjustPayment(delta) {
     vibrate();
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markLoanChanged === 'function') markLoanChanged();
     const paymentField = document.getElementById('payment');
     const currentValue = parseFloat(paymentField.value.replace(/,/g, '')) || 0;
     const newValue = Math.max(1, Math.min(Math.round(currentValue + delta), LIMITS.MAX_AMOUNT));
@@ -691,6 +701,10 @@ function clearAllFieldsExceptMonthlyCost() {
     ratioWarnShown = false;
 
     localStorage.removeItem('loanCalculatorAutoSave');
+
+    // 清空等於重新開始，與原紀錄的關係一併切斷
+    if (typeof detachLoanFromHistory === 'function') detachLoanFromHistory();
+
     showToast('已清空所有欄位');
 }
 
@@ -793,7 +807,10 @@ function submitCalculatorValue() {
     }
     
     closeModal('numberInputModal');
-    
+
+    // 通過驗證才算真的改到內容；上面每個 return 都是被擋下來的情況
+    if (typeof markLoanChanged === 'function') markLoanChanged();
+
     if (currentInputField === 'period' || currentInputField === 'rate' || currentInputField === 'principal') {
         calculatePayment();
     } else if (currentInputField === 'payment') {

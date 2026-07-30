@@ -45,6 +45,8 @@ const doc = window.document;
 /* 載入方式與 tests/invoice/統編自動帶入測試.js 相同，理由見該檔說明：
    let → var 讓鍵盤狀態跨得過 eval 邊界；去掉 'use strict' 讓頂層函式
    掛上 window（真實 <script> 本來就會）。 */
+// 歷史紀錄共用儲存層：invoice-engine.js 一載入就會呼叫 createHistoryStore
+window.eval(fs.readFileSync(path.join(ROOT, 'js/common-history.js'), 'utf8').replace(/^let /gm, 'var '));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-keypad.js'), 'utf8')
     .replace(/^let /gm, 'var '));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-modals.js'), 'utf8'));

@@ -219,14 +219,14 @@
 </div>
 
 <!-- ===================================================================
-     歷史記錄
+     歷史紀錄
      一行一筆：日期、抬頭、總計。點一下整張載回來繼續編輯或再分享一次。
      =================================================================== -->
 <div class="sheet" id="histSheet">
     <div class="sheet-head">
-        <span class="t">歷史記錄</span>
+        <span class="t">歷史紀錄</span>
         <div class="sheet-acts">
-            <button id="histClear">全部刪除</button>
+            <button id="histClear">清空歷史</button>
             <button class="x" id="histClose">×</button>
         </div>
     </div>
@@ -276,6 +276,8 @@
 <script src="../js/common-datepicker.js"></script>
 <script src="../js/common-footer.js"></script>
 <script src="../js/taxid-lookup.js"></script>
+<!-- 歷史紀錄共用儲存層，必須排在 invoice-engine.js 之前 -->
+<script src="../js/common-history.js"></script>
 <script src="../js/invoice-engine.js"></script>
 </body>
 </html>

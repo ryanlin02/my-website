@@ -54,6 +54,15 @@ const confirmIfShown = () => {
 };
 const clearAll = () => { ev('clearAllInputs()'); confirmIfShown(); };
 
+/* 【2026/07 步驟 2】歷史紀錄改由 js/common-history.js 以「信封」格式存放
+   （外殼有 id / note / savedAt，本頁欄位收在 rec.data 裡）。
+   測試不再直接讀 localStorage 的原始字串 —— 那是實作細節，
+   改從 Store 讀出來再攤平成舊的形狀，斷言的內容完全不變，
+   而且以後再換一次儲存方式也不必再改這些測試。 */
+const histList = () => JSON.parse(w.localStorage.getItem('checkHistory') || '[]')
+    .map(r => Object.assign({ id: r.id, note: r.note }, r.data || {}));
+
+
 /* 情境：總額 120 萬、月付 5 萬、客戶這次給 20 張（19 張月票 + 1 張尾款票） */
 console.log('\n=== 建立一批支票 ===');
 set('total-amount', 1200000);
@@ -130,7 +139,7 @@ ev('toggleCheckWritten(7)');
 console.log('\n=== 保存與歷史記錄 ===');
 w.localStorage.clear();
 ev('saveCheckData()');
-let hist = JSON.parse(w.localStorage.getItem('checkHistory') || '[]');
+let hist = histList();
 t('保存 1 筆', hist.length === 1, String(hist.length));
 t('  打勾狀態一併存入（20 張全開）', hist[0].written.filter(Boolean).length === 20, JSON.stringify(hist[0].written && hist[0].written.length));
 const savedId = hist[0].id;
@@ -139,12 +148,12 @@ t('歷史面板可開啟', $('historyPanel').style.display === 'block');
 t('  用的是正確的 CSS 結構 (.history-list)', d.querySelector('.history-list') !== null);
 t('  項目結構正確 (.history-detail-item)', d.querySelectorAll('.history-detail-item').length === 6, String(d.querySelectorAll('.history-detail-item').length));
 t('  顯示開立進度徽章', text('historyContent').includes('已開立完成 20 張'), d.querySelector('.history-header-rate').textContent);
-t('  有套用資料按鈕', [...d.querySelectorAll('.detail-btn')].some(b => b.textContent.trim() === '套用資料'));
+t('  有套用按鈕', [...d.querySelectorAll('.detail-btn')].some(b => b.textContent.trim() === '套用'));
 t('  沒有殘留不存在的 class', d.querySelectorAll('.no-history, .note-btn, .history-note-display').length === 0);
 
 console.log('\n=== 打勾寫回歷史記錄（工作紀錄）===');
 ev('toggleCheckWritten(3)');
-hist = JSON.parse(w.localStorage.getItem('checkHistory'));
+hist = histList();
 t('取消第 4 張後，紀錄同步更新為 19 張', hist[0].written.filter(Boolean).length === 19, String(hist[0].written.filter(Boolean).length));
 ev('loadCheckHistory()');
 t('  歷史徽章改為「開立中 19 / 20 張」', d.querySelector('.history-header-rate').textContent.trim() === '開立中 19 / 20 張', d.querySelector('.history-header-rate').textContent);
@@ -170,7 +179,7 @@ set('check-count', 10);
 t('改張數後 linkedHistoryId 已清除', ev('linkedHistoryId') === null, String(ev('linkedHistoryId')));
 t('  保留前 9 張的打勾（第 4 張原本就沒打勾，故為 8）', text('progress-done') === '8', text('progress-done'));
 ev('toggleCheckWritten(0)');
-hist = JSON.parse(w.localStorage.getItem('checkHistory'));
+hist = histList();
 t('  此時打勾不會寫回舊紀錄', hist[0].written.filter(Boolean).length === 19, String(hist[0].written.filter(Boolean).length));
 
 console.log('\n=== 以尾款續開下一批（換票）===');

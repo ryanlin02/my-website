@@ -35,6 +35,15 @@ const disp=sel=>document.querySelector(sel).style.display;
 // let 宣告的變數不是 window 屬性，一律透過 window.eval 存取
 const set=(field,v)=>ev(`currentInputField=${JSON.stringify(field)};calculatorValue=${JSON.stringify(String(v))};submitCalculatorValue();`);
 
+/* 【2026/07 步驟 2】歷史紀錄改由 js/common-history.js 以「信封」格式存放
+   （外殼有 id / note / savedAt，本頁欄位收在 rec.data 裡）。
+   測試不再直接讀 localStorage 的原始字串 —— 那是實作細節，
+   改從 Store 讀出來再攤平成舊的形狀，斷言的內容完全不變，
+   而且以後再換一次儲存方式也不必再改這些測試。 */
+const histList = () => JSON.parse(window.localStorage.getItem('checkHistory') || '[]')
+    .map(r => Object.assign({ id: r.id, note: r.note }, r.data || {}));
+
+
 console.log('\n=== A1 歷史記錄面板 ===');
 t('初始為關閉', $('historyPanel').style.display==='none');
 ev('toggleHistoryPanel()');
@@ -136,11 +145,11 @@ t('  尾款票日期 = 116年11月30日', val('end-date').startsWith('116年11�
 console.log('\n=== 迴歸：歷史記錄存讀 ===');
 // 目前狀態：總額 1,000,000 / 繳款 200,000 / 13 張 → 押票 -1,400,000，屬不成立
 ev('saveCheckData()');
-t('押票金額不成立時拒絕保存', JSON.parse(window.localStorage.getItem('checkHistory')||'[]').length===0,
+t('押票金額不成立時拒絕保存', histList().length===0,
   window.localStorage.getItem('checkHistory'));
 set('check-count',4);   // 押票 = 400,000，成立
 ev('saveCheckData()');
-const hist=JSON.parse(window.localStorage.getItem('checkHistory')||'[]');
+const hist=histList();
 t('金額成立時正常寫入 1 筆', hist.length===1, String(hist.length));
 t('  押票金額正確 (400,000)', hist[0]&&hist[0].depositAmount===400000, String(hist[0]&&hist[0].depositAmount));
 if($('historyPanel').style.display==='block') ev('toggleHistoryPanel()');

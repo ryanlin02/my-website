@@ -95,6 +95,8 @@
     <!-- 共用日期選擇器（2026/07：本頁原本自帶一套 <table> 月曆，已移除） -->
     <script src="../js/common-datepicker.js"></script>
     <script src="../js/common-footer.js"></script>
+    <!-- 歷史紀錄共用儲存層，必須排在 check-engine.js 之前 -->
+    <script src="../js/common-history.js"></script>
     <script src="../js/check-engine.js"></script>
 </head>
 <body>
@@ -208,15 +210,15 @@
 
     <div class="divider-flow" style="margin: 6px 0;"></div>
 
-    <!-- 提示放在「保存計算」正上方 —— 那是要採取行動的地方。
+    <!-- 提示放在「存檔」正上方 —— 那是要採取行動的地方。
          放進度列會跟開票進度搶注意力 -->
     <div id="unsaved-hint" class="unsaved-hint">已修改，尚未儲存</div>
 
     <!-- 5. 統一「清除全部輸入」按鈕樣式與計算頁面完全一致 -->
     <div class="function-buttons bottom-buttons">
         <div class="button-row">
-            <button onclick="saveCheckData()">保存計算</button>
-            <button onclick="toggleHistoryPanel()">歷史記錄</button>
+            <button onclick="saveCheckData()">存檔</button>
+            <button onclick="toggleHistoryPanel()">歷史</button>
         </div>
     </div>
 
@@ -233,14 +235,14 @@
          已改用四頁共用的日期選擇器（由 js/common-datepicker.js 注入）。
          共用版的面板高度固定、年月可直接點選、過去日期變色提醒而不禁選。 -->
 
-    <!-- 歷史記錄面板 -->
+    <!-- 歷史紀錄面板 -->
     <div id="historyPanel" class="history-panel">
         <div class="history-header">
             <div class="header-left">
-                <h2>支票計算歷史記錄</h2>
+                <h2>歷史紀錄</h2>
             </div>
             <div class="header-right">
-                <button class="delete-all-btn" onclick="confirmDeleteAll()">全刪</button>
+                <button class="delete-all-btn" onclick="confirmDeleteAll()">清空歷史</button>
             </div>
             <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
         </div>

@@ -58,6 +58,15 @@ const okGuard = () => $('confirmModalOk').click();
 
 const build = (total, pay, count, y, m, day) => { set('total-amount', total); set('payment-amount', pay); set('check-count', count); setDate(y, m, day); };
 
+/* 【2026/07 步驟 2】歷史紀錄改由 js/common-history.js 以「信封」格式存放
+   （外殼有 id / note / savedAt，本頁欄位收在 rec.data 裡）。
+   測試不再直接讀 localStorage 的原始字串 —— 那是實作細節，
+   改從 Store 讀出來再攤平成舊的形狀，斷言的內容完全不變，
+   而且以後再換一次儲存方式也不必再改這些測試。 */
+const histList = () => JSON.parse(w.localStorage.getItem('checkHistory') || '[]')
+    .map(r => Object.assign({ id: r.id, note: r.note }, r.data || {}));
+
+
 /* ============================================================ */
 console.log('\n=== 客戶臨時改張數：已打勾的月票必須保留 ===');
 build(1000000, 50000, 20, 2026, 1, 5);
@@ -128,11 +137,11 @@ w.localStorage.clear();
 ev('clearAllInputs()'); if (guardShown()) okGuard();
 build(1000000, 50000, 10, 2026, 1, 5);
 ev('saveCheckData()');
-const rec = JSON.parse(w.localStorage.getItem('checkHistory'))[0];
+const rec = histList()[0];
 t('保存後建立連結', ev('linkedHistoryId') !== null);
 t('  「已修改」提示不顯示', $('unsaved-hint').style.display === 'none');
 tick(0); tick(1);
-t('只打勾 → 即時寫回紀錄', JSON.parse(w.localStorage.getItem('checkHistory'))[0].written.filter(Boolean).length === 2);
+t('只打勾 → 即時寫回紀錄', histList()[0].written.filter(Boolean).length === 2);
 t('  連結仍在（進度是安全的）', ev('linkedHistoryId') !== null);
 t('  不算未儲存', ev('hasUnsavedProgress()') === false);
 t('  「已修改」提示仍不顯示', $('unsaved-hint').style.display === 'none');
@@ -144,7 +153,7 @@ t('  「已修改，尚未儲存」顯示出來', $('unsaved-hint').style.displa
 t('  打勾保留', ticks() === 2, String(ticks()));
 t('  算是未儲存進度', ev('hasUnsavedProgress()') === true);
 tick(2);
-t('  此時打勾不會寫回舊紀錄', JSON.parse(w.localStorage.getItem('checkHistory'))[0].written.filter(Boolean).length === 2);
+t('  此時打勾不會寫回舊紀錄', histList()[0].written.filter(Boolean).length === 2);
 
 /* ============================================================ */
 console.log('\n=== 保存時詢問覆蓋或另存 ===');
@@ -155,7 +164,7 @@ t('  說明含目前張數 8', $('choiceModalOverlay').textContent.includes('8 �
 const btns = [...$('choiceModalOverlay').querySelectorAll('[data-index]')].map(b => b.textContent.trim());
 t('  兩個選項，覆蓋在前', btns[0] === '覆蓋原紀錄' && btns[1] === '另存為新紀錄', btns.join('|'));
 $('choiceModalOverlay').querySelector('[data-index="0"]').click();
-let hist = JSON.parse(w.localStorage.getItem('checkHistory'));
+let hist = histList();
 t('選覆蓋 → 仍然只有 1 筆', hist.length === 1, String(hist.length));
 t('  張數已更新為 8', hist[0].checkCount === 8, String(hist[0].checkCount));
 t('  id 不變', hist[0].id === rec.id);
@@ -167,7 +176,7 @@ console.log('\n--- 選另存 ---');
 set('check-count', 6);
 ev('saveCheckData()');
 $('choiceModalOverlay').querySelector('[data-index="1"]').click();
-hist = JSON.parse(w.localStorage.getItem('checkHistory'));
+hist = histList();
 t('選另存 → 變成 2 筆', hist.length === 2, String(hist.length));
 t('  舊紀錄張數維持 8', hist.find(x => x.id === rec.id).checkCount === 8);
 t('  新紀錄張數為 6', hist.find(x => x.id !== rec.id).checkCount === 6);
@@ -178,7 +187,7 @@ ev('clearAllInputs()'); if (guardShown()) okGuard();
 build(500000, 25000, 5, 2026, 3, 10);
 ev('saveCheckData()');
 t('沒有跳選項框', $('choiceModalOverlay') === null);
-t('  直接新增為第 3 筆', JSON.parse(w.localStorage.getItem('checkHistory')).length === 3);
+t('  直接新增為第 3 筆', histList().length === 3);
 
 /* ============================================================ */
 console.log('\n=== 有未儲存進度時的攔阻 ===');
@@ -204,7 +213,7 @@ t('  清除全部直接執行', !guardShown() && val('total-amount') === '');
 console.log('\n--- 套用其他紀錄前也會攔阻 ---');
 build(1000000, 50000, 10, 2026, 1, 5);
 ev('saveCheckData()');
-const otherId = JSON.parse(w.localStorage.getItem('checkHistory'))[0].id;
+const otherId = histList()[0].id;
 ev('clearAllInputs()');
 build(800000, 40000, 8, 2026, 5, 20);
 tick(0); tick(1);

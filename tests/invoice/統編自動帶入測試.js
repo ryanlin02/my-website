@@ -78,6 +78,8 @@ const doc = window.document;
        鍵盤的 onInput/sub 掛勾正是用函式名稱去 window 找的。
 
    兩者都只影響測試環境的執行語意，不改變被測程式的行為。 */
+// 歷史紀錄共用儲存層：invoice-engine.js 一載入就會呼叫 createHistoryStore
+window.eval(fs.readFileSync(path.join(ROOT, 'js/common-history.js'), 'utf8').replace(/^let /gm, 'var '));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-keypad.js'), 'utf8')
     .replace(/^let /gm, 'var '));
 window.eval(fs.readFileSync(path.join(ROOT, 'js/common-modals.js'), 'utf8'));

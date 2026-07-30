@@ -81,7 +81,7 @@ body { padding-bottom: 12px !important; }
      * 所以固定列往下推一段來閃避。外殼已改成 top: 60px 對齊，
      * 補償值再留著就變成頂端多出一段空白。 */
     top: 0;
-    z-index: 900;
+    z-index: var(--z-page-bar);
     background: var(--primary-color);
 
     /* ------------------------------------------------------------
@@ -488,7 +488,7 @@ body { padding-bottom: 12px !important; }
     position: fixed;
     inset: 0;
     background: #1a1a1a;
-    z-index: 4000;
+    z-index: var(--z-panel);      /* 放大檢視：頁面層級面板 */
 }
 .zoom-overlay.show { display: block; }
 
@@ -586,7 +586,7 @@ body { padding-bottom: 12px !important; }
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, .72);
-    z-index: 5000;
+    z-index: var(--z-modal);      /* 文字輸入彈窗：與共用彈窗同層，兩者不會同時開 */
     align-items: flex-start;
     justify-content: center;
     padding: 20px 12px 12px;
@@ -687,7 +687,7 @@ body { padding-bottom: 12px !important; }
     position: fixed;
     inset: 0;
     background: var(--primary-color);
-    z-index: 4500;
+    z-index: var(--z-panel);      /* 歷史面板：與其他三頁同一層 */
     flex-direction: column;
 }
 .sheet.show { display: flex; }
@@ -727,10 +727,12 @@ body { padding-bottom: 12px !important; }
     padding: 6px;
 }
 
+/* 【2026/07 步驟 4】一列兩行：上行是內容摘要，下行是備註與動作鈕。
+   結構比照計算頁與支票頁的歷史卡片，四頁的動線一致。 */
 .hrec {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: 5px;
     padding: 8px 8px;
     margin-bottom: 5px;
     background: var(--secondary-color);
@@ -739,6 +741,51 @@ body { padding-bottom: 12px !important; }
     cursor: pointer;
 }
 .hrec:active { border-color: var(--button-orange); }
+
+.hrec-main {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hrec-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 5px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* 備註佔滿剩餘寬度，單行截斷 —— 備註可能很長，不能讓它把動作鈕擠掉 */
+.hnote {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 11px;
+    color: #cccccc;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, .18);
+}
+.hnote.empty { color: #7a7a7a; font-style: italic; }
+
+.hacts { flex: 0 0 auto; display: flex; gap: 5px; }
+
+.hbtn {
+    padding: 3px 10px;
+    font-size: 11px;
+    border-radius: 5px;
+    border: 1px solid var(--button-orange);
+    background: transparent;
+    color: var(--button-orange);
+    cursor: pointer;
+}
+.hbtn.hdel {
+    border-color: #7a4a4a;
+    color: var(--err-red);
+}
 
 .hrec .hd { flex: 0 0 62px; font-size: 11px; color: #9a9a9a; line-height: 1.3; }
 .hrec .hd .hy { display: block; color: var(--button-blue); font-weight: bold; font-size: 12px; }
@@ -766,13 +813,9 @@ body { padding-bottom: 12px !important; }
     color: var(--button-orange);
     font-variant-numeric: tabular-nums;
 }
-.hrec .hx {
-    flex: 0 0 24px;
-    color: var(--err-red);
-    font-size: 17px;
-    text-align: center;
-    padding: 4px 0;
-}
+/* .hrec .hx（那個小小的 ×）已於 2026/07 步驟 4 移除，
+   改為第二行的「刪除」文字鈕，與計算頁、支票頁一致。
+   × 太小、又緊鄰「清空歷史」，在手機上是誤觸熱區。 */
 
 .sheet-empty { text-align: center; color: #7a7a7a; font-size: 13px; padding: 40px 0; }
 
@@ -797,7 +840,7 @@ body { padding-bottom: 12px !important; }
     padding: 9px 16px;
     border-radius: 20px;
     font-size: 13px;
-    z-index: 9000;
+    z-index: var(--z-toast);
     border: 1px solid var(--button-orange);
     transition: opacity .4s ease;
     max-width: 88%;

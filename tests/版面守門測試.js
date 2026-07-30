@@ -50,7 +50,7 @@ const t = (n, c, e = '') => {
 const PAGE_CSS = {
     'calculator.html': ['css/keypad.css', 'css/calculator.css'],
     'check.html': ['css/keypad.css', 'css/calculator.css', 'css/check.css'],
-    'invoice.html': ['css/invoice.css'],
+    'invoice.html': ['css/keypad.css', 'css/invoice.css'],   /* 2026/07 補：本頁確實有載入 keypad.css */
     'gas.html': ['css/keypad.css', 'css/gas.css']
 };
 

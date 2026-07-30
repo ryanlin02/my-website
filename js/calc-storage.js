@@ -1,11 +1,66 @@
 /**
  * 重車貸款業務工具箱 - 數據持久化與歷史紀錄模組 (calc-storage.js)
- * 100% 保持 LocalStorage Schema 相容性：
- * - loanCalculatorAutoSave
- * - loanCalculatorIframeBackup
- * - loanCalculatorEmergencyBackup
- * - loanHistory
+ *
+ * LocalStorage 鍵名：
+ * - loanCalculatorAutoSave        自動暫存（24 小時效期）
+ * - loanCalculatorIframeBackup    iframe 環境的備份（48 小時）
+ * - loanHistory                   歷史紀錄，改由 js/common-history.js 統一存取
+ *
+ * 【2026/07 步驟 2】
+ * 歷史紀錄的讀寫全部改走共用 Store。本檔案不再自己碰 loanHistory，
+ * id 生成、寫入失敗處理、排序、筆數上限、舊資料相容一律由 Store 負責。
+ *
+ * 同時移除了 loanCalculatorEmergencyBackup —— 全站只有 getItem 與
+ * removeItem、沒有任何一處 setItem，也就是說註解裡寫的「三層備份」
+ * 實際上只有兩層，第三層永遠是空的，讀它純粹是浪費一次 I/O。
  */
+
+/* 歷史紀錄倉庫。key 沿用舊的 loanHistory，既有資料原地相容。 */
+const loanHistoryStore = createHistoryStore({ key: 'loanHistory', tool: 'calc' });
+
+/* ------------------------------------------------------------
+ * 與歷史紀錄的連結（2026/07 步驟 4）
+ *
+ * loanSourceId          目前表單的資料是從哪一筆紀錄套用來的。
+ * loanHasUnsavedChanges 套用之後又改了內容，尚未決定要覆蓋還是另存。
+ *
+ * 【為什麼要有這一層】
+ * 業務在客戶面前調數字是常態：客戶問「48 期呢」，改一下再存。
+ * 舊版每按一次存檔就多一筆，同一個客戶的同一個案子三個月後
+ * 會在歷史裡留下四十個版本，等於沒有歷史。
+ *
+ * 這套模型是支票頁先長出來的（見 check-engine.js 的 sourceHistoryId），
+ * 這裡把它推廣過來，兩頁的行為因此一致。
+ *
+ * 詢問的時機刻意放在「按下存檔」而不是「改數字的當下」——
+ * 改數字時人還在客戶面前講話，跳一個視窗問存檔會打斷對話，
+ * 而且那個當下也還沒有判斷依據。
+ * ------------------------------------------------------------ */
+let loanSourceId = null;
+let loanHasUnsavedChanges = false;
+
+/**
+ * 使用者改了計算內容
+ * 由 calc-ui.js 的鍵盤送出與五個快捷調整鍵呼叫
+ */
+function markLoanChanged() {
+    if (loanSourceId !== null) loanHasUnsavedChanges = true;
+    updateLoanUnsavedHint();
+}
+
+/** 完全切斷與歷史紀錄的關係（清空全部欄位這種「重新開始」的情境） */
+function detachLoanFromHistory() {
+    loanSourceId = null;
+    loanHasUnsavedChanges = false;
+    updateLoanUnsavedHint();
+}
+
+/** 更新「已修改，尚未儲存」提示（放在存檔按鈕正上方，那是要採取行動的地方） */
+function updateLoanUnsavedHint() {
+    const hint = document.getElementById('unsaved-hint');
+    if (!hint) return;
+    hint.style.display = (loanSourceId !== null && loanHasUnsavedChanges) ? 'block' : 'none';
+}
 
 /**
  * 恢復上次自動保存的數據
@@ -15,17 +70,12 @@ function restoreAutoData() {
         const isInIframe = (window.self !== window.top);
         let savedDataStr = localStorage.getItem('loanCalculatorAutoSave');
         let dataSource = 'main';
-        
+
         if (!savedDataStr && isInIframe) {
             savedDataStr = localStorage.getItem('loanCalculatorIframeBackup');
             dataSource = 'iframe-backup';
         }
-        
-        if (!savedDataStr) {
-            savedDataStr = localStorage.getItem('loanCalculatorEmergencyBackup');
-            dataSource = 'emergency-backup';
-        }
-        
+
         if (savedDataStr) {
             const savedData = JSON.parse(savedDataStr);
             const savedTime = new Date(savedData.timestamp);
@@ -66,7 +116,6 @@ function restoreAutoData() {
             } else {
                 localStorage.removeItem('loanCalculatorAutoSave');
                 if (isInIframe) localStorage.removeItem('loanCalculatorIframeBackup');
-                localStorage.removeItem('loanCalculatorEmergencyBackup');
             }
         }
     } catch (error) {
@@ -74,7 +123,6 @@ function restoreAutoData() {
         try {
             localStorage.removeItem('loanCalculatorAutoSave');
             localStorage.removeItem('loanCalculatorIframeBackup');
-            localStorage.removeItem('loanCalculatorEmergencyBackup');
         } catch (e) {}
     }
 }
@@ -95,12 +143,51 @@ function saveLoanData() {
         if (typeof showToast === 'function') showToast('請先完成必要欄位（期數、利率、本金、期繳）的計算！');
         return;
     }
-    
+
+    /* 【2026/07 步驟 4】資料來自某筆紀錄、而且已經被改過時，
+     * 讓使用者決定要覆蓋原紀錄還是另存一筆。做法與支票頁一致。 */
+    if (loanSourceId !== null && loanHasUnsavedChanges) {
+        const src = loanHistoryStore.get(loanSourceId);
+        if (src && typeof showChoiceModal === 'function') {
+            showChoiceModal(
+                '內容已變更',
+                `這筆資料來自 <b>${escapeHtml(src.data.date || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                + `原紀錄：${src.data.period} 期 · 本金 ${formatNumber(src.data.principal)}<br>`
+                + `目前：${period} 期 · 本金 ${formatNumber(principal)}`,
+                [
+                    { label: '覆蓋原紀錄', primary: true, onSelect: () => commitLoanData(loanSourceId) },
+                    { label: '另存為新紀錄', onSelect: () => commitLoanData(null) }
+                ]
+            );
+            return;
+        }
+        // 原紀錄已被刪除，直接另存
+    }
+
+    commitLoanData(null);
+}
+
+/**
+ * 實際寫入歷史紀錄
+ * @param {number|null} overwriteId 有值代表覆蓋該筆，null 代表另存新紀錄
+ */
+function commitLoanData(overwriteId) {
+    const period = document.getElementById('period').value;
+    const rate = document.getElementById('rate').value;
+    const principal = document.getElementById('principal').value.replace(/,/g, '');
+    const payment = document.getElementById('payment').value.replace(/,/g, '');
+    const afterTaxRate = document.getElementById('afterTaxRate').value;
+    const commission = document.getElementById('commission').value.replace(/,/g, '');
+    const afterCommissionRate = document.getElementById('afterCommissionRate').value;
+
     const loanDate = new Date();
     const formattedDate = `${loanDate.getFullYear()}-${String(loanDate.getMonth() + 1).padStart(2, '0')}-${String(loanDate.getDate()).padStart(2, '0')} ${String(loanDate.getHours()).padStart(2, '0')}:${String(loanDate.getMinutes()).padStart(2, '0')}`;
-    
-    const loanData = {
-        id: new Date().getTime(),
+
+    /* 【2026/07 步驟 2】id、timestamp、note 已改由 Store 的信封負責，
+     * 這裡只提供這一頁自己的欄位。寫入失敗（容量滿、無痕模式）也由
+     * Store 統一攔下並提示，這裡只需要看 ok 決定要不要繼續。
+     * 覆蓋目標已被刪除時，Store 會自動改為新增。 */
+    const result = loanHistoryStore.save({
         date: formattedDate,
         period: period,
         rate: rate,
@@ -109,25 +196,31 @@ function saveLoanData() {
         afterTaxRate: afterTaxRate,
         commission: commission || '0',
         afterCommissionRate: afterCommissionRate,
-        totalInterest: document.getElementById('totalInterest').value.replace(/,/g, ''),
-        timestamp: new Date().toISOString(),
-        note: ''
-    };
-    
-    let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-    loanHistory.push(loanData);
-    localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
+        totalInterest: document.getElementById('totalInterest').value.replace(/,/g, '')
+    }, { overwriteId: overwriteId });
+
+    if (!result.ok) return;
 
     // 存進歷史代表這筆試算對業務是有意義的，是比「算了一次」更強的訊號。
     // 只送期數與筆數，金額一律不送。
     if (typeof trackCalcEvent === 'function') {
         trackCalcEvent('loan_saved', {
             period: parseFloat(period) || 0,
-            history_count: loanHistory.length
+            is_overwrite: result.overwritten,
+            history_count: loanHistoryStore.count()
         });
     }
 
-    if (typeof showToast === 'function') showToast('貸款計算結果已保存！');
+    // 存檔後重新建立連結：之後再改再存，會問要不要覆蓋這一筆
+    loanSourceId = result.id;
+    loanHasUnsavedChanges = false;
+    updateLoanUnsavedHint();
+
+    /* 用 Store 回報的實際結果，而不是呼叫端的意圖 ——
+     * 想覆蓋但原紀錄已被刪掉時，Store 會改成新增，這時說「已覆蓋」是騙人的 */
+    if (typeof showToast === 'function') {
+        showToast(result.overwritten ? '已覆蓋原紀錄' : '已存檔');
+    }
 }
 
 /**
@@ -137,28 +230,29 @@ function loadHistoryData() {
     const historyContent = document.getElementById('historyContent');
     if (!historyContent) return;
     
-    const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-    
+    /* 【2026/07 步驟 2】改讀共用 Store。排序由 Store 負責（新→舊），
+     * 這裡不再自己 sort。各頁欄位都在 rec.data 裡，備註在信封上。 */
+    const loanHistory = loanHistoryStore.list();
+
     if (loanHistory.length === 0) {
-        historyContent.innerHTML = '<p class="no-data">尚無貸款計算記錄</p>';
+        historyContent.innerHTML = '<p class="no-data">尚無貸款試算紀錄</p>';
         return;
     }
-    
-    loanHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
+
     let html = '<div class="history-list">';
-    loanHistory.forEach(loan => {
+    loanHistory.forEach(rec => {
+        const loan = rec.data;
         const principalDisplay = formatNumber(loan.principal);
         const paymentDisplay = formatNumber(loan.payment);
         const commissionDisplay = formatNumber(loan.commission);
-        
+
         html += `
-            <div class="history-item" data-loan-id="${loan.id}">
+            <div class="history-item" data-loan-id="${rec.id}">
                 <div class="history-item-header">
                     <div class="history-date">${formatDate(loan.date)}</div>
                     <div class="history-header-rate">稅佣後利率: ${parseFloat(loan.afterCommissionRate).toFixed(4)}%</div>
                 </div>
-                
+
                 <div class="history-details">
                     <div class="history-detail-item">
                         <span class="detail-label">期數</span>
@@ -180,12 +274,12 @@ function loadHistoryData() {
 
                 <div class="history-note-container">
                     <div class="history-item-footer">
-                        <div class="history-note-preview ${loan.note ? '' : 'empty-note'}" onclick="openNoteEditor(${loan.id})">
-                            ${loan.note ? escapeHtml(loan.note) : '點擊添加備註'}
+                        <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
+                            ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
                         </div>
                         <div class="history-actions">
-                            <button class="detail-btn" onclick="loadLoanToForm(${loan.id})">載入計算</button>
-                            <button class="delete-btn" onclick="deleteLoan(${loan.id})">刪除</button>
+                            <button class="detail-btn" onclick="loadLoanToForm(${rec.id})">套用</button>
+                            <button class="delete-btn" onclick="deleteLoan(${rec.id})">刪除</button>
                         </div>
                     </div>
                 </div>
@@ -193,7 +287,7 @@ function loadHistoryData() {
         `;
     });
     html += '</div>';
-    
+
     historyContent.innerHTML = html;
 }
 
@@ -201,9 +295,9 @@ function loadHistoryData() {
  * 將歷史筆數載入表單
  */
 function loadLoanToForm(id) {
-    const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-    const loan = loanHistory.find(item => item.id === id);
-    
+    const rec = loanHistoryStore.get(id);
+    const loan = rec ? rec.data : null;
+
     if (loan) {
         // 舊紀錄可能存有超出現行上限的數值，載入時一併夾在合法範圍內，
         // 避免歷史資料把欄位帶到計算不出來的狀態。
@@ -219,7 +313,14 @@ function loadLoanToForm(id) {
 
         if (typeof calculatePayment === 'function') calculatePayment();
         if (typeof updateAllFields === 'function') updateAllFields();
-        
+
+        /* 記住資料來源。之後改了內容再按存檔，就會問要覆蓋還是另存。
+         * 注意順序：必須在上面兩個重算之後才設定 —— 重算會經過
+         * markLoanChanged()，先設定的話會立刻被標成「已修改」。 */
+        loanSourceId = id;
+        loanHasUnsavedChanges = false;
+        updateLoanUnsavedHint();
+
         const historyPanel = document.getElementById('historyPanel');
         if (historyPanel) historyPanel.style.display = 'none';
         
@@ -229,7 +330,7 @@ function loadLoanToForm(id) {
             trackCalcEvent('loan_history_loaded');
         }
 
-        if (typeof showToast === 'function') showToast('已載入貸款計算資料');
+        if (typeof showToast === 'function') showToast('已套用');
         if (typeof vibrate === 'function') vibrate();
     }
 }
@@ -239,15 +340,20 @@ function loadLoanToForm(id) {
  */
 function deleteLoan(id) {
     if (typeof showConfirmModal === 'function') {
+        /* 【2026/07 步驟 3】確認訊息帶出這一筆的摘要，與另外兩頁一致。
+         * 只寫「確定要刪除嗎」的話，使用者按下去之前無從確認自己點對了列。 */
+        const rec = loanHistoryStore.get(id);
+        const summary = rec
+            ? `${rec.data.period} 期 · 本金 ${formatNumber(rec.data.principal)}<br><br>`
+            : '';
+
         showConfirmModal(
-            '確認刪除', 
-            '您確定要刪除這筆貸款記錄嗎？<br><br>此操作無法復原。', 
+            '刪除確認',
+            `確定要刪除這筆紀錄嗎？<br><br>${summary}此操作無法復原。`,
             function() {
-                let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-                loanHistory = loanHistory.filter(loan => loan.id !== id);
-                localStorage.setItem('loanHistory', JSON.stringify(loanHistory));
+                if (!loanHistoryStore.remove(id)) return;
                 loadHistoryData();
-                if (typeof showToast === 'function') showToast('貸款記錄已刪除！');
+                if (typeof showToast === 'function') showToast('已刪除');
                 if (typeof vibrate === 'function') vibrate();
             }
         );
@@ -259,7 +365,13 @@ function deleteLoan(id) {
  */
 function confirmDeleteAll() {
     if (typeof showConfirmModal === 'function') {
-        showConfirmModal('確認刪除', '確定要刪除所有貸款計算記錄嗎？此操作無法撤銷。', deleteAllLoans);
+        const total = loanHistoryStore.count();
+        if (!total) return;
+        showConfirmModal(
+            '清空確認',
+            `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
+            deleteAllLoans
+        );
     }
 }
 
@@ -267,9 +379,9 @@ function confirmDeleteAll() {
  * 刪除全體歷史記錄
  */
 function deleteAllLoans() {
-    localStorage.removeItem('loanHistory');
+    loanHistoryStore.clear();
     loadHistoryData();
-    if (typeof showToast === 'function') showToast('所有貸款記錄已刪除！');
+    if (typeof showToast === 'function') showToast('已清空歷史');
     if (typeof vibrate === 'function') vibrate();
 }
 
@@ -294,13 +406,12 @@ function openNoteEditor(loanId) {
     // 【B3】備註內容改為在這裡自行查出，不再透過 onclick 屬性傳字串。
     // 舊版是 onclick="openNoteEditor(id, '備註內容')"，只跳脫了單引號，
     // 備註若含有雙引號或換行就會把 HTML 屬性整個切斷。
-    const loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-    const loan = loanHistory.find(item => item.id === loanId);
-    if (!loan) return;
+    const rec = loanHistoryStore.get(loanId);
+    if (!rec) return;
 
     showNoteEditor({
         title: '備註編輯',
-        note: loan.note || '',
+        note: rec.note || '',
         onSave: function (newNote) {
             saveLoanNote(loanId, newNote);
         }
@@ -308,17 +419,8 @@ function openNoteEditor(loanId) {
 }
 
 function saveLoanNote(loanId, newNote) {
-    let loanHistory = JSON.parse(localStorage.getItem('loanHistory') || '[]');
-    const updatedHistory = loanHistory.map(loan =>
-        loan.id === loanId ? { ...loan, note: newNote } : loan
-    );
-
-    try {
-        localStorage.setItem('loanHistory', JSON.stringify(updatedHistory));
-    } catch (e) {
-        if (typeof showToast === 'function') showToast('備註儲存失敗，裝置儲存空間可能已滿', true);
-        return;
-    }
+    // 寫入失敗（容量滿、無痕模式）由 Store 統一提示
+    if (!loanHistoryStore.setNote(loanId, newNote)) return;
     loadHistoryData();
     if (typeof showToast === 'function') showToast('備註已儲存');
 }

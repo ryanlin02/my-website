@@ -55,6 +55,7 @@ const CORE_ASSETS = [
     './js/taxid-lookup.js',     // 統編離線查詢（分片索引本身不預快取，用到才抓）
     './css/check.css',          // 支票頁專用樣式（原內嵌於 check.html）
     './css/invoice.css',        // 發票頁專用樣式（發票頁不吃 calculator.css）
+    './js/common-history.js',   // 四頁共用的歷史紀錄儲存層（2026/07 步驟 2）
     './js/common-modals.js',    // 四頁共用的彈窗與數字小鍵盤（HTML 注入）
     './js/common-keypad.js',    // 四頁共用的鍵盤邏輯（2026/07 起發票頁也走這台）
     './js/common-datepicker.js',// 共用日期選擇器（支票頁與發票頁）
