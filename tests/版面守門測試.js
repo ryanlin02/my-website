@@ -204,6 +204,76 @@ Object.entries(PAGE_CSS).forEach(([page, sheets]) => {
     t(`${page} 沒有引用未宣告的變數`, bad.length === 0, bad.join(', '));
 });
 
+/* ============================================================
+ * F. 共用元件只能有一份
+ * ============================================================
+ * 【這一段存在的原因】
+ * 數字鍵盤與日期選擇器都曾經是「每頁自己寫一套」：
+ *
+ *   鍵盤       發票頁自己一台（無四則運算）、其他三頁共用一台（無加速鍵）
+ *   日期選擇器 支票頁 139 行的 <table> 月曆、發票頁 46 行的 grid 月曆
+ *
+ * 兩套並存的代價不是多寫幾行，是「外觀與操作邏輯不一致」，
+ * 而且修好一邊、另一邊照舊。2026/07 已全部收斂成共用元件，
+ * 這一段負責讓它回不去 —— 任何頁面又長出自有的月曆或鍵盤就會被擋下。
+ * ============================================================ */
+console.log('\n=== F. 共用元件只能有一份 ===');
+
+const PAGE_HTML = ['pages/calculator.html', 'pages/check.html', 'pages/invoice.html', 'pages/gas.html'];
+
+/* 舊實作留下的識別特徵。這些字串只會出現在「頁面自己寫的月曆」裡，
+ * 共用元件用的是 #datePickerModal / .dp-* 這一組完全不同的名稱。 */
+const OLD_DATEPICKER = [
+    ['date-picker-overlay', '支票頁舊月曆的遮罩'],
+    ['date-picker-body', '支票頁舊月曆的表格內容'],
+    ['dateModal', '發票頁舊月曆的彈窗'],
+    ['calGrid', '發票頁舊月曆的日期格'],
+    ['setupDatePicker', '支票頁舊月曆的事件綁定'],
+    ['updateDatePicker', '支票頁舊月曆的重繪']
+];
+
+PAGE_HTML.forEach(page => {
+    const html = read(page);
+    /* 註解裡提到舊名稱是允許的（那是在說明歷史），所以只看有沒有真的 DOM ——
+       比對 id="..." 或 class="... ..." 才算。 */
+    const realDom = OLD_DATEPICKER.filter(([token]) =>
+        new RegExp(`id="${token}"|class="[^"]*\\b${token}\\b`).test(html));
+    t(`${page} 沒有自己的月曆 DOM`, realDom.length === 0,
+        realDom.map(([t2, why]) => `${t2}（${why}）`).join(', '));
+});
+
+['css/calculator.css', 'css/check.css', 'css/invoice.css', 'css/gas.css'].forEach(sheet => {
+    const css = stripComments(read(sheet));
+    const bad = ['.date-picker', '.cal-grid', '.cal-nav', '.dp-day', '.dp-grid']
+        .filter(sel => new RegExp('\\' + sel + '[\\s,{:]').test(css));
+    t(`${sheet} 沒有自己的月曆樣式`, bad.length === 0,
+        bad.join(', ') + ' —— 日期選擇器的樣式一律放在 css/keypad.css');
+});
+
+const dpJs = read('js/common-datepicker.js');
+t('共用日期選擇器存在且自己注入 DOM',
+    dpJs.includes('function openDatePicker') && dpJs.includes("id=\"datePickerModal\""));
+t('  月曆固定 42 格（面板高度不會因為切月而改變）',
+    /while \(cells\.length < 42\)/.test(dpJs));
+
+/* 載入順序：元件必須排在各頁引擎之前。
+ * 排錯的話不會在載入時報錯，而是等使用者點日期欄位那一刻才爆 —— 最難察覺的一種。 */
+[['pages/check.html', 'check-engine.js'],
+['pages/invoice.html', 'invoice-engine.js']].forEach(([page, engine]) => {
+    /* 只看真正的 <script src> 標籤位置。
+       註解裡也會提到檔名（例如「common-keypad.js 必須排在 check-engine.js 之前」），
+       用 indexOf 直接找檔名會撈到註解，得出相反的結論。 */
+    const order = [...read(page).matchAll(/<script src="\.\.\/js\/([^"]+)"/g)].map(m => m[1]);
+    const dpAt = order.indexOf('common-datepicker.js');
+    const engineAt = order.indexOf(engine);
+    t(`${page} 的 common-datepicker.js 排在 ${engine} 之前`,
+        dpAt !== -1 && engineAt !== -1 && dpAt < engineAt,
+        `載入順序：${order.join(' → ')}`);
+});
+
+t('sw.js 已預快取共用日期選擇器（離線也要能選日期）',
+    read('sw.js').includes('common-datepicker.js'));
+
 console.log('\n========================================');
 console.log(`   通過 ${pass} 項 / 失敗 ${fail} 項`);
 console.log('========================================');

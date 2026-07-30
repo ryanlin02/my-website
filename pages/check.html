@@ -228,28 +228,10 @@
         </div>
     </div>
 
-    <!-- 日期選擇器彈窗 -->
-    <div class="overlay" id="date-picker-overlay">
-        <div class="date-picker">
-            <div class="date-picker-header">
-                <div class="date-picker-nav" id="prev-month">&lt;&lt;</div>
-                <div class="date-picker-title" id="date-picker-title"></div>
-                <div class="date-picker-nav" id="next-month">&gt;&gt;</div>
-            </div>
-            <table class="date-picker-calendar">
-                <thead>
-                    <tr>
-                        <th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>
-                    </tr>
-                </thead>
-                <tbody id="date-picker-body"></tbody>
-            </table>
-            <div class="date-picker-actions">
-                <button class="date-picker-button cancel" id="cancel-date">取消</button>
-                <button class="date-picker-button confirm" id="confirm-date">確認</button>
-            </div>
-        </div>
-    </div>
+    <!-- 日期選擇器
+         2026/07：本頁原本自帶一套 <table> 版月曆（#date-picker-overlay），
+         已改用四頁共用的日期選擇器（由 js/common-datepicker.js 注入）。
+         共用版的面板高度固定、年月可直接點選、過去日期變色提醒而不禁選。 -->
 
     <!-- 歷史記錄面板 -->
     <div id="historyPanel" class="history-panel">
