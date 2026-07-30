@@ -817,10 +817,18 @@ async function main() {
     t('sw.js 已預快取 common-footer.js',
         fs.readFileSync(path.join(R, 'sw.js'), 'utf8').includes("'./js/common-footer.js'"));
 
-    // 頁尾樣式必須存在，否則注入了也看不到
-    // 註：一律用去註解後的 cssNoComment 比對。用原始 gasCss 的話，
-    //     說明「原本有 .bottom-buffer-container」的註解會被算成還在用。
-    ['global-app-footer', 'footer-title', 'footer-copyright'].forEach(c => {
+    /* 頁尾樣式必須存在，否則注入了也看不到。
+       【2026/07 步驟 5-3】.global-app-footer 已從三份頁面 CSS 收攏到
+       四頁共用的 keypad.css —— 頁尾是 common-footer.js 注入的共用元件，
+       樣式不該分散在各頁，而且三份原本的底部留白還互不相同（80／80／20px）。
+       其餘兩個 class 仍留在 gas.css（那是各頁自己的字級與顏色）。 */
+    const keypadNoComment = fs.readFileSync(path.join(R, 'css/keypad.css'), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '');
+    t('  .global-app-footer 在四頁共用的 keypad.css',
+        keypadNoComment.includes('.global-app-footer'));
+    t('    而且沒有殘留在 gas.css（避免兩份打架）',
+        !cssNoComment.includes('.global-app-footer'));
+    ['footer-title', 'footer-copyright'].forEach(c => {
         t(`  gas.css 有 .${c} 樣式`, cssNoComment.includes('.' + c));
     });
 

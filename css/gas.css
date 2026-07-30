@@ -636,12 +636,9 @@ body {
  *     那是一個空的 <div>，唯一作用就是撐出底部空間避免被系統列遮擋。
  *     現在頁尾自己就有足夠的下方留白，那個空 div 已移除。
  * ------------------------------------------------------------ */
-.global-app-footer {
-    text-align: center;
-    padding: 20px 10px 80px;
-    margin-top: 15px;
-    border-top: 1px solid rgba(255, 156, 51, 0.2);
-}
+/* .global-app-footer 已於 2026/07 步驟 5-3 移到 css/keypad.css。
+   它是 common-footer.js 注入的共用元件，樣式不該分散在各頁的 CSS 裡
+   —— 三份的底部留白原本還互不相同（80／80／20px）。 */
 
 .footer-title {
     font-size: 13px;

@@ -78,8 +78,9 @@
 
 <!-- ===================================================================
      固定頂列
-     稅別已固定為應稅 5%（實務上重車租賃不會遇到零稅率或免稅），
-     省下來的橫向空間拿來放存檔與歷史，兩者捲到哪裡都點得到。
+     稅別已固定為應稅 5%（實務上重車租賃不會遇到零稅率或免稅）。
+     存檔與歷史已於 2026/07 步驟 5-3 移到頁尾，與另外三頁一致 ——
+     頂列只留「這張發票是哪一種」這件必須隨時看得到的事。
      =================================================================== -->
 <div class="top-bar">
     <div class="seg-row">
@@ -87,8 +88,6 @@
             <button data-v="3" class="active">三聯式</button>
             <button data-v="2">二聯式</button>
         </div>
-        <button class="bar-btn" id="btnSaveRec">存檔</button>
-        <button class="bar-btn" id="btnHistory">歷史</button>
     </div>
 </div>
 
@@ -191,14 +190,36 @@
      停留的地方，而且與另外三頁同一個 id 與樣式。 -->
 <div id="unsaved-hint" class="unsaved-hint">已修改，尚未儲存</div>
 
+<!-- 本頁專屬的三個動作。
+     【2026/07 步驟 5-3】
+     「分享」（分享網址）已移除：它產生的網址指向 pages/invoice.html#inv=...，
+     收件人一開啟就被 frame-guard.js 導回外殼，#inv= 整段被丟掉 ——
+     這個功能從加上防護腳本那天起就沒有真正運作過。
+
+     「存圖」拆成兩顆，因為它原本在手機上做的其實是分享而不是儲存：
+     程式先問瀏覽器支不支援分享檔案，支援就叫出系統分享面板，
+     只有桌機才會真的下載。所以手機上沒有任何路徑能把圖存進相簿。 -->
 <div class="acts">
     <button class="act primary" id="btnZoom">放大看</button>
-    <button class="act" id="btnShare">分享</button>
-    <button class="act" id="btnSave">存圖</button>
-    <button class="act" id="btnReset">清除</button>
+    <button class="act" id="btnShareImage">分享圖片</button>
+    <button class="act" id="btnSaveImage">存到手機</button>
 </div>
 
 <div class="divider-flow"></div>
+
+<!-- 頁尾三顆大按鍵，四頁完全一致 -->
+<div class="function-buttons">
+    <div class="button-row">
+        <button id="btnSaveRec">存檔</button>
+        <button id="btnHistory">歷史</button>
+    </div>
+</div>
+
+<div class="function-buttons">
+    <div class="button-row">
+        <button id="btnReset" style="width: 100%;">清除全部輸入</button>
+    </div>
+</div>
 
 <!-- ===================================================================
      全螢幕放大

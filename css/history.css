@@ -40,10 +40,25 @@
     height: 100%;
     background-color: rgba(var(--primary-color-rgb), 0.95);
     z-index: var(--z-panel);          /* 疊層來源見 css/keypad.css 的 :root */
+
+    /* 【2026/07 步驟 5-3】面板改成上下兩塊的 flex 直排。
+     *
+     * 舊版是整個面板 overflow-y: auto，標題列靠 position: sticky 黏在頂端。
+     * sticky 的語意是「捲到某個位置才黏住」，那個切換的瞬間在 iOS 上
+     * 偶爾會慢一拍，實機看起來就是標題列捲動時會晃一格。
+     *
+     * 改成 flex 之後標題列根本不在捲動流裡（只有下面的清單自己捲），
+     * 位置從頭到尾都不變，不可能晃。
+     * 發票頁的 .sheet 本來就是這個寫法，這裡是把它推廣到另外三頁。 */
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     animation: fadeIn 0.1s ease-out;
     padding-top: 0;
 }
+
+/* 捲動交給下面的清單區，面板本身不捲 */
+.history-panel { overflow: hidden; }
 
 .history-header {
     display: flex;
@@ -61,8 +76,10 @@
      * 計算頁與支票頁共用這條規則，一次修好兩頁。 */
     padding: var(--content-gap) 15px 5px 15px;
     background-color: var(--primary-color);
-    position: sticky;
-    top: 0;
+
+    /* flex: 0 0 auto —— 固定高度、不參與捲動、不被壓縮。
+       這一行取代了原本的 position: sticky + top: 0（見上方說明）。 */
+    flex: 0 0 auto;
     z-index: var(--z-panel-head);
     border-bottom: 2px solid var(--accent-color);
     box-shadow: 0 2px 10px var(--shadow-color);
@@ -94,6 +111,13 @@
     padding: 8px;
     max-width: 400px;
     margin: 0 auto;
+
+    /* 只有清單區自己捲，標題列固定不動 */
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .history-list {

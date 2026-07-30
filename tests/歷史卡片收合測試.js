@@ -406,6 +406,21 @@ console.log('\n樣式規則');
     t('  時間與徽章沒有額外的左右邊距（邊緣才對得齊下面那行）',
         !/margin-left/.test(block('.history-date')) && !/margin:/.test(block('.history-header-rate')));
 
+    /* 【步驟 5-3】標題列不再用 sticky。
+       sticky 是「捲到某個位置才黏住」，切換的瞬間在 iOS 上會晃一格。
+       改成 flex 直排之後，標題列根本不在捲動流裡。 */
+    t('面板是上下兩塊的 flex 直排',
+        /\.history-panel\s*\{[^}]*display:\s*flex/.test(css) &&
+        /\.history-panel\s*\{[^}]*flex-direction:\s*column/.test(css));
+    /* 先去掉註解再比對：註解裡也會出現 position: sticky 這幾個字
+       （說明為什麼不再用它），不去掉的話會誤判成規則還在。 */
+    const cssNoComment = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    t('  標題列固定不捲（flex: 0 0 auto，不用 sticky）',
+        /\.history-header\s*\{[^}]*flex:\s*0 0 auto/.test(cssNoComment) &&
+        !/\.history-header\s*\{[^}]*position:\s*sticky/.test(cssNoComment));
+    t('  只有清單區自己捲',
+        /\.history-content\s*\{[^}]*overflow-y:\s*auto/.test(css));
+
     t('summary 看得出可以點（cursor: pointer）',
         /\.history-item-summary\s*\{[^}]*cursor:\s*pointer/.test(css));
     t('有展開箭頭，而且展開時會轉向',
@@ -475,6 +490,58 @@ console.log('\n四頁的一致性');
     const invCss = fs.readFileSync(path.join(R, 'css/invoice.css'), 'utf8');
     t('發票頁不再殘留舊的 .hrec 樣式（避免又被層疊順序喚醒）',
         !/^\.hrec/m.test(invCss.replace(/\/\*[\s\S]*?\*\//g, '')));
+}
+
+/* ============================================================
+   七、四頁的頁尾（步驟 5-3）
+   ------------------------------------------------------------
+   最下面一律是三顆大按鍵：存檔／歷史一列、清除全部輸入一列。
+   頁尾樣式本身是 common-footer.js 注入的共用元件，
+   樣式必須放在四頁都載入的 keypad.css。
+   ============================================================ */
+console.log('\n四頁的頁尾');
+
+{
+    ['calculator', 'check', 'gas', 'invoice'].forEach(p => {
+        const html = fs.readFileSync(path.join(R, 'pages', p + '.html'), 'utf8')
+            .replace(/<!--[\s\S]*?-->/g, '');
+        t(`${p}.html 頁尾有存檔／歷史／清除全部輸入`,
+            />存檔</.test(html) && />歷史</.test(html) && />清除全部輸入</.test(html));
+        t(`  ${p}.html 用的是共用的 .function-buttons 結構`,
+            /class="function-buttons/.test(html));
+    });
+
+    // 發票頁：頂列只留三聯式／二聯式
+    const inv = fs.readFileSync(path.join(R, 'pages/invoice.html'), 'utf8')
+        .replace(/<!--[\s\S]*?-->/g, '');
+    const topBar = (inv.match(/<div class="top-bar">[\s\S]*?<\/div>\s*<\/div>/) || [''])[0];
+    t('發票頁頂列只剩三聯式／二聯式',
+        /三聯式/.test(topBar) && /二聯式/.test(topBar) &&
+        !/存檔/.test(topBar) && !/歷史/.test(topBar),
+        topBar.replace(/\s+/g, ' ').slice(0, 120));
+
+    /* 分享網址從加上 frame-guard 那天起就沒運作過：
+       產生的網址指向 pages/invoice.html#inv=...，收件人一開啟就被導回外殼，
+       hash 整段被丟掉。產生端已整組移除，不留死碼。 */
+    const invJs = fs.readFileSync(path.join(R, 'js/invoice-engine.js'), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '');
+    t('發票頁已移除失效的分享網址功能',
+        !/function shareLink/.test(invJs) && !/function encodeState/.test(invJs));
+    t('  分享圖片與存到手機是兩個各自明確的動作',
+        /function shareInvoiceImage/.test(invJs) && /function downloadInvoiceImage/.test(invJs));
+    t('  「存到手機」一律下載，不會偷偷變成系統分享',
+        !/navigator\.share/.test(
+            (invJs.match(/function downloadInvoiceImage[\s\S]*?\n}/) || [''])[0]));
+
+    // 頁尾樣式是共用元件，四頁的底部留白必須一致
+    const keypad = fs.readFileSync(path.join(R, 'css/keypad.css'), 'utf8');
+    t('頁尾樣式在四頁共用的 keypad.css', /\.global-app-footer\s*\{/.test(keypad));
+    ['calculator.css', 'gas.css', 'invoice.css'].forEach(f => {
+        const css = fs.readFileSync(path.join(R, 'css', f), 'utf8')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
+        t(`  ${f} 不再自己定義頁尾（底部留白原本三頁各不相同）`,
+            !/\.global-app-footer\s*\{/.test(css));
+    });
 }
 
 /* ============================================================ */

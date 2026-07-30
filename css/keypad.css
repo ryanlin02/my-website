@@ -869,3 +869,24 @@
 .choice-modal-footer .modal-btn {
     flex: 1 1 100%;
 }
+
+
+/* ============================================
+ * 全站頁尾（common-footer.js 注入）
+ * --------------------------------------------
+ * 【2026/07 步驟 5-3 從三份頁面 CSS 收攏】
+ * 這是共用元件，樣式原本卻分別寫在 calculator.css、gas.css、
+ * invoice.css 裡，而且三份的底部留白不一樣：
+ *   calculator  padding-bottom 80px ＋ margin-bottom 30px  → 110px
+ *   gas         padding-bottom 80px                        → 80px
+ *   invoice     padding-bottom 20px                        → 20px
+ * 這裡採發票頁那組 —— 另外兩頁那 80px 是頁尾還沒抽成共用元件時
+ * 為了避開瀏覽器工具列留的閃避量，現在只是白白多出一段空白。
+ * ============================================ */
+.global-app-footer {
+    text-align: center;
+    padding: 16px 10px 20px;
+    margin-top: 12px;
+    border-top: 1px solid rgba(255, 156, 51, 0.2);
+    color: var(--text-muted);
+}

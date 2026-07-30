@@ -1664,17 +1664,21 @@ function deleteRecord(id) {
 }
 
 /* ============================================================
-   分享網址
+   分享網址（已於 2026/07 步驟 5-3 移除產生端）
    ------------------------------------------------------------
-   把整張發票塞進網址的 hash。不需要後端、永久有效，
-   同事點開看到的就是同一張範例，離線也開得起來。
+   shareLink() / encodeState() / b64encode() 全部刪除，因為那條路
+   從加上防護腳本那天起就沒有真正運作過：
+
+     產生的網址是 pages/invoice.html#inv=...
+     收件人一開啟 → frame-guard.js 判定「不該被直接開啟」
+                  → location.replace('../?page=invoice')
+                  → #inv=... 整段被丟掉
+
+   對方永遠只會看到一張空白的發票頁。要傳給客戶請用「分享圖片」。
+
+   decodeState() 與 b64decode() 保留：萬一有人存過舊網址，
+   在 iframe 裡開啟時仍然讀得回來，成本也只是幾行程式。
    ============================================================ */
-function b64encode(str) {
-    const bytes = new TextEncoder().encode(str);
-    let bin = '';
-    bytes.forEach(b => { bin += String.fromCharCode(b); });
-    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
 
 function b64decode(s) {
     s = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -1683,18 +1687,6 @@ function b64decode(s) {
     return new TextDecoder().decode(bytes);
 }
 
-function encodeState() {
-    const dt = curDate();
-    // 用短鍵名壓縮長度，網址越短越好傳
-    return b64encode(JSON.stringify({
-        y: state.type,
-        n: state.taxId,
-        t: state.title,
-        d: [dt.y, dt.m, dt.d],
-        i: state.items.map(it => [it.name, it.qty, it.price]),
-        k: state.lockTotal          // 一起帶走，同事開起來的稅額才會跟業務看到的完全一樣
-    }));
-}
 
 function decodeState(code) {
     const o = JSON.parse(b64decode(code));
@@ -1717,28 +1709,6 @@ function decodeState(code) {
     state.lockTotal = (Number.isFinite(k) && k > 0 && k <= MAX_AMOUNT) ? k : null;
 }
 
-function shareLink() {
-    const url = location.origin + location.pathname + '#inv=' + encodeState();
-    const text = `發票開立範例（${state.type === '3' ? '三聯式' : '二聯式'}）總計 ${fmt(calc().total)} 元`;
-
-    trackInvoiceEvent('invoice_shared', {
-        invoice_type: invoiceTypeLabel(),
-        share_method: navigator.share ? 'system_share' : (navigator.clipboard ? 'clipboard' : 'url_hash')
-    });
-
-    if (navigator.share) {
-        navigator.share({ title: '發票開立範例', text: text, url: url }).catch(() => {});
-        return;
-    }
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(url)
-            .then(() => showToast('連結已複製，可直接貼給同事'))
-            .catch(() => showToast('複製失敗，請手動複製網址', true));
-        return;
-    }
-    location.hash = 'inv=' + encodeState();
-    showToast('已寫入網址，請從網址列複製');
-}
 
 /* ============================================================
    存成圖片
@@ -1746,7 +1716,21 @@ function shareLink() {
    把 SVG 畫進 canvas 再輸出 PNG，不依賴任何外部函式庫，
    離線（PWA）也能用。手機上優先走系統分享（可直接送進 LINE 或相簿）。
    ============================================================ */
-function saveImage() {
+/**
+ * 把發票範例畫成 PNG，再交給呼叫端決定要分享還是存檔
+ *
+ * 【2026/07 步驟 5-3】原本這裡是一支 saveImage()，名字叫「存圖」，
+ * 但它先問瀏覽器支不支援分享檔案，支援就叫出系統分享面板 ——
+ * 手機幾乎都支援，所以「存圖」在手機上做的其實是分享，
+ * 而且完全沒有任何路徑能把圖真的存進相簿。
+ *
+ * 現在拆成兩個明確的動作，各自只做一件事：
+ *   shareInvoiceImage()  一律叫系統分享面板（傳給客戶）
+ *   downloadInvoiceImage() 一律下載（存進自己手機）
+ *
+ * @param {(png: Blob, name: string) => void} onReady 圖片產好之後要做什麼
+ */
+function buildInvoiceImage(onReady) {
     const n = natSize();
     const scale = 2;                        // 2 倍解析度，同事放大看仍清楚
     const blob = new Blob([buildSvg()], { type: 'image/svg+xml;charset=utf-8' });
@@ -1767,25 +1751,7 @@ function saveImage() {
 
         c.toBlob(function (png) {
             if (!png) { showToast('產生圖片失敗', true); return; }
-
-            // 存成圖片通常是要傳給客戶看，是這一頁最終的產出動作
-            trackInvoiceEvent('invoice_image_saved', {
-                invoice_type: invoiceTypeLabel()
-            });
-
-            const file = new File([png], name, { type: 'image/png' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file], title: '發票開立範例' }).catch(() => {});
-                return;
-            }
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(png);
-            a.download = name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-            showToast('圖片已下載');
+            onReady(png, name);
         }, 'image/png');
     };
 
@@ -1795,6 +1761,41 @@ function saveImage() {
     };
 
     img.src = url;
+}
+
+/** 分享圖片給客戶（系統分享面板） */
+function shareInvoiceImage() {
+    buildInvoiceImage(function (png, name) {
+        trackInvoiceEvent('invoice_image_shared', { invoice_type: invoiceTypeLabel() });
+
+        const file = new File([png], name, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title: '發票開立範例' }).catch(() => {});
+            return;
+        }
+        // 桌機或不支援分享檔案的瀏覽器：退而下載，至少不會什麼都沒發生
+        downloadPng(png, name);
+        showToast('這台裝置不支援分享，已改為下載');
+    });
+}
+
+/** 存進自己的手機（一律下載，不走系統分享） */
+function downloadInvoiceImage() {
+    buildInvoiceImage(function (png, name) {
+        trackInvoiceEvent('invoice_image_saved', { invoice_type: invoiceTypeLabel() });
+        downloadPng(png, name);
+        showToast('圖片已存到手機');
+    });
+}
+
+function downloadPng(png, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(png);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
 /* ============================================================
@@ -1975,8 +1976,8 @@ function bind() {
     }
 
     // --- 動作列 ---
-    $('btnShare').addEventListener('click', shareLink);
-    $('btnSave').addEventListener('click', saveImage);
+    $('btnShareImage').addEventListener('click', shareInvoiceImage);
+    $('btnSaveImage').addEventListener('click', downloadInvoiceImage);
     $('btnReset').addEventListener('click', () => {
         state.taxId = '';
         state.title = '';

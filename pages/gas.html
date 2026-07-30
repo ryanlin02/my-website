@@ -228,10 +228,13 @@
             </div>
         </div>
 
-        <div class="divider-flow"></div>
-
-        <!-- 清除按鈕 -->
-        <button class="clear-button" onclick="clearCalculation()">清除</button>
+        <!-- 清除：改用與另外三頁相同的 .function-buttons 結構與字樣，
+             四頁頁尾至此完全一致（存檔／歷史一列、清除全部輸入一列）。 -->
+        <div class="function-buttons">
+            <div class="button-row">
+                <button onclick="clearCalculation()" style="width: 100%;">清除全部輸入</button>
+            </div>
+        </div>
     </div>
 
     <!-- 本週油價對照表區塊

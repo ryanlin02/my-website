@@ -776,12 +776,9 @@ body { padding-bottom: 12px !important; }
    由 common-modals.js 注入。這頁沒有載入 calculator.css（會與本檔的
    .row / .toast-message 等選擇器打架），所以頁尾樣式在這裡自帶一份。
    =================================================================== */
-.global-app-footer {
-    text-align: center;
-    padding: 16px 10px 20px;
-    margin-top: 12px;
-    border-top: 1px solid rgba(255, 156, 51, 0.2);
-}
+/* .global-app-footer 已於 2026/07 步驟 5-3 移到 css/keypad.css。
+   它是 common-footer.js 注入的共用元件，樣式不該分散在各頁的 CSS 裡
+   —— 三份的底部留白原本還互不相同（80／80／20px）。 */
 
 .footer-title {
     font-size: 13px;
