@@ -144,7 +144,7 @@ t('保存 1 筆', hist.length === 1, String(hist.length));
 t('  打勾狀態一併存入（20 張全開）', hist[0].written.filter(Boolean).length === 20, JSON.stringify(hist[0].written && hist[0].written.length));
 const savedId = hist[0].id;
 ev('toggleHistoryPanel()');
-t('歷史面板可開啟', $('historyPanel').style.display === 'block');
+t('歷史面板可開啟', $('historyPanel').style.display === 'flex');
 t('  用的是正確的 CSS 結構 (.history-list)', d.querySelector('.history-list') !== null);
 t('  項目結構正確 (.history-detail-item)', d.querySelectorAll('.history-detail-item').length === 6, String(d.querySelectorAll('.history-detail-item').length));
 t('  顯示開立進度徽章', text('historyContent').includes('已開立完成 20 張'), d.querySelector('.history-header-rate').textContent);

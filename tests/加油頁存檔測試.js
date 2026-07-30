@@ -121,7 +121,7 @@ console.log('\n歷史面板');
     w.eval('toggleHistoryPanel()');
 
     const panel = $(w, 'historyPanel');
-    t('面板打得開', panel.style.display === 'block', panel.style.display);
+    t('面板打得開', panel.style.display === 'flex', panel.style.display);
 
     const text = $(w, 'historyContent').textContent;
     t('  用的是共用的清單結構 (.history-list)',

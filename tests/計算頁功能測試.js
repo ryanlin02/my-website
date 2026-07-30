@@ -98,7 +98,7 @@ ev('setPeriod(60);setRate(8);'); viaKeypad('principal',1000000);
 ev('saveLoanData()');
 t('保存 1 筆', JSON.parse(w.localStorage.getItem('loanHistory')||'[]').length===1);
 ev('toggleHistoryPanel()');
-t('面板可開啟', d.getElementById('historyPanel').style.display==='block');
+t('面板可開啟', d.getElementById('historyPanel').style.display==='flex');
 t('  列表有內容', d.getElementById('historyContent').textContent.includes('本金'));
 const id=JSON.parse(w.localStorage.getItem('loanHistory'))[0].id;
 ev('loadLoanToForm('+id+')');

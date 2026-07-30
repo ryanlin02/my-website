@@ -47,7 +47,7 @@ const histList = () => JSON.parse(window.localStorage.getItem('checkHistory') ||
 console.log('\n=== A1 歷史記錄面板 ===');
 t('初始為關閉', $('historyPanel').style.display==='none');
 ev('toggleHistoryPanel()');
-t('按一下會打開 (display:block)', $('historyPanel').style.display==='block', $('historyPanel').style.display);
+t('按一下會打開 (display:flex)', $('historyPanel').style.display==='flex', $('historyPanel').style.display);
 t('打開時已載入內容', text('historyContent').length>0, text('historyContent'));
 ev('toggleHistoryPanel()');
 t('再按一下會關閉', $('historyPanel').style.display==='none');
@@ -152,7 +152,7 @@ ev('saveCheckData()');
 const hist=histList();
 t('金額成立時正常寫入 1 筆', hist.length===1, String(hist.length));
 t('  押票金額正確 (400,000)', hist[0]&&hist[0].depositAmount===400000, String(hist[0]&&hist[0].depositAmount));
-if($('historyPanel').style.display==='block') ev('toggleHistoryPanel()');
+if($('historyPanel').style.display==='flex') ev('toggleHistoryPanel()');
 ev('toggleHistoryPanel()');
 t('面板可開啟且看得到該筆', text('historyContent').includes('尾款金額'), text('historyContent').slice(0,80));
 

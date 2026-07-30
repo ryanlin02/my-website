@@ -1241,14 +1241,14 @@ function toggleHistoryPanel() {
     const historyPanel = document.getElementById('historyPanel');
     if (!historyPanel) return;
 
-    const isOpen = historyPanel.style.display === 'block';
+    const isOpen = historyPanel.style.display === 'flex';
     if (isOpen) {
         historyPanel.style.display = 'none';
         // 關掉面板就離開編輯模式，下次打開不會停在選了一半的狀態
         if (typeof isHistoryEditMode === 'function' && isHistoryEditMode()) exitHistoryEditMode();
     } else {
         loadCheckHistory();
-        historyPanel.style.display = 'block';
+        historyPanel.style.display = 'flex';
     }
 }
 

@@ -49,8 +49,18 @@
      *
      * 改成 flex 之後標題列根本不在捲動流裡（只有下面的清單自己捲），
      * 位置從頭到尾都不變，不可能晃。
-     * 發票頁的 .sheet 本來就是這個寫法，這裡是把它推廣到另外三頁。 */
-    display: flex;
+     * 發票頁的 .sheet 本來就是這個寫法，這裡是把它推廣到另外三頁。
+     *
+     * 【2026/07 修正】這裡原本重複宣告了一次 display: flex，
+     * 把上面第一行的 display: none 整個蓋掉 —— 同一條規則裡兩個
+     * display 宣告，永遠是後面那個生效，於是面板從一開頁就是可見的
+     * （狀態完全交給 JS 的 inline style 在扛，但三頁的
+     * toggleHistoryPanel() 檢查的是 style.display === 'block'，
+     * 開頁時 inline style 是空字串，判斷不到「已開」，
+     * 第一次點關閉會被誤判成「開啟」去重新載入資料，
+     * 要點第二次才真的關得掉）。
+     * 拿掉這行重複宣告，display 交回 JS 用 inline style 控制
+     * （開啟時設 'flex'，見 calc-ui.js / check-engine.js / gas-engine.js）。 */
     flex-direction: column;
     overflow-y: auto;
     animation: fadeIn 0.1s ease-out;
