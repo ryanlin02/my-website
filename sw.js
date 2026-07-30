@@ -42,6 +42,7 @@ const CORE_ASSETS = [
 
     // 樣式
     './css/keypad.css',         // 數字鍵盤與彈窗元件樣式（四頁共用）
+    './css/history.css',        // 歷史紀錄面板與卡片樣式（四頁共用，2026/07 步驟 4-2）
     './css/calculator.css',     // 計算機專用樣式
 
     // 計算頁模組

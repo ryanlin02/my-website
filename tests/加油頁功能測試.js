@@ -768,10 +768,10 @@ async function main() {
        搬進 keypad.css 時就是靠補上這一項才發現 --accent-color-light
        在發票頁與加油頁會靜默失效。 */
     const sheetsByPage = {
-        'calculator.html': ['keypad.css', 'calculator.css'],
-        'check.html': ['keypad.css', 'calculator.css', 'check.css'],
-        'invoice.html': ['keypad.css', 'invoice.css'],
-        'gas.html': ['keypad.css', 'gas.css']
+        'calculator.html': ['keypad.css', 'history.css', 'calculator.css'],
+        'check.html': ['keypad.css', 'history.css', 'calculator.css', 'check.css'],
+        'invoice.html': ['keypad.css', 'history.css', 'invoice.css'],
+        'gas.html': ['keypad.css', 'history.css', 'gas.css']
     };
     Object.entries(sheetsByPage).forEach(([page, sheets]) => {
         let declared = new Set(), referenced = new Set();

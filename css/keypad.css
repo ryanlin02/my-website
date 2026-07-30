@@ -38,6 +38,12 @@
      * 值與 calculator.css 的同名 token 相同。 */
     --accent-color-light: rgba(255, 156, 51, 0.2);
     --accent-color-rgb: 255, 156, 51;
+    /* 【2026/07 步驟 4-2 補】歷史卡片的備註預覽用得到（css/history.css）。
+     * 同樣的道理：那兩個 token 原本只宣告在 calculator.css，
+     * 而發票頁與加油頁不載入那一份，備註文字會整條靜默失效。
+     * 值與 calculator.css 的同名 token 相同。 */
+    --note-text-color: #e0e0e0;
+    --note-text-empty: #888888;
     --border-color: #555555;
     --error-color: #e74c3c;
     --error-color-rgb: 231, 76, 60;

@@ -64,6 +64,8 @@
 
     <!-- 鍵盤與彈窗元件樣式（三頁共用，必須排在頁面樣式之前讓頁面可覆寫） -->
     <link rel="stylesheet" href="../css/keypad.css">
+    <!-- 歷史紀錄面板與卡片（四頁共用，2026/07 步驟 4-2 從 calculator.css 抽出） -->
+    <link rel="stylesheet" href="../css/history.css">
 
     <!-- 加油頁專用樣式（原內嵌於本檔，2026/07 階段 2 拆出） -->
     <link rel="stylesheet" href="../css/gas.css">
@@ -213,7 +215,21 @@
 
         <!-- 動畫分隔線 - 分隔結果區與功能按鈕 -->
         <div class="divider-flow"></div>
-        
+
+        <!-- 提示放在「存檔」正上方 —— 那是要採取行動的地方。
+             與計算頁、支票頁共用同一個 id 與樣式。 -->
+        <div id="unsaved-hint" class="unsaved-hint">已修改，尚未儲存</div>
+
+        <!-- 存檔與歷史（2026/07 步驟 4-2 新增，四頁用詞與動線一致） -->
+        <div class="function-buttons">
+            <div class="button-row">
+                <button onclick="saveGasData()">存檔</button>
+                <button onclick="toggleHistoryPanel()">歷史</button>
+            </div>
+        </div>
+
+        <div class="divider-flow"></div>
+
         <!-- 清除按鈕 -->
         <button class="clear-button" onclick="clearCalculation()">清除</button>
     </div>
@@ -295,6 +311,20 @@
             }
         };
     </script>
+
+    <!-- 歷史紀錄面板（結構與另外三頁完全相同，樣式來自 css/history.css） -->
+    <div id="historyPanel" class="history-panel">
+        <div class="history-header">
+            <div class="header-left">
+                <h2>歷史紀錄</h2>
+            </div>
+            <div class="header-right">
+                <button class="delete-all-btn" onclick="confirmDeleteAll()">清空歷史</button>
+            </div>
+            <button class="close-btn" onclick="toggleHistoryPanel()">×</button>
+        </div>
+        <div id="historyContent" class="history-content"></div>
+    </div>
 
     <!-- 共用鍵盤：common-keypad.js 必須排在 common-modals.js 之前，
          它以 let 宣告鍵盤共用狀態，需先完成宣告 -->

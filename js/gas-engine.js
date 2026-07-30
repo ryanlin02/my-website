@@ -82,6 +82,13 @@ function initGasPage() {
         });
     });
 
+    /* 還原 24 小時內的自動暫存（2026/07 步驟 4-2）。
+       在 iframe 裡不跳提示：切回這一頁看到資料還在是理所當然的事。
+       單獨開啟本頁時才說一聲，那通常代表 App 曾經被系統回收。 */
+    if (restoreGasDraft() && window.self === window.top) {
+        showToast('已還原上次的試算');
+    }
+
     // 初始化時間顯示
     updateCurrentDate();
 
@@ -235,6 +242,8 @@ function setDieselPrice(price, source = 'quick_default') {
 
     // 記錄最後修改的欄位
     lastModifiedField = 'dieselPrice';
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markGasChanged === 'function') markGasChanged();
 
     // 更新所有相關計算
     updateCalculations();
@@ -301,6 +310,8 @@ function submitCalculatorValue() {
 
     // 記錄最後修改的欄位，updateCalculations() 靠它決定推算方向
     lastModifiedField = currentInputField;
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markGasChanged === 'function') markGasChanged();
 
     closeModal('numberInputModal');
     updateCalculations();
@@ -411,6 +422,9 @@ function clearCalculation() {
 
     // 結果區已清空，下次算出結果時要能再回報一次
     hasResultsShown = false;
+
+    // 清除等於重新開始，與原紀錄的關係一併切斷
+    if (typeof detachGasFromHistory === 'function') detachGasFromHistory();
 
     trackGasEvent('calculation_cleared');
 }
@@ -562,6 +576,8 @@ function adjustMonthlyExpense(delta) {
     // 這裡按下調整鍵後會往「油量 → 油錢」的方向算，
     // 把剛剛調整好的油錢直接蓋掉，畫面上看不出任何異常。
     lastModifiedField = 'monthlyExpense';
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markGasChanged === 'function') markGasChanged();
 
     // 觸發更新計算
     updateCalculations();
@@ -611,6 +627,8 @@ function adjustDiscountAmount(delta) {
     
     // 記錄最後修改的欄位
     lastModifiedField = 'discountAmount';
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markGasChanged === 'function') markGasChanged();
     
     // 觸發更新計算
     updateCalculations();
@@ -638,6 +656,8 @@ function setDiscountAmount(amount) {
     
     // 記錄最後修改的欄位
     lastModifiedField = 'discountAmount';
+    // 使用者改了內容：若這筆是從歷史套用來的，存檔時要問覆蓋或另存
+    if (typeof markGasChanged === 'function') markGasChanged();
     
     // 觸發更新計算
     updateCalculations();
@@ -648,3 +668,334 @@ function setDiscountAmount(amount) {
  *     階段 6 一併移除。
  *     現在油錢的驗證由 updateCalculations() 裡的
  *     parseInt(removeThousandsSeparator(...)) || 0 負責，行為等價。 */
+
+/* ============================================================
+   存檔與歷史紀錄（2026/07 步驟 4-2 新增）
+   ------------------------------------------------------------
+   本頁原本完全沒有這一層，是四頁裡唯一沒有的。
+
+   【為什麼加油頁需要歷史】
+   油品優惠是公司的獨立產品：有客戶只辦油品不辦貸款，
+   也常被拿來當作「利息高」的反制條件。一筆油品試算對業務
+   跟一筆貸款試算一樣是有意義的工作紀錄。
+
+   【卡片上顯示什麼】
+   每月油錢與折扣金額 —— 這兩項才是業務自己在意、也是他下次
+   要回頭調整的數值。每月／每年節省是講給客戶聽的數字，
+   套用回表單時會即時重算，不需要佔用卡片版面。
+   徽章放油品單價，因為折扣金額脫離單價就看不出划算與否。
+
+   Store、id 生成、寫入失敗提示、排序、筆數上限一律由
+   js/common-history.js 負責，與另外三頁同一套。
+   ============================================================ */
+const gasHistoryStore = createHistoryStore({ key: 'gasHistory', tool: 'gas' });
+
+/* 與歷史紀錄的連結，語意與計算頁、支票頁相同 */
+let gasSourceId = null;
+let gasHasUnsavedChanges = false;
+
+function markGasChanged() {
+    if (gasSourceId !== null) gasHasUnsavedChanges = true;
+    updateGasUnsavedHint();
+}
+
+function detachGasFromHistory() {
+    gasSourceId = null;
+    gasHasUnsavedChanges = false;
+    updateGasUnsavedHint();
+}
+
+function updateGasUnsavedHint() {
+    const hint = document.getElementById('unsaved-hint');
+    if (!hint) return;
+    hint.style.display = (gasSourceId !== null && gasHasUnsavedChanges) ? 'block' : 'none';
+}
+
+/** 讀出目前畫面上的四個關鍵數值 */
+function readGasFields() {
+    const num = id => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(removeThousandsSeparator(el.value)) || 0 : 0;
+    };
+    return {
+        dieselPrice: num('dieselPrice'),
+        monthlyExpense: num('monthlyExpense'),
+        monthlyVolume: num('monthlyVolume'),
+        discountAmount: num('discountAmount'),
+        discountedExpense: num('discountedExpense'),
+        monthlySaving: num('monthlySaving'),
+        yearlySaving: num('yearlySaving')
+    };
+}
+
+function saveGasData() {
+    vibrate();
+
+    const f = readGasFields();
+
+    /* 存檔前先確認這筆試算是成立的。
+       只檢查三個輸入值：折後油錢與節省金額都是推導出來的，
+       它們沒算出來一定是上面三個其中之一不成立。 */
+    if (!f.dieselPrice || !f.monthlyExpense || !f.discountAmount) {
+        showToast('請先完成油品單價、每月油錢與折扣金額', true);
+        return;
+    }
+
+    if (gasSourceId !== null && gasHasUnsavedChanges) {
+        const src = gasHistoryStore.get(gasSourceId);
+        if (src) {
+            showChoiceModal(
+                '內容已變更',
+                `這筆資料來自 <b>${escapeHtml(src.data.date || '先前的紀錄')}</b> 的紀錄，內容已經變更。<br><br>`
+                + `原紀錄：每月油錢 ${formatNumberWithCommas(src.data.monthlyExpense)} · 折扣 ${src.data.discountAmount} 元<br>`
+                + `目前：每月油錢 ${formatNumberWithCommas(f.monthlyExpense)} · 折扣 ${f.discountAmount} 元`,
+                [
+                    { label: '覆蓋原紀錄', primary: true, onSelect: () => commitGasData(gasSourceId) },
+                    { label: '另存為新紀錄', onSelect: () => commitGasData(null) }
+                ]
+            );
+            return;
+        }
+        // 原紀錄已被刪除，直接另存
+    }
+
+    commitGasData(null);
+}
+
+function commitGasData(overwriteId) {
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const f = readGasFields();
+    f.date = formattedDate;
+
+    const result = gasHistoryStore.save(f, { overwriteId: overwriteId });
+    if (!result.ok) return;
+
+    trackGasEvent('gas_saved', {
+        is_overwrite: result.overwritten,
+        history_count: gasHistoryStore.count()
+    });
+
+    gasSourceId = result.id;
+    gasHasUnsavedChanges = false;
+    updateGasUnsavedHint();
+
+    showToast(result.overwritten ? '已覆蓋原紀錄' : '已存檔');
+}
+
+function toggleHistoryPanel() {
+    vibrate();
+    const panel = document.getElementById('historyPanel');
+    if (!panel) return;
+
+    if (panel.style.display === 'block') {
+        panel.style.display = 'none';
+    } else {
+        loadGasHistory();
+        panel.style.display = 'block';
+    }
+}
+
+function loadGasHistory() {
+    const content = document.getElementById('historyContent');
+    if (!content) return;
+
+    const list = gasHistoryStore.list();
+
+    if (list.length === 0) {
+        content.innerHTML = '<p class="no-data">尚無油資折讓紀錄</p>';
+        return;
+    }
+
+    let html = '<div class="history-list">';
+
+    list.forEach(rec => {
+        const g = rec.data;
+        html += `
+            <div class="history-item" data-gas-id="${rec.id}">
+                <div class="history-item-header">
+                    <div class="history-date">${escapeHtml(g.date || '')}</div>
+                    <div class="history-header-rate">單價 ${g.dieselPrice} 元</div>
+                </div>
+
+                <div class="history-details">
+                    <div class="history-detail-item">
+                        <span class="detail-label">每月油錢</span>
+                        <span class="detail-value">${formatNumberWithCommas(g.monthlyExpense)}</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">折扣金額</span>
+                        <span class="detail-value">${g.discountAmount} 元</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">每月油量</span>
+                        <span class="detail-value">${formatNumberWithCommas(g.monthlyVolume)} 公升</span>
+                    </div>
+                    <div class="history-detail-item">
+                        <span class="detail-label">折後油錢</span>
+                        <span class="detail-value">${formatNumberWithCommas(g.discountedExpense)}</span>
+                    </div>
+                </div>
+
+                <div class="history-note-container">
+                    <div class="history-item-footer">
+                        <div class="history-note-preview ${rec.note ? '' : 'empty-note'}" onclick="openNoteEditor(${rec.id})">
+                            ${rec.note ? escapeHtml(rec.note) : '點擊添加備註'}
+                        </div>
+                        <div class="history-actions">
+                            <button class="detail-btn" onclick="loadGasToForm(${rec.id})">套用</button>
+                            <button class="delete-btn" onclick="deleteGasHistoryItem(${rec.id})">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    });
+
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+function loadGasToForm(id) {
+    vibrate();
+
+    const rec = gasHistoryStore.get(id);
+    if (!rec) {
+        showToast('找不到這筆紀錄', true);
+        return;
+    }
+    const g = rec.data;
+
+    const set = (fieldId, v) => {
+        const el = document.getElementById(fieldId);
+        if (el) el.value = v;
+    };
+
+    set('dieselPrice', Number(g.dieselPrice).toFixed(1));
+    set('monthlyExpense', formatNumberWithCommas(g.monthlyExpense));
+    set('monthlyVolume', formatNumberWithCommas(g.monthlyVolume));
+    set('discountAmount', Number(g.discountAmount).toFixed(1));
+
+    /* 讓引擎自己把折後油錢與節省金額重算一次，不直接塞存檔時的值 ——
+       油價是每週更新的，重算才會反映使用者現在看到的條件。
+       lastModifiedField 指定為每月油錢，推算方向才會是「油錢 → 油量」。 */
+    lastModifiedField = 'monthlyExpense';
+    updateCalculations();
+
+    // 順序：重算會經過 markGasChanged()，所以連結要在重算之後才建立
+    gasSourceId = id;
+    gasHasUnsavedChanges = false;
+    updateGasUnsavedHint();
+
+    const panel = document.getElementById('historyPanel');
+    if (panel) panel.style.display = 'none';
+
+    trackGasEvent('gas_history_loaded');
+    showToast('已套用');
+}
+
+function deleteGasHistoryItem(id) {
+    vibrate();
+
+    const rec = gasHistoryStore.get(id);
+    const summary = rec
+        ? `每月油錢 ${formatNumberWithCommas(rec.data.monthlyExpense)} · 折扣 ${rec.data.discountAmount} 元<br><br>`
+        : '';
+
+    showConfirmModal('刪除確認', `確定要刪除這筆紀錄嗎？<br><br>${summary}此操作無法復原。`, function () {
+        if (!gasHistoryStore.remove(id)) return;
+        if (gasSourceId === id) detachGasFromHistory();
+        loadGasHistory();
+        showToast('已刪除');
+    });
+}
+
+function confirmDeleteAll() {
+    vibrate();
+
+    const total = gasHistoryStore.count();
+    if (!total) return;
+
+    showConfirmModal('清空確認',
+        `確定要刪除全部 <b>${total}</b> 筆歷史紀錄嗎？<br><br>此操作無法復原。`,
+        function () {
+            gasHistoryStore.clear();
+            detachGasFromHistory();
+            loadGasHistory();
+            showToast('已清空歷史');
+        });
+}
+
+function openNoteEditor(id) {
+    vibrate();
+    const rec = gasHistoryStore.get(id);
+    if (!rec) return;
+
+    showNoteEditor({
+        title: '備註編輯',
+        note: rec.note || '',
+        onSave: function (text) {
+            if (!gasHistoryStore.setNote(id, text)) return;
+            loadGasHistory();
+            showToast('備註已儲存');
+        }
+    });
+}
+
+/* ------------------------------------------------------------
+   自動暫存（24 小時），與另外三頁同一個定位：
+   這是「意外遺失的防護網」，真正要留的請按存檔。
+   ------------------------------------------------------------ */
+const GAS_DRAFT_KEY = 'gasCalculatorDraft';
+const GAS_DRAFT_MAX_HOURS = 24;
+
+function saveGasDraft() {
+    try {
+        const f = readGasFields();
+        if (!f.dieselPrice && !f.monthlyExpense && !f.discountAmount) {
+            localStorage.removeItem(GAS_DRAFT_KEY);
+            return;
+        }
+        f.savedAt = new Date().toISOString();
+        f.gasSourceId = gasSourceId;
+        f.gasHasUnsavedChanges = gasHasUnsavedChanges;
+        localStorage.setItem(GAS_DRAFT_KEY, JSON.stringify(f));
+    } catch (e) { /* 暫存失敗不影響任何功能，安靜略過 */ }
+}
+
+function restoreGasDraft() {
+    let d;
+    try {
+        const raw = localStorage.getItem(GAS_DRAFT_KEY);
+        if (!raw) return false;
+        d = JSON.parse(raw);
+    } catch (e) {
+        try { localStorage.removeItem(GAS_DRAFT_KEY); } catch (e2) {}
+        return false;
+    }
+
+    const hours = (new Date() - new Date(d.savedAt)) / 3600000;
+    if (!isFinite(hours) || hours >= GAS_DRAFT_MAX_HOURS) {
+        try { localStorage.removeItem(GAS_DRAFT_KEY); } catch (e) {}
+        return false;
+    }
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    if (d.dieselPrice) set('dieselPrice', Number(d.dieselPrice).toFixed(1));
+    if (d.monthlyExpense) set('monthlyExpense', formatNumberWithCommas(d.monthlyExpense));
+    if (d.monthlyVolume) set('monthlyVolume', formatNumberWithCommas(d.monthlyVolume));
+    if (d.discountAmount) set('discountAmount', Number(d.discountAmount).toFixed(1));
+
+    lastModifiedField = 'monthlyExpense';
+    updateCalculations();
+
+    gasSourceId = (d.gasSourceId === undefined) ? null : d.gasSourceId;
+    gasHasUnsavedChanges = d.gasHasUnsavedChanges === true;
+    updateGasUnsavedHint();
+    return true;
+}
+
+/* 切到背景前把現況寫進暫存 —— 這是最容易被系統回收的時機 */
+document.addEventListener('visibilitychange', function () {
+    if (document.hidden) saveGasDraft();
+});

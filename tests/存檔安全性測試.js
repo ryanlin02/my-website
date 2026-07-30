@@ -267,7 +267,8 @@ function zIndexOf(file, selector) {
 const zModal = zIndexOf('keypad.css', '.modal-overlay');
 const zNote  = zIndexOf('keypad.css', '.note-editor-modal');
 const zSheet = zIndexOf('invoice.css', '.sheet');
-const zPanel = zIndexOf('calculator.css', '.history-panel');
+/* 2026/07 步驟 4-2：歷史面板的樣式已從 calculator.css 抽到四頁共用的 history.css */
+const zPanel = zIndexOf('history.css', '.history-panel');
 const zToast = zIndexOf('keypad.css', '.toast-message');
 
 t('疊層變數集中定義在 keypad.css', Object.keys(zTokens).length >= 4, JSON.stringify(zTokens));

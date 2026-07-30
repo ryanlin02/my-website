@@ -88,7 +88,8 @@ console.log('\n按鈕字樣');
 
 [
     ['pages/calculator.html', 'saveLoanData()'],
-    ['pages/check.html', 'saveCheckData()']
+    ['pages/check.html', 'saveCheckData()'],
+    ['pages/gas.html', 'saveGasData()']          // 2026/07 步驟 4-2 起本頁也有
 ].forEach(([f, fn]) => {
     const body = stripHtmlComments(read(f));
     t(`${f} 存檔按鈕寫「存檔」`,
@@ -107,7 +108,9 @@ console.log('\n按鈕字樣');
 }
 
 /* 清單裡的套用按鈕（字樣寫在 JS 的樣板字串裡） */
-[['js/calc-storage.js', 'loadLoanToForm'], ['js/check-engine.js', 'loadCheckToForm']]
+[['js/calc-storage.js', 'loadLoanToForm'],
+ ['js/check-engine.js', 'loadCheckToForm'],
+ ['js/gas-engine.js', 'loadGasToForm']]
     .forEach(([f, fn]) => {
         const body = stripJsComments(read(f));
         t(`${f} 的套用按鈕寫「套用」`,
@@ -120,7 +123,7 @@ console.log('\n按鈕字樣');
    ============================================================ */
 console.log('\n確認彈窗');
 
-const ENGINES = ['js/calc-storage.js', 'js/check-engine.js', 'js/invoice-engine.js'];
+const ENGINES = ['js/calc-storage.js', 'js/check-engine.js', 'js/invoice-engine.js', 'js/gas-engine.js'];
 ENGINES.forEach(f => {
     const body = stripJsComments(read(f));
     t(`${f} 單筆刪除用「刪除確認」`, body.includes("'刪除確認'"));
@@ -142,7 +145,9 @@ const TOASTS = {
     'js/check-engine.js': ["'已存檔'", "showToast('已套用')",
                            "showToast('已刪除')", "showToast('已清空歷史')"],
     'js/invoice-engine.js': ["showToast('已存檔')", "showToast('已套用')",
-                             "showToast('已刪除')", "showToast('已清空歷史')"]
+                             "showToast('已刪除')", "showToast('已清空歷史')"],
+    'js/gas-engine.js': ["'已存檔'", "showToast('已套用')",
+                         "showToast('已刪除')", "showToast('已清空歷史')"]
 };
 Object.entries(TOASTS).forEach(([f, needles]) => {
     const body = stripJsComments(read(f));
@@ -151,7 +156,7 @@ Object.entries(TOASTS).forEach(([f, needles]) => {
 });
 
 /* 備註的提示：兩頁都要是「備註已儲存」 */
-['js/calc-storage.js', 'js/check-engine.js'].forEach(f => {
+['js/calc-storage.js', 'js/check-engine.js', 'js/gas-engine.js', 'js/invoice-engine.js'].forEach(f => {
     const body = stripJsComments(read(f));
     t(`${f} 備註提示寫「備註已儲存」`,
         body.includes("showToast('備註已儲存')") && !body.includes("備註已更新"));

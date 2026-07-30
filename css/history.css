@@ -1,0 +1,367 @@
+/* ============================================
+ * 重車貸款業務工具箱 - 歷史紀錄面板與卡片樣式 (history.css)
+ * --------------------------------------------
+ * 【2026/07 步驟 4-2 從 calculator.css 抽出】
+ *
+ * 這裡是四頁「歷史」面板共用的樣式：全螢幕面板、標題列、
+ * 紀錄卡片、備註預覽、套用／刪除按鈕、空狀態。
+ *
+ * 【為什麼要獨立成一份】
+ * 這組樣式原本只在 calculator.css 裡，而那一份只有計算頁與支票頁載入。
+ * 發票頁與加油頁想要一樣的歷史面板就拿不到樣式 ——
+ * 同一個問題在這次改版裡已經出現四次（備註編輯器、已修改提示、
+ * 多選項對話框，再加上這一組）。共用元件的樣式要跟元件一樣是共用的。
+ *
+ * 載入順序：排在 keypad.css 之後、頁面自己的 CSS 之前，
+ * 讓各頁仍然可以覆寫。
+ *
+ * 色彩 token 沿用 keypad.css 的 :root（四頁都會載入它），
+ * 本檔不重複宣告。
+ * ============================================ */
+
+/* ============================================
+* 歷史紀錄與模態框
+* ============================================ */
+.history-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(var(--primary-color-rgb), 0.95);
+    z-index: var(--z-panel);          /* 疊層來源見 css/keypad.css 的 :root */
+    overflow-y: auto;
+    animation: fadeIn 0.1s ease-out;
+    padding-top: 0;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    /* 【2026/07】頂端 22px → var(--content-gap)
+     *
+     * 22px 是外殼標題列還沒對齊時留下的閃避補償（那時 iframe 起點與標題列
+     * 差 15px，各頁都自己往下推一段）。外殼改用 --shell-header-h 對齊後，
+     * 這 22px 就變成純粹多出來的空白 —— 歷史記錄標題與主標題列的距離
+     * 因此比其他區塊都大。改用四頁共用的 --content-gap，跟頁面其他頂端
+     * 間距同一個來源，以後只要改一個變數。
+     *
+     * 計算頁與支票頁共用這條規則，一次修好兩頁。 */
+    padding: var(--content-gap) 15px 5px 15px;
+    background-color: var(--primary-color);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-panel-head);
+    border-bottom: 2px solid var(--accent-color);
+    box-shadow: 0 2px 10px var(--shadow-color);
+    margin-top: 0;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.header-right {
+    margin-right: 10px;
+}
+
+.history-header h2 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 20px;
+    text-shadow: 0 1px 2px var(--shadow-color);
+}
+
+.history-content {
+    /* 【2026/07】移除 padding-top: 20px
+     *
+     * 這裡原本先寫 padding: 8px 再用 padding-top: 20px 覆寫，
+     * 等於在已經多 22px 的標題列下方又疊一段空白，
+     * 第一筆紀錄被推得離標題很遠。標題列自己已經有下內距，
+     * 這裡回到四邊一致的 8px。 */
+    padding: 8px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 3px;
+    margin-bottom: 4px;
+}
+
+.history-item {
+    background-color: var(--secondary-color);
+    padding: 3px;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    margin: 4px 0;
+    transform-origin: left;
+    border: 1px solid rgba(var(--accent-color-rgb), 0.2);
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 2px 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 2px;
+    margin-bottom: 2px;
+}
+
+.history-date {
+    font-weight: normal;
+    color: var(--accent-color);
+    font-size: 14px;
+    padding: 2px 0;
+    margin-left: 5px;
+}
+
+.history-header-rate {
+    font-weight: normal;
+    color: var(--text-color);
+    font-size: 16px;
+    background-color: var(--accent-color-light);
+    padding: 2px 6px;
+    margin: 0px 5px 0px 5px;
+    border-radius: 4px;
+}
+
+.history-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    background-color: rgba(var(--primary-color-rgb), 0.08);
+    padding: 4px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.detail-label {
+    font-size: 16px;
+    color: var(--text-muted);
+}
+
+.detail-value {
+    font-size: 14px;
+    font-weight: normal;
+    color: var(--text-color);
+    line-height: 1;
+    text-align: right;
+}
+
+.history-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 3px;
+}
+
+.delete-btn, .detail-btn {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 15px;
+    font-weight: normal;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    min-width: 60px;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.delete-btn {
+    background-color: rgba(var(--error-color-rgb), 0.15);
+    color: var(--text-muted);
+    border: 1px solid rgba(var(--error-color-rgb), 0.3);
+    opacity: 0.7;
+    transform: scale(0.9);
+}
+
+.delete-btn:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4);
+}
+
+.detail-btn {
+    background-color: rgba(var(--info-color-rgb), 0.25);
+    color: var(--text-color);
+    border: 1px solid rgba(var(--info-color-rgb), 0.5);
+}
+
+.detail-btn:hover {
+    background-color: var(--info-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(var(--info-color-rgb), 0.4);
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 30px 0;
+    font-size: 16px;
+}
+
+.delete-all-btn {
+    background: rgba(var(--error-color-rgb), 0.15);
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.delete-all-btn:hover {
+    background-color: var(--error-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(var(--error-color-rgb), 0.4);
+}
+
+
+/* ============================================
+* 數字計算機鍵盤彈窗 (Number Pad Modal)
+* ============================================ */
+
+
+/* ============================================
+* 備註編輯視窗 (Note Editor Modal)
+* ============================================ */
+.history-note-container {
+    background-color: rgba(var(--primary-color-rgb), 0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+    padding: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.history-item-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-note-preview {
+    color: var(--note-text-color);
+    font-size: 14px;
+    min-height: 20px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background-color: rgba(var(--primary-color-rgb), 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    max-width: 170px;
+    line-height: 1.4;
+}
+
+.history-note-preview.empty-note {
+    color: var(--note-text-empty);
+    font-style: italic;
+    background-color: transparent;
+}
+
+.history-note-preview:hover {
+    background-color: var(--accent-color-light);
+    border-color: rgba(var(--accent-color-rgb), 0.3);
+}
+
+
+/* ============================================
+ * 「存檔／歷史」按鈕列
+ * --------------------------------------------
+ * 【2026/07 步驟 4-2 從 calculator.css 搬過來】
+ * 四頁的存檔與歷史入口都用這一排。加油頁補上之後，
+ * 這組樣式也必須是四頁共用的 —— 加油頁不載入 calculator.css。
+ *
+ * .top-buttons / .bottom-buttons 只是位置修飾詞，一併帶過來，
+ * 否則計算頁與支票頁那兩排按鈕會失去等寬分配。
+ * ============================================ */
+
+.function-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0;
+    padding: 0;
+    width: 100%;
+}
+
+.function-buttons .button-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 4px;
+    width: 100%;
+}
+
+.top-buttons .button-row button,
+.bottom-buttons .button-row button {
+    flex: 1;
+    min-width: 0;
+}
+
+.function-buttons button {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+    border: 1px solid var(--button-orange);
+    border-radius: 6px;
+    padding: 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+}
+
+.function-buttons button:hover {
+    background-color: var(--button-orange);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.function-buttons button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.1s;
+}
