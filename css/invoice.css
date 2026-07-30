@@ -672,54 +672,10 @@ body { padding-bottom: 12px !important; }
  *   2. 這頁是跑在 iframe 裡的，iframe 底部不等於螢幕底部，貼底反而更難預測
  * 置中在各種裝置上的表現一致得多，而且鍵盤本身已經夠大，不差那幾公分。
  */
-.pad-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .72);
-    z-index: 5000;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
-    box-sizing: border-box;
-    overflow-y: auto;
-}
-.pad-modal.show { display: flex; }
-
-.pad-panel {
-    width: 100%;
-    max-width: 380px;
-    margin: auto;
-    background: var(--secondary-color);
-    border-radius: 12px;
-    border: 2px solid var(--button-orange);
-    padding: 10px 8px;
-    box-sizing: border-box;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, .55);
-}
-
-.pad-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-.pad-head .t { font-size: 13px; font-weight: bold; color: var(--button-orange); }
-.pad-head .x {
-    background: transparent;
-    border: none;
-    color: #cccccc;
-    font-size: 22px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 6px;
-}
-
-/* 註：.pad-disp / .pad-sub / .pad-grid / .pad-line / .key 這幾組樣式
-   已於 2026/07 移除 —— 本頁自帶的那台數字鍵盤改用四頁共用的版本
-   （樣式在 css/keypad.css）。
-   上面的 .pad-modal / .pad-panel / .pad-head 要留著：日期選擇彈窗
-   （#dateModal）仍然用同一組外框。 */
+/* 註：日期選擇彈窗的樣式（.pad-modal / .pad-panel / .pad-head / .cal-* /
+   .date-btns）已於 2026/07 全部移除 —— 本頁的月曆改用四頁共用的
+   日期選擇器，樣式在 css/keypad.css。
+   數字鍵盤的樣式更早一步也是這樣搬走的，所以這一段現在完全空了。 */
 
 /* ===================================================================
    9. 歷史記錄
@@ -822,85 +778,11 @@ body { padding-bottom: 12px !important; }
 
 /* ===================================================================
    10. 日期選擇（月曆）
-   原本用加減鍵，但要把「日」從 26 改到 3 得按二十幾下。
-   月曆一格一天，點一下就到，補開前幾天的發票時差很多。
+   2026/07 起改用四頁共用的日期選擇器（js/common-datepicker.js），
+   樣式在 css/keypad.css，本頁不再自帶一套。
+   共用版比本頁原本那套多了：面板高度固定（切月不上下跳）、
+   點年份／月份可以直接選、過去日期變色提醒。
    =================================================================== */
-.cal-nav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 6px;
-}
-.cal-nav button {
-    flex: 0 0 38px;
-    height: 34px;
-    background: var(--secondary-color);
-    color: var(--button-blue);
-    border: 1px solid var(--border-color);
-    border-radius: 7px;
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0;
-}
-.cal-nav button:active { background: var(--button-blue); color: #fff; }
-.cal-title {
-    flex: 1;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--button-orange);
-    font-variant-numeric: tabular-nums;
-}
-
-.cal-week { display: flex; margin-bottom: 3px; }
-.cal-week span {
-    flex: 1;
-    text-align: center;
-    font-size: 11px;
-    color: #9a9a9a;
-}
-
-.cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    margin-bottom: 10px;
-}
-.cal-grid .d {
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--field-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 7px;
-    font-size: 15px;
-    cursor: pointer;
-    font-variant-numeric: tabular-nums;
-}
-.cal-grid .d.blank { background: transparent; border-color: transparent; cursor: default; }
-.cal-grid .d.today { border-color: var(--button-blue); color: var(--button-blue); font-weight: bold; }
-.cal-grid .d.sel {
-    background: var(--button-orange);
-    border-color: var(--button-orange);
-    color: #fff;
-    font-weight: bold;
-}
-
-.date-btns { display: flex; gap: 6px; }
-.date-btns button {
-    flex: 1;
-    padding: 10px 0;
-    border-radius: 7px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    border: 1px solid var(--border-color);
-    background: var(--secondary-color);
-    color: var(--text-color);
-}
-.date-btns button.ok { background: var(--button-orange); border-color: var(--button-orange); }
 
 /* ===================================================================
    11. 提示訊息

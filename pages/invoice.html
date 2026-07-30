@@ -233,35 +233,10 @@
     <div class="sheet-body" id="histBody"></div>
 </div>
 
-<!-- ===================================================================
-     日期選擇
-     預設今天，需要補開或補寫前幾天的發票時才會動到。
-     =================================================================== -->
-<div class="pad-modal" id="dateModal">
-    <div class="pad-panel">
-        <div class="pad-head">
-            <span class="t">發票日期（民國）</span>
-            <button class="x" id="dateClose">×</button>
-        </div>
-
-        <!-- 月曆直接點日期，比加減鍵快得多：
-             要改成 3 號，加減鍵要按二十幾下，月曆點一下就好 -->
-        <div class="cal-nav">
-            <button data-nav="y-1">«</button>
-            <button data-nav="m-1">‹</button>
-            <span class="cal-title" id="calTitle">115 年 7 月</span>
-            <button data-nav="m1">›</button>
-            <button data-nav="y1">»</button>
-        </div>
-        <div class="cal-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
-        <div class="cal-grid" id="calGrid"></div>
-
-        <div class="date-btns">
-            <button id="dateToday">今天</button>
-            <button class="ok" id="dateOk">確定</button>
-        </div>
-    </div>
-</div>
+<!-- 日期選擇
+     2026/07：本頁原本自帶一套月曆（#dateModal），已改用四頁共用的
+     日期選擇器（由 js/common-datepicker.js 注入）。
+     共用版的面板高度固定，切月不會上下跳，而且點年份／月份可以直接選。 -->
 
 <!-- ===================================================================
      文字輸入彈窗（抬頭 / 品名）
@@ -298,6 +273,7 @@
      invoice-engine.js 之前 —— 它以 let 宣告鍵盤共用狀態，需先完成宣告。 -->
 <script src="../js/common-keypad.js"></script>
 <script src="../js/common-modals.js"></script>
+<script src="../js/common-datepicker.js"></script>
 <script src="../js/common-footer.js"></script>
 <script src="../js/taxid-lookup.js"></script>
 <script src="../js/invoice-engine.js"></script>

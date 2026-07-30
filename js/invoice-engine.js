@@ -1187,46 +1187,32 @@ function commitText(val) {
 /* ============================================================
    日期選擇
    ============================================================ */
-let dateDraft = null;
 
+/**
+ * 開啟日期選擇器（2026/07 起改用四頁共用的元件）
+ *
+ * 本頁原本自己有一套月曆（openDate / paintDate / navDate + #dateModal，
+ * 約 46 行 JS 與 77 行 CSS），支票頁另外有一套 139 行的。
+ * 兩套的外觀與操作邏輯都不一樣，現在統一走 js/common-datepicker.js。
+ *
+ * 共用元件多出來的能力：面板高度固定（切月不會上下跳）、
+ * 點年份可以直接選年份、點月份可以直接選月份。
+ *
+ * 本頁保留的一項特性：剛好選到今天就把 state.date 存成 null，
+ * 這樣跨日之後再開啟，日期會自動跟著今天走 —— 業務通常當天就開票，
+ * 存成固定日期反而要每天手動改。這是頁面邏輯，不進元件。
+ */
 function openDate() {
-    dateDraft = Object.assign({}, curDate());
-    paintDate();
-    $('dateModal').classList.add('show');
-    vibrate(30);
-}
-
-function paintDate() {
-    const { y, m, d } = dateDraft;
-    $('calTitle').textContent = `${y} 年 ${m} 月`;
-
-    const first = new Date(y + 1911, m - 1, 1).getDay();   // 當月 1 號是星期幾
-    const days = daysInMonth(y, m);
-    const t = todayROC();
-
-    let h = '';
-    for (let i = 0; i < first; i++) h += '<span class="d blank"></span>';
-    for (let n = 1; n <= days; n++) {
-        const cls = ['d'];
-        if (n === d) cls.push('sel');
-        if (y === t.y && m === t.m && n === t.d) cls.push('today');
-        h += `<span class="${cls.join(' ')}" data-d="${n}">${n}</span>`;
-    }
-    $('calGrid').innerHTML = h;
-}
-
-/** 月曆換月／換年。跨月後若選中的日不存在（例如 1/31 到 2 月），夾回當月最後一天 */
-function navDate(field, delta) {
-    if (field === 'y') dateDraft.y = Math.min(200, Math.max(90, dateDraft.y + delta));
-    else {
-        const total = (dateDraft.y * 12 + (dateDraft.m - 1)) + delta;
-        dateDraft.y = Math.floor(total / 12);
-        dateDraft.m = (total % 12) + 1;
-    }
-    const max = daysInMonth(dateDraft.y, dateDraft.m);
-    if (dateDraft.d > max) dateDraft.d = max;
-    paintDate();
-    vibrate(20);
+    openDatePicker({
+        title: '發票日期（民國）',
+        value: curDate(),
+        onOk: roc => {
+            const t = todayROC();
+            state.date = (roc.y === t.y && roc.m === t.m && roc.d === t.d)
+                ? null : { y: roc.y, m: roc.m, d: roc.d };
+            render();
+        }
+    });
 }
 
 /* ============================================================
@@ -1733,30 +1719,8 @@ function bind() {
     });
 
     // --- 日期 ---
-    $('dateClose').addEventListener('click', () => $('dateModal').classList.remove('show'));
-    $('dateModal').addEventListener('click', e => {
-        if (e.target === $('dateModal')) $('dateModal').classList.remove('show');
-    });
-    $('dateModal').querySelectorAll('[data-nav]').forEach(b => {
-        const v = b.dataset.nav;                     // 例如 "m-1"、"y1"
-        b.addEventListener('click', () => navDate(v[0], parseInt(v.slice(1), 10)));
-    });
-    $('calGrid').addEventListener('click', e => {
-        const c = e.target.closest('[data-d]');
-        if (!c) return;
-        dateDraft.d = +c.dataset.d;
-        paintDate();
-        vibrate(20);
-    });
-    $('dateToday').addEventListener('click', () => { dateDraft = todayROC(); paintDate(); });
-    $('dateOk').addEventListener('click', () => {
-        const t = todayROC();
-        // 剛好選到今天就存 null，之後跨日開啟會自動跟著更新
-        state.date = (dateDraft.y === t.y && dateDraft.m === t.m && dateDraft.d === t.d)
-            ? null : Object.assign({}, dateDraft);
-        $('dateModal').classList.remove('show');
-        render();
-    });
+    /* 日期選擇器的按鍵全部由共用元件自己處理（見 js/common-datepicker.js），
+       本頁只要在點欄位時呼叫 openDate() 即可。 */
 
     // --- 數字鍵盤 ---
     /* 共用鍵盤的按鍵、關閉鈕、點遮罩關閉都由 js/common-modals.js 注入的

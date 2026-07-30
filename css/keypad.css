@@ -553,6 +553,161 @@
     background-color: var(--primary-color);
 }
 
+/* ===================================================================
+   共用日期選擇器（js/common-datepicker.js 注入的 DOM）
+
+   兩個刻意的設計，都是為了「面板高度與按鍵位置永遠不動」：
+
+     1. 日曆固定 6 列 42 格，不足補空白格。
+        舊版是有幾週畫幾列，5 列的月份切到 6 列的月份時面板會長高，
+        下面的按鍵跟著往下跑 —— 連續切月時按鍵在手指底下移動。
+
+     2. 日曆／年份／月份三個選單疊在同一個固定高度的 .dp-body 裡，
+        用 .date-modal[data-pane] 切換誰顯示。切換時高度一樣不變。
+
+   提示行（.dp-hint）也固定保留高度，理由同數字鍵盤的副資訊行。
+   =================================================================== */
+.date-modal {
+    background-color: var(--primary-color);
+    border-radius: 12px;
+    width: 95%;
+    max-width: 350px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    overflow: hidden;
+    animation: modalSlideIn 0.1s ease-out;
+}
+
+/* 標題列與數字鍵盤同一組尺寸，四頁的彈窗才會像同一個東西 */
+.date-modal .modal-header { padding: 9px 12px; }
+.date-modal .modal-header h3 { font-size: 17px; }
+
+.dp-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 8px 4px;
+}
+
+.dp-nav button {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    height: 34px;
+    width: 40px;
+    cursor: pointer;
+}
+
+/* 年與月是可點的，做得比箭頭寬，看得出來是按鍵而不只是文字 */
+.dp-nav .dp-label {
+    width: auto;
+    flex: 1;
+    max-width: 110px;
+    font-size: 15px;
+    color: var(--accent-color);
+}
+.dp-nav button:active { background-color: var(--accent-color); color: #ffffff; }
+
+.dp-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    padding: 0 8px 3px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.dp-body {
+    position: relative;
+    /* 6 列 × 32px + 5 個 3px 間距 = 207 */
+    height: 207px;
+    margin: 0 8px;
+}
+
+.dp-grid,
+.dp-years,
+.dp-months {
+    position: absolute;
+    inset: 0;
+    display: none;
+}
+
+.date-modal[data-pane="day"] .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.date-modal[data-pane="year"] .dp-years { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; align-content: start; }
+.date-modal[data-pane="month"] .dp-months { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-content: start; }
+
+.dp-day {
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-color);
+    background-color: var(--secondary-color);
+    border-radius: 6px;
+    cursor: pointer;
+}
+.dp-day.blank { background: transparent; cursor: default; }
+.dp-day.today { outline: 1px solid var(--accent-color); }
+.dp-day.sel { background-color: var(--accent-color); color: #ffffff; font-weight: bold; }
+
+/* 過去的日期：變色提醒但仍然可選。
+   支票補登已經開始繳的案子時真的需要選過去的日期，禁選會把人擋死。 */
+.dp-day.past { color: var(--error-color); }
+.dp-day.past.sel { background-color: var(--error-color); color: #ffffff; }
+
+.dp-cell {
+    height: 44px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+.dp-cell.today { border-color: var(--accent-color); }
+.dp-cell.sel { background-color: var(--accent-color); color: #ffffff; font-weight: bold; }
+
+.dp-hint {
+    height: 22px;
+    line-height: 22px;
+    padding: 0 10px;
+    margin-top: 6px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dp-hint.warn { color: var(--error-color); font-weight: bold; }
+
+.dp-btns {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+}
+
+.dp-btns button {
+    flex: 1;
+    height: 42px;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.dp-btns button.ok {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #ffffff;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }

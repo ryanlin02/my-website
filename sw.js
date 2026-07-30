@@ -57,6 +57,7 @@ const CORE_ASSETS = [
     './css/invoice.css',        // 發票頁專用樣式（發票頁不吃 calculator.css）
     './js/common-modals.js',    // 四頁共用的彈窗與數字小鍵盤（HTML 注入）
     './js/common-keypad.js',    // 四頁共用的鍵盤邏輯（2026/07 起發票頁也走這台）
+    './js/common-datepicker.js',// 共用日期選擇器（支票頁與發票頁）
     './js/common-footer.js',    // 四頁共用的頁尾與版本號顯示
     './js/frame-guard.js',      // 四個功能頁共用的防護腳本
 

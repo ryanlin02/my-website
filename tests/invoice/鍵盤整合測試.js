@@ -74,8 +74,11 @@ ok(typeof window.padKey !== 'function', 'padKey() 已移除（避免兩套按鍵
 ok(!!$('numberInputModal'), '共用鍵盤已注入');
 ok(!/\.pad-grid\s*\{|\.key\s*\{/.test(fs.readFileSync(path.join(ROOT, 'css/invoice.css'), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '')), 'invoice.css 已移除舊鍵盤樣式');
-ok(/\.pad-panel\s*\{/.test(fs.readFileSync(path.join(ROOT, 'css/invoice.css'), 'utf8')),
-    '  但保留 .pad-panel —— 日期選擇彈窗還在用同一組外框');
+/* 2026/07：日期選擇器也搬到共用元件之後，.pad-* 整組都不需要了。
+   原本這裡是「保留 .pad-panel，因為日期彈窗還在用同一組外框」。 */
+ok(!/\.pad-panel\s*\{|\.pad-modal\s*\{/.test(fs.readFileSync(path.join(ROOT, 'css/invoice.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')),
+    '  .pad-* 整組已移除（日期選擇器也改用共用元件了）');
 ok(/<link rel="stylesheet" href="\.\.\/css\/keypad\.css">[\s\S]*<link rel="stylesheet" href="\.\.\/css\/invoice\.css">/.test(html),
     'keypad.css 排在 invoice.css 之前（本頁才蓋得掉共用樣式）');
 
