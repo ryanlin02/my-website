@@ -1,20 +1,20 @@
 {
-  "updatedAt": "2026-09-07T06:49:55.418356+08:00",
-  "updatedDateStr": "2026/09/07 06:49",
+  "updatedAt": "2026-09-14T07:03:15.653952+08:00",
+  "updatedDateStr": "2026/09/14 07:03",
   "prices": {
     "cpc": {
       "name": "台灣中油",
-      "diesel": 29.3,
-      "unleaded92": 30.5,
-      "unleaded95": 32.0,
-      "unleaded98": 34.0
+      "diesel": 29.9,
+      "unleaded92": 31.2,
+      "unleaded95": 32.7,
+      "unleaded98": 34.7
     },
     "formosa": {
       "name": "台塑石油",
-      "diesel": 29.1,
-      "unleaded92": 30.5,
-      "unleaded95": 32.0,
-      "unleaded98": 34.0
+      "diesel": 29.7,
+      "unleaded92": 31.2,
+      "unleaded95": 32.7,
+      "unleaded98": 34.7
     }
   }
 }
