@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-10-26T07:07:29.020112+08:00",
-  "updatedDateStr": "2026/10/26 07:07",
+  "updatedAt": "2026-11-02T08:29:38.440056+08:00",
+  "updatedDateStr": "2026/11/02 08:29",
   "prices": {
     "cpc": {
       "name": "台灣中油",
       "diesel": 29.9,
-      "unleaded92": 31.0,
+      "unleaded92": 31.2,
       "unleaded95": 32.7,
       "unleaded98": 34.7
     },
